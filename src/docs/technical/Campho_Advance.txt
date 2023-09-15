@@ -195,6 +195,7 @@ Some commands return data for the Campho Advance to read. The meaning of the dat
 ------------------------------------------------------------------------
 Command		| Description
 ------------------------------------------------------------------------
+0x3744		| Unknown (used when pulse dialing is enabled)
 0x9740		| Unknown
 0xB740		| Starts input data from the camera (small 58x48 frame)
 0xD740		| Starts input data from the camera (large 176x144 frame)
@@ -388,7 +389,7 @@ Address		| Description
 0x0E - 0x17	| Contact Phone Number (10 digits max)
 ------------------------------------------------------------------------
 
-The contact's phone number uses the same encoding format as dialing phone numbers. See the next section (Dialing Phone Numbers) for more details. The contact's name can be a mixture of katakana, Latin characters, and numbers. That format uses 8-bit values that match uppercase ASCII characters while using a custom character set for katakana. It has some similarities to JIS X 0201 with many modifications. The chart below shows the character maps for katakana:
+The contact's name can be a mixture of katakana, Latin characters, and numbers. That format uses 8-bit values that match uppercase ASCII characters while using a custom character set for katakana. It has some similarities to JIS X 0201 with many modifications. The chart below shows the character maps for katakana:
 
 ------------------------------------------------------------------------------------------------------------------------------------
 	| 00	01	02	03	04	05	06	07	08	09	0A	0B	0C	0D	0E	0F
@@ -399,9 +400,14 @@ The contact's phone number uses the same encoding format as dialing phone number
 0xD0	| ョ	ァ	ィ	ッ	ン	ゥ	ェ	ォ	ﾞ	ﾟ
 ------------------------------------------------------------------------------------------------------------------------------------
 
-Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. All characters use the same transformation at the even digits used for the phone number. Essentially, all 8-bit character values are altered as such when stored on the Campho:
+Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. All characters use the same transformation at the even digits used for the phone number. Characters are grouped into 16-bit pairs; the first character occupies the LSB and the next character occupies the MSB. The 16-bit value is then adjusted as such:
 
-FINAL_VALUE_8 = (CHAR_VALUE LSL 5) OR (CHAR_VALUE LSR 3)
+OUTPUT_16 = ((INPUT_16 LSL 3) OR (INPUT_16 LSR 13))
+
+The contact's phone number uses the same encoding format as dialing phone numbers. See the next section (Dialing Phone Numbers) for more details.
+
+Both the contact name and phone number are encoded as null terminated strings if their length is 9 characters or less. The Campho Advance seems to return garbage data after the null character for the rest of the contact name or phone number's length. For example, a contact name of "ALICE" would use 6 characters in total, and the remaining 4 would be whatever, usually leftovers from previous commands reading or writing contact data.
+
 
 ***************************************************
 10. Dialing Phone Numbers
@@ -442,46 +448,11 @@ Number	| 16-bit Value
 10	| 0x4001
 ------------------------------------------------------------------------
 
-The actual digits for the phone number are stored in a 16-bit values in pairs. Odd and even digits have different encodings. Note that the "*" / "#" key appears to be just "." on the Campho Advance.
+The actual digits for the phone number are stored as 16-bit values in pairs. The first digit occupies the LSB, while the second digit occupies the MSB. The Campho Advance uses ASCII encoding, however, the entire 16-bit value is modified as such:
 
-------------------------------------------------------------------------
-Key (Odd Digits)	| 16-bit Value
-------------------------------------------------------------------------
-.			| 0xC005
-0			| 0x0006
-1			| 0x2006
-2			| 0x4006
-3			| 0x6006
-4			| 0x8006
-5			| 0xA006
-6			| 0xC006
-7			| 0xE006
-8			| 0x0007
-9			| 0x2007
-------------------------------------------------------------------------
+OUTPUT_16 = ((INPUT_16 LSL 3) OR (INPUT_16 LSR 13))
 
-------------------------------------------------------------------------
-Key (Even Digits)	| 16-bit Value
-------------------------------------------------------------------------
-.			| 0x05C0
-0			| 0x0600
-1			| 0x0620
-2			| 0x0640
-3			| 0x0660
-4			| 0x0680
-5			| 0x06A0
-6			| 0x06C0
-7			| 0x06E0
-8			| 0x0700
-9			| 0x0720
-------------------------------------------------------------------------
-
-These Odd and Even digits encodings are logically OR'ed together to form a single 16-bit encoding. If an odd digit is the last digit in the phone number, then it remains unchanged.
-
-The above values are derived by transforming ASCII values in the following ways:
-
-ODD_DIGIT_16 = (ASCII_VALUE LSL 13) OR (ASCII_VALUE LSR 3)
-EVEN_DIGIT_8 = (ASCII_VALUE LSL 5) OR (ASCII_VALUE LSR 3)
+Note that the "*" / "#" key appears to be just "." on the Campho Advance.
 
 
 ***************************************************
