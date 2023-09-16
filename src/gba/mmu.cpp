@@ -2747,7 +2747,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	//Load Campho config data
 	else if(current_save_type == CAMPHO_CONFIG)
 	{
-		if(file_size < 0x2C)
+		if(file_size < 0x18)
 		{
 			std::cout<<"MMU::Warning - Campho config data save size too small\n";
 			file.close();
@@ -2756,7 +2756,6 @@ bool AGB_MMU::load_backup(std::string filename)
 
 		//Read data from file
 		file.read(reinterpret_cast<char*> (&campho.config_data[4]), 24);
-		file.read(reinterpret_cast<char*> (&campho.contact_data[8]), 20);
 
 		//Set the first 4-bytes as metadata for Campho config data
 		campho.config_data[0] = 0x31;
@@ -2764,23 +2763,20 @@ bool AGB_MMU::load_backup(std::string filename)
 		campho.config_data[2] = 0x03;
 		campho.config_data[3] = 0x00;
 
+		u32 contact_data_size = file_size - 24;
+
+		if(contact_data_size)
+		{
+			campho.contact_data.resize(contact_data_size, 0x00);
+			file.read(reinterpret_cast<char*> (&campho.contact_data[0]), contact_data_size);
+		}
+
 		//Use settings values for Campho structure
 		campho.speaker_volume = campho_find_settings_val((campho.config_data[9] << 8) | campho.config_data[8]);
 		campho.mic_volume = campho_find_settings_val((campho.config_data[11] << 8) | campho.config_data[10]);
 		campho.video_brightness = campho_find_settings_val((campho.config_data[13] << 8) | campho.config_data[12]);
 		campho.video_contrast = campho_find_settings_val((campho.config_data[15] << 8) | campho.config_data[14]);
 		campho.image_flip = ((campho.config_data[17] << 8) | campho.config_data[16]) ? true : false;
-
-		//Set the first 8 bytes as metadata for Campho contact data
-		campho.contact_data[0] = 0x31;
-		campho.contact_data[1] = 0x08;
-		campho.contact_data[2] = 0x03;
-		campho.contact_data[3] = 0x00;
-
-		campho.contact_data[4] = 0xFF;
-		campho.contact_data[5] = 0xFF;
-		campho.contact_data[6] = 0xFF;
-		campho.contact_data[7] = 0xFF;
 	}
 
 	file.close();
@@ -2983,7 +2979,7 @@ bool AGB_MMU::save_backup(std::string filename)
 		}
 
 		file.write(reinterpret_cast<char*> (&campho.config_data[4]), 0x18);
-		file.write(reinterpret_cast<char*> (&campho.contact_data[8]), 0x14);
+		file.write(reinterpret_cast<char*> (&campho.contact_data[0]), campho.contact_data.size());
 		file.close();
 
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";

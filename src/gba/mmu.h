@@ -323,6 +323,7 @@ class AGB_MMU
 		u32 out_stream_index;
 		std::vector <u8> config_data;
 		std::vector <u8> contact_data;
+		std::vector <u8> saved_contact_data;
 		std::vector <u8> out_stream;
 		bool read_out_stream;
 

@@ -21,7 +21,6 @@ void AGB_MMU::campho_reset()
 	campho.config_data.clear();
 	campho.config_data.resize(0x1C, 0x00);
 	campho.contact_data.clear();
-	campho.contact_data.resize(0x1C, 0x00);
 	campho.read_out_stream = false;
 	campho.out_stream_index = 0;
 
@@ -409,6 +408,7 @@ void AGB_MMU::campho_process_input_stream()
 					for(u32 x = 0; x < campho.config_data.size(); x++)
 					{
 						campho.out_stream.push_back(campho.config_data[x]);
+						std::cout<<"0x" << (u32)campho.out_stream[x] << "\n";
 					}
 				}
 
@@ -487,8 +487,6 @@ void AGB_MMU::campho_process_input_stream()
 				bool old_flag = campho.image_flip;
 				campho.image_flip = ((campho.g_stream[0x11] << 8) | campho.g_stream[0x10]) ? true : false;
 
-				
-
 				//Allow settings to be read now (until next stream)
 				campho.out_stream_index = 0;
 				campho.read_out_stream = true;
@@ -512,7 +510,6 @@ void AGB_MMU::campho_process_input_stream()
 				//Allow outstream to be read (until next stream)
 				campho.out_stream_index = 0;
 				campho.read_out_stream = true;
-
 
 				std::string contact_name = campho_convert_contact_name();
 				std::string contact_number = "";
