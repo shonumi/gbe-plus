@@ -316,7 +316,7 @@ void AGB_MMU::campho_process_input_stream()
 			std::cout<<"Graphics ROM Index -> 0x" << index << "\n";
 		}
 
-		//Camera commands
+		//Campho commands
 		else if(campho.g_stream.size() == 0x04)
 		{
 			//Stop camera?
@@ -345,13 +345,22 @@ void AGB_MMU::campho_process_input_stream()
 				campho.last_slice = 0;
 			}
 
-			//Switch to telecom mode??
+			//Read the number of contact data entries
 			else if(index == 0xD778)
 			{
-				//Campho expects 16-bit status 0x7780
 				campho.out_stream.clear();
-				campho.out_stream.push_back(0x80);
-				campho.out_stream.push_back(0x77);
+
+				//Metadata for Campho Advance
+				campho.out_stream.push_back(0x32);
+				campho.out_stream.push_back(0x08);
+				campho.out_stream.push_back(0x00);
+				campho.out_stream.push_back(0x40);
+
+				u16 num_of_contacts = campho.contact_data.size() / 28;
+				num_of_contacts = ((num_of_contacts << 13) | (num_of_contacts >> 3));
+
+				campho.out_stream.push_back(num_of_contacts & 0xFF);
+				campho.out_stream.push_back(num_of_contacts >> 8);
 
 				//Allow outstream to be read (until next stream)
 				campho.out_stream_index = 0;
@@ -408,7 +417,6 @@ void AGB_MMU::campho_process_input_stream()
 					for(u32 x = 0; x < campho.config_data.size(); x++)
 					{
 						campho.out_stream.push_back(campho.config_data[x]);
-						std::cout<<"0x" << (u32)campho.out_stream[x] << "\n";
 					}
 				}
 
