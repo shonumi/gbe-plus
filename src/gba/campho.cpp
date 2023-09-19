@@ -420,7 +420,7 @@ void AGB_MMU::campho_process_input_stream()
 					}
 				}
 
-				else if(index == 0x4000)
+				else if((index & 0xFFFF) == 0x4000)
 				{
 					for(u32 x = 0; x < campho.contact_data.size(); x++)
 					{
@@ -503,7 +503,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Save Name + Phone Number
-			else if(sub_header == 0xFFFFFFFF)
+			else if((sub_header & 0xFFFF) == 0xFFFF)
 			{
 				campho.contact_data.clear();
 
