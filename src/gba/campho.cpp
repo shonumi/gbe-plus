@@ -46,6 +46,8 @@ void AGB_MMU::campho_reset()
 
 	campho.last_slice = 0;
 	campho.repeated_slices = 0;
+
+	campho.contact_index = -1;
 }
 
 /****** Writes data to Campho I/O ******/
@@ -365,6 +367,8 @@ void AGB_MMU::campho_process_input_stream()
 				//Allow outstream to be read (until next stream)
 				campho.out_stream_index = 0;
 				campho.read_out_stream = true;
+
+				campho.contact_index = -1;
 			}
 
 			//Turn on camera for small frame?
@@ -422,10 +426,26 @@ void AGB_MMU::campho_process_input_stream()
 
 				else if((index & 0xFFFF) == 0x4000)
 				{
-					for(u32 x = 0; x < campho.contact_data.size(); x++)
+					//Pull up current contact index
+					if(index == 0xFFFF4000) { }
+
+					//Increment or decrement contact index
+					else if(index == 0x4000) { campho.contact_index++; }
+					else { campho.contact_index--; }
+
+					u32 max_size = (campho.contact_data.size() / 28);
+
+					if((campho.contact_index >= 0) && (campho.contact_index < max_size))
 					{
-						campho.out_stream.push_back(campho.contact_data[x]);
+						u32 offset = campho.contact_index * 28;
+
+						for(u32 x = 0; x < 28; x++)
+						{
+							campho.out_stream.push_back(campho.contact_data[offset + x]);
+						}
 					}
+
+					else{ campho.out_stream.push_back(0x00); }
 				}
 			}
 
@@ -505,8 +525,6 @@ void AGB_MMU::campho_process_input_stream()
 			//Save Name + Phone Number
 			else if((sub_header & 0xFFFF) == 0xFFFF)
 			{
-				campho.contact_data.clear();
-
 				//32-bit metadata
 				campho.contact_data.push_back(0x31);
 				campho.contact_data.push_back(0x08);
