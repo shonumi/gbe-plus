@@ -446,7 +446,7 @@ void AGB_MMU::campho_process_input_stream()
 						}
 
 						//Get new contact index when scrolling back up list
-						else if((access_param & 0xFF) == 0xFF)
+						else if(((access_param & 0xFF) == 0xFF) || ((access_param & 0xFF) == 0x00))
 						{
 							campho.contact_index = (access_param >> 8);
 						}
@@ -454,7 +454,12 @@ void AGB_MMU::campho_process_input_stream()
 
 					u32 max_size = (campho.contact_data.size() / 28);
 
-					if((campho.contact_index >= 0) && (campho.contact_index < max_size))
+					if((campho.contact_index < 0) || (campho.contact_index >= max_size))
+					{
+						campho.contact_index = 0;
+					}
+
+					if(max_size)
 					{
 						u32 offset = campho.contact_index * 28;
 
@@ -549,11 +554,6 @@ void AGB_MMU::campho_process_input_stream()
 			//Save Name + Phone Number
 			else if((sub_header & 0xFFFF) == 0xFFFF)
 			{
-				for(u32 x = 0; x < campho.g_stream.size(); x++)
-				{
-					std::cout<<"CON -> 0x" << (u32)campho.g_stream[x] << "\n";
-				}
-
 				//32-bit metadata
 				campho.contact_data.push_back(0x31);
 				campho.contact_data.push_back(0x08);
