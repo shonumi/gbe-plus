@@ -510,6 +510,22 @@ void AGB_MMU::campho_process_input_stream()
 				campho_make_settings_stream(read_data);
 			}
 
+			//Erase contact data
+			else if(stream_stat == 0x1779)
+			{
+				u16 temp_index = (index >> 16);
+				temp_index = ((temp_index >> 13) | (temp_index << 3));
+				temp_index >>= 8;
+
+				u32 del_start = (temp_index * 28);
+				u32 del_end = (del_start + 28);
+
+				if(del_end <= campho.contact_data.size())
+				{
+					campho.contact_data.erase(campho.contact_data.begin() + del_start, campho.contact_data.begin() + del_end);
+				} 
+			}
+
 			//Allow settings to be read now (until next stream)
 			campho.out_stream_index = 0;
 			campho.read_out_stream = true;
