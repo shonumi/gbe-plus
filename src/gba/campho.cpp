@@ -433,7 +433,7 @@ void AGB_MMU::campho_process_input_stream()
 						campho.contact_index = 0;
 					}
 
-					//Set new contact indext
+					//Set new contact index
 					else
 					{
 						u16 access_param = (index >> 16);
@@ -600,9 +600,81 @@ void AGB_MMU::campho_process_input_stream()
 				std::cout<<"Campho Added Contact\n";
 			}
 
+			//Edit and update existing Name + Phone Number
 			else
 			{
-				std::cout<<"Saving unknown settings: 0x" << sub_header << "\n";
+				for(u32 x = 0; x < campho.g_stream.size(); x++)
+				{
+					std::cout<<"0x" << (u32)campho.g_stream[x] << "\n";
+				}
+
+				u32 edit_index = campho.contact_index * 28;
+
+				//32-bit metadata
+				campho.contact_data[edit_index++] = 0x31;
+				campho.contact_data[edit_index++] = 0x08;
+				campho.contact_data[edit_index++] = 0x03;
+				campho.contact_data[edit_index++] = 0x00;
+				campho.contact_data[edit_index++] = 0xFF;
+				campho.contact_data[edit_index++] = 0xFF;
+				campho.contact_data[edit_index++] = 0x00;
+				campho.contact_data[edit_index++] = 0x00;
+
+				//Setup separate out stream vs actual contact data that is saved
+				campho.out_stream.clear();
+				edit_index = (campho.contact_index * 28) + 8;
+
+				campho.out_stream.push_back(0x32);
+				campho.out_stream.push_back(0x48);
+				campho.out_stream.push_back(0x00);
+				campho.out_stream.push_back(0x00);
+				campho.out_stream.push_back(0x00);
+				campho.out_stream.push_back(0x00);
+				campho.out_stream.push_back(0x00);
+				campho.out_stream.push_back(0x00);
+
+				for(u32 x = 0x08; x < 0x1C; x++)
+				{
+					campho.out_stream.push_back(campho.contact_data[edit_index]);
+					campho.contact_data[edit_index++] = campho.g_stream[x];
+				}
+
+				//Allow outstream to be read (until next stream)
+				campho.out_stream_index = 0;
+				campho.read_out_stream = true;
+
+				std::string contact_name = campho_convert_contact_name();
+				std::string contact_number = "";
+
+				//Parse incoming data for contact phone number (last 10 bytes of stream)
+				for(u32 x = 0, digit_index = 18; x < 10; x++)
+				{
+					u16 val = (campho.g_stream[digit_index] | (campho.g_stream[digit_index + 1] << 8));
+					val = ((val >> 13) | (val << 3));
+
+					//Even Digits
+					if(x & 0x01)
+					{
+						u8 chr_val = ((val >> 8) & 0xFF);
+						if(chr_val == 0) { break; }
+
+						contact_number += ((val >> 8) & 0xFF);
+						digit_index += 2;
+					}
+
+					//Odd Digits
+					else
+					{
+						u8 chr_val = (val & 0xFF);
+						if(chr_val == 0) { break; }
+
+						contact_number += (val & 0xFF);
+					}
+				}
+
+				std::cout<<"Contact Name: " << contact_name << "\n";
+				std::cout<<"Contact Number: " << contact_number << "\n";
+				std::cout<<"Campho Updated Contact\n";
 			}
 
 			campho.video_capture_counter = 0;
