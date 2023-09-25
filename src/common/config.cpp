@@ -1367,6 +1367,23 @@ bool parse_ini_file()
 			}
 		}
 
+		//OSD alpha transparency
+		else if(ini_item == "#osd_alpha")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				if(output <= 255) { config::osd_alpha = output; }
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#osd_alpha) \n";
+				return false;
+			}
+		}
+
 		//DMG BIOS path
 		else if(ini_item == "#dmg_bios_path")
 		{
