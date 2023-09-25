@@ -238,6 +238,7 @@ namespace config
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;
 	extern u32 osd_count;
+	extern u8 osd_alpha;
 
 	extern bool use_external_interfaces;
 

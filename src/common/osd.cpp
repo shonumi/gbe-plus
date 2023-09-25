@@ -107,7 +107,39 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 
 					chr_pos = (chr_offset * 64) + (osd_h * 8) + osd_w;
 
-					if(buffer_pos < osd_surface.size()) { osd_surface[buffer_pos] = config::osd_font[chr_pos]; }
+					if(buffer_pos < osd_surface.size())
+					{
+						if(config::osd_alpha != 0xFF)
+						{
+							double ratio = (config::osd_alpha / 255.0);
+							u32 blend_color = 0xFF000000;
+
+							u32 c0 = config::osd_font[chr_pos];
+							u32 c1 = osd_surface[buffer_pos];
+
+							u16 c2 = ((((c0 & 0xFF) * ratio) + (c1 & 0xFF)) / 2);
+							c0 >>= 8;
+							c1 >>= 8;
+							blend_color |= c2;
+
+							c2 = ((((c0 & 0xFF) * ratio) + (c1 & 0xFF)) / 2);
+							c0 >>= 8;
+							c1 >>= 8;
+							blend_color |= (c2 << 8);
+
+							c2 = ((((c0 & 0xFF) * ratio) + (c1 & 0xFF)) / 2);
+							c0 >>= 8;
+							c1 >>= 8;
+							blend_color |= (c2 << 16);
+
+							osd_surface[buffer_pos] = blend_color;
+						}
+
+						else
+						{
+							osd_surface[buffer_pos] = config::osd_font[chr_pos];
+						}
+					}
 				}
 			}
 		}
@@ -156,7 +188,39 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 
 					chr_pos = (chr_offset * 64) + (osd_h * 8) + osd_w;
 
-					if(buffer_pos < osd_surface.size()) { osd_surface[buffer_pos] = config::osd_font[chr_pos]; }
+					if(buffer_pos < osd_surface.size())
+					{
+						if(config::osd_alpha != 0xFF)
+						{
+							double ratio = (config::osd_alpha / 255.0);
+							u32 blend_color = 0xFF000000;
+
+							u32 c0 = config::osd_font[chr_pos];
+							u32 c1 = osd_surface[buffer_pos];
+
+							u16 c2 = ((((c0 & 0xFF) * ratio) + (c1 & 0xFF)) / 2);
+							c0 >>= 8;
+							c1 >>= 8;
+							blend_color |= c2;
+
+							c2 = ((((c0 & 0xFF) * ratio) + (c1 & 0xFF)) / 2);
+							c0 >>= 8;
+							c1 >>= 8;
+							blend_color |= (c2 << 8);
+
+							c2 = ((((c0 & 0xFF) * ratio) + (c1 & 0xFF)) / 2);
+							c0 >>= 8;
+							c1 >>= 8;
+							blend_color |= (c2 << 16);
+
+							osd_surface[buffer_pos] = blend_color;
+						}
+
+						else
+						{
+							osd_surface[buffer_pos] = config::osd_font[chr_pos];
+						}
+					}
 				}
 			}
 		}

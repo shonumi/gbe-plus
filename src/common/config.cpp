@@ -284,6 +284,7 @@ namespace config
 	std::vector <u32> osd_font;
 	std::string osd_message = "";
 	u32 osd_count = 0;
+	u8 osd_alpha = 0xFF;
 }
 
 /****** Reset DMG default colors ******/
