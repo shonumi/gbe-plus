@@ -23,6 +23,7 @@ void AGB_MMU::campho_reset()
 	campho.contact_data.clear();
 	campho.read_out_stream = false;
 	campho.out_stream_index = 0;
+	campho.in_bios = true;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -185,6 +186,12 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
+	if((campho.in_bios) && (address == 0x8000000))
+	{
+		campho.in_bios = false;
+		std::cout<<"BIOS DONE\n";
+	}
+
 	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
@@ -195,7 +202,8 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	u8 result = 0;
 
 	//Read Low ROM Data Stream
-	if(address < 0x8008000)
+	//Read Low ROM Data Stream (GBA BIOS handling for DACS carts)
+	if((address < 0x8008000) || (campho.in_bios))
 	{
 		if(campho.bank_index_lo < campho.data.size())
 		{
@@ -749,9 +757,9 @@ void AGB_MMU::campho_map_rom_banks()
 	//Setup BS1 and BS2
 	campho.mapped_bank_id.push_back(0x08000000);
 	campho.mapped_bank_index.push_back(0x00);
-	campho.mapped_bank_len.push_back(0x48);
+	campho.mapped_bank_len.push_back(0x161);
 	campho.mapped_bank_pos.push_back(rom_pos);
-	rom_pos += 0x48;
+	rom_pos += 0x161;
 
 	campho.mapped_bank_id.push_back(0x08008000);
 	campho.mapped_bank_index.push_back(0x00);
