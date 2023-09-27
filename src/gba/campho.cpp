@@ -23,7 +23,7 @@ void AGB_MMU::campho_reset()
 	campho.contact_data.clear();
 	campho.read_out_stream = false;
 	campho.out_stream_index = 0;
-	campho.in_bios = true;
+	campho.in_bios = (config::use_bios) ? true : false;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -189,7 +189,6 @@ u8 AGB_MMU::read_campho(u32 address)
 	if((campho.in_bios) && (address == 0x8000000))
 	{
 		campho.in_bios = false;
-		std::cout<<"BIOS DONE\n";
 	}
 
 	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
@@ -207,6 +206,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	{
 		if(campho.bank_index_lo < campho.data.size())
 		{
+			std::cout<<"READ FROM -> 0x" << (u32)campho.bank_index_lo << "\n";
 			result = campho.data[campho.bank_index_lo++];
 		}
 	}
@@ -732,7 +732,7 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 			if(set_hi_bank) { campho.bank_index_hi = campho.mapped_bank_pos[x]; }
 
 			//Set Low ROM bank
-			else { campho.bank_index_lo = campho.mapped_bank_pos[x]; }
+			else { campho.bank_index_lo = campho.mapped_bank_pos[x]; std::cout<<"SET LOW -> 0x" << (u32)campho.bank_index_lo << "\n"; }
 
 			campho.block_len = campho.mapped_bank_len[x];
 			return;
@@ -844,7 +844,13 @@ void AGB_MMU::campho_map_rom_banks()
 	u32 bs2_bank = campho_get_bank_by_id(0x08008000);
 	
 	campho_set_rom_bank(campho.mapped_bank_id[bs1_bank], campho.mapped_bank_index[bs1_bank], false);
-	campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_index[bs2_bank], true);	
+	campho_set_rom_bank(campho.mapped_bank_id[bs2_bank], campho.mapped_bank_index[bs2_bank], true);
+
+	//When not using the GBA BIOS, ignore the first 281 ROM reads done by the BIOS
+	if(!config::use_bios)
+	{
+		campho.bank_index_lo = 0x119;
+	}
 }
 
 /****** Returns the internal ROM bank GBE+ needs - Mapped to the Campho Advance's IDs ******/
