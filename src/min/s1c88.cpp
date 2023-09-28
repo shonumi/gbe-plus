@@ -6017,8 +6017,6 @@ void S1C88::clock_system()
 				//Trigger PRC Overflow IRQ
 				mem->update_irq_flags(PRC_OVERFLOW_IRQ);
 
-				std::cout<<"DIV -> 0x" << (u32)controllers.video.lcd_stat.prc_rate_div << "\n";
-
 				frame_counter = 0;
 
 				if(controllers.video.lcd_stat.enable_copy)
@@ -6092,7 +6090,12 @@ void S1C88::clock_system()
 				if(x < 3) { lo_count--; }
 
 				//256Hz Timer increments 
-				else { lo_count++; }
+				else
+				{
+					lo_count = controllers.timer[x].counter & 0xFF;
+					lo_count++;
+					count_mask = 0xFF;
+				}
 
 				//Adjust counter
 				controllers.timer[x].counter = (controllers.timer[x].counter & ~count_mask);
