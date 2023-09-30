@@ -172,13 +172,6 @@ void MIN_LCD::update()
 	//Render pixel for a new frame if necessary
 	if(new_frame || lcd_stat.sed_update) { render_frame(); }
 
-	//Display any OSD messages
-	if(config::osd_count)
-	{
-		config::osd_count--;
-		draw_osd_msg(config::osd_message, screen_buffer, 0, 0);
-	}
-
 	//Use SDL
 	if(config::sdl_render)
 	{
@@ -192,6 +185,13 @@ void MIN_LCD::update()
 			for(int a = 0; a < 0x1800; a++)
 			{
 				out_pixel_data[a] = screen_buffer[a];
+			}
+
+			//Display any OSD messages
+			if(config::osd_count)
+			{
+				config::osd_count--;
+				draw_osd_msg(config::osd_message, out_pixel_data, 0, 0, 0x1800);
 			}
 
 			//Unlock source surface
@@ -231,6 +231,13 @@ void MIN_LCD::update()
 			for(int a = 0; a < 0x1800; a++)
 			{
 				out_pixel_data[a] = screen_buffer[a];
+			}
+
+			//Display any OSD messages
+			if(config::osd_count)
+			{
+				config::osd_count--;
+				draw_osd_msg(config::osd_message, out_pixel_data, 0, 0, 0x1800);
 			}
 
 			//Unlock source surface
