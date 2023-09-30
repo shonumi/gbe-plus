@@ -286,6 +286,13 @@ void MIN_LCD::update()
 				out_pixel_data[a] = screen_buffer[a];
 			}
 
+			//Display any OSD messages
+			if(config::osd_count)
+			{
+				config::osd_count--;
+				draw_osd_msg(config::osd_message, out_pixel_data, 0, 0, 0x1800);
+			}
+
 			//Unlock source surface
 			if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 
