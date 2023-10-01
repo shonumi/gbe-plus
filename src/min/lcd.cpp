@@ -272,7 +272,16 @@ void MIN_LCD::update()
 	{
 		if(!config::use_opengl)
 		{
-			config::render_external_sw(screen_buffer);
+			std::vector<u32> out_pixel_data(screen_buffer);
+
+			//Display any OSD messages
+			if(config::osd_count)
+			{
+				config::osd_count--;
+				draw_osd_msg(config::osd_message, out_pixel_data, 0, 0);
+			}
+
+			config::render_external_sw(out_pixel_data);
 		}
 
 		else
