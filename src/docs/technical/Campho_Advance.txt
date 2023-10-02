@@ -190,19 +190,30 @@ ROM_STAT = 0x4015
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------
 
-Some commands return data for the Campho Advance to read. The meaning of the data is currently unknown, however, it can be read at ROM_DATA_2. 0xD778 seems to expect a single 16-bit value: 0x7780. Below are a list of known commands:
+Some commands return data for the Campho Advance to read after issuing the command, such as accessing Graphics ROM, configuration settings, and contact data. In these cases In this case, the data can be read from ROM_DATA_2. A brief delay occurs before the data is ready, so the GBA's CPU must continually read ROM_STAT and verify that it holds the value 0x4015. If that check passes, the information in ROM_DATA_2 can freely be read. A list of all currently known commands is provided below.
 
 ------------------------------------------------------------------------
 Command		| Description
 ------------------------------------------------------------------------
+0x1742		| Set microphone volume
+0x1779		| Erase contact data
+0x3740		| Dial a phone number
+0x3742		| Set speaker volume
 0x3744		| Unknown (used when pulse dialing is enabled)
+0x3778		| Write full configuration settings or contact data
+0x5742		| Set video brightness
+0x7742		| Set video contrast
 0x9740		| Unknown
 0xB740		| Starts input data from the camera (small 58x48 frame)
+0xB742		| Read Graphics ROM data
+0xB778		| Read full configuration settings or contact data
 0xD740		| Starts input data from the camera (large 176x144 frame)
-0xD778		| Unknown (telecom status?)
+0xD778		| Read the total number of contact data entries
 0xF740		| Halts input data from the camera
 0xF9FF		| Finishes input frame from camera (and requests another?)
 ------------------------------------------------------------------------
+
+For a full explanation of how each command works, see the following sections below 
 
 
 ***************************************************
@@ -282,7 +293,7 @@ The Campho Advance uses 24 bytes to save configuration data for several adjustab
 //All writes are 16-bit
 ROM_STAT = 0x4015
 
-//Read all settings command
+//Read all settings/contact data command
 [ROM_DATA_2] = 0xB778
 
 //32-bit settings parameter -> 0x1FFE4000 or 0x000040000
@@ -300,7 +311,7 @@ Afterwards, 28 bytes can be read from ROM_DATA_2. Like Program ROM and Graphics 
 //All writes are 16-bit
 ROM_STAT = 0x4015
 
-//Write all settings command
+//Write all settings/contact data command
 [ROM_DATA_2] = 0x3778
 
 //Write (Data Length / 8), always 0x03
@@ -324,7 +335,7 @@ The following process below outlines how to write to individual configuration se
 ROM_STAT = 0x4015
 
 //Write to settings ID to change a specific setting
-[ROM_DATA_2] = SETTINGS_ID
+[ROM_DATA_2] = SETTINGS_COMMAND
 
 //Write configuration data
 [ROM_DATA_2] = SETTINGS_DATA_LO
@@ -333,7 +344,7 @@ ROM_STAT = 0x4015
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------
 
-Here, only 6 bytes are written: 16-bits for the settings ID and 32-bits for the actual data. The settings ID determines which setting will change. This chart details the known IDs for their settings:
+Here, only 6 bytes are written: 16-bits for the settings commands and 32-bits for the actual data. The settings command determines which setting will change. This chart details the known IDs for their settings:
 
 ------------------------------------------------------------------------
 ID	| Setting
