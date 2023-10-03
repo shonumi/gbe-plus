@@ -206,7 +206,6 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 	{
 		if(campho.bank_index_lo < campho.data.size())
 		{
-			std::cout<<"READ FROM -> 0x" << (u32)campho.bank_index_lo << "\n";
 			result = campho.data[campho.bank_index_lo++];
 		}
 	}
