@@ -31,22 +31,25 @@ The Campho Advance is a cartridge for the Game Boy Advance that allowed users to
 
 The Campho Advance uses a handful of I/O registers and address ranges mainly for reading ROM data via its unique mapper.
 
------------------------------------------------------------
-Address Range                  | I/O Name
------------------------------------------------------------
-0x8000000 - 0x8007FFF          | ROM_DATA_1	(ROM Data Stream 1)
-0x8008000 - 0x800FFFF          | ROM_DATA_2	(ROM Data Stream 2)
-0x8010000                      | ROM_STAT	(ROM Status)
-0x8014000                      | ROM_CNT	(ROM Control)
------------------------------------------------------------
+------------------------------------------------------------------------
+Address Range			| I/O Name
+------------------------------------------------------------------------
+0x8000000 - 0x8007FFF		| ROM_DATA_1	(ROM Data Stream 1)
+0x8008000 - 0x800FFFF		| ROM_DATA_2	(ROM Data Stream 2)
+0x8010000 - 0x8013FFF		| ROM_STAT	(ROM Status)
+0x8014000 - 0x801FFFF		| ROM_CNT	(ROM Control)
+0x8020000 - 0x9FFFFFF		| ROM_DATA_1	(ROM Data Stream 1)
+------------------------------------------------------------------------
 
-These I/O registers are also available from Wait State 1 (0xA000000). Currently unknown if they are available from Wait State 2 (0xC000000) as well. All I/O is 16-bit as well.
+This memory regions are also available from Wait State 1 (0xA000000). Currently unknown if they are available from Wait State 2 (0xC000000) as well. ROM_STAT and ROM_CNT are 16-bit registers.
 
-ROM_DATA_1 and ROM_DATA_2 act as different 16-bits streams to read ROM. Data is pulled from ROM sequentially with each read to these regions, including code fetches requested by the CPU. As such, the internal read pointer automatically advances on its own. ROM_DATA_2 is special as it is primarily used to read the second portion of the bootstrap ROM (BS2). ROM_DATA_1 reads the first part of the bootstrap ROM (BS1) as well as nearly all other data such as Program ROM and Graphics ROM. ROM_DATA_1 can also be used as input for certain parameters when prompting a read command for Graphics ROM.
+ROM_DATA_1 and ROM_DATA_2 act as different, independent streams to read ROM. Data is pulled from ROM sequentially with each read to these regions, including code fetches requested by the CPU. As such, their internal read pointers automatically advance on their own. ROM_DATA_2 is special as it is primarily used to read the second portion of the bootstrap ROM (BS2) as well as handling input and output for Campho Advance commands. ROM_DATA_1 primarily reads the first part of the bootstrap ROM (BS1) as well as the entirety of Program ROM.
 
-ROM_STAT acts as a status flag of sorts indicating when certain data on Campho is ready to be read. Used extensively to read Program ROM and prompting a read command for Graphics ROM.
+ROM_STAT acts as a status flag of sorts indicating when certain data on Campho Advance is ready to be read. Used extensively to read Program ROM and prompting a read command for Graphics ROM.
 
 ROM_CNT acts as an overall control register that determines what operations the Campho Advance will execute for reading or writing ROM data.
+
+The rest of the data in the 32MB Wait State is dedicated to ROM_DATA_1 again.
 
 
 ***************************************************
@@ -72,9 +75,9 @@ In terms of how the Campho Advance works, it first loads up bootstrap ROM in two
 
 The bootstrap ROM is available for the CPU to read immediately once the GBA powers on (and provided the Campho Advance also has power supplied to it). This section of ROM is partitioned in two separate regions, named BS1 and BS2. They can be read at ROM_DATA_1 and ROM_DATA_2 respectively. BS1 contains a valid ROM header and the "Nintendo" logo necessary for the GBA's cartridge check, however, its format does not resemble those of most other cartridges.
 
-Due to the way the Campho Advance returns data via an internal read pointer, BS1 has to specifically account for how the GBA BIOS reads ROM data. During to boot process, the BIOS reads various ROM addresses in different, and not all of them are necessarily in sequential order. For example, the first byte it reads is from 0x80000B4 (the cartridge Device Type). As a result the first value in BS1 is 0x80 (indicating a DACS cartridge, even though this is not the case for the Campho Advance). The first 281 bytes of BS1 are tailored to give the GBA BIOS the expected output, such as the values for the "Nintendo" logo, game title, and 8-bit header checksum. After that, BS1 contains the actual code to run once the BIOS hands over control.
+Due to the way the Campho Advance returns data via an internal read pointer, both BS1 and BS2 have to specifically account for how the GBA BIOS reads ROM data. During to boot process, the BIOS reads various ROM addresses, and not all of them are necessarily in sequential order. For example, the first byte it reads is from 0x80000B4 (the cartridge Device Type). As a result the first value in BS1 is 0x80 (indicating a DACS cartridge, even though this is not the case for the Campho Advance). Altogether, the BIOS reads 281 bytes from ROM; the first 273 bytes of BS1 and the first 8 bytes of BS2 are tailored to give the GBA BIOS the expected output, such as the values for the "Nintendo" logo, game title, and 8-bit header checksum. After that, BS1 and BS2 contain the actual code to run once the BIOS hands over control.
 
-Apparently, the internal read pointer can be reset in the Campho Advance if power is lost and then restored. The most stable way to do so is by booting the Campho Advance with the power cable attached, unplugging it, then reinserting the cable. Doing so allows homebrew software to freely read all of BS1. Since running the BIOS advances the read pointer, the first 281 bytes are otherwise inaccessible without this power cycling method.
+Apparently, all internal read pointers can be reset in the Campho Advance if power is lost and then restored. The most stable way to do so is by booting the Campho Advance with the power cable attached, unplugging it, then reinserting the cable. Doing so allows homebrew software to freely read all of BS1 and BS2. Since running the BIOS advances both read pointers, the first 273 and 8 bytes of BS1/BS2 respectively are otherwise inaccessible without this power cycling method.
 
 Aside from that, no special proceedure is necessary to read BS1 or BS2. Simply reading ROM_DATA_1 or ROM_DATA_2 is enough. Without the data used for BIOS, BS1 measures in at 72 bytes. BS2 measures 122 bytes in total. The Campho Advance begins in BS1, pulling data via code fetches. BS1's purpose is to load executable code in RAM for BS2 and then jump. Since the Campho Advance's mapper always advances its internal read pointer (regardless of what the CPU's PC register is) the only way for the Campho Advance to run branching code is by copying it to RAM first. BS2's role is to load all of Program ROM into RAM and then jump to execute it.
 
@@ -476,4 +479,4 @@ Note that the "*" / "#" key appears to be just "." on the Campho Advance.
 
 The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. Whether due to the unique power requirements of the cartridge or the novel way it streams ROM data, the cause of this failure remains unknown.
 
-In theory, however, the Campho Advance should work with the following Game Boy Advance models: AGB-001 (original GBA), AGS-001 (GBA SP), AGS-101 (GBA SP), OXY-001 (Game Boy Micro), and DOL-17 (Game Boy Player). It must be noted that the Campho Advance was developed and released before the DS launched, so Digital Act likely had no idea it would become incompatible when the next handheld generation came around. A similar situation happened with the Pocket Sonar when the Game Boy Color launched.
+In theory, however, the Campho Advance should work with the following Game Boy Advance models: AGB-001 (original GBA), AGS-001 (GBA SP), AGS-101 (GBA SP), OXY-001 (Game Boy Micro). According to official documentation, the Campho Advance is not compatible with the DOL-017 (Game Boy Player). This may be due to the fact that the Game Boy Player's BIOS is slightly different from the handheld models, and the Campho Advance was designed rather precisely around the most common version of the BIOS. It must be noted that the Campho Advance was developed and released before the DS launched, so Digital Act likely had no idea it would become incompatible when the next handheld generation came around. A similar situation happened with the Pocket Sonar when the Game Boy Color launched.
