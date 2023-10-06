@@ -200,18 +200,21 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 {
 	u8 result = 0;
 
-	//Read Low ROM Data Stream
-	//Read Low ROM Data Stream (GBA BIOS handling for DACS carts)
-	if((address < 0x8008000) || (campho.in_bios))
+	switch(address >> 24)
 	{
-		if(campho.bank_index_lo < campho.data.size())
-		{
-			result = campho.data[campho.bank_index_lo++];
-		}
+		case 0xA:
+		case 0xB:
+			address -= 0x2000000;
+			break;
+
+		case 0xC:
+		case 0xD:
+			address -= 0x4000000;
+			break;
 	}
 
-	//Read High ROM Data Stream, Camera Video Data, or Campho Config Data
-	else
+	//Read Low ROM Data Stream
+	if((address < 0x8008000) || (address >= 0x8020000))
 	{
 		//Camera Video Data
 		if(campho.new_frame)
@@ -222,8 +225,17 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 			}
 		}
 
+		else if(campho.bank_index_lo < campho.data.size())
+		{
+			result = campho.data[campho.bank_index_lo++];
+		}
+	}
+
+	//Read High ROM Data Stream, Camera Video Data, or Campho Config Data
+	else
+	{
 		//Misc Campho Data - Config Settings, Command Data, etc
-		else if(campho.read_out_stream)
+		if(campho.read_out_stream)
 		{
 			if(campho.out_stream_index < campho.out_stream.size())
 			{
@@ -756,15 +768,15 @@ void AGB_MMU::campho_map_rom_banks()
 	//Setup BS1 and BS2
 	campho.mapped_bank_id.push_back(0x08000000);
 	campho.mapped_bank_index.push_back(0x00);
-	campho.mapped_bank_len.push_back(0x161);
+	campho.mapped_bank_len.push_back(0x159);
 	campho.mapped_bank_pos.push_back(rom_pos);
-	rom_pos += 0x161;
+	rom_pos += 0x159;
 
 	campho.mapped_bank_id.push_back(0x08008000);
 	campho.mapped_bank_index.push_back(0x00);
-	campho.mapped_bank_len.push_back(0x7C);
+	campho.mapped_bank_len.push_back(0x84);
 	campho.mapped_bank_pos.push_back(rom_pos);
-	rom_pos += 0x7C;
+	rom_pos += 0x84;
 
 	//Setup Program ROM
 	for(u32 x = 0; x < 16; x++)
@@ -848,7 +860,7 @@ void AGB_MMU::campho_map_rom_banks()
 	//When not using the GBA BIOS, ignore the first 281 ROM reads done by the BIOS
 	if(!config::use_bios)
 	{
-		campho.bank_index_lo = 0x119;
+		campho.bank_index_lo = 0x111;
 	}
 }
 
