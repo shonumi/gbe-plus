@@ -534,9 +534,12 @@ u8 AGB_MMU::read_u8(u32 address)
 						}
 					}
 				}
+
+				return ((am3.blk_stat >> 8) & 0xFF);
 			}
 
-			return ((am3.blk_stat >> 8) & 0xFF);
+			else { return memory_map[address]; }
+
 			break;
 
 		default:
