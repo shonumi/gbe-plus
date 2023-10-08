@@ -23,7 +23,6 @@ void AGB_MMU::campho_reset()
 	campho.contact_data.clear();
 	campho.read_out_stream = false;
 	campho.out_stream_index = 0;
-	campho.in_bios = (config::use_bios) ? true : false;
 
 	campho.bank_index_lo = 0;
 	campho.bank_index_hi = 0;
@@ -186,11 +185,6 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
-	if((campho.in_bios) && (address == 0x8000000))
-	{
-		campho.in_bios = false;
-	}
-
 	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
@@ -306,7 +300,7 @@ void AGB_MMU::campho_process_input_stream()
 				}
 			}
 
-			std::cout<<"Dialed Phone Number: " << campho.dialed_number << "\n";	 
+			std::cout<<"Dialed Phone Number: " << campho.dialed_number << "\n";
 		}
 
 		//Grab Graphics ROM data
@@ -861,6 +855,7 @@ void AGB_MMU::campho_map_rom_banks()
 	if(!config::use_bios)
 	{
 		campho.bank_index_lo = 0x111;
+		campho.bank_index_hi = 0x161;
 	}
 }
 

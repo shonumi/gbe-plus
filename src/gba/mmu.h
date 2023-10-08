@@ -309,7 +309,6 @@ class AGB_MMU
 		u16 block_len;
 		u16 block_stat;
 		bool stream_started;
-		bool in_bios;
 
 		u8 video_capture_counter;
 		u32 video_frame_index;
