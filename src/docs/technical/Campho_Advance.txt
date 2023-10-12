@@ -434,6 +434,46 @@ The contact's phone number uses the same encoding format as dialing phone number
 
 Both the contact name and phone number are encoded as null terminated strings if their length is 9 characters or less. The Campho Advance seems to return garbage data after the null character for the rest of the contact name or phone number's length. For example, a contact name of "ALICE" would use 6 characters in total, and the remaining 4 would be whatever, usually leftovers from previous commands reading or writing contact data.
 
+Contact data can be erased using the following command:
+
+------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write erase command
+[ROM_DATA_2] = 0x1779
+
+[ROM_DATA_2] = 0x4000
+[ROM_DATA_2] = CONTACT_INDEX
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+Once again, the Contact Index dictates the exact entry in the contact data list to erase. This value is warped. The current number of contacts can be retrieved using the following command:
+
+------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write contact list size command
+[ROM_DATA_2] = 0xD778
+
+[ROM_DATA_2] = 0x0000
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+After waiting for the ROM_STAT I/O delay, 6 bytes of data will be available at ROM_DATA_2, in this format:
+
+------------------------------------------------------------------------
+Address		| Description
+------------------------------------------------------------------------
+0x00 - 0x01	| Metadata - Always 0x0832
+0x02 - 0x03	| Data Length - Always 0x4000
+0x04 - 0x05	| Contact List Size
+------------------------------------------------------------------------
+
+Note that both the Data Length and Contact List Size are warped values.
 
 ***************************************************
 12. Dialing Phone Numbers

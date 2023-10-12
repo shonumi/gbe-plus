@@ -363,6 +363,8 @@ void AGB_MMU::campho_process_input_stream()
 			//Read the number of contact data entries
 			else if(index == 0xD778)
 			{
+				for(u32 x = 0; x < campho.g_stream.size(); x++) { std::cout<<"YO -> 0x" << (u32)campho.g_stream[x] << "\n"; }
+
 				campho.out_stream.clear();
 
 				//Metadata for Campho Advance
