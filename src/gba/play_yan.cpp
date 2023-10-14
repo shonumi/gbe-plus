@@ -554,7 +554,39 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
+	switch(address)
+	{
+		//Device Control
+		case PY_NMP_CNT:
+			play_yan.access_mode &= ~0xFF00;
+			play_yan.access_mode |= (value << 8);
+			break;
+
+		//Device Control
+		case PY_NMP_CNT+1:
+			play_yan.access_mode &= ~0xFF;
+			play_yan.access_mode |= value;
+			break;
+
+		//Device Parameter
+		case PY_NMP_PARAMETER:
+			play_yan.access_param &= ~0xFF00;
+			play_yan.access_param |= (value << 8);
+			break;
+
+		//Device Parameter
+		case PY_NMP_PARAMETER+1:
+			play_yan.access_param &= ~0xFF;
+			play_yan.access_param |= value;
+
+			//Set high 16-bits of the param or begin processing commands now
+			if(play_yan.access_mode == 0x1010) { play_yan.access_param <<= 16; }
+			else if(play_yan.access_mode == 0) { process_nmp_cmd(); }
+
+			break;
+	}	
 }
 
 /****** Reads from Play-Yan I/O ******/
@@ -701,10 +733,13 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	return result;
 }
 
-/****** Reads from Play-Yan I/O ******/
+/****** Reads from Nintendo MP3 Player I/O ******/
 u8 AGB_MMU::read_nmp(u32 address)
 {
 	u8 result = 0;
+
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+
 	return result;
 }
 
@@ -916,6 +951,17 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 2;
 	}		
+}
+
+/****** Handles Nintendo MP3 Player command processing ******/
+void AGB_MMU::process_nmp_cmd()
+{
+	//Access data such as firmware
+	if(play_yan.access_param)
+	{
+		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		play_yan.access_param = 0;
+	}
 }
 
 /****** Handles Play-Yan interrupt requests including delays and what data to respond with ******/
