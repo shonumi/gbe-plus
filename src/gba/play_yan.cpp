@@ -568,6 +568,10 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 		case PY_NMP_CNT+1:
 			play_yan.access_mode &= ~0xFF;
 			play_yan.access_mode |= value;
+
+			//Seems to terminate something, and possibly trigger a Game Pak IRQ
+			if(play_yan.access_mode == 0x0808) { std::cout<<"IRQ?\n"; }
+
 			break;
 
 		//Device Parameter
@@ -586,6 +590,20 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 			else if(play_yan.access_mode == 0) { process_nmp_cmd(); }
 
 			break;
+
+		//Device Data Input (firmware, commands, etc?)
+		case PY_NMP_DATA_IN:
+			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; std::cout<<"ME\n"; }
+
+			break;
+
+		//Device Data Input (firmware, commands, etc?)
+		case PY_NMP_DATA_IN+1:
+			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; }
+
+			break;
+
+
 	}	
 }
 
@@ -956,10 +974,13 @@ void AGB_MMU::process_play_yan_cmd()
 /****** Handles Nintendo MP3 Player command processing ******/
 void AGB_MMU::process_nmp_cmd()
 {
+	play_yan.firmware_addr = 0;
+
 	//Access data such as firmware
 	if(play_yan.access_param)
 	{
 		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		play_yan.firmware_addr = play_yan.access_param;
 		play_yan.access_param = 0;
 	}
 }
