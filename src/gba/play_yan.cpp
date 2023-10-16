@@ -136,6 +136,16 @@ void AGB_MMU::play_yan_reset()
 	play_yan.micro[1][0] = 0x40003001;
 	play_yan.micro[2][0] = 0x40003003;
 
+	//Set 8-bit data for Nintendo MP3 Player status checking? (not sure what this does yet)
+	play_yan.nmp_status_data[0] = 0x29;
+	play_yan.nmp_status_data[1] = 0xBA;
+	play_yan.nmp_status_data[2] = 0x00;
+	play_yan.nmp_status_data[3] = 0x00;
+	play_yan.nmp_status_data[4] = 0x9A;
+	play_yan.nmp_status_data[5] = 0xC9;
+	play_yan.nmp_status_data[6] = 0x00;
+	play_yan.nmp_status_data[7] = 0x00;
+
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.music_length = 0;
@@ -554,7 +564,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -570,7 +580,11 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 			play_yan.access_mode |= value;
 
 			//Seems to terminate something, and possibly trigger a Game Pak IRQ
-			if(play_yan.access_mode == 0x0808) { std::cout<<"IRQ?\n"; }
+			if(play_yan.access_mode == 0x0808)
+			{
+				memory_map[REG_IF+1] |= 0x20;
+				std::cout<<"IRQ?\n";
+			}
 
 			break;
 
@@ -593,7 +607,7 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 
 		//Device Data Input (firmware, commands, etc?)
 		case PY_NMP_DATA_IN:
-			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; std::cout<<"ME\n"; }
+			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; }
 
 			break;
 
@@ -756,7 +770,22 @@ u8 AGB_MMU::read_nmp(u32 address)
 {
 	u8 result = 0;
 
-	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	switch(address)
+	{
+		case PY_NMP_DATA_OUT:
+		case PY_NMP_DATA_OUT+1:
+
+			//Some kind of status data
+			if(play_yan.op_state == PLAY_YAN_STATUS)
+			{
+				if(play_yan.irq_count < 8) { result = play_yan.nmp_status_data[play_yan.irq_count++]; }
+				if(play_yan.irq_count >= 8) { play_yan.op_state = PLAY_YAN_NOP; }
+			}
+
+			break;
+	}
+
+	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -981,6 +1010,14 @@ void AGB_MMU::process_nmp_cmd()
 	{
 		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = play_yan.access_param;
+
+		//Access some status data?
+		if(play_yan.access_param == 0x100)
+		{
+			play_yan.op_state = PLAY_YAN_STATUS;
+			play_yan.irq_count = 0;
+		}
+
 		play_yan.access_param = 0;
 	}
 }
