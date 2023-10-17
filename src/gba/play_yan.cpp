@@ -50,6 +50,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.pause_media = false;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
+	for(u32 x = 0; x < 32; x++) { play_yan.nmp_status_data[x] = 0; }
 	play_yan.cmd = 0;
 
 	for(u32 x = 0; x < 4; x++)
@@ -137,14 +138,20 @@ void AGB_MMU::play_yan_reset()
 	play_yan.micro[2][0] = 0x40003003;
 
 	//Set 8-bit data for Nintendo MP3 Player status checking? (not sure what this does yet)
-	play_yan.nmp_status_data[0] = 0x29;
-	play_yan.nmp_status_data[1] = 0xBA;
-	play_yan.nmp_status_data[2] = 0x00;
-	play_yan.nmp_status_data[3] = 0x00;
-	play_yan.nmp_status_data[4] = 0x9A;
-	play_yan.nmp_status_data[5] = 0xC9;
-	play_yan.nmp_status_data[6] = 0x00;
-	play_yan.nmp_status_data[7] = 0x00;
+	play_yan.nmp_status_data[0] = 0x80;
+	play_yan.nmp_status_data[1] = 0x01;
+	play_yan.nmp_status_data[4] = 0x36;
+	play_yan.nmp_status_data[5] = 0xEA;
+	play_yan.nmp_status_data[6] = 0xEE;
+	play_yan.nmp_status_data[7] = 0xDD;
+	play_yan.nmp_status_data[8] = 0x17;
+	play_yan.nmp_status_data[9] = 0xBF;
+	play_yan.nmp_status_data[10] = 0x9B;
+	play_yan.nmp_status_data[11] = 0x84;
+	play_yan.nmp_status_data[12] = 0x04;
+	play_yan.nmp_status_data[13] = 0xE3;
+	play_yan.nmp_status_data[14] = 0x06;
+	play_yan.nmp_status_data[15] = 0x6C;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -184,6 +191,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	{
 		std::cout<<"MMU::Nintendo MP3 detected\n";
 		play_yan.type = NINTENDO_MP3;
+		play_yan.op_state = PLAY_YAN_INIT;
 	}
 
 	//Handle Nintendo MP3 Player writes separately
@@ -582,8 +590,7 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 			//Seems to terminate something, and possibly trigger a Game Pak IRQ
 			if(play_yan.access_mode == 0x0808)
 			{
-				memory_map[REG_IF+1] |= 0x20;
-				std::cout<<"IRQ?\n";
+				play_yan.irq_delay = 1;
 			}
 
 			break;
@@ -616,8 +623,6 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; }
 
 			break;
-
-
 	}	
 }
 
@@ -778,8 +783,8 @@ u8 AGB_MMU::read_nmp(u32 address)
 			//Some kind of status data
 			if(play_yan.op_state == PLAY_YAN_STATUS)
 			{
-				if(play_yan.irq_count < 8) { result = play_yan.nmp_status_data[play_yan.irq_count++]; }
-				if(play_yan.irq_count >= 8) { play_yan.op_state = PLAY_YAN_NOP; }
+				if(play_yan.irq_count < 16) { result = play_yan.nmp_status_data[play_yan.irq_count++]; }
+				if(play_yan.irq_count >= 16) { play_yan.op_state = PLAY_YAN_NOP; }
 			}
 
 			break;
@@ -1014,6 +1019,12 @@ void AGB_MMU::process_nmp_cmd()
 		//Access some status data?
 		if(play_yan.access_param == 0x100)
 		{
+			if(play_yan.op_state == PLAY_YAN_INIT)
+			{
+				play_yan.nmp_status_data[0] = 0x86;
+				play_yan.nmp_status_data[1] = 0x00;
+			}
+
 			play_yan.op_state = PLAY_YAN_STATUS;
 			play_yan.irq_count = 0;
 		}
@@ -1030,6 +1041,13 @@ void AGB_MMU::process_play_yan_irq()
 	{
 		play_yan.irq_delay--;
 		if(play_yan.irq_delay) { return; }
+	}
+
+	if(play_yan.type == NINTENDO_MP3)
+	{
+		//Trigger Game Pak IRQ
+		memory_map[REG_IF+1] |= 0x20;
+		return;
 	}
 
 	//Process SD card check first and foremost after booting

@@ -71,6 +71,7 @@ class AGB_MMU
 		PLAY_YAN_PROCESS_VIDEO,
 		PLAY_YAN_WAIT,
 		PLAY_YAN_STATUS,
+		PLAY_YAN_INIT,
 	};
 
 	backup_types current_save_type;
@@ -241,7 +242,7 @@ class AGB_MMU
 		u32 micro[3][8];
 
 		//Nintendo MP3 IRQ data
-		u8 nmp_status_data[8];
+		u8 nmp_status_data[32];
 
 		u32 irq_data[8];
 		bool irq_data_in_use;
