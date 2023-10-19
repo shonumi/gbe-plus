@@ -71,8 +71,6 @@ void AGB_MMU::play_yan_reset()
 			play_yan.video_play_data[x][y] = 0x0;
 			play_yan.video_stop_data[x][y] = 0x0;
 		}
-
-		play_yan.nmp_boot_data[x] = 0;
 	}
 
 	for(u32 x = 0; x < 3; x++)
@@ -139,10 +137,16 @@ void AGB_MMU::play_yan_reset()
 	play_yan.micro[1][0] = 0x40003001;
 	play_yan.micro[2][0] = 0x40003003;
 
-	//Set 8-bit data for Nintendo MP3 Player status checking for boot?
+	//Set 16-bit data for Nintendo MP3 Player status checking for boot?
 	play_yan.nmp_boot_data[0] = 0x8001;
-	play_yan.nmp_boot_data[1] = 0x8600;
-	play_yan.nmp_boot_data[2] = 0x4300;
+	play_yan.nmp_boot_data[1] = 0x8001;
+	play_yan.nmp_boot_data[2] = 0x8600;
+	play_yan.nmp_boot_data[3] = 0x8600;
+	play_yan.nmp_boot_data[4] = 0x4300;
+	play_yan.nmp_boot_data[5] = 0x4300;
+
+	play_yan.nmp_init_data[0] = 0x0001;
+	play_yan.nmp_init_data[1] = 0x0000;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -172,6 +176,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.current_video_file = "";
 
 	play_yan.nmp_data_index = 0;
+	play_yan.nmp_irq_index = 0;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -184,7 +189,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	{
 		std::cout<<"MMU::Nintendo MP3 detected\n";
 		play_yan.type = NINTENDO_MP3;
-		play_yan.op_state = PLAY_YAN_INIT;
 	}
 
 	//Handle Nintendo MP3 Player writes separately
@@ -567,8 +571,6 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 {
 	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
-	if((address == 0xe008001) && (value == 0xFF)) { memory_map[0x12345] = 0x77; }
-
 	switch(address)
 	{
 		//Device Control
@@ -775,12 +777,8 @@ u8 AGB_MMU::read_nmp(u32 address)
 		case PY_NMP_DATA_OUT:
 		case PY_NMP_DATA_OUT+1:
 
-			//Some kind of status data
-			if(play_yan.op_state != PLAY_YAN_NOP)
-			{
-				if(play_yan.nmp_data_index < 16) { result = play_yan.nmp_status_data[play_yan.nmp_data_index++]; }
-				if(play_yan.nmp_data_index >= 16) { play_yan.op_state = PLAY_YAN_NOP; }
-			}
+			//Some kind of status data read after each Game Pak IRQ
+			if(play_yan.nmp_data_index < 16) { result = play_yan.nmp_status_data[play_yan.nmp_data_index++]; }
 
 			break;
 	}
@@ -1011,28 +1009,40 @@ void AGB_MMU::process_nmp_cmd()
 		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = play_yan.access_param;
 
-		//Access some status data?
+		//Access some init data?
 		if(play_yan.access_param == 0x100)
 		{
-			u16 stat_data = play_yan.nmp_boot_data[0];
+			u16 stat_data = 0;
+
+			//Use this initial data on boot
+			if(play_yan.op_state == PLAY_YAN_NOP) { play_yan.nmp_irq_index = 0; }
+		
+			//Read rest of status data as necessary
+			if(play_yan.nmp_irq_index <= 5)
+			{
+				stat_data = play_yan.nmp_boot_data[play_yan.nmp_irq_index++];
+			}
+
 			play_yan.nmp_status_data[0] = (stat_data >> 8);
 			play_yan.nmp_status_data[1] = (stat_data & 0xFF);
-			play_yan.op_state = PLAY_YAN_STATUS;
+			play_yan.op_state = PLAY_YAN_INIT;
 			play_yan.nmp_data_index = 0;
 		}
 
-		else if(play_yan.access_param == 0xFF)
+		//Access some status data?
+		else if(play_yan.access_param == 0x110)
 		{
-			u16 stat_data = play_yan.nmp_boot_data[1];
-			play_yan.nmp_status_data[0] = (stat_data >> 8);
-			play_yan.nmp_status_data[1] = (stat_data & 0xFF);
-			play_yan.op_state = PLAY_YAN_STATUS;
-			play_yan.nmp_data_index = 0;
-		}
+			u16 stat_data = 0;
 
-		else if(play_yan.access_param == 0x10F)
-		{
-			u16 stat_data = play_yan.nmp_boot_data[2];
+			//Use this data shortly after booting has begun
+			if(play_yan.op_state == PLAY_YAN_INIT) { play_yan.nmp_irq_index = 0; }
+		
+			//Read rest of status data as necessary
+			if(play_yan.nmp_irq_index <= 2)
+			{
+				stat_data = play_yan.nmp_init_data[play_yan.nmp_irq_index++];
+			}
+
 			play_yan.nmp_status_data[0] = (stat_data >> 8);
 			play_yan.nmp_status_data[1] = (stat_data & 0xFF);
 			play_yan.op_state = PLAY_YAN_STATUS;
