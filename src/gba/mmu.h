@@ -243,6 +243,8 @@ class AGB_MMU
 
 		//Nintendo MP3 IRQ data
 		u8 nmp_status_data[32];
+		u16 nmp_boot_data[3];
+		u32 nmp_data_index;
 
 		u32 irq_data[8];
 		bool irq_data_in_use;
