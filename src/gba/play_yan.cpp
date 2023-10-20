@@ -139,14 +139,8 @@ void AGB_MMU::play_yan_reset()
 
 	//Set 16-bit data for Nintendo MP3 Player status checking for boot?
 	play_yan.nmp_boot_data[0] = 0x8001;
-	play_yan.nmp_boot_data[1] = 0x8001;
-	play_yan.nmp_boot_data[2] = 0x8600;
-	play_yan.nmp_boot_data[3] = 0x8600;
-	play_yan.nmp_boot_data[4] = 0x4300;
-	play_yan.nmp_boot_data[5] = 0x4300;
-
-	play_yan.nmp_init_data[0] = 0x0001;
-	play_yan.nmp_init_data[1] = 0x0000;
+	play_yan.nmp_boot_data[1] = 0x8600;
+	play_yan.nmp_boot_data[2] = 0x4300;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -177,6 +171,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.nmp_data_index = 0;
 	play_yan.nmp_irq_index = 0;
+	play_yan.nmp_init_stage = 0;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -189,6 +184,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	{
 		std::cout<<"MMU::Nintendo MP3 detected\n";
 		play_yan.type = NINTENDO_MP3;
+		play_yan.op_state = PLAY_YAN_INIT;
 	}
 
 	//Handle Nintendo MP3 Player writes separately
@@ -584,10 +580,12 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 			play_yan.access_mode &= ~0xFF;
 			play_yan.access_mode |= value;
 
-			//Seems to terminate something, and possibly trigger a Game Pak IRQ
-			if(play_yan.access_mode == 0x0808)
+			//After firmware is loaded, the Nintendo MP3 Player generates a Game Pak IRQ.
+			//Confirm firmware is finished with this write after booting.
+			if((play_yan.access_mode == 0x0808) && (play_yan.op_state == PLAY_YAN_INIT))
 			{
 				play_yan.irq_delay = 30;
+				play_yan.op_state = PLAY_YAN_BOOT_SEQUENCE;
 			}
 
 			break;
@@ -1003,52 +1001,39 @@ void AGB_MMU::process_nmp_cmd()
 {
 	play_yan.firmware_addr = 0;
 
-	//Access data such as firmware
+	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, etc)
 	if(play_yan.access_param)
 	{
 		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = play_yan.access_param;
 
-		//Access some init data?
+		u16 stat_data = 0;
+
+		//Cartridge Status
 		if(play_yan.access_param == 0x100)
 		{
-			u16 stat_data = 0;
-
-			//Use this initial data on boot
-			if(play_yan.op_state == PLAY_YAN_NOP) { play_yan.nmp_irq_index = 0; }
-		
-			//Read rest of status data as necessary
-			if(play_yan.nmp_irq_index <= 5)
+			//Cartridge status during initial boot phase (e.g. Health and Safety screen)
+			if(play_yan.op_state == PLAY_YAN_BOOT_SEQUENCE)
 			{
-				stat_data = play_yan.nmp_boot_data[play_yan.nmp_irq_index++];
+				stat_data = play_yan.nmp_boot_data[play_yan.nmp_init_stage];
 			}
-
-			play_yan.nmp_status_data[0] = (stat_data >> 8);
-			play_yan.nmp_status_data[1] = (stat_data & 0xFF);
-			play_yan.op_state = PLAY_YAN_INIT;
-			play_yan.nmp_data_index = 0;
 		}
 
-		//Access some status data?
+		//I/O Busy Flag
 		else if(play_yan.access_param == 0x110)
 		{
-			u16 stat_data = 0;
-
-			//Use this data shortly after booting has begun
-			if(play_yan.op_state == PLAY_YAN_INIT) { play_yan.nmp_irq_index = 0; }
-		
-			//Read rest of status data as necessary
-			if(play_yan.nmp_irq_index <= 2)
-			{
-				stat_data = play_yan.nmp_init_data[play_yan.nmp_irq_index++];
-			}
-
-			play_yan.nmp_status_data[0] = (stat_data >> 8);
-			play_yan.nmp_status_data[1] = (stat_data & 0xFF);
-			play_yan.op_state = PLAY_YAN_STATUS;
-			play_yan.nmp_data_index = 0;
+			//1 = I/O Busy, 0 = I/O Ready. For now, we are never busy
 		}
 
+		//Write command or wait for command to finish
+		else if(play_yan.access_param == 0x10F)
+		{
+			play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		}
+
+		play_yan.nmp_status_data[0] = (stat_data >> 8);
+		play_yan.nmp_status_data[1] = (stat_data & 0xFF);
+		play_yan.nmp_data_index = 0;
 		play_yan.access_param = 0;
 	}
 }
