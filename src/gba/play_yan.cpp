@@ -588,6 +588,16 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 				play_yan.op_state = PLAY_YAN_BOOT_SEQUENCE;
 			}
 
+			//Terminate command input now. Actual execution happens later.
+			//Command is always first 16-bits of stream
+			else if((play_yan.access_mode == 0x0404) && (play_yan.op_state == PLAY_YAN_PROCESS_CMD))
+			{
+				if(play_yan.command_stream.size() >= 2)
+				{
+					play_yan.cmd = (play_yan.command_stream[0] << 8) | play_yan.command_stream[1];
+				}
+			}
+
 			break;
 
 		//Device Parameter
@@ -609,13 +619,16 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 
 		//Device Data Input (firmware, commands, etc?)
 		case PY_NMP_DATA_IN:
-			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; }
-
-			break;
-
-		//Device Data Input (firmware, commands, etc?)
 		case PY_NMP_DATA_IN+1:
-			if(play_yan.firmware_addr) { play_yan.firmware[play_yan.firmware_addr++] = value; }
+			if(play_yan.firmware_addr)
+			{
+				play_yan.firmware[play_yan.firmware_addr++] = value;
+			}
+
+			else if(play_yan.op_state == PLAY_YAN_PROCESS_CMD)
+			{
+				play_yan.command_stream.push_back(value);
+			}
 
 			break;
 	}	
@@ -1029,6 +1042,8 @@ void AGB_MMU::process_nmp_cmd()
 		else if(play_yan.access_param == 0x10F)
 		{
 			play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+			if(play_yan.cmd == 0) { play_yan.command_stream.clear(); }
+			play_yan.firmware_addr = 0;
 		}
 
 		play_yan.nmp_status_data[0] = (stat_data >> 8);
