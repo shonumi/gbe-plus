@@ -565,7 +565,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -595,6 +595,7 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 				if(play_yan.command_stream.size() >= 2)
 				{
 					play_yan.cmd = (play_yan.command_stream[0] << 8) | play_yan.command_stream[1];
+					std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
 				}
 			}
 
@@ -794,7 +795,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -1014,36 +1015,53 @@ void AGB_MMU::process_nmp_cmd()
 {
 	play_yan.firmware_addr = 0;
 
-	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, etc)
+	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
 	if(play_yan.access_param)
 	{
-		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = play_yan.access_param;
 
 		u16 stat_data = 0;
 
+		//Execute command
+		if(play_yan.access_param == 0xFF)
+		{
+			if(play_yan.nmp_init_stage < 2)
+			{
+				play_yan.nmp_init_stage++;
+				play_yan.cmd = 0xFFFF;
+			}
+		}
+
 		//Cartridge Status
-		if(play_yan.access_param == 0x100)
+		else if(play_yan.access_param == 0x100)
 		{
 			//Cartridge status during initial boot phase (e.g. Health and Safety screen)
-			if(play_yan.op_state == PLAY_YAN_BOOT_SEQUENCE)
+			if(play_yan.nmp_init_stage < 3)
 			{
 				stat_data = play_yan.nmp_boot_data[play_yan.nmp_init_stage];
 			}
+		}
+
+		//Write command or wait for command to finish
+		else if(play_yan.access_param == 0x10F)
+		{
+			if(play_yan.cmd == 0) { play_yan.command_stream.clear(); }
+			
+			else
+			{
+				memory_map[REG_IF+1] |= 0x20;
+				play_yan.cmd = 0;
+			}
+
+			play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+			play_yan.firmware_addr = 0;
 		}
 
 		//I/O Busy Flag
 		else if(play_yan.access_param == 0x110)
 		{
 			//1 = I/O Busy, 0 = I/O Ready. For now, we are never busy
-		}
-
-		//Write command or wait for command to finish
-		else if(play_yan.access_param == 0x10F)
-		{
-			play_yan.op_state = PLAY_YAN_PROCESS_CMD;
-			if(play_yan.cmd == 0) { play_yan.command_stream.clear(); }
-			play_yan.firmware_addr = 0;
 		}
 
 		play_yan.nmp_status_data[0] = (stat_data >> 8);
