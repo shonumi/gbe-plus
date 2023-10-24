@@ -171,6 +171,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_data_index = 0;
 	play_yan.nmp_cmd_status = 0;
 	play_yan.nmp_init_stage = 0;
+	play_yan.nmp_valid_command = false;
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -564,7 +565,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -794,7 +795,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -1025,36 +1026,34 @@ void AGB_MMU::process_nmp_cmd()
 		//Execute command
 		if(play_yan.access_param == 0xFF)
 		{
-			bool valid_command = false;
-
 			//Check for firmware update file
 			if(play_yan.cmd == 0x300)
 			{
 				play_yan.nmp_cmd_status = 0x4300;
-				valid_command = true;
+				play_yan.nmp_valid_command = true;
 			}
 
 			//Unknown command (firmware update related?)
 			else if(play_yan.cmd == 0x301)
 			{
 				play_yan.nmp_cmd_status = 0x4301;
-				valid_command = true;
+				play_yan.nmp_valid_command = true;
 			}
 
 			//Unknown command (firmware update related?)
 			else if(play_yan.cmd == 0x303)
 			{
 				play_yan.nmp_cmd_status = 0x4303;
-				valid_command = true;
+				play_yan.nmp_valid_command = true;
+				play_yan.cmd = 0;
 			}
 
 			else
 			{
+				play_yan.nmp_valid_command = false;
 				play_yan.nmp_cmd_status = 0;
 				std::cout<<"Unknown Nintendo MP3 Player Command -> 0x" << play_yan.cmd << "\n";
 			}
-
-			if(valid_command) { memory_map[REG_IF+1] |= 0x20; }
 		}
 
 		//Cartridge Status
@@ -1083,6 +1082,11 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.firmware_addr = 0;
 			play_yan.command_stream.clear();
 
+			if(play_yan.nmp_valid_command)
+			{
+				memory_map[REG_IF+1] |= 0x20;
+				play_yan.nmp_valid_command = false;
+			}
 		}
 
 		//I/O Busy Flag
