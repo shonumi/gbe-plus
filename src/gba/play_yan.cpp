@@ -595,7 +595,7 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 				if(play_yan.command_stream.size() >= 2)
 				{
 					play_yan.cmd = (play_yan.command_stream[0] << 8) | play_yan.command_stream[1];
-					std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
+					process_nmp_cmd();
 				}
 			}
 
@@ -614,7 +614,7 @@ void AGB_MMU::write_nmp(u32 address, u8 value)
 
 			//Set high 16-bits of the param or begin processing commands now
 			if(play_yan.access_mode == 0x1010) { play_yan.access_param <<= 16; }
-			else if(play_yan.access_mode == 0) { process_nmp_cmd(); }
+			else if(play_yan.access_mode == 0) { access_nmp_io(); }
 
 			break;
 
@@ -1013,6 +1013,48 @@ void AGB_MMU::process_play_yan_cmd()
 /****** Handles Nintendo MP3 Player command processing ******/
 void AGB_MMU::process_nmp_cmd()
 {
+	std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
+
+	switch(play_yan.cmd)
+	{
+		//Undocumented command
+		case 0x10:
+			play_yan.nmp_cmd_status = 0x4010;
+			play_yan.nmp_valid_command = true;
+			break;
+
+		//Check for firmware update file
+		case 0x300:
+			play_yan.nmp_cmd_status = 0x4300;
+			play_yan.nmp_valid_command = true;
+			
+			break;
+
+		//Undocumented command (firmware update related?)
+		case 0x301:
+			play_yan.nmp_cmd_status = 0x4301;
+			play_yan.nmp_valid_command = true;
+			
+			break;
+
+		//Undocumented command (firmware update related?)
+		case 0x303:
+			play_yan.nmp_cmd_status = 0x4303;
+			play_yan.nmp_valid_command = true;
+			play_yan.cmd = 0;
+			
+			break;
+
+		default:
+			play_yan.nmp_valid_command = false;
+			play_yan.nmp_cmd_status = 0;
+			std::cout<<"Unknown Nintendo MP3 Player Command -> 0x" << play_yan.cmd << "\n";
+	}
+}
+
+/****** Handles prep work for accessing Nintendo MP3 Player I/O such as writing commands, cart status, busy signal etc ******/
+void AGB_MMU::access_nmp_io()
+{
 	play_yan.firmware_addr = 0;
 
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
@@ -1023,41 +1065,8 @@ void AGB_MMU::process_nmp_cmd()
 
 		u16 stat_data = 0;
 
-		//Execute command
-		if(play_yan.access_param == 0xFF)
-		{
-			//Check for firmware update file
-			if(play_yan.cmd == 0x300)
-			{
-				play_yan.nmp_cmd_status = 0x4300;
-				play_yan.nmp_valid_command = true;
-			}
-
-			//Unknown command (firmware update related?)
-			else if(play_yan.cmd == 0x301)
-			{
-				play_yan.nmp_cmd_status = 0x4301;
-				play_yan.nmp_valid_command = true;
-			}
-
-			//Unknown command (firmware update related?)
-			else if(play_yan.cmd == 0x303)
-			{
-				play_yan.nmp_cmd_status = 0x4303;
-				play_yan.nmp_valid_command = true;
-				play_yan.cmd = 0;
-			}
-
-			else
-			{
-				play_yan.nmp_valid_command = false;
-				play_yan.nmp_cmd_status = 0;
-				std::cout<<"Unknown Nintendo MP3 Player Command -> 0x" << play_yan.cmd << "\n";
-			}
-		}
-
 		//Cartridge Status
-		else if(play_yan.access_param == 0x100)
+		if(play_yan.access_param == 0x100)
 		{
 			//Cartridge status during initial boot phase (e.g. Health and Safety screen)
 			if(play_yan.nmp_init_stage < 4)
@@ -1082,6 +1091,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.firmware_addr = 0;
 			play_yan.command_stream.clear();
 
+			//Finish command
 			if(play_yan.nmp_valid_command)
 			{
 				memory_map[REG_IF+1] |= 0x20;

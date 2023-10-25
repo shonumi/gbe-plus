@@ -477,6 +477,7 @@ class AGB_MMU
 	void write_nmp(u32 address, u8 value);
 	u8 read_nmp(u32 address);
 	void process_nmp_cmd();
+	void access_nmp_io();
 
 	void campho_reset();
 	u8 read_campho(u32 address);
