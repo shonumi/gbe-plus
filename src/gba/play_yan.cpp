@@ -365,6 +365,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	{
 		u32 offset = address - 0xB000100;
 
+		std::cout<<"CMD P -> 0x" << address << " :: 0x" << (u32)value << "\n";
+
 		if(offset <= 0x0B) { play_yan.cnt_data[offset] = value; }
 
 		//Check for control command
@@ -565,7 +567,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -795,7 +797,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -1021,6 +1023,18 @@ void AGB_MMU::process_nmp_cmd()
 		case 0x10:
 			play_yan.nmp_cmd_status = 0x4010;
 			play_yan.nmp_valid_command = true;
+
+			break;
+
+		//Undocumented command
+		case 0x11:
+			play_yan.nmp_cmd_status = 0x4011;
+			play_yan.nmp_valid_command = true;
+
+			break;
+
+		//Generate Sound (for menus) - No IRQ generated
+		case 0x200:
 			break;
 
 		//Check for firmware update file
