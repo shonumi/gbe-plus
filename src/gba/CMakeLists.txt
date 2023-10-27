@@ -20,6 +20,7 @@ set(SRCS
 	play_yan.cpp
 	campho.cpp
 	glucoboy.cpp
+	nmp.cpp
 	)
 
 set(HEADERS
