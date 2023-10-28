@@ -298,16 +298,16 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u16 control_cmd2 = (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]);
 
 			//Set music file data
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
+			if((play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
 
 			//Set video file data
-			else if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
+			else if((play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
 
 			//Set file data
-			else if(play_yan.cmd == 0x200) { play_yan_set_folder(); }
+			else if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) { play_yan_set_folder(); }
 
 			//Music position seeking
-			else if((play_yan.cmd == 0x905) && (play_yan.is_music_playing))
+			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_music_playing))
 			{
 				//Update trackbar
 				play_yan.music_play_data[2][5] = control_cmd2;
@@ -324,7 +324,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Video position seeking
-			else if((play_yan.cmd == 0x905) && (play_yan.is_video_playing))
+			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
 			{
 				//Advance trackbar and timestamp
 				if(control_cmd2 == 0x01)
@@ -351,13 +351,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Adjust Play-Yan volume settings
-			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
+			if(play_yan.cmd == PLAY_YAN_SET_VOLUME) { play_yan.volume = control_cmd2; }
 
 			//Adjust Play-Yan bass boost settings
-			else if(play_yan.cmd == 0xD00) { play_yan.bass_boost = control_cmd2; }
+			else if(play_yan.cmd == PLAY_YAN_SET_BASS_BOOST) { play_yan.bass_boost = control_cmd2; }
 
 			//Turn on/off Play-Yan bass boost
-			else if(play_yan.cmd == 0xD01) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
+			else if(play_yan.cmd == PLAY_YAN_ENABLE_BASS_BOOST) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
 		}
 	}
 
@@ -365,8 +365,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	if((address >= 0xB000100) && (address <= 0xB00010B) && (play_yan.firmware_addr >= 0xFF020) && (play_yan.access_mode == 0x68))
 	{
 		u32 offset = address - 0xB000100;
-
-		std::cout<<"CMD P -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 		if(offset <= 0x0B) { play_yan.cnt_data[offset] = value; }
 
@@ -382,16 +380,16 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			u32 control_cmd2 = ((play_yan.cnt_data[7] << 24) | (play_yan.cnt_data[6] << 16) | (play_yan.cnt_data[5] << 8) | (play_yan.cnt_data[4]));
 
 			//Set music file data
-			if((play_yan.cmd == 0x200) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
+			if((play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) && (control_cmd2 == 0x02)) { play_yan_set_music_file(); }
 
 			//Set video file data
-			else if((play_yan.cmd == 0x200) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
+			else if((play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
 
 			//Set file data
-			else if(play_yan.cmd == 0x200) { play_yan_set_folder(); }
+			else if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) { play_yan_set_folder(); }
 
 			//Music position seeking
-			else if((play_yan.cmd == 0x905) && (play_yan.is_music_playing))
+			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_music_playing))
 			{
 				//Update trackbar
 				play_yan.music_play_data[2][5] = control_cmd2;
@@ -408,7 +406,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Video position seeking
-			else if((play_yan.cmd == 0x905) && (play_yan.is_video_playing))
+			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
 			{
 				//Advance trackbar and timestamp
 				if(control_cmd2 == 0x01)
@@ -435,13 +433,13 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Adjust Play-Yan volume settings
-			if(play_yan.cmd == 0xB00) { play_yan.volume = control_cmd2; }
+			if(play_yan.cmd == PLAY_YAN_SET_VOLUME) { play_yan.volume = control_cmd2; }
 
 			//Adjust Play-Yan bass boost settings
-			else if(play_yan.cmd == 0xD00) { play_yan.bass_boost = control_cmd2; }
+			else if(play_yan.cmd == PLAY_YAN_SET_BASS_BOOST) { play_yan.bass_boost = control_cmd2; }
 
 			//Turn on/off Play-Yan bass boost
-			else if(play_yan.cmd == 0xD01) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
+			else if(play_yan.cmd == PLAY_YAN_ENABLE_BASS_BOOST) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
 		}
 	}
 
@@ -452,16 +450,22 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		play_yan.command_stream.push_back(value);
 
 		//Grab string of music/video filename to play
-		if((value == 0x00) && ((play_yan.cmd == 0x201) || (play_yan.cmd == 0x500) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x700) || (play_yan.cmd == 0x800)))
+		if((value == 0x00) && ((play_yan.cmd == PLAY_YAN_SET_DIR) || (play_yan.cmd == PLAY_YAN_GET_THUMBNAIL) || (play_yan.cmd == PLAY_YAN_GET_ID3_DATA)
+		|| (play_yan.cmd == PLAY_YAN_PLAY_VIDEO) || (play_yan.cmd == PLAY_YAN_PLAY_MUSIC)))
 		{
 			std::string temp_str = "";
-			u32 offset = (play_yan.cmd == 0x700) ? 9 : 1;
-			if(play_yan.cmd == 0x500) { offset = 17; }
+			u32 offset = (play_yan.cmd == PLAY_YAN_PLAY_VIDEO) ? 9 : 1;
+			if(play_yan.cmd == PLAY_YAN_GET_THUMBNAIL) { offset = 17; }
 
 			//Don't process if not enough of the command stream for the filename is sent
-			if(((play_yan.cmd == 0x201) || (play_yan.cmd == 0x600) || (play_yan.cmd == 0x800)) && (play_yan.command_stream.size() < 4)) { return; }
-			if((play_yan.cmd == 0x700) && (play_yan.command_stream.size() < 12)) { return; }
-			if((play_yan.cmd == 0x500) && (play_yan.command_stream.size() < 20)) { return; }
+			if(((play_yan.cmd == PLAY_YAN_SET_DIR) || (play_yan.cmd == PLAY_YAN_GET_ID3_DATA) 
+			|| (play_yan.cmd == PLAY_YAN_PLAY_MUSIC)) && (play_yan.command_stream.size() < 4))
+			{
+				return;
+			}
+
+			if((play_yan.cmd == PLAY_YAN_PLAY_VIDEO) && (play_yan.command_stream.size() < 12)) { return; }
+			if((play_yan.cmd == PLAY_YAN_GET_THUMBNAIL) && (play_yan.command_stream.size() < 20)) { return; }
 
 			play_yan.capture_command_stream = false;
 			play_yan.command_stream.pop_back();
@@ -473,7 +477,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Set the current directory
-			if(play_yan.cmd == 0x201)
+			if(play_yan.cmd == PLAY_YAN_SET_DIR)
 			{
 				//Backtrack one directory up
 				if(temp_str == "..")
@@ -490,7 +494,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Grab thumbnail index by searching for internal ID associated with video file
-			else if(play_yan.cmd == 0x500)
+			else if(play_yan.cmd == PLAY_YAN_GET_THUMBNAIL)
 			{
 				//Look up .bmp thumbnail, same name as video file, different extension
 				temp_str = util::get_filename_no_ext(temp_str) + ".bmp";
@@ -511,7 +515,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Grab ID3 data for a song
-			else if(play_yan.cmd == 0x600)
+			else if(play_yan.cmd == PLAY_YAN_GET_ID3_DATA)
 			{
 				//Convert backslash to forward slash
 				for(u32 x = 0; x < temp_str.length(); x++)
@@ -534,7 +538,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Load and convert music file
-			else if(play_yan.cmd == 0x800)
+			else if(play_yan.cmd == PLAY_YAN_PLAY_MUSIC)
 			{
 				play_yan_load_audio(play_yan.current_music_file);
 			}
@@ -718,7 +722,7 @@ void AGB_MMU::process_play_yan_cmd()
 	std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
 
 	//Trigger Game Pak IRQ for Get Filesystem Info command
-	if(play_yan.cmd == 0x200)
+	if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
@@ -729,7 +733,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for Change Current Directory command
-	if(play_yan.cmd == 0x201)
+	if(play_yan.cmd == PLAY_YAN_SET_DIR)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
@@ -743,7 +747,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for video thumbnail data
-	else if(play_yan.cmd == 0x500)
+	else if(play_yan.cmd == PLAY_YAN_GET_THUMBNAIL)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_VIDEO_THUMBNAILS;
 		play_yan.irq_delay = 1;
@@ -759,7 +763,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for ID3 data retrieval
-	else if(play_yan.cmd == 0x600)
+	else if(play_yan.cmd == PLAY_YAN_GET_ID3_DATA)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
@@ -774,7 +778,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for playing video
-	else if(play_yan.cmd == 0x700)
+	else if(play_yan.cmd == PLAY_YAN_PLAY_VIDEO)
 	{
 		play_yan.op_state = PLAY_YAN_START_VIDEO;
 		play_yan.irq_delay = 1;
@@ -797,7 +801,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for stopping video
-	else if(play_yan.cmd == 0x701)
+	else if(play_yan.cmd == PLAY_YAN_STOP_VIDEO)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
@@ -813,7 +817,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for playing music
-	else if(play_yan.cmd == 0x800)
+	else if(play_yan.cmd == PLAY_YAN_PLAY_MUSIC)
 	{
 		play_yan.op_state = PLAY_YAN_START_AUDIO;
 		play_yan.irq_delay = 1;
@@ -834,7 +838,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Game Pak IRQ for stopping music
-	else if(play_yan.cmd == 0x801)
+	else if(play_yan.cmd == PLAY_YAN_STOP_MUSIC)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 1;
@@ -847,19 +851,19 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Pause Media Playback
-	else if(play_yan.cmd == 0x902)
+	else if(play_yan.cmd == PLAY_YAN_PAUSE)
 	{
 		play_yan.pause_media = true;
 	}
 
 	//Resume Media Playback
-	else if(play_yan.cmd == 0x904)
+	else if(play_yan.cmd == PLAY_YAN_RESUME)
 	{
 		play_yan.pause_media = false;
 	}
 
 	//Trigger Game Pak IRQ for cartridge status
-	else if(play_yan.cmd == 0x8000)
+	else if(play_yan.cmd == PLAY_YAN_GET_STATUS)
 	{
 		play_yan.irq_delay = 60;
 		play_yan.irq_data_ptr = play_yan.sd_check_data[1];
@@ -880,7 +884,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Play-Yan Micro Game Pak IRQ to open .ini file 
-	else if(play_yan.cmd == 0x3000)
+	else if(play_yan.cmd == PLAY_YAN_CHECK_KEY_FILE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
@@ -895,7 +899,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}
 
 	//Trigger Play-Yan Micro Game Pak IRQ to read .ini file 
-	else if(play_yan.cmd == 0x3001)
+	else if(play_yan.cmd == PLAY_YAN_READ_KEY_FILE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
@@ -908,7 +912,7 @@ void AGB_MMU::process_play_yan_cmd()
 	}	
 
 	//Trigger Play-Yan Micro Game Pak IRQ to close .ini file??? 
-	else if(play_yan.cmd == 0x3003)
+	else if(play_yan.cmd == PLAY_YAN_CLOSE_KEY_FILE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_delay = 60;
