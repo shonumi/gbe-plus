@@ -266,7 +266,7 @@ void AGB_MMU::campho_process_input_stream()
 		u16 param_1 = header;
 
 		//Dial Phone Number
-		if(header == 0x3740)
+		if(header == CAMPHO_DIAL_PHONE_NUMBER)
 		{
 			u16 number_len = (campho.g_stream[2] | (campho.g_stream[3] << 8));
 			number_len = ((number_len >> 13) | (number_len << 3));
@@ -335,7 +335,7 @@ void AGB_MMU::campho_process_input_stream()
 		else if(campho.g_stream.size() == 0x04)
 		{
 			//Stop camera?
-			if(index == 0xF740)
+			if(index == CAMPHO_STOP_CAMERA)
 			{
 				campho.capture_video = false;
 
@@ -346,7 +346,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Turn on camera for large frame?
-			else if(index == 0xD740)
+			else if(index == CAMPHO_GET_CAMERA_FRAME_LARGE)
 			{
 				campho.capture_video = true;
 				campho.is_large_frame = true;
@@ -361,7 +361,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Read the number of contact data entries
-			else if(index == 0xD778)
+			else if(index == CAMPHO_GET_CONFIG_ENTRY_COUNT)
 			{
 				for(u32 x = 0; x < campho.g_stream.size(); x++) { std::cout<<"YO -> 0x" << (u32)campho.g_stream[x] << "\n"; }
 
@@ -387,7 +387,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Turn on camera for small frame?
-			else if(index == 0xB740)
+			else if(index == CAMPHO_GET_CAMERA_FRAME_SMALL)
 			{
 				campho.capture_video = true;
 				campho.is_large_frame = false;
@@ -402,7 +402,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Always end frame rendering
-			else if(index == 0xFF9F)
+			else if(index == CAMPHO_FINISH_CAMERA_FRAME)
 			{
 				campho.video_capture_counter = 0;
 				campho.new_frame = false;
@@ -426,7 +426,7 @@ void AGB_MMU::campho_process_input_stream()
 			u16 lo_set = (index & 0xFFFF);
 
 			//Read full settings
-			if(stream_stat == 0xB778)
+			if(stream_stat == CAMPHO_READ_CONFIG_DATA)
 			{
 				campho.out_stream.clear();
 
@@ -494,7 +494,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Set microphone volume
-			else if(stream_stat == 0x1742)
+			else if(stream_stat == CAMPHO_SET_MIC_VOLUME)
 			{
 				campho.mic_volume = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
@@ -502,7 +502,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Set speaker volume
-			else if(stream_stat == 0x3742)
+			else if(stream_stat == CAMPHO_SET_SPEAKER_VOLUME)
 			{
 				campho.speaker_volume = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
@@ -510,7 +510,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Set video brightness
-			else if(stream_stat == 0x5742)
+			else if(stream_stat == CAMPHO_SET_VIDEO_BRIGHTNESS)
 			{
 				campho.video_brightness = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
@@ -518,7 +518,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Set video contrast
-			else if(stream_stat == 0x7742)
+			else if(stream_stat == CAMPHO_SET_VIDEO_CONTRAST)
 			{
 				campho.video_contrast = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
@@ -526,7 +526,7 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Erase contact data
-			else if(stream_stat == 0x1779)
+			else if(stream_stat == CAMPHO_ERASE_CONTACT_DATA)
 			{
 				u16 temp_index = (index >> 16);
 				temp_index = ((temp_index >> 13) | (temp_index << 3));

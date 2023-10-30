@@ -127,7 +127,7 @@ Unwarped	| Warped 	| Description
 0xBBC5		| 0xB778	| Read full configuration settings or contact data
 0xBBC6		| 0xD778	| Read the total number of contact data entries
 0xBBC8		| 0x1779	| Erase contact data
-0xCFFF		| 0xF9FF	| Finishes input frame from camera (and requests another?)
+0xCFFF		| 0xFF9F	| Finishes input frame from camera (and requests another?)
 ------------------------------------------------------------------------
 
 For a full explanation of how each command works, see the following sections.
