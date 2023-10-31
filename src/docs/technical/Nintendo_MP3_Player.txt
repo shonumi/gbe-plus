@@ -27,7 +27,7 @@ Following in the footsteps of the original Play-Yan and Play-Yan Micro, the Nint
 
 
 ***************************************************
-3. Hardware Registers and I/O
+3. Hardware Registers
 ***************************************************
 
 The Nintendo MP3 Player uses a very small selection of registers in the 0xE000000 memory region, relying on serial reads and writes to access firmware, send commands, and handle audio playback.
@@ -41,4 +41,45 @@ NMP_DATA_OUT		| 0xE006000	| Output data from the cartridge.
 NMP_PARAMETER		| 0xE008000	| Selects data indices and commands.
 ----------------------------------------------------------------------------------------------------------------------
 
-All registers are 16-bit and MSB first. As such, care must be taken when reading/writing from hardware that is LSB-based (such as the GBA's ARM7 CPU). Additionally, due to the serial nature of the registers, the lower value must always be read/written first. The Nintendo MP3 Player's software, resorts to accessing these registers one byte at a time (e.g. 0xE000000 first, then 0xE000001) to resolve both issues.
+All registers are 16-bit and MSB first. As such, care must be taken when reading/writing with hardware that is LSB-based (such as the GBA's ARM7 CPU). Additionally, due to the serial nature of the registers, the lower value must always be read/written first. The Nintendo MP3 Player's software, resorts to accessing these registers one byte at a time (e.g. 0xE000000 first, then 0xE000001) to resolve both issues.
+
+
+***************************************************
+4. Accessing Firmware
+***************************************************
+
+Like the original Play-Yan and Play-Yan Micro, the Nintendo MP3 player loads default firmware from the cartridge's ROM onto special hardware inside the device. This ensures a baseline, working version of the firmware necessary to decode MP3s is always present, especially in case a firmware upgrade goes awry. To write firmware, the software first sets an index, presumably representing a location in internal memory where the firmware resides. Afterwards, it starts writing values. The index itself is expressed in terms of 16-bit units, so the absolute memory location is twice the value of the index.
+
+The following process is used to access firmware:
+
+------------------------------------------------------------------------
+NMP_CONTROL_LO = 0x10
+NMP_CONTROL_HI = 0x10
+
+NMP_PARAMATER_LO = INPUT_PARAMETER_LO
+NMP_PARAMETER_HI = INPUT_PARAMETER_HI
+
+NMP_CONTROL_LO = 0x00
+NMP_CONTROL_HI = 0x00
+
+NMP_PARAMATER_LO = INDEX_LO
+NMP_PARAMETER_HI = INDEX_HI
+------------------------------------------------------------------------
+
+From there, data can be read or written by from either NMP_DATA_IN or NMP_DATA_OUT as 16-bit values. It is currently unknown what purpose the different values of INPUT_PARAMETER serves. Common values appear to be 0x0000 through 0x0003.
+
+
+***************************************************
+5. Indices
+***************************************************
+
+While most indices appear to be used for accessing firmware, some have other purposes. These are accessed in a similar manner to firmware. Here, however, the value for INPUT_PARAMATER is always 0x0000. A list of known indices and there function follows:
+
+------------------------------------------------------------------------
+Index	| Description
+------------------------------------------------------------------------
+0xFF	| Some kind of data flush?
+0x100	| Validate Game Pak IRQ data
+0x10F	| Stall while cartridge I/O is busy
+0x110	| Check Cartridge I/O busy flag
+------------------------------------------------------------------------
