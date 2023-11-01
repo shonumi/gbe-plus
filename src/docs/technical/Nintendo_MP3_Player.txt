@@ -56,14 +56,14 @@ The following process is used to access firmware:
 NMP_CONTROL_LO = 0x10
 NMP_CONTROL_HI = 0x10
 
-NMP_PARAMATER_LO = INPUT_PARAMETER_LO
-NMP_PARAMETER_HI = INPUT_PARAMETER_HI
+NMP_PARAMATER_LO = INPUT_PARAMETER_HI
+NMP_PARAMETER_HI = INPUT_PARAMETER_LO
 
 NMP_CONTROL_LO = 0x00
 NMP_CONTROL_HI = 0x00
 
-NMP_PARAMATER_LO = INDEX_LO
-NMP_PARAMETER_HI = INDEX_HI
+NMP_PARAMATER_LO = INDEX_HI
+NMP_PARAMETER_HI = INDEX_LO
 ------------------------------------------------------------------------
 
 From there, data can be read or written by from either NMP_DATA_IN or NMP_DATA_OUT as 16-bit values. It is currently unknown what purpose the different values of INPUT_PARAMETER serves. Common values appear to be 0x0000 through 0x0003.
@@ -73,13 +73,42 @@ From there, data can be read or written by from either NMP_DATA_IN or NMP_DATA_O
 5. Indices
 ***************************************************
 
-While most indices appear to be used for accessing firmware, some have other purposes. These are accessed in a similar manner to firmware. Here, however, the value for INPUT_PARAMATER is always 0x0000. A list of known indices and there function follows:
+While most indices appear to be used for accessing firmware, some have other purposes. These are accessed in a similar manner to firmware. Here, however, the value representing INPUT_PARAMATER is always 0x0000:
+
+------------------------------------------------------------------------
+NMP_CONTROL_LO = 0x10
+NMP_CONTROL_HI = 0x10
+
+NMP_PARAMATER_LO = 0x00
+NMP_PARAMETER_HI = 0x00
+
+NMP_CONTROL_LO = 0x00
+NMP_CONTROL_HI = 0x00
+
+NMP_PARAMATER_LO = ACCESS_INDEX_HI
+NMP_PARAMETER_HI = ACCESS_INDEX_LO
+------------------------------------------------------------------------
+
+A list of known indices and their functions follows:
 
 ------------------------------------------------------------------------
 Index	| Description
 ------------------------------------------------------------------------
-0xFF	| Some kind of data flush?
-0x100	| Validate Game Pak IRQ data
-0x10F	| Stall while cartridge I/O is busy
-0x110	| Check Cartridge I/O busy flag
+0x00FF	| Data Flush?
+0x0100	| Validate Game Pak IRQ Data
+0x010F	| Send Command / Stall For IRQ
+0x0110	| Check Cartridge I/O Busy Flag
 ------------------------------------------------------------------------
+
+Index 0x00FF - Data Flush?
+This index typically accessed after commands are issued. It seems like it's used to flush input data. After accessing this index, 16-bits are written to NMP_DATA_IN, with the value being 0x0000
+
+Index 0x0100 - Validate Game Pak IRQ Data
+This index is accessed immediately following a Game Pak IRQ. The Nintendo MP3 Player software uses this to check and make sure valid data was returned by the cartridge. It's essentially used to peek at the first 16 bytes returned from NMP_DATA_OUT. The first 16-bits indicates whether or not there was a response to a command. Non-zero data means the cartridge is attempted to send back data, otherwise, the Game Pak IRQ is ignored. The Nintendo MP3 Player generally accesses this index twice in a row. The first time peeks at the first 8 bytes of a command response, and if that's valid, the second access reads the full 16 bytes.
+
+Index 0x10F - Send Command / Stall For IRQ
+This index has two uses when writing to NMP_DATA_OUT and when reading from NMP_DATA_IN. When writing, it is used to send a command. A series of 16-bit values are then written to NMP_DATA_OUT. When reading, this access acts as a means to stall while waiting for a Game Pak IRQ after issuing a command. A single 16-bit value is read from NMP_DATA_OUT, however, this value is discarded by the Nintendo MP3 Player's software, which waits until a Game Pak IRQ actually occurs before reading any real data from NMP_DATA_OUT.
+
+Index 0x110 - Check Cartridge I/O Busy Flag
+This index is accessed immediately following the last access to 0x100. It's used to get the cartridge's I/O busy status. After accessing this index, a single 16-bit value from NMP_DATA_OUT is read. Any non-zero values indicate that the cartridge is still busy, presumbly with data from a previous Game Pak IRQ. This index can be accessed indefinitely until NMP_DATA_OUT returns zero, at which point additional commands can be issued.
+
