@@ -68,6 +68,10 @@ NMP_PARAMETER_HI = INDEX_LO
 
 From there, data can be read or written by from either NMP_DATA_IN or NMP_DATA_OUT as 16-bit values. It is currently unknown what purpose the different values of INPUT_PARAMETER serves. Common values appear to be 0x0000 through 0x0003.
 
+Although the Nintendo MP3 Player has the ability to update its firmware just like its Play-Yan predecessors, it's unclear if this was actually ever done for this version. The cartridge specifically looks for a file named "meteor.fup", but it does not appear any such file was ever offered to users by Nintendo.
+
+After the firmware is completely loaded from the Nintendo MP3 Player's ROM, a single Game Pak IRQ is automatically generated, which begins the boot process, very similar to how the Play-Yan models operate.
+
 
 ***************************************************
 5. Indices
@@ -106,9 +110,100 @@ This index typically accessed after commands are issued. It seems like it's used
 Index 0x0100 - Validate Game Pak IRQ Data
 This index is accessed immediately following a Game Pak IRQ. The Nintendo MP3 Player software uses this to check and make sure valid data was returned by the cartridge. It's essentially used to peek at the first 16 bytes returned from NMP_DATA_OUT. The first 16-bits indicates whether or not there was a response to a command. Non-zero data means the cartridge is attempted to send back data, otherwise, the Game Pak IRQ is ignored. The Nintendo MP3 Player generally accesses this index twice in a row. The first time peeks at the first 8 bytes of a command response, and if that's valid, the second access reads the full 16 bytes.
 
-Index 0x10F - Send Command / Stall For IRQ
+Index 0x010F - Send Command / Stall For IRQ
 This index has two uses when writing to NMP_DATA_OUT and when reading from NMP_DATA_IN. When writing, it is used to send a command. A series of 16-bit values are then written to NMP_DATA_OUT. When reading, this access acts as a means to stall while waiting for a Game Pak IRQ after issuing a command. A single 16-bit value is read from NMP_DATA_OUT, however, this value is discarded by the Nintendo MP3 Player's software, which waits until a Game Pak IRQ actually occurs before reading any real data from NMP_DATA_OUT.
 
-Index 0x110 - Check Cartridge I/O Busy Flag
-This index is accessed immediately following the last access to 0x100. It's used to get the cartridge's I/O busy status. After accessing this index, a single 16-bit value from NMP_DATA_OUT is read. Any non-zero values indicate that the cartridge is still busy, presumbly with data from a previous Game Pak IRQ. This index can be accessed indefinitely until NMP_DATA_OUT returns zero, at which point additional commands can be issued.
+Index 0x0110 - Check Cartridge I/O Busy Flag
+This index is accessed immediately following the last access to 0x0100. It's used to get the cartridge's I/O busy status. After accessing this index, a single 16-bit value from NMP_DATA_OUT is read. Any non-zero values indicate that the cartridge is still busy, presumbly with data from a previous Game Pak IRQ. This index can be accessed indefinitely until NMP_DATA_OUT returns zero, at which point additional commands can be issued.
 
+
+***************************************************
+6. Commands
+***************************************************
+
+Commands can be sent to the Nintendo MP3 Player after accessing the 0x010F index. Data consists of a stream of 16-bit words written to NMP_DATA_IN. These commands are responsible for operating nearly everything about the cartridge, from upgrading firmware, reading directory information from the SD card, and playing music. The process of sending a command is as follows:
+
+------------------------------------------------------------------------
+NMP_DATA_IN_LO = COMMAND_ID_HI
+NMP_DATA_IN_HI = COMMAND_ID_LO
+
+NMP_DATA_IN_LO = PARAMETER_VALUE_HI
+NMP_DATA_IN_HI = PARAMETER_VALUE_LO
+
+...
+
+NMP_CONTROL_LO = 0x04
+NMP_CONTROL_HI = 0x04
+------------------------------------------------------------------------
+
+At a minimum, a command must write its ID and an additional 16-bits of parameter data. Some commands, such as 0x10, use zeroes for their parameter data, and do not seem to require a flush via the 0xFF index. For commands that require more bytes for parameters, that data is simply written accordingly to NMP_DATA_IN. Writing 0x0404 to NMP_CONTROL appears to signal to the cartridge that command input is finished. A list of all known commands and details about them are listed below:
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+Command	ID				| Parameters
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x0010 - Unknown Command		|
+0x0011 - Unknown Command		|
+0x0200 - Play Sound Effect		|
+0x0300 - Check For Firmware File	| Firmware Upgrade Filename
+0x0301 - Read Firmware File?		|
+0x0303 - Close Firmware File?		|
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-----------------------------------------------------------------------
+Command 0x0010 - Unknown Command
+-----------------------------------------------------------------------
+
+Unknown command. Possibly filesystem related.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0011 - Unknown Command
+-----------------------------------------------------------------------
+
+Unknown command. Possibly filesystem related.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0200 - Play Sound Effect
+-----------------------------------------------------------------------
+
+Plays a sound effect during certain actions, such as selecting menus. The sound effect comes from firmware, just like the Play-Yan models, with the Nintendo MP3 Player software loading it and outputting it.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0300 - Check For Firmware File
+-----------------------------------------------------------------------
+
+This command requests a firmware update file from the SD card if it exists. May be similar to the Check For Key File command on the Play-Yan Micro. It seems that if some of the response data is non-zero, that indicates the file is available and can be read.
+
+A total of 522 bytes are used as parameter data. The first portion contains a null-terminated string representing the file to look up. Each character uses 16-bits. As an example, the ASCII encoding for the character "A" involves writing 0x00 to NMP_DATA_IN_LO first, then 0x41 to NMP_DATA_IN_HI later. Some unknown data is used after the filename.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0301 - Read Firmware File
+-----------------------------------------------------------------------
+
+This command appears to read the firmware file if it exists.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0303 - Close Firmware File
+-----------------------------------------------------------------------
+
+This command appears to close the firmware file if it was previously opened.
