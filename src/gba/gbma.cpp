@@ -931,6 +931,8 @@ void AGB_SIO::mobile_adapter_process_http()
 					not_found = true;
 				}
 
+				else { not_found = false; }
+
 				#ifdef GBE_NETPLAY
 
 				//Isolate requested URL
