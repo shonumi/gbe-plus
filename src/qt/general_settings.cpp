@@ -1735,6 +1735,7 @@ void gen_settings::set_ini_options()
 	switch(config::sio_device)
 	{
 		case 1:
+		case 3:
 		case 4:
 		case 5:
 		case 6:
@@ -2069,6 +2070,7 @@ void gen_settings::sio_dev_change()
 	switch(config::sio_device)
 	{
 		case 1:
+		case 3:
 		case 4:
 		case 5:
 		case 6:
@@ -2147,6 +2149,7 @@ void gen_settings::show_sio_config()
 	switch(config::sio_device)
 	{
 		case 1: tabs->setCurrentIndex(4); break;
+		case 3: tabs->setCurrentIndex(4); break;
 		case 4: qt_gui::draw_surface->set_card_file(); break;
 		case 5: qt_gui::draw_surface->set_card_file(); break;
 		case 6: tabs->setCurrentIndex(4); break;
