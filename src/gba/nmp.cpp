@@ -170,7 +170,7 @@ void AGB_MMU::access_nmp_io()
 	if(play_yan.access_param)
 	{
 		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
-		play_yan.firmware_addr = play_yan.access_param;
+		play_yan.firmware_addr = (play_yan.access_param << 1);
 
 		u16 stat_data = 0;
 
