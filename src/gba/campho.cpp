@@ -363,8 +363,6 @@ void AGB_MMU::campho_process_input_stream()
 			//Read the number of contact data entries
 			else if(index == CAMPHO_GET_CONFIG_ENTRY_COUNT)
 			{
-				for(u32 x = 0; x < campho.g_stream.size(); x++) { std::cout<<"YO -> 0x" << (u32)campho.g_stream[x] << "\n"; }
-
 				campho.out_stream.clear();
 
 				//Metadata for Campho Advance
@@ -382,8 +380,6 @@ void AGB_MMU::campho_process_input_stream()
 				//Allow outstream to be read (until next stream)
 				campho.out_stream_index = 0;
 				campho.read_out_stream = true;
-
-				campho.contact_index = -1;
 			}
 
 			//Turn on camera for small frame?
@@ -639,7 +635,12 @@ void AGB_MMU::campho_process_input_stream()
 					std::cout<<"0x" << (u32)campho.g_stream[x] << "\n";
 				}
 
-				u32 edit_index = campho.contact_index * 28;
+				std::cout<<"CAMPHO INDEX -> " << std::dec << (s32)campho.contact_index << "\n";
+
+				s32 edit_index = campho.contact_index * 28;
+
+				std::cout<<"EDIT INDEX -> " << std::dec << edit_index << "\n";
+				std::cout<<"MAX SIZE -> " << campho.contact_data.size() << std::hex << "\n";
 
 				//32-bit metadata
 				campho.contact_data[edit_index++] = 0x31;
