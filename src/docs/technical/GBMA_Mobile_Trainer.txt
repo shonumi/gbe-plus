@@ -61,6 +61,8 @@ Accessing the Home Page and associated links is timed, as the Mobile Adapter kee
 
 Just about everything else in the BMP file and image header is ignored. Most image editors will produce a BMP that works fine with the Mobile Trainer web-browser. Some BMPs may need minor alterations. For example, GIMP may set the number of color maps but otherwise typically produce a valid BMP for Mobile Trainer (in which case, the incorrect bytes can be manually changed in a hex editor).
 
+It appears that the browser is only capable of displaying a single unique image per webpage. That is to say, if a webpage tries to use two different images, only the first one will be displayed. This is likely a means to conserve RAM, as even small 1BPP images, when multiplied, could quickly eat away at the GBC's memory. A single image can be displayed various times on a webpage. The Mobile Trainer browser renders HTML dynamically, so that one image can be stored in RAM and converted into VRAM tiles as often as needed. The browser will make an HTTP request for multiple images on the same page, but based on the URL, it seems to discard any additional images once the first has been loaded.
+
 
 ***************************************************
 5. Email
