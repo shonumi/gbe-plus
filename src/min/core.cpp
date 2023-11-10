@@ -343,6 +343,28 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		config::osd_count = 180;
 	}
 
+	//Generate random IR signals on F4 - Used to imitate IR sources like TV remotes
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
+	{
+		core_mmu.ir_stat.connected[11] = true;
+
+		srand(SDL_GetTicks());
+
+		//Generate between 32 - 64 random ON/OFF IR signals
+		core_mmu.ir_stat.remote_signal_size = (rand() % 64) + 1;
+		if(core_mmu.ir_stat.remote_signal_size < 32) { core_mmu.ir_stat.remote_signal_size += 32; }
+
+		//Generate ON/OFF signals lasting between 64 - 480 cycles
+		for(u32 x = 0; x < (core_mmu.ir_stat.remote_signal_size * 2); x++)
+		{
+			core_mmu.ir_stat.remote_signal_cycles[x] = (rand() % 480) + 1;
+			if(core_mmu.ir_stat.remote_signal_cycles[x] < 64) { core_mmu.ir_stat.remote_signal_cycles[x] += 64; }
+		}
+
+		core_mmu.ir_stat.remote_signal_size *= 2;
+		core_mmu.ir_stat.remote_signal_count = core_mmu.ir_stat.remote_signal_cycles[0];
+	}	
+
 	//Pause and wait for netplay connection on F5
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
 	{

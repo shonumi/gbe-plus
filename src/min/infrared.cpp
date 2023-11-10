@@ -26,7 +26,7 @@ bool MIN_MMU::init_ir()
 	ir_stat.sync_balance = 0;
 	ir_stat.debug_cycles = 0xDEADBEEF;
 
-	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = false; }
+	for(u32 x = 0; x < 11; x++) { ir_stat.connected[x] = false; }
 
 	#ifdef GBE_NETPLAY
 

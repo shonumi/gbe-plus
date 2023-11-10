@@ -130,7 +130,7 @@ class MIN_MMU
 		u8 signal;
 		s16 fade;
 
-		bool connected[10];
+		bool connected[11];
 		bool sync;
 		bool init;
 		bool send_signal;
@@ -140,6 +140,11 @@ class MIN_MMU
 		u32 debug_cycles;
 		s32 sync_timeout;
 		s32 sync_balance;
+
+		u32 remote_signal_cycles[128];
+		u32 remote_signal_index;
+		u32 remote_signal_size;
+		u32 remote_signal_count;
 	} ir_stat;
 
 	#ifdef GBE_NETPLAY
