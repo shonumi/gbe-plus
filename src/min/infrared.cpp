@@ -282,6 +282,41 @@ bool MIN_MMU::process_ir()
 	return true;
 }
 
+
+/****** Handles setting random ON/OFF IR signals for TV remote ******/
+void MIN_MMU::process_remote_signal()
+{
+	//Wait for the right amount of cycles to pass
+	if(ir_stat.remote_signal_delay > 0) { return; }
+
+	//OFF signal
+	if(ir_stat.remote_signal_index & 0x1)
+	{
+		memory_map[PM_IO_DATA] |= 0x2;
+	}
+
+	//ON signal
+	else
+	{
+		memory_map[PM_IO_DATA] &= ~0x2;
+		update_irq_flags(IR_RECEIVER_IRQ);
+	}
+
+	ir_stat.remote_signal_index++;
+
+	//Set new cycle delay for next signal or restore IR stat data and quit
+	if(ir_stat.remote_signal_index < ir_stat.remote_signal_size)
+	{
+		ir_stat.remote_signal_delay = ir_stat.remote_signal_cycles[ir_stat.remote_signal_index];
+	}
+
+	else
+	{
+		ir_stat.connected[10] = false;
+		ir_stat.network_id = ir_stat.temp_id;
+	}	
+}
+
 /****** Receive IR data over a network ******/
 bool MIN_MMU::recv_byte()
 {

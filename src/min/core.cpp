@@ -236,11 +236,22 @@ void MIN_core::run_core()
 			//Receive byte from another instance of GBE+ via netplay - Manage sync
 			if(core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id])
 			{
-				//Perform syncing operations when hard sync is enabled
-				if((config::netplay_hard_sync) && (core_mmu.ir_stat.sync_timeout > 0)) { hard_sync(); }
+				//Normal IR operations
+				if(core_mmu.ir_stat.network_id < 10)
+				{
+					//Perform syncing operations when hard sync is enabled
+					if((config::netplay_hard_sync) && (core_mmu.ir_stat.sync_timeout > 0)) { hard_sync(); }
 
-				//Receive bytes normally
-				core_mmu.recv_byte();
+					//Receive bytes normally
+					core_mmu.recv_byte();
+				}
+
+				//Process remote signals (TV remote)
+				else
+				{
+					core_mmu.ir_stat.remote_signal_delay -= core_cpu.system_cycles;
+					core_mmu.process_remote_signal();
+				}
 			}
 
 			//Reset system cycles for next instruction
@@ -346,7 +357,9 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 	//Generate random IR signals on F4 - Used to imitate IR sources like TV remotes
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
 	{
-		core_mmu.ir_stat.connected[11] = true;
+		core_mmu.ir_stat.connected[10] = true;
+		core_mmu.ir_stat.temp_id = core_mmu.ir_stat.network_id;
+		core_mmu.ir_stat.network_id = 10;
 
 		srand(SDL_GetTicks());
 
@@ -362,7 +375,8 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		}
 
 		core_mmu.ir_stat.remote_signal_size *= 2;
-		core_mmu.ir_stat.remote_signal_count = core_mmu.ir_stat.remote_signal_cycles[0];
+		core_mmu.ir_stat.remote_signal_delay = core_mmu.ir_stat.remote_signal_cycles[0];
+		core_mmu.ir_stat.remote_signal_index = 0;
 	}	
 
 	//Pause and wait for netplay connection on F5

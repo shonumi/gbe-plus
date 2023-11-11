@@ -77,6 +77,7 @@ class MIN_MMU
 	void disconnect_ir();
 	void process_network_communication();
 	bool process_ir();
+	void process_remote_signal();
 	bool recv_byte();
 	bool request_sync();
 	bool stop_sync();
@@ -127,6 +128,7 @@ class MIN_MMU
 	struct ir_status
 	{
 		u8 network_id;
+		u8 temp_id;
 		u8 signal;
 		s16 fade;
 
@@ -144,7 +146,7 @@ class MIN_MMU
 		u32 remote_signal_cycles[128];
 		u32 remote_signal_index;
 		u32 remote_signal_size;
-		u32 remote_signal_count;
+		s32 remote_signal_delay;
 	} ir_stat;
 
 	#ifdef GBE_NETPLAY
