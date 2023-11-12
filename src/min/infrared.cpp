@@ -282,7 +282,6 @@ bool MIN_MMU::process_ir()
 	return true;
 }
 
-
 /****** Handles setting random ON/OFF IR signals for TV remote ******/
 void MIN_MMU::process_remote_signal()
 {
@@ -303,6 +302,7 @@ void MIN_MMU::process_remote_signal()
 	}
 
 	ir_stat.remote_signal_index++;
+	std::cout<<"INDEX -> " << ir_stat.remote_signal_index << " :: LIMIT -> " << ir_stat.remote_signal_size << "\n";
 
 	//Set new cycle delay for next signal or restore IR stat data and quit
 	if(ir_stat.remote_signal_index < ir_stat.remote_signal_size)
