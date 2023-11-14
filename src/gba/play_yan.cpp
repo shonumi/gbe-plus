@@ -1186,6 +1186,12 @@ void AGB_MMU::play_yan_set_video_file()
 	util::get_files_in_dir(play_yan.current_dir, ".asf", dir_listing, true, true);
 	util::get_files_in_dir(play_yan.current_dir, ".ASF", dir_listing, true, true);
 
+	if(play_yan.type == PLAY_YAN_MICRO)
+	{
+		util::get_files_in_dir(play_yan.current_dir, ".mp4", dir_listing, true, true);
+		util::get_files_in_dir(play_yan.current_dir, ".MP4", dir_listing, true, true);
+	}	
+
 	//Write filenames and folder names to SD card data
 	for(u32 x = 0; x < dir_listing.size(); x++)
 	{
@@ -1491,14 +1497,14 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	//Check format, must be S16 audio, LSB
 	if(file_spec.format != AUDIO_S16)
 	{
-		std::cout<<"MMU::Jukebox loaded file, but format is not Signed 16-bit LSB audio\n";
+		std::cout<<"MMU::Play-Yan loaded file, but format is not Signed 16-bit LSB audio\n";
 		return false;
 	}
 
 	//Check number of channels, max is 2
 	if(file_spec.channels > 2)
 	{
-		std::cout<<"MMU::Jukebox loaded file, but audio uses more than 2 channels\n";
+		std::cout<<"MMU::Play-Yan loaded file, but audio uses more than 2 channels\n";
 		return false;
 	}
 
