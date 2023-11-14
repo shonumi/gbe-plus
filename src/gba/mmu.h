@@ -405,7 +405,9 @@ class AGB_MMU
 	{
 		u8 io_index;
 		u8 index_shift;
+		u32 parameter_length;
 		std::vector<u32> io_regs;
+		std::vector<u8> parameters;
 		bool request_interrupt;
 		bool reset_shift;
 	} glucoboy;

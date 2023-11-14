@@ -20,6 +20,7 @@ void AGB_MMU::glucoboy_reset()
 	glucoboy.index_shift = 0;
 	glucoboy.request_interrupt = false;
 	glucoboy.reset_shift = false;
+	glucoboy.parameter_length = 0;
 
 	//Setup GRP data
 	glucoboy.io_regs[0x21] = config::glucoboy_daily_grps;
@@ -31,9 +32,53 @@ void AGB_MMU::glucoboy_reset()
 /****** Writes data to Glucoboy I/O ******/
 void AGB_MMU::write_glucoboy(u32 address, u8 value)
 {
-	glucoboy.io_index = value;
-	glucoboy.request_interrupt = true;
-	glucoboy.reset_shift = true;
+	//Grab new parameters
+	if(glucoboy.parameter_length)
+	{
+		glucoboy.parameters.push_back(value);
+		glucoboy.parameter_length--;
+		glucoboy.request_interrupt = true;
+		glucoboy.reset_shift = true;
+	}
+
+	//Validate new index
+	else
+	{
+		switch(value)
+		{
+			case 0x20:
+			case 0x21:
+			case 0x22:
+			case 0x23:
+			case 0x24:
+			case 0x25:
+			case 0x26:
+			case 0x27:
+			case 0x31:
+			case 0x32:
+			case 0xE0:
+			case 0xE1:
+			case 0xE2:
+				glucoboy.io_index = value;
+				glucoboy.request_interrupt = true;
+				glucoboy.reset_shift = true;
+				break;
+
+			default:
+				glucoboy.io_index = 0;
+				glucoboy.request_interrupt = false;
+				glucoboy.reset_shift = false;
+				std::cout<<"MMU::Unknown Glucoboy Index: 0x" << (u32)value << "\n";
+		}
+
+		if(glucoboy.io_index == 0xE1)
+		{
+			glucoboy.parameters.clear();
+			glucoboy.parameter_length = 6;
+		}
+	}
+
+	//std::cout<<"GLUCOBOY WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Glucoboy I/O ******/
