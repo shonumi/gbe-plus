@@ -71,20 +71,22 @@ Below is a brief list of all known indices and their currently understood functi
 -----------------------------------------------------------
 Index	| Bits	| Description
 -----------------------------------------------------------
-0x20	| 32	| Unknown
+0x20	| 32	| System Date
 0x21	| 32	| Daily GRPs Earned
 0x22	| 32	| Bonus GRPs Earned
 0x23	| 32	| Current Number of Good Days
 0x24	| 32	| Number of Good Days Until Bonus Rewarded
-0x25	| 32	| Unknown
-0x26	| 32	| Unknown
-0x27	| 32	| Unknown
+0x25	| 32	| Hardware Flags
+0x26	| 32	| LD Threshold
+0x27	| 32	| Serial Number
 0x31	| 8	| Unknown
 0x32	| 8	| Unknown
 0xE0	| 8	| Unknown
 0xE1	| 8	| Unknown
 0xE2	| 8	| Unknown
 -----------------------------------------------------------
+
+A number of these indices do not appear to be used except for some potential debugging output. During normal operation, the ROM will request the data stored within those indices but not use them. The System Date, Hardware Flags, LD Threshold, and Device Serial Number are all affected. While these indices provide useful information about the Glucoboy, they are technically not required for the games, which focus on GRPs.
 
 A more detailed explanation of known indices follows:
 
@@ -129,6 +131,62 @@ This index represents the number of remaining "good days" needed until the bonus
 
 
 -----------------------------------------------------------------------
+Index 0x25 - Hardware Flags
+-----------------------------------------------------------------------
+
+This index represents a set of hardware status flags for the Glucoboy. Only 7-bits of the 32-bit index value is used as such:
+
+-----------------------------------------------------------
+Bit	| Description
+-----------------------------------------------------------
+0	| GMEM FAULT
+1	| PMEM FAULT
+2 	| INCENTIVE
+3	| PNEW STATS
+4	| MEASUREMENT
+5	| GMETER FAULT
+6	| PMETER FAULT
+-----------------------------------------------------------
+
+The following descriptions are estimates of each bit's likely meaning. Keep in mind these are guesses for the time being.
+
+"GMEM FAULT" and "PMEM FAULT" refer to errors in the memory allocated for blood testing result. The Glucoboy may separate memories for general glucose test result and postprandial glucose test results. If those areas of memory have issues, they would probably be reported here.
+
+"INCENTIVE" refers to the Glucoboy's proprietary method of determining how it gave out GRPs. This was dicated by factors such as timeliness in testing, frequency in testing, and whether or not glucose levels were healthy. This flag probably indicates that the player had met these conditions.
+
+"PNEW STATS" possibly refers to new data tracking postprandial glucose levels, conceivably an update to some kind of statistic used to measure the player's performance in relation to INCENTIVE.
+
+"MEASUREMENT" possibly indicates a new glucose reading has been done.
+
+"GMETER FAULT" and "PMETER FAULT" refer to failures with the actual glucose and postprandial meters.
+
+Despite "GMEM/GMETER FAULT" and "PMEM/PMETER FAULT" being potentially serious hardware issues, the Glucoboy software does not take any specific actions on them outside of debugging. For example, the player is not warned if any of these components stops working, although, it may affect retrieving GRPs, which does display an error message.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x26 - LD Threshold
+-----------------------------------------------------------------------
+
+This index holds the value of the "LD Threshold", which possibly refers to a "Low-Data Threshold". This would represent the minimum number of samples from glucose testing needed to get an accurate test.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x27 - Serial Number
+-----------------------------------------------------------------------
+
+This index holds the value of some kind of serial number for the Glucoboy. It is currently unknown if this would have been a per-device serial number or something broader to distinguish versions and revisions.
+
+
+
+
+
+-----------------------------------------------------------------------
 Index 0x31 - Unknown
 -----------------------------------------------------------------------
 
@@ -162,7 +220,7 @@ The exact purpose of this index is unknown, however, it seems to act as a flag. 
 Index 0xE1 - Unknown
 -----------------------------------------------------------------------
 
-This index receives 6 additional bytes as parameters, however, its exact purpose is unknown.
+This index receives 6 additional bytes as parameters, however, its exact purpose is unknown. When reading this index, it seems to act as a flag, and any non-zero value causes the Glucoboy to register and error when retrieving GRPs.
 
 
 
