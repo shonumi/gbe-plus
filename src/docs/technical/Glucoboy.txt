@@ -117,10 +117,36 @@ A number of these indices do not appear to be used except for debugging. During 
 The size of each index indicates how many bytes are read or written when accessing them. A more detailed explanation of known indices follows:
 
 -----------------------------------------------------------------------
+Index 0x20 - Read System Date
+-----------------------------------------------------------------------
+
+This index returns the current system date according to the Glucoboy's RTC. The clock is used internally to decide if glucose testing has been performed on a consistent schedule in order to give out GRPs. The Glucoboy software does not take advantage of this outside of debugging. 4 bytes are returned representing a date. The complete 32-bit value uses these fields for time:
+
+-----------------------------------------------------------
+Bits	| Description
+-----------------------------------------------------------
+0  - 5	| Minutes (0 - 59)	
+6  - 11	| Hours (0 - 23)
+12 - 16	| Days (1 - 31)
+20 - 23	| Months (1 - 12)
+24 - 30	| Years (2001 - 2100)
+-----------------------------------------------------------
+
+Days and Months always start counting at 1. That is to say, a binary value of 0 will translate to 1, so the maximum value for each category should be 11 and 30 respectively.
+
+Years starts counting at 2100. That is to say, a binary value of 0 will translate to the year 2100. A binary value of 1 will translate to the year 2001, and so on. Essentially, this value can be added to 2000 to get the current date, with 0 being a special case.
+
+
+
+
+
+-----------------------------------------------------------------------
 Index 0x21 - Read Daily GRPs Earned
 -----------------------------------------------------------------------
 
 This represents the amount of GRPs earned on any specific day. It is added to the Total GRPs earned. This value is checked each and every time the Glucoboy boots up, so a constant value of 10, for example, would continually add 10 GRPs every time the game is loaded. In practice, this value was updated after a blood test was performed. The exact amount would be determined by factors such as whether the levels were healthy and whether the test was done in accordance to a regular schedule. The GBA does not seem to have access to the components that calculated GRPs, so it only reads whatever the hardware reports.
+
+The 4 bytes returned by this index form an signed 32-bit integer. The maximum allowed value is therefore 2147483647.
 
 
 
@@ -130,7 +156,9 @@ This represents the amount of GRPs earned on any specific day. It is added to th
 Index 0x22 - Read Bonus GRPs Earned
 -----------------------------------------------------------------------
 
-This apparently represents the amount of bonus GRPs earned by maintaining healthy glucose levels over a specific number of days. The Glucoboy would likely update this when Index 0x23 was greater than or equal to Index 0x24. These bonus GRPs are added to the Total GRPs once read. The exact amount of bonus GRPs granted is not known.
+This represents the amount of bonus GRPs earned by maintaining healthy glucose levels over a specific number of days. The Glucoboy would likely update this when the "Current Number of Good Days" value was greater than or equal to the "Number of Good Days Until Bonus Rewarded" value. These bonus GRPs are added to the Total GRPs once read. The exact amount of bonus GRPs granted as part of the Glucoboy's internal algorithms is not known.
+
+The 4 bytes returned by this index form an signed 32-bit integer. The maximum allowed value is therefore 2147483647.
 
 
 
@@ -142,6 +170,7 @@ Index 0x23 - Read Current Number of Good Days
 
 This index represents the number of continuous "good days", i.e. days were the player consistently checked their glucose levels and those same levels were within an acceptable range. Failing to meet those requirements would presumably reset the this value.
 
+The 4 bytes returned by this index form an signed 32-bit integer. The maximum allowed value is therefore 2147483647.
 
 
 
@@ -150,7 +179,7 @@ This index represents the number of continuous "good days", i.e. days were the p
 Index 0x24 - Read Number of Good Days Until Bonus Rewarded
 -----------------------------------------------------------------------
 
-This index represents the number of remaining "good days" needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly.
+This index represents the number of remaining "good days" needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly. The exact amount of days until players can get bonus GRPs was part of the Glucoboy's internal algorithms and as such is not currently known.
 
 
 
