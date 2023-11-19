@@ -1,4 +1,4 @@
-Gluco Technical Documentation 0.1
+Gluco Technical Documentation 0.2
 June 9th, 2023
 Shonumi aka D.S. Baxter
 
@@ -364,6 +364,25 @@ Index 0xE1 - Write Game Stats
 -----------------------------------------------------------------------
 
 This index is used to write various information about the games (Lost Star Saga, Knock'em Downs, Solar Wing, Plexus, and Raccoon Rancher) to the Glucoboy. This appears to be data such as high scores and possibly time played. Although this information is stored in EEPROM as part of a normal game save, an additional copy is made for the Glucoboy internally. This index receives 6 additional bytes as parameters. Game Stats uses 60 bytes in total, so this index must be written to multiple times to complete the data.
+
+The Glucoboy writes to Game Stats sequentially when using the 0xE1 index. That is to say, each time it writes data to the index, it moves onto the next category automatically until all 10 have been edited. The table below shows the order of each category and what each value represents:
+
+-----------------------------------------------------------
+Category 	| Description
+-----------------------------------------------------------
+VCSECS		| Number of seconds played for Lost Star Saga
+VCHIGH		| High Score for Lost Star Saga
+KDSECS		| Number of seconds played for Knock'em Downs
+KDHIGH		| High Score for Knock'em Downs
+SWSECS		| Number of seconds played for Solar Wing
+SWHIGH		| High Score for Solar Wing
+PLSECS		| Number of seconds played for Plexus
+PLHIGH		| High Score for Plexus
+RRSECS		| Number of seconds played for Raccoon Rancher
+RRHIGH		| High Score for Raccoon Rancher
+-----------------------------------------------------------
+
+The index accepts two inputs spread across 6 bytes. The first is a 16-bit value followed by a 32-bit value. The 16-bit value appears to be constant, as the Glucoboy ROM always sets it to 0x3000. The 32-bit value represents the actual integer to write to a given category. Both of these inputs are written LSB-first, which stands in contrast to every other index.
 
 When reading this index, it seems to act as a flag, and any non-zero value causes the Glucoboy to register and error when retrieving GRPs.
 
