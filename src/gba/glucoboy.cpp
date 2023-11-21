@@ -22,11 +22,22 @@ void AGB_MMU::glucoboy_reset()
 	glucoboy.reset_shift = false;
 	glucoboy.parameter_length = 0;
 
-	//Setup GRP data
-	glucoboy.io_regs[0x21] = config::glucoboy_daily_grps;
-	glucoboy.io_regs[0x22] = config::glucoboy_bonus_grps;
-	glucoboy.io_regs[0x23] = config::glucoboy_good_days;
-	glucoboy.io_regs[0x24] = config::glucoboy_days_until_bonus;
+	glucoboy.daily_grps = config::glucoboy_daily_grps;
+	glucoboy.bonus_grps = config::glucoboy_bonus_grps;
+	glucoboy.good_days = config::glucoboy_good_days;
+	glucoboy.days_until_bonus = config::glucoboy_days_until_bonus;
+	glucoboy.hardware_flags = 0;
+	glucoboy.ld_threshold = 0;
+	glucoboy.serial_number = 0;
+
+	//Setup index data
+	glucoboy.io_regs[0x21] = glucoboy.daily_grps;
+	glucoboy.io_regs[0x22] = glucoboy.bonus_grps;
+	glucoboy.io_regs[0x23] = glucoboy.good_days;
+	glucoboy.io_regs[0x24] = glucoboy.days_until_bonus;
+	glucoboy.io_regs[0x25] = glucoboy.hardware_flags;
+	glucoboy.io_regs[0x26] = glucoboy.ld_threshold;
+	glucoboy.io_regs[0x27] = glucoboy.serial_number;
 }
 
 /****** Writes data to Glucoboy I/O ******/
@@ -56,6 +67,14 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 			case 0x27:
 			case 0x31:
 			case 0x32:
+			case 0x60:
+			case 0x61:
+			case 0x62:
+			case 0x63:
+			case 0x64:
+			case 0x65:
+			case 0x66:
+			case 0x67:
 			case 0xE0:
 			case 0xE1:
 			case 0xE2:
@@ -71,14 +90,28 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 				std::cout<<"MMU::Unknown Glucoboy Index: 0x" << (u32)value << "\n";
 		}
 
-		if(glucoboy.io_index == 0xE1)
+		switch(glucoboy.io_index)
 		{
-			glucoboy.parameters.clear();
-			glucoboy.parameter_length = 6;
+			case 0x60:
+			case 0x61:
+			case 0x62:
+			case 0x63:
+			case 0x64:
+			case 0x65:
+			case 0x66:
+			case 0x67:
+				glucoboy.parameters.clear();
+				glucoboy.parameter_length = 4;
+				break;
+
+			case 0xE1:
+				glucoboy.parameters.clear();
+				glucoboy.parameter_length = 6;
+				break;
 		}
 	}
 
-	//std::cout<<"GLUCOBOY WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"GLUCOBOY WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Glucoboy I/O ******/
@@ -94,7 +127,7 @@ u8 AGB_MMU::read_glucoboy(u32 address)
 		glucoboy.index_shift -= 8;
 	}
 
-	//std::cout<<"GLUCOBOY READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	std::cout<<"GLUCOBOY READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -111,16 +144,19 @@ void AGB_MMU::process_glucoboy_irq()
 	{
 		switch(glucoboy.io_index)
 		{
-			case 0x31:
-			case 0x32:
-			case 0xE0:
-			case 0xE1:
-			case 0xE2:
-				glucoboy.index_shift = 0;
+			case 0x20:
+			case 0x21:
+			case 0x22:
+			case 0x23:
+			case 0x24:
+			case 0x25:
+			case 0x26:
+			case 0x27:
+				glucoboy.index_shift = 24;
 				break;
 
 			default:
-				glucoboy.index_shift = 24;
+				glucoboy.index_shift = 0;
 		}
 
 		glucoboy.reset_shift = false;

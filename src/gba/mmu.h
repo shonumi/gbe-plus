@@ -410,6 +410,14 @@ class AGB_MMU
 		std::vector<u8> parameters;
 		bool request_interrupt;
 		bool reset_shift;
+
+		u32 daily_grps;
+		u32 bonus_grps;
+		u32 good_days;
+		u32 days_until_bonus;
+		u32 hardware_flags;
+		u32 ld_threshold;
+		u32 serial_number;
 	} glucoboy;
 
 	//Structure to handle GPIO reading and writing
