@@ -57,7 +57,27 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 	{
 		switch(value)
 		{
+			//On this index, update Glucoboy with system date
 			case 0x20:
+				{
+					time_t system_time = time(0);
+					tm* current_time = localtime(&system_time);
+
+					u8 min = current_time->tm_min;
+					u8 hour = current_time->tm_hour;
+					u8 day = (current_time->tm_mday - 1);
+					u8 month = current_time->tm_mon;
+					u8 year = (current_time->tm_year % 100);
+					
+					if(year == 0) { year = 100; }
+
+					glucoboy.io_regs[0x21] = min;
+					glucoboy.io_regs[0x21] |= ((hour & 0x3F) << 6);
+					glucoboy.io_regs[0x21] |= ((day & 0x1F) << 12);
+					glucoboy.io_regs[0x21] |= ((month & 0xF) << 20);
+					glucoboy.io_regs[0x21] |= ((year & 0x7F) << 24);
+				}
+					
 			case 0x21:
 			case 0x22:
 			case 0x23:
@@ -90,6 +110,7 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 				std::cout<<"MMU::Unknown Glucoboy Index: 0x" << (u32)value << "\n";
 		}
 
+		//Set input length for write indices
 		switch(glucoboy.io_index)
 		{
 			case 0x60:
