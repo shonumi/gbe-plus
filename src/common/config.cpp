@@ -2795,7 +2795,7 @@ bool parse_ini_file()
 			else { config::remove_vocals_cmd = ""; }
 		}
 
-		//Total time for GBA Jukebox recording
+		//Glucoboy - Daily GRPs
 		else if(ini_item == "#glucoboy_daily_grps")
 		{
 			if((x + 1) < size)
@@ -2808,6 +2808,57 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_daily_grps) \n";
+				return false;
+			}
+		}
+
+		//Glucoboy - Bonus GRPs
+		else if(ini_item == "#glucoboy_bonus_grps")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				config::glucoboy_bonus_grps = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_bonus_grps) \n";
+				return false;
+			}
+		}
+
+		//Glucoboy - Good Days
+		else if(ini_item == "#glucoboy_good_days")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				config::glucoboy_good_days = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_good_days) \n";
+				return false;
+			}
+		}
+
+		//Glucoboy - Days Until Bonus
+		else if(ini_item == "#glucoboy_days_until_bonus")
+		{
+			if((x + 1) < size)
+			{
+				util::from_str(ini_opts[++x], output);
+
+				config::glucoboy_days_until_bonus = output;
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_days_until_bonus) \n";
 				return false;
 			}
 		}
@@ -3669,6 +3720,30 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#glucoboy_daily_grps:" + util::to_str(config::glucoboy_daily_grps) + "]";
 		}
 
+		//Bonus GRPs for Glucoboy
+		else if(ini_item == "#glucoboy_bonus_grps")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#glucoboy_bonus_grps:" + util::to_str(config::glucoboy_bonus_grps) + "]";
+		}
+
+		//Good Days for Glucoboy
+		else if(ini_item == "#glucoboy_good_days")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#glucoboy_good_days:" + util::to_str(config::glucoboy_good_days) + "]";
+		}
+
+		//Days Until Bonus for Glucoboy
+		else if(ini_item == "#glucoboy_days_until_bonus")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#glucoboy_days_until_bonus:" + util::to_str(config::glucoboy_days_until_bonus) + "]";
+		}
+
 		else if(ini_item == "#recent_files")
 		{
 			line_pos = output_count[x];
@@ -3969,6 +4044,9 @@ bool generate_ini_file()
 	ini_contents += "[#audio_conversion_command]\n\n";
 	ini_contents += "[#remove_vocals_command]\n\n";
 	ini_contents += "[#glucoboy_daily_grps]\n";
+	ini_contents += "[#glucoboy_bonus_grps]\n";
+	ini_contents += "[#glucoboy_good_days]\n";
+	ini_contents += "[#glucoboy_days_until_bonus]\n";
 
 	//Save contents to file.
 	std::ofstream file("gbe.ini", std::ios::out);
