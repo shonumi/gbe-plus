@@ -996,6 +996,7 @@ bool parse_cli_args()
 				std::cout<<"--agb-dacs \t\t\t Use GBA 8M DACS Flash cart\n";
 				std::cout<<"--agb-am3 \t\t\t Use GBA AM3 SmartCard adapter cart\n";
 				std::cout<<"--agb-jukebox \t\t\t Use GBA Music Recorder/Jukebox cart\n";
+				std::cout<<"--agb-glucoboy \t\t\t Use GBA Glucoboy cart\n";
 				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
 				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
 				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";

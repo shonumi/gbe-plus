@@ -71,11 +71,11 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 					
 					if(year == 0) { year = 100; }
 
-					glucoboy.io_regs[0x21] = min;
-					glucoboy.io_regs[0x21] |= ((hour & 0x3F) << 6);
-					glucoboy.io_regs[0x21] |= ((day & 0x1F) << 12);
-					glucoboy.io_regs[0x21] |= ((month & 0xF) << 20);
-					glucoboy.io_regs[0x21] |= ((year & 0x7F) << 24);
+					glucoboy.io_regs[0x20] = min;
+					glucoboy.io_regs[0x20] |= ((hour & 0x3F) << 6);
+					glucoboy.io_regs[0x20] |= ((day & 0x1F) << 12);
+					glucoboy.io_regs[0x20] |= ((month & 0xF) << 20);
+					glucoboy.io_regs[0x20] |= ((year & 0x7F) << 24);
 				}
 					
 			case 0x21:
@@ -101,6 +101,7 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 				glucoboy.io_index = value;
 				glucoboy.request_interrupt = true;
 				glucoboy.reset_shift = true;
+				std::cout<<"INDEX -> 0x" << (u32)glucoboy.io_index << "\n";
 				break;
 
 			default:
