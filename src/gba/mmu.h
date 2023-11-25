@@ -556,6 +556,7 @@ class AGB_MMU
 	u8 read_glucoboy(u32 address);
 	void write_glucoboy(u32 address, u8 value);
 	void process_glucoboy_irq();
+	void process_glucoboy_index();
 
 	//GPIO handling functions
 	void process_rtc();

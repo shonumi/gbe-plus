@@ -50,6 +50,9 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 		glucoboy.parameter_length--;
 		glucoboy.request_interrupt = true;
 		glucoboy.reset_shift = true;
+
+		//Write new data to index if necessary
+		if(!glucoboy.parameter_length) { process_glucoboy_index(); }
 	}
 
 	//Validate new index
@@ -101,7 +104,6 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 				glucoboy.io_index = value;
 				glucoboy.request_interrupt = true;
 				glucoboy.reset_shift = true;
-				std::cout<<"INDEX -> 0x" << (u32)glucoboy.io_index << "\n";
 				break;
 
 			default:
@@ -182,5 +184,30 @@ void AGB_MMU::process_glucoboy_irq()
 		}
 
 		glucoboy.reset_shift = false;
+	}
+}
+
+/****** Handles writing input streams to Glucoboy indices ******/
+void AGB_MMU::process_glucoboy_index()
+{
+	u32 input_stream = 0;
+
+	if(!glucoboy.parameters.empty())
+	{
+		input_stream = (glucoboy.parameters[0] << 24) | (glucoboy.parameters[1] << 16) | (glucoboy.parameters[2] << 8) | (glucoboy.parameters[3]);
+	}	
+
+	switch(glucoboy.io_index)
+	{
+		case 0x60:
+		case 0x61:
+		case 0x62:
+		case 0x63:
+		case 0x64:
+		case 0x65:
+		case 0x66:
+		case 0x67:
+			glucoboy.io_regs[glucoboy.io_index - 0x40] = input_stream;
+			break;
 	}
 }
