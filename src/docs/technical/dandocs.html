@@ -4863,38 +4863,56 @@ PLAY_YAN_VideoBright=0
 	<a name="glu_dat"></a>
 	<p class="gray_title">[Glucoboy] : Accessing Glucose Data</p>
 
-	<p>For the most part, the GBA does not directly deal with any of the glucose checking or blood testing. Instead, other components within the Glucoboy handle that and merely present the results, which the GBA can read back like any other value in memory. To that end, the Glucoboy offers only a single, multipurpose 1-byte register mapped to the address 0xE000000, named here as GLUCO_CNT. By reading and writing to GLUCO_CNT, data can be extracted regarding the current GRPs earned from testing.</p>
+	<p>For the most part, the GBA does not directly deal with any of the glucose checking or blood testing. Instead, other components within the Glucoboy handle that and merely present the results, which the GBA can read back like any other value in memory. To that end, the Glucoboy offers a single, multipurpose 1-byte register mapped to the address 0xE000000. Internally, the Glucoboy&#39;s ROM refers to this as the &#34;MAGIC PORT&#34;. In this document, it is more aptly renamed as GLUCO_CNT. By reading and writing to GLUCO_CNT, data can be extracted regarding the current GRPs earned from testing. Other miscellaneous hardware info about the Glucoboy can also be retrieved.</p>
 
-	<p>To access glucose data, an index must first be written to GLUCO_CNT. Different data, such as normal GRPs earned today versus bonus GRPs earned that day as well, are stored at different indices. Once an index has been received by the hardware, the Glucoboy triggers a Game Pak IRQ. Following this, 8-bit or 32-bit data will be returned via GLUCO_CNT, depending on the index. In the case that an index returns 32-bit data, GLUCO_CNT must be read a total of 4 times, once per byte. 32-bit data is stored LSB-first but is always read MSB-first (and adjusted in software to be LSB-first again). Additional Game Pak IRQs will indicate when the next byte is ready to read. Currently, it is unknown if reading one byte of the 32-bit value directly triggers subsequent Game Pak IRQs or if Game Pak IRQs are automatically and periodically generated after writing an index.</p>
+	<p>To access data on the Glucoboy, an index must first be written to GLUCO_CNT. Different data — such as normal GRPs earned today or bonus GRPs earned that day — are stored at different indices. Once an index is set, the Glucoboy triggers a Game Pak IRQ. Following this, 1-byte, 4-bytes, or 6-bytes must be read from/written to GLUCO_CNT, depending on the index. For example, in the case that an index returns 4-bytes of data, GLUCO_CNT must be read a total of 4 times, once per byte. All data is read/written MSB-first, therefore, software must also manually adjust LSB-first values on the GBA. Additional Game Pak IRQs indicate when the next byte is ready to read/write. Evidently, Game Pak IRQs are generated after a brief delay when accessing GLUCO_CNT.</p>
 
 	<p>Below is the typical proceedure used by the Glucoboy&#39;s software:</p>
 
 <pre>-----------------------------------------------------------
-32-bit Index
+6-byte Index Access
 -----------------------------------------------------------
 WRITE INDEX TO GLUCO_CNT
 	WAIT FOR GAMEPAK IRQ
 
-READ BYTE 3 AT GLUCO_CNT
+READ OR WRITE BYTE 5 AT GLUCO_CNT
 	WAIT FOR GAMEPAK IRQ
-READ BYTE 2 AT GLUCO_CNT
+READ OR WRITE BYTE 4 AT GLUCO_CNT
 	WAIT FOR GAMEPAK IRQ
-READ BYTE 1 AT GLUCO_CNT
+READ OR WRITE BYTE 3 AT GLUCO_CNT
 	WAIT FOR GAMEPAK IRQ
-READ BYTE 0 AT GLUCO_CNT
+READ OR WRITE BYTE 2 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ OR WRITE BYTE 1 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ OR WRITE BYTE 0 AT GLUCO_CNT
 -----------------------------------------------------------
 
 
 -----------------------------------------------------------
-8-bit Index
+4-byte Index Access
 -----------------------------------------------------------
 WRITE INDEX TO GLUCO_CNT
 	WAIT FOR GAMEPAK IRQ
 
-READ BYTE 0 AT GLUCO_CNT
+READ OR WRITE BYTE 3 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ OR WRITE BYTE 2 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ OR WRITE BYTE 1 AT GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+READ OR WRITE BYTE 0 AT GLUCO_CNT
+-----------------------------------------------------------
+
+
+-----------------------------------------------------------
+1-byte Index
+-----------------------------------------------------------
+WRITE INDEX TO GLUCO_CNT
+	WAIT FOR GAMEPAK IRQ
+
+READ OR WRITE BYTE 0 AT GLUCO_CNT
 -----------------------------------------------------------</pre>
-
-	<p>Some indices appear to accept multiple input bytes. They appear to be parameters of some sort, although their purpose is not yet known. The Glucoboy only reads glucose data shortly after booting up. Once in-game, it keeps an internal copy of total GRPs accumulated and uses that for unlocking additional content.</p>
 
 	<a name="glu_dex"></a>
 	<p class="gray_title">[Glucoboy] : Index Overview</p>
@@ -4902,59 +4920,170 @@ READ BYTE 0 AT GLUCO_CNT
 	<p>Below is a brief list of all known indices and their currently understood functions:</p>
 
 <pre>-----------------------------------------------------------
-Index	| Bits	| Description
+Index	| Size 	| Description
 -----------------------------------------------------------
-0x20	| 32	| Unknown
-0x21	| 32	| Daily GRPs Earned
-0x22	| 32	| Bonus GRPs Earned
-0x23	| 32	| Current Number of Good Days
-0x24	| 32	| Number of Good Days Until Bonus Rewarded
-0x25	| 32	| Unknown
-0x26	| 32	| Unknown
-0x27	| 32	| Unknown
-0x31	| 8	| Unknown
-0x32	| 8	| Unknown
-0xE0	| 8	| Unknown
-0xE1	| 8	| Unknown
-0xE2	| 8	| Unknown
+0x20	| 4	| Read System Date
+0x21	| 4	| Read Daily GRPs Earned
+0x22	| 4	| Read Bonus GRPs Earned
+0x23	| 4	| Read Current Number of Good Days
+0x24	| 4	| Read Number of Good Days Until Bonus Rewarded
+0x25	| 4	| Read Hardware Flags
+0x26	| 4	| Read LD Threshold
+0x27	| 4	| Read Serial Number
+0x31	| 1	| Read Unknown Flag
+0x32	| 1	| Read Unknown Flag
+0x60	| 4	| Write System Date
+0x61	| 4	| Write Daily GRPs Earned
+0x62	| 4	| Write Bonus GRPs Earned
+0x63	| 4	| Write Current Number of Good Days
+0x64	| 4	| Write Number of Good Days Until Bonus Rewarded
+0x65	| 4	| Write Hardware Flags
+0x66	| 4	| Write LD Threshold
+0x67	| 4	| Write Serial Number
+0xE0	| 1	| Read Unknown Flag
+0xE1	| 1/6*	| Write Game Stats (*Write 6 bytes, Read 1 byte)
+0xE2	| 1	| Read Unknown Flag
 -----------------------------------------------------------</pre>
 
-	<p>A more detailed explanation of known indices follows:</p>
+	<p>A number of these indices do not appear to be used except for debugging. During normal operation, data for the System Date, Hardware Flags, LD Threshold, and Device Serial Number are read but ultimately unused. A hidden test menu inside the Glucoboy ROM can read and write to all of them, however. While these indices provide useful information about the Glucoboy, they are technically not required for the games, which focus on GRPs.</p>
+
+	<p>The size of each index indicates how many bytes are read or written when accessing them. A more detailed explanation of known indices follows:</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x21 - Daily GRPs Earned</strong></p>
+	<p class="list_item"><strong>Index 0x20 - Read System Date</strong></p>
+	<p class="list_item">This index returns the current system date according to the Glucoboy&#39;s RTC. The clock is used internally to decide if glucose testing has been performed on a consistent schedule in order to give out GRPs. The Glucoboy software does not take advantage of this outside of debugging. 4 bytes are returned representing a date. The complete 32-bit value uses these fields for time:</p>
+
+<pre>-----------------------------------------------------------
+Bits	| Description
+-----------------------------------------------------------
+0  - 5	| Minutes (0 - 59)	
+6  - 11	| Hours (0 - 23)
+12 - 16	| Days (1 - 31)
+20 - 23	| Months (1 - 12)
+24 - 30	| Years (2001 - 2100)
+-----------------------------------------------------------</pre>
+
+	<p>Days and Months always start counting at 1. That is to say, a binary value of 0 will translate to 1, so the maximum value for each category should be 11 and 30 respectively.</p>
+
+	<p>Years starts counting at 2100. That is to say, a binary value of 0 will translate to the year 2100. A binary value of 1 will translate to the year 2001, and so on. Essentially, this value can be added to 2000 to get the current date, with 0 being a special case.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x21 - Read Daily GRPs Earned</strong></p>
 	<p class="list_item">This represents the amount of GRPs earned on any specific day. It is added to the Total GRPs earned. This value is checked each and every time the Glucoboy boots up, so a constant value of 10, for example, would continually add 10 GRPs every time the game is loaded. In practice, this value was updated after a blood test was performed. The exact amount would be determined by factors such as whether the levels were healthy and whether the test was done in accordance to a regular schedule. The GBA does not seem to have access to the components that calculated GRPs, so it only reads whatever the hardware reports.</p>
 
-	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x22 - Bonus GRPs Earned</strong></p>
-	<p class="list_item">This apparently represents the amount of bonus GRPs earned by maintaining healthy glucose levels over a specific number of days. The Glucoboy would likely update this when Index 0x23 was greater than or equal to Index 0x24. These bonus GRPs are added to the Total GRPs once read. The exact amount of bonus GRPs granted is not known.</p>
+	<p>The 4 bytes returned by this index form an signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x23 - Current Number of Good Days</strong></p>
+	<p class="list_item"><strong>Index 0x22 - Read Bonus GRPs Earned</strong></p>
+	<p class="list_item">This represents the amount of bonus GRPs earned by maintaining healthy glucose levels over a specific number of days. The Glucoboy would likely update this when the &#34;Current Number of Good Days&#34; value was greater than or equal to the &#34;Number of Good Days Until Bonus Rewarded&#34; value. These bonus GRPs are added to the Total GRPs once read. The exact amount of bonus GRPs granted as part of the Glucoboy&#39;s internal algorithms is not known.</p>
+
+	<p>The 4 bytes returned by this index form an signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x23 - Read Current Number of Good Days</strong></p>
 	<p class="list_item">This index represents the number of continuous &#34;good days&#34;, i.e. days were the player consistently checked their glucose levels and those same levels were within an acceptable range. Failing to meet those requirements would presumably reset the this value.</p>
 
-	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x24 - Number of Good Days Until Bonus Rewarded</strong></p>
-	<p class="list_item">This index represents the number of remaining &#34;good days&#34; needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly.</p>
+	<p>The 4 bytes returned by this index form an signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x31 - Unknown</strong></p>
+	<p class="list_item"><strong>Index 0x24 - Read Number of Good Days Until Bonus Rewarded</strong></p>
+	<p class="list_item">This index represents the number of remaining &#34;good days&#34; needed until the bonus GRPs would be granted. Logically, this value would decrease by one every 24-hours, so long as the players glucose levels were kept in check regularly. The exact amount of days until players can get bonus GRPs was part of the Glucoboy&#39;s internal algorithms and as such is not currently known.</p>
+
+	<p>The 4 bytes returned by this index form an signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x25 - Read Hardware Flags</strong></p>
+	<p class="list_item">This index represents a set of hardware status flags for the Glucoboy. Only 7-bits of the 32-bit index value is used as such:</p>
+
+<pre>-----------------------------------------------------------
+Bit	| Description
+-----------------------------------------------------------
+0	| GMEM FAULT
+1	| PMEM FAULT
+2 	| INCENTIVE
+3	| PNEW STATS
+4	| MEASUREMENT
+5	| GMETER FAULT
+6	| PMETER FAULT
+-----------------------------------------------------------</pre>
+
+	<p>The following descriptions are estimates of each bit&#39;s likely meaning. Keep in mind these are guesses for the time being.</p>
+
+	<p><strong>&#34;GMEM FAULT&#34;</strong> and <strong>&#34;PMEM FAULT&#34;</strong> refer to errors in the memory allocated for blood testing result. The Glucoboy may separate memories for general glucose test result and postprandial glucose test results. If those areas of memory have issues, they would probably be reported here.</p>
+
+	<p><strong>&#34;INCENTIVE&#34;</strong> refers to the Glucoboy&#39;s proprietary method of determining how it gave out GRPs. This was dicated by factors such as timeliness in testing, frequency in testing, and whether or not glucose levels were healthy. This flag probably indicates that the player had met these conditions.</p>
+
+	<p><strong>&#34;PNEW STATS&#34;</strong> possibly refers to new data tracking postprandial glucose levels, conceivably an update to some kind of statistic used to measure the player&#39;s performance in relation to <strong>INCENTIVE</strong>.</p>
+
+	<p><strong>&#34;MEASUREMENT&#34;</strong> possibly indicates a new glucose reading has been done.</p>
+
+	<p><strong>&#34;GMETER FAULT&#34;</strong> and <strong>&#34;PMETER FAULT&#34;</strong> refer to failures with the actual glucose and postprandial meters.</p>
+
+	<p>Despite &#34;GMEM/GMETER FAULT&#34; and &#34;PMEM/PMETER FAULT&#34; being potentially serious hardware issues, the Glucoboy software does not take any specific actions on them outside of debugging. For example, the player is not warned if any of these components stops working, although, it may affect retrieving GRPs, which does display an error message.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x26 - Read LD Threshold</strong></p>
+	<p class="list_item">This index holds the value of the &#34;LD Threshold&#34;, which possibly refers to a &#34;Low-Data Threshold&#34;. This would represent the minimum number of samples from glucose testing needed to get an accurate test.</p>
+
+	<p>The 4 bytes returned by this index form an unsigned 27-bit integer. It is used to represent values ranging from 00000000 - 99999999.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x27 - Read Serial Number</strong></p>
+	<p class="list_item">This index holds the value of some kind of serial number for the Glucoboy. It is currently unknown if this would have been a per-device serial number or something broader to distinguish versions and revisions.</p>
+
+
+	<p>The 4 bytes returned by this index form an unsigned 27-bit integer. It is used to represent values ranging from 00000000 - 99999999.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x31 - Read Unknown Flag</strong></p>
 	<p class="list_item">The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x32 - Unknown</strong></p>
+	<p class="list_item"><strong>Index 0x32 - Read Unknown Flag</strong></p>
 	<p class="list_item">The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0xE0 - Unknown</strong></p>
+	<p class="list_item"><strong>Index 0x60 - Write System Date</strong></p>
+	<p class="list_item">This index is used to set the current system date for the Glucoboy&#39;s built-in RTC. This index only appears in the debugging menu. It receives 4 bytes representing a date. See Index 0x20 above for the format.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x61 - Write Daily GRPs Earned</strong></p>
+	<p class="list_item">This index sets the amount of GRPs earned on any specific day. It receives 4 bytes representing a signed 32-bit integer. This index is not used by the Glucoboy ROM except for debugging, as setting Daily GRPs is a task left for other components of the Glucoboy&#39;s hardware during blood testing.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x62 - Write Bonus GRPs Earned</strong></p>
+	<p class="list_item">This index sets the amount of bonus GRPs earned by maintaining healthy glucose levels over a specific number of days. It receives 4 bytes representing a signed 32-bit integer. This index is not used by the Glucoboy ROM except for debugging, as setting Bonus GRPs is a task left for other components of the Glucoboy&#39;s hardware during blood testing.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x63 - Write Current Number of Good Days</strong></p>
+	<p class="list_item">This index sets the number of continuous &#34;good days&#34;, i.e. days were the player consistently checked their glucose levels and those same levels were within an acceptable range. It receives 4 bytes representing a signed 32-bit integer. This index is not used by the Glucoboy ROM except for debugging, as setting number of &#34;good days&#34; is a task left for other components of the Glucoboy&#39;s hardware during blood testing.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x64 - Write Number of Good Days Until Bonus Rewarded</strong></p>
+	<p class="list_item">This index sets the number of remaining &#34;good days&#34; needed until the bonus GRPs would be granted. It receives 4 bytes representing a signed 32-bit integer. This index is not used by the Glucoboy ROM except for debugging, as setting number of &#34;good days&#34; needed to unlock a bonus is a task left for other components of the Glucoboy&#39;s hardware during blood testing.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x65 - Write Hardware Flags</strong></p>
+	<p class="list_item">This index sets the hardware status flags for the Glucoboy. It receives a 32-bit integer, but only the first 7-bits actually represent the flags. This index is only See Index 0x25 above for the format.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x66 - Write LD Threshold</strong></p>
+	<p class="list_item">This index sets the value of the &#34;LD Threshold&#34;. It only appears in the debugging menu. The index receives 4 bytes that form an unsigned 27-bit integer, which must have valid values of 00000000 - 99999999.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x67 - Write Serial Number</strong></p>
+	<p class="list_item">This index sets the value of some kind of serial number for the Glucoboy. It only appears in the debugging menu. The index receives 4 bytes that form an unsigned 27-bit integer, which must have valid values of 00000000 - 99999999.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0xE0 - Read Unknown Flag</strong></p>
 	<p class="list_item">The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0xE1 - Unknown</strong></p>
-	<p class="list_item">This index receives 6 additional bytes as parameters, however, its exact purpose is unknown.</p>
+	<p class="list_item"><strong>Index 0xE1 - Write Game Stats</strong></p>
+	<p class="list_item"></p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0xE2 - Unknown</strong></p>
+	<p class="list_item"><strong>Index 0xE2 - Read Unknown Flag</strong></p>
 	<p class="list_item">The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Glucoboy to register an error when retrieving GRPs.</p>
 
 
