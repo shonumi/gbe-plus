@@ -1185,45 +1185,16 @@ bool parse_ini_file()
 	u32 output = 0;
 	std::string ini_item = "";
 
-	for(int x = 0; x < size; x++)
+	for(u32 x = 0; x < size; x++)
 	{
 		ini_item = ini_opts[x];
 
+
 		//Use BIOS
-		if(ini_item == "#use_bios")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_bios = true; }
-				else { config::use_bios = false; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_bios) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_bios", config::use_bios, ini_opts, x)) { return false; }
 
 		//Use firmware
-		if(ini_item == "#use_firmware")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_firmware = true; }
-				else { config::use_firmware = false; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_firmware) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_firmware", config::use_firmware, ini_opts, x)) { return false; }
 
 		//Emulated SIO device
 		if(ini_item == "#sio_device")
@@ -1294,7 +1265,7 @@ bool parse_ini_file()
 		}
 
 		//Set emulated system type
-		else if(ini_item == "#system_type")
+		if(ini_item == "#system_type")
 		{
 			if((x + 1) < size) 
 			{
@@ -1315,61 +1286,16 @@ bool parse_ini_file()
 		}
 
 		//Use cheats
-		if(ini_item == "#use_cheats")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_cheats = true; }
-				else { config::use_cheats = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_cheats) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_cheats", config::use_cheats, ini_opts, x)) { return false; }
 
 		//Use patches
-		if(ini_item == "#use_patches")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_patches = true; }
-				else { config::use_patches = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_patches) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_patches", config::use_patches, ini_opts, x)) { return false; }
 
 		//Use OSD
-		if(ini_item == "#use_osd")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_osd = true; }
-				else { config::use_osd = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_osd) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_osd", config::use_osd, ini_opts, x)) { return false; }
 
 		//OSD alpha transparency
-		else if(ini_item == "#osd_alpha")
+		if(ini_item == "#osd_alpha")
 		{
 			if((x + 1) < size)
 			{
@@ -1386,7 +1312,7 @@ bool parse_ini_file()
 		}
 
 		//DMG BIOS path
-		else if(ini_item == "#dmg_bios_path")
+		if(ini_item == "#dmg_bios_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1404,7 +1330,7 @@ bool parse_ini_file()
 		}
 
 		//GBC BIOS path
-		else if(ini_item == "#gbc_bios_path")
+		if(ini_item == "#gbc_bios_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1422,7 +1348,7 @@ bool parse_ini_file()
 		}
 
 		//GBA BIOS path
-		else if(ini_item == "#agb_bios_path")
+		if(ini_item == "#agb_bios_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1440,7 +1366,7 @@ bool parse_ini_file()
 		}
 
 		//NDS9 BIOS path
-		else if(ini_item == "#nds9_bios_path")
+		if(ini_item == "#nds9_bios_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1458,7 +1384,7 @@ bool parse_ini_file()
 		}
 
 		//NDS7 BIOS path
-		else if(ini_item == "#nds7_bios_path")
+		if(ini_item == "#nds7_bios_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1476,7 +1402,7 @@ bool parse_ini_file()
 		}
 
 		//NDS firmware path
-		else if(ini_item == "#nds_firmware_path")
+		if(ini_item == "#nds_firmware_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1494,7 +1420,7 @@ bool parse_ini_file()
 		}
 
 		//MIN BIOS path
-		else if(ini_item == "#min_bios_path")
+		if(ini_item == "#min_bios_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1512,7 +1438,7 @@ bool parse_ini_file()
 		}
 
 		//Game save path
-		else if(ini_item == "#save_path")
+		if(ini_item == "#save_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1530,7 +1456,7 @@ bool parse_ini_file()
 		}
 
 		//Screenshots path
-		else if(ini_item == "#screenshot_path")
+		if(ini_item == "#screenshot_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1548,7 +1474,7 @@ bool parse_ini_file()
 		}
 
 		//Cheats path
-		else if(ini_item == "#cheats_path")
+		if(ini_item == "#cheats_path")
 		{
 			if((x + 1) < size) 
 			{
@@ -1566,7 +1492,7 @@ bool parse_ini_file()
 		}
 
 		//External camera file
-		else if(ini_item == "#camera_file")
+		if(ini_item == "#camera_file")
 		{
 			if((x + 1) < size) 
 			{
@@ -1584,7 +1510,7 @@ bool parse_ini_file()
 		}
 
 		//External card file
-		else if(ini_item == "#card_file")
+		if(ini_item == "#card_file")
 		{
 			if((x + 1) < size) 
 			{
@@ -1602,7 +1528,7 @@ bool parse_ini_file()
 		}
 
 		//External image file
-		else if(ini_item == "#image_file")
+		if(ini_item == "#image_file")
 		{
 			if((x + 1) < size) 
 			{
@@ -1620,7 +1546,7 @@ bool parse_ini_file()
 		}
 
 		//External data file
-		else if(ini_item == "#data_file")
+		if(ini_item == "#data_file")
 		{
 			if((x + 1) < size) 
 			{
@@ -1638,25 +1564,10 @@ bool parse_ini_file()
 		}
 
 		//Use OpenGL
-		else if(ini_item == "#use_opengl")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_opengl = true; }
-				else { config::use_opengl = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_opengl) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_opengl", config::use_opengl, ini_opts, x)) { return false; }
 
 		//Fragment shader
-		else if(ini_item == "#fragment_shader")
+		if(ini_item == "#fragment_shader")
 		{
 			if((x + 1) < size) 
 			{
@@ -1674,7 +1585,7 @@ bool parse_ini_file()
 		}
 
 		//Vertex shader
-		else if(ini_item == "#vertex_shader")
+		if(ini_item == "#vertex_shader")
 		{
 			if((x + 1) < size) 
 			{
@@ -1692,7 +1603,7 @@ bool parse_ini_file()
 		}
 
 		//Max FPS
-		else if(ini_item == "#max_fps")
+		if(ini_item == "#max_fps")
 		{
 			if((x + 1) < size)
 			{
@@ -1709,7 +1620,7 @@ bool parse_ini_file()
 		}
 
 		//Use gamepad dead zone
-		else if(ini_item == "#dead_zone")
+		if(ini_item == "#dead_zone")
 		{
 			if((x + 1) < size) 
 			{
@@ -1726,43 +1637,13 @@ bool parse_ini_file()
 		}
 
 		//Use haptics
-		else if(ini_item == "#use_haptics")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_haptics = true; }
-				else { config::use_haptics = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_haptics) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_haptics", config::use_haptics, ini_opts, x)) { return false; }
 
 		//Use controller gyroscopes
-		else if(ini_item == "#use_motion")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_motion = true; }
-				else { config::use_motion = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_motion) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_motion", config::use_motion, ini_opts, x)) { return false; }
 
 		//Motion deadzone
-		else if(ini_item == "#motion_dead_zone")
+		if(ini_item == "#motion_dead_zone")
 		{
 			if((x + 1) < size)
 			{
@@ -1778,7 +1659,7 @@ bool parse_ini_file()
 		}
 
 		//Motion scaler
-		else if(ini_item == "#motion_scaler")
+		if(ini_item == "#motion_scaler")
 		{
 			if((x + 1) < size)
 			{
@@ -1794,25 +1675,10 @@ bool parse_ini_file()
 		}
 
 		//Use DDR mapping
-		else if(ini_item == "#use_ddr_mapping")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_ddr_mapping = true; }
-				else { config::use_ddr_mapping = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_ddr_mapping) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_ddr_mapping", config::use_ddr_mapping, ini_opts, x)) { return false; }
 
 		//Volume settings
-		else if(ini_item == "#volume")
+		if(ini_item == "#volume")
 		{
 			if((x + 1) < size)
 			{
@@ -1829,58 +1695,16 @@ bool parse_ini_file()
 		}
 
 		//Mute settings
-		else if(ini_item == "#mute")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 1)) { config::mute = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#mute) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#mute", config::mute, ini_opts, x)) { return false; }
 
 		//Stereo settings
-		else if(ini_item == "#use_stereo")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 1)) { config::use_stereo = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_stereo) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_stereo", config::use_stereo, ini_opts, x)) { return false; }
 
 		//Enable microphone
-		else if(ini_item == "#use_microphone")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 1)) { config::use_microphone = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_microphone) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_microphone", config::use_microphone, ini_opts, x)) { return false; }
 
 		//Override default audio driver
-		else if(ini_item == "#override_audio_driver")
+		if(ini_item == "#override_audio_driver")
 		{
 			if((x + 1) < size) 
 			{
@@ -1906,7 +1730,7 @@ bool parse_ini_file()
 		}
 
 		//Sample rate
-		else if(ini_item == "#sample_rate")
+		if(ini_item == "#sample_rate")
 		{
 			if((x + 1) < size)
 			{
@@ -1923,7 +1747,7 @@ bool parse_ini_file()
 		}
 
 		//Sample size
-		else if(ini_item == "#sample_size")
+		if(ini_item == "#sample_size")
 		{
 			if((x + 1) < size)
 			{
@@ -1940,7 +1764,7 @@ bool parse_ini_file()
 		}
 
 		//Scaling factor
-		else if(ini_item == "#scaling_factor")
+		if(ini_item == "#scaling_factor")
 		{
 			if((x + 1) < size) 
 			{
@@ -1958,7 +1782,7 @@ bool parse_ini_file()
 		}
 
 		//Maintain aspect ratio
-		else if(ini_item == "#maintain_aspect_ratio")
+		if(ini_item == "#maintain_aspect_ratio")
 		{
 			if((x + 1) < size) 
 			{
@@ -1976,7 +1800,7 @@ bool parse_ini_file()
 		}
 
 		//Real-time clock offsets
-		else if(ini_item == "#rtc_offset")
+		if(ini_item == "#rtc_offset")
 		{
 			if((x + 6) < size)
 			{
@@ -2012,7 +1836,7 @@ bool parse_ini_file()
 		}
 
 		//CPU overclocking flags
-		else if(ini_item == "#oc_flags")
+		if(ini_item == "#oc_flags")
 		{
 			if((x + 1) < size)
 			{
@@ -2029,7 +1853,7 @@ bool parse_ini_file()
 		}
 			
 		//Emulated DMG-on-GBC palette
-		else if(ini_item == "#dmg_on_gbc_pal")
+		if(ini_item == "#dmg_on_gbc_pal")
 		{
 			if((x + 1) < size) 
 			{
@@ -2052,7 +1876,7 @@ bool parse_ini_file()
 		}
 
 		//Custom DMG palette (BG)
-		else if(ini_item == "#dmg_custom_bg_pal")
+		if(ini_item == "#dmg_custom_bg_pal")
 		{
 			if((x + 4) < size)
 			{
@@ -2073,7 +1897,7 @@ bool parse_ini_file()
 		}
 
 		//Custom DMG palette (OBJ)
-		else if(ini_item == "#dmg_custom_obj_pal")
+		if(ini_item == "#dmg_custom_obj_pal")
 		{
 			if((x + 8) < size)
 			{
@@ -2098,7 +1922,7 @@ bool parse_ini_file()
 		}
 
 		//Keyboard controls
-		else if(ini_item == "#gbe_key_controls")
+		if(ini_item == "#gbe_key_controls")
 		{
 			if((x + 12) < size)
 			{
@@ -2147,7 +1971,7 @@ bool parse_ini_file()
 		}
 
 		//Gamepad controls
-		else if(ini_item == "#gbe_joy_controls")
+		if(ini_item == "#gbe_joy_controls")
 		{
 			if((x + 12) < size)
 			{
@@ -2197,7 +2021,7 @@ bool parse_ini_file()
 		}
 
 		//Context keyboard controls
-		else if(ini_item == "#con_key_controls")
+		if(ini_item == "#con_key_controls")
 		{
 			if((x + 6) < size)
 			{
@@ -2228,7 +2052,7 @@ bool parse_ini_file()
 		}
 
 		//Context joystick controls
-		else if(ini_item == "#con_joy_controls")
+		if(ini_item == "#con_joy_controls")
 		{
 			if((x + 6) < size)
 			{
@@ -2259,7 +2083,7 @@ bool parse_ini_file()
 		}
 
 		//Turbo button timings
-		else if(ini_item == "#gbe_turbo_button")
+		if(ini_item == "#gbe_turbo_button")
 		{
 			if((x + 12) < size)
 			{
@@ -2279,7 +2103,7 @@ bool parse_ini_file()
 		}
 
 		//Battle Chip ID list
-		else if(ini_item == "#chip_list")
+		if(ini_item == "#chip_list")
 		{
 			if((x + 6) < size)
 			{
@@ -2293,7 +2117,7 @@ bool parse_ini_file()
 		}
 
 		//Magical Watch Data
-		else if(ini_item == "#mw_data")
+		if(ini_item == "#mw_data")
 		{
 			if((x + 6) < size)
 			{
@@ -2307,7 +2131,7 @@ bool parse_ini_file()
 		}
 			
 		//Hotkeys
-		else if(ini_item == "#hotkeys")
+		if(ini_item == "#hotkeys")
 		{
 			if((x + 5) < size)
 			{
@@ -2335,7 +2159,7 @@ bool parse_ini_file()
 		}
 
 		//NDS touch zone mappings
-		else if(ini_item == "#nds_touch_zone")
+		if(ini_item == "#nds_touch_zone")
 		{
 			if(touch_zone_counter < 10)
 			{
@@ -2374,7 +2198,7 @@ bool parse_ini_file()
 		}
 
 		//NDS touch mode
-		else if(ini_item == "#nds_touch_mode")
+		if(ini_item == "#nds_touch_mode")
 		{
 			if((x + 1) < size)
 			{
@@ -2391,25 +2215,10 @@ bool parse_ini_file()
 		}
 
 		//NDS virtual cursor enable
-		else if(ini_item == "#virtual_cursor_enable")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::vc_enable = true; }
-				else { config::vc_enable = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_enable) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#virtual_cursor_enable", config::vc_enable, ini_opts, x)) { return false; }
 
 		//NDS virtual cursor file
-		else if(ini_item == "#virtual_cursor_file")
+		if(ini_item == "#virtual_cursor_file")
 		{
 			if((x + 1) < size) 
 			{
@@ -2427,7 +2236,7 @@ bool parse_ini_file()
 		}
 
 		//NDS virtual cursor opacity
-		else if(ini_item == "#virtual_cursor_opacity")
+		if(ini_item == "#virtual_cursor_opacity")
 		{
 			if((x + 1) < size) 
 			{
@@ -2445,7 +2254,7 @@ bool parse_ini_file()
 		}
 
 		//NDS virtual cursor timeout
-		else if(ini_item == "#virtual_cursor_timeout")
+		if(ini_item == "#virtual_cursor_timeout")
 		{
 			if((x + 1) < size) 
 			{
@@ -2462,79 +2271,19 @@ bool parse_ini_file()
 		}
 
 		//Use netplay
-		else if(ini_item == "#use_netplay")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_netplay = true; }
-				else { config::use_netplay = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_netplay) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_netplay", config::use_netplay, ini_opts, x)) { return false; }
 
 		//Use netplay hard sync
-		if(ini_item == "#use_netplay_hard_sync")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::netplay_hard_sync = true; }
-				else { config::netplay_hard_sync = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_netplay_hard_sync) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_netplay_hard_sync", config::netplay_hard_sync, ini_opts, x)) { return false; }
 
 		//Use Net Gate
-		else if(ini_item == "#use_net_gate")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_net_gate = true; }
-				else { config::use_net_gate = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_net_gate) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_net_gate", config::use_net_gate, ini_opts, x)) { return false; }
 
 		//Use real server for Mobile Adapter GB
-		else if(ini_item == "#use_real_gbma_server")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::use_real_gbma_server = true; }
-				else { config::use_real_gbma_server = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#use_real_gbma_server) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#use_real_gbma_server", config::use_real_gbma_server, ini_opts, x)) { return false; }
 
 		//Real server Mobile Adapter GB HTTP port
-		else if(ini_item == "#gbma_server_http_port")
+		if(ini_item == "#gbma_server_http_port")
 		{
 			if((x + 1) < size) 
 			{
@@ -2569,7 +2318,7 @@ bool parse_ini_file()
 
 
 		//Netplay server port
-		else if(ini_item == "#netplay_server_port")
+		if(ini_item == "#netplay_server_port")
 		{
 			if((x + 1) < size) 
 			{
@@ -2587,7 +2336,7 @@ bool parse_ini_file()
 		}
 
 		//Netplay client port
-		else if(ini_item == "#netplay_client_port")
+		if(ini_item == "#netplay_client_port")
 		{
 			if((x + 1) < size) 
 			{
@@ -2605,7 +2354,7 @@ bool parse_ini_file()
 		}
 
 		//Netplay client IP address
-		else if(ini_item == "#netplay_client_ip")
+		if(ini_item == "#netplay_client_ip")
 		{
 			if((x + 1) < size) 
 			{
@@ -2622,7 +2371,7 @@ bool parse_ini_file()
 
 
 		//Real Mobile Adapter GB IP address
-		else if(ini_item == "#gbma_server_ip")
+		if(ini_item == "#gbma_server_ip")
 		{
 			if((x + 1) < size) 
 			{
@@ -2638,7 +2387,7 @@ bool parse_ini_file()
 		}
 
 		//Netplay Player ID
-		else if(ini_item == "#netplay_id")
+		if(ini_item == "#netplay_id")
 		{
 			if((x + 1) < size) 
 			{
@@ -2654,7 +2403,7 @@ bool parse_ini_file()
 		}
 
 		//IR database index
-		else if(ini_item == "#ir_db_index")
+		if(ini_item == "#ir_db_index")
 		{
 			if((x + 1) < size)
 			{
@@ -2671,7 +2420,7 @@ bool parse_ini_file()
 		}
 
 		//Multi Plust On System ID
-		else if(ini_item == "#mpos_id")
+		if(ini_item == "#mpos_id")
 		{
 			if((x + 1) < size)
 			{
@@ -2715,7 +2464,7 @@ bool parse_ini_file()
 		}
 
 		//Ubisoft Thrustmaster Pedometer steps
-		else if(ini_item == "#utp_steps")
+		if(ini_item == "#utp_steps")
 		{
 			if((x + 1) < size)
 			{
@@ -2744,7 +2493,7 @@ bool parse_ini_file()
 		}
 
 		//Total time for GBA Jukebox recording
-		else if(ini_item == "#jukebox_total_time")
+		if(ini_item == "#jukebox_total_time")
 		{
 			if((x + 1) < size)
 			{
@@ -2761,7 +2510,7 @@ bool parse_ini_file()
 		}
 
 		//Audio Conversion Command
-		else if(ini_item == "#audio_conversion_command")
+		if(ini_item == "#audio_conversion_command")
 		{
 			if((x + 1) < size) 
 			{
@@ -2779,7 +2528,7 @@ bool parse_ini_file()
 		}
 
 		//Remove Vocals Command
-		else if(ini_item == "#remove_vocals_command")
+		if(ini_item == "#remove_vocals_command")
 		{
 			if((x + 1) < size) 
 			{
@@ -2797,7 +2546,7 @@ bool parse_ini_file()
 		}
 
 		//Glucoboy - Daily GRPs
-		else if(ini_item == "#glucoboy_daily_grps")
+		if(ini_item == "#glucoboy_daily_grps")
 		{
 			if((x + 1) < size)
 			{
@@ -2814,7 +2563,7 @@ bool parse_ini_file()
 		}
 
 		//Glucoboy - Bonus GRPs
-		else if(ini_item == "#glucoboy_bonus_grps")
+		if(ini_item == "#glucoboy_bonus_grps")
 		{
 			if((x + 1) < size)
 			{
@@ -2831,7 +2580,7 @@ bool parse_ini_file()
 		}
 
 		//Glucoboy - Good Days
-		else if(ini_item == "#glucoboy_good_days")
+		if(ini_item == "#glucoboy_good_days")
 		{
 			if((x + 1) < size)
 			{
@@ -2848,7 +2597,7 @@ bool parse_ini_file()
 		}
 
 		//Glucoboy - Days Until Bonus
-		else if(ini_item == "#glucoboy_days_until_bonus")
+		if(ini_item == "#glucoboy_days_until_bonus")
 		{
 			if((x + 1) < size)
 			{
@@ -2865,7 +2614,7 @@ bool parse_ini_file()
 		}
 
 		//Recent files
-		else if(ini_item == "#recent_files")
+		if(ini_item == "#recent_files")
 		{
 			if((x + 1) < size) 
 			{
@@ -4203,3 +3952,29 @@ void get_firmware_hashes()
 		}
 	}
 }
+
+/****** Parses .ini string for boolean values ******/
+bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos)
+{
+	if(ini_item == search_item)
+	{
+		u32 output = 0;
+
+		if((ini_pos + 1) < ini_opts.size()) 
+		{
+			util::from_str(ini_opts[++ini_pos], output);
+
+			if(output == 1) { ini_bool = true; }
+			else { ini_bool = false; }
+		}
+
+		else 
+		{ 
+			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			return false;
+		}
+	}
+
+	return true;
+}
+

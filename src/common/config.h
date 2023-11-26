@@ -32,6 +32,8 @@ bool generate_ini_file();
 bool save_cheats_file();
 void get_firmware_hashes();
 
+bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos);
+
 bool load_osd_font();
 void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset);
 void draw_osd_msg(std::string osd_text, u32* osd_surface, u8 x_offset, u8 y_offset, u32 size);
