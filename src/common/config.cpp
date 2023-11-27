@@ -87,7 +87,7 @@ namespace config
 	u32 hotkey_shift_screen = SDLK_F3;
 
 	//Default joystick dead-zone
-	int dead_zone = 16000;
+	u32 dead_zone = 16000;
 
 	//Default joystick ID
 	int joy_id = 0;
@@ -1189,7 +1189,6 @@ bool parse_ini_file()
 	{
 		ini_item = ini_opts[x];
 
-
 		//Use BIOS
 		if(!parse_ini_bool(ini_item, "#use_bios", config::use_bios, ini_opts, x)) { return false; }
 
@@ -1197,93 +1196,20 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#use_firmware", config::use_firmware, ini_opts, x)) { return false; }
 
 		//Emulated SIO device
-		if(ini_item == "#sio_device")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 20)) { config::sio_device = output; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#sio_device) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#sio_device", config::sio_device, ini_opts, x, 0, 20)) { return false; }
 
 		//Emulated IR device
-		if(ini_item == "#ir_device")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 7)) { config::ir_device = output; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#ir_device) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#ir_device", config::ir_device, ini_opts, x, 0, 7)) { return false; }
 
 		//Emulated Slot1 device
-		if(ini_item == "#slot1_device")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 1)) { config::nds_slot1_device = output; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#slot1_device) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#slot1_device", config::nds_slot1_device, ini_opts, x, 0, 1)) { return false; }
 
 		//Emulated Slot2 device
-		if(ini_item == "#slot2_device")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 7)) { config::nds_slot2_device = output; }
-			}
-
-			else 
-			{ 
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#slot2_device) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#slot2_device", config::nds_slot2_device, ini_opts, x, 0, 7)) { return false; }
 
 		//Set emulated system type
-		if(ini_item == "#system_type")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 7)) 
-				{
-					config::gb_type = output;
-					validate_system_type();
-				}
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#system_type) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#system_type", config::gb_type, ini_opts, x, 0, 7)) { return false; }
+		if(ini_item == "#system_type") { validate_system_type(); }
 
 		//Use cheats
 		if(!parse_ini_bool(ini_item, "#use_cheats", config::use_cheats, ini_opts, x)) { return false; }
@@ -1295,21 +1221,7 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#use_osd", config::use_osd, ini_opts, x)) { return false; }
 
 		//OSD alpha transparency
-		if(ini_item == "#osd_alpha")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output <= 255) { config::osd_alpha = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#osd_alpha) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#osd_alpha", config::osd_alpha, ini_opts, x, 0, 255)) { return false; }
 
 		//DMG BIOS path
 		if(ini_item == "#dmg_bios_path")
@@ -1603,38 +1515,10 @@ bool parse_ini_file()
 		}
 
 		//Max FPS
-		if(ini_item == "#max_fps")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output <= 65535) { config::max_fps = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#max_fps) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#max_fps", config::max_fps, ini_opts, x, 0, 65535)) { return false; }
 
 		//Use gamepad dead zone
-		if(ini_item == "#dead_zone")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 32767)) { config::dead_zone = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#dead_zone) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#dead_zone", config::dead_zone, ini_opts, x, 0, 32767)) { return false; }
 
 		//Use haptics
 		if(!parse_ini_bool(ini_item, "#use_haptics", config::use_haptics, ini_opts, x)) { return false; }
@@ -1678,21 +1562,7 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#use_ddr_mapping", config::use_ddr_mapping, ini_opts, x)) { return false; }
 
 		//Volume settings
-		if(ini_item == "#volume")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 128)) { config::volume = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#volume) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#volume", config::volume, ini_opts, x, 0, 128)) { return false; }
 
 		//Mute settings
 		if(!parse_ini_bool(ini_item, "#mute", config::mute, ini_opts, x)) { return false; }
@@ -1730,74 +1600,17 @@ bool parse_ini_file()
 		}
 
 		//Sample rate
-		if(ini_item == "#sample_rate")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 1) && (output <= 48000)) { config::sample_rate = (double)output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#sample_rate) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#sample_rate", config::sample_rate, ini_opts, x, 1, 48000)) { return false; }
 
 		//Sample size
-		if(ini_item == "#sample_size")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output <= 4096) { config::sample_size = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#sample_size) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#sample_size", config::sample_size, ini_opts, x, 0, 4096)) { return false; }
 
 		//Scaling factor
-		if(ini_item == "#scaling_factor")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 1) && (output <= 10)) { config::scaling_factor = config::old_scaling_factor = output; }
-				else { config::scaling_factor = 1; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#scaling_factor) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#scaling_factor", config::scaling_factor, ini_opts, x, 1, 10)) { return false; }
+		if(ini_item == "#scaling_factor") { config::old_scaling_factor = config::scaling_factor; }
 
 		//Maintain aspect ratio
-		if(ini_item == "#maintain_aspect_ratio")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output == 1) { config::maintain_aspect_ratio = true; }
-				else { config::maintain_aspect_ratio = false; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#maintain_aspect_ratio) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_bool(ini_item, "#maintain_aspect_ratio", config::maintain_aspect_ratio, ini_opts, x)) { return false; }
 
 		//Real-time clock offsets
 		if(ini_item == "#rtc_offset")
@@ -1836,44 +1649,11 @@ bool parse_ini_file()
 		}
 
 		//CPU overclocking flags
-		if(ini_item == "#oc_flags")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-				
-				if((output >= 0) && (output <= 3)) { config::oc_flags = output; }
-			}
-
-			else
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#oc_flags) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#oc_flags", config::oc_flags, ini_opts, x, 0, 3)) { return false; }
 			
 		//Emulated DMG-on-GBC palette
-		if(ini_item == "#dmg_on_gbc_pal")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 1) && (output <= 15)) 
-				{
-					config::dmg_gbc_pal = output;
-					set_dmg_colors(config::dmg_gbc_pal);
-				}
-
-				else if(output == 16) { config::dmg_gbc_pal = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_on_gbc_pal) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#dmg_on_gbc_pal", config::dmg_gbc_pal, ini_opts, x, 1, 16)) { return false; }
+		if(ini_item == "#dmg_on_gbc_pal") { set_dmg_colors(config::dmg_gbc_pal); }
 
 		//Custom DMG palette (BG)
 		if(ini_item == "#dmg_custom_bg_pal")
@@ -2198,21 +1978,7 @@ bool parse_ini_file()
 		}
 
 		//NDS touch mode
-		if(ini_item == "#nds_touch_mode")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::touch_mode = output;
-			}
-
-			else
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#touch_mode) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#nds_touch_mode", config::touch_mode, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//NDS virtual cursor enable
 		if(!parse_ini_bool(ini_item, "#virtual_cursor_enable", config::vc_enable, ini_opts, x)) { return false; }
@@ -2236,39 +2002,10 @@ bool parse_ini_file()
 		}
 
 		//NDS virtual cursor opacity
-		if(ini_item == "#virtual_cursor_opacity")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if((output >= 0) && (output <= 31)) { config::vc_opacity = output; }
-				else { config::vc_opacity = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_opacity) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#virtual_cursor_opacity", config::vc_opacity, ini_opts, x, 0, 31)) { return false; }
 
 		//NDS virtual cursor timeout
-		if(ini_item == "#virtual_cursor_timeout")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-				config::vc_timeout = output;
-
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#virtual_cursor_timeout) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#virtual_cursor_timeout", config::vc_timeout, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Use netplay
 		if(!parse_ini_bool(ini_item, "#use_netplay", config::use_netplay, ini_opts, x)) { return false; }
@@ -2283,75 +2020,16 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#use_real_gbma_server", config::use_real_gbma_server, ini_opts, x)) { return false; }
 
 		//Real server Mobile Adapter GB HTTP port
-		if(ini_item == "#gbma_server_http_port")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output <= 65535) { config::gbma_server_http_port = output; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_server_port) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#gbma_server_http_port", config::gbma_server_http_port, ini_opts, x, 0, 65535)) { return false; }
 
 		//Netplay sync threshold
-		if(ini_item == "#netplay_sync_threshold")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::netplay_sync_threshold = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_sync_threshold) \n";
-				return false;
-			}
-		}
-
+		if(!parse_ini_number(ini_item, "#netplay_sync_threshold", config::netplay_sync_threshold, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Netplay server port
-		if(ini_item == "#netplay_server_port")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output <= 65535) { config::netplay_server_port = output; }
-				else { config::netplay_server_port = 2000; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_server_port) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#netplay_server_port", config::netplay_server_port, ini_opts, x, 0, 65535)) { return false; }
 
 		//Netplay client port
-		if(ini_item == "#netplay_client_port")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-
-				if(output <= 65535) { config::netplay_client_port = output; }
-				else { config::netplay_client_port = 2001; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_client_port) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#netplay_client_port", config::netplay_client_port, ini_opts, x, 0, 65535)) { return false; }
 
 		//Netplay client IP address
 		if(ini_item == "#netplay_client_ip")
@@ -2387,37 +2065,10 @@ bool parse_ini_file()
 		}
 
 		//Netplay Player ID
-		if(ini_item == "#netplay_id")
-		{
-			if((x + 1) < size) 
-			{
-				util::from_str(ini_opts[++x], output);
-				config::netplay_id = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_id) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#netplay_id", config::netplay_id, ini_opts, x, 0, 255)) { return false; }
 
 		//IR database index
-		if(ini_item == "#ir_db_index")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-				
-				if(output >= 0) { config::ir_db_index = output; }
-			}
-
-			else
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#ir_db_index) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#id_db_index", config::ir_db_index, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Multi Plust On System ID
 		if(ini_item == "#mpos_id")
@@ -2493,21 +2144,7 @@ bool parse_ini_file()
 		}
 
 		//Total time for GBA Jukebox recording
-		if(ini_item == "#jukebox_total_time")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::jukebox_total_time = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#jukebox_total_time) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#jukebox_total_time", config::jukebox_total_time, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Audio Conversion Command
 		if(ini_item == "#audio_conversion_command")
@@ -2546,72 +2183,16 @@ bool parse_ini_file()
 		}
 
 		//Glucoboy - Daily GRPs
-		if(ini_item == "#glucoboy_daily_grps")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::glucoboy_daily_grps = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_daily_grps) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#glucoboy_daily_grps", config::glucoboy_daily_grps, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
 		//Glucoboy - Bonus GRPs
-		if(ini_item == "#glucoboy_bonus_grps")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::glucoboy_bonus_grps = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_bonus_grps) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#glucoboy_bonus_grps", config::glucoboy_bonus_grps, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
 		//Glucoboy - Good Days
-		if(ini_item == "#glucoboy_good_days")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::glucoboy_good_days = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_good_days) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#glucoboy_good_days", config::glucoboy_good_days, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
 		//Glucoboy - Days Until Bonus
-		if(ini_item == "#glucoboy_days_until_bonus")
-		{
-			if((x + 1) < size)
-			{
-				util::from_str(ini_opts[++x], output);
-
-				config::glucoboy_days_until_bonus = output;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#glucoboy_days_until_bonus) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#glucoboy_days_until_bonus", config::glucoboy_days_until_bonus, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
 		//Recent files
 		if(ini_item == "#recent_files")
@@ -3966,6 +3547,125 @@ bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_boo
 
 			if(output == 1) { ini_bool = true; }
 			else { ini_bool = false; }
+		}
+
+		else 
+		{ 
+			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/****** Parses .ini string for integer values - u32 ******/
+bool parse_ini_number(std::string ini_item, std::string search_item, u32 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max)
+{
+	if(ini_item == search_item)
+	{
+		u32 output = 0;
+
+		if((ini_pos + 1) < ini_opts.size())
+		{
+			if(ini_item == "#glucoboy_daily_grps") { std::cout<< ini_opts[ini_pos] << "\n"; }
+			util::from_str(ini_opts[++ini_pos], output);
+			if(ini_item == "#glucoboy_daily_grps") { std::cout<< ini_opts[ini_pos] << "\n"; }
+
+			if((output >= min) && (output <= max)) { ini_num = output; }
+		}
+ 
+		else 
+		{ 
+			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/****** Parses .ini string for integer values - u16 ******/
+bool parse_ini_number(std::string ini_item, std::string search_item, u16 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max)
+{
+	if(ini_item == search_item)
+	{
+		u32 output = 0;
+
+		if((ini_pos + 1) < ini_opts.size())
+		{
+			util::from_str(ini_opts[++ini_pos], output);
+
+			if((output >= min) && (output <= max)) { ini_num = output; }
+		}
+ 
+		else 
+		{ 
+			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/****** Parses .ini string for integer values - u8 ******/
+bool parse_ini_number(std::string ini_item, std::string search_item, u8 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max)
+{
+	if(ini_item == search_item)
+	{
+		u32 output = 0;
+
+		if((ini_pos + 1) < ini_opts.size())
+		{
+			util::from_str(ini_opts[++ini_pos], output);
+
+			if((output >= min) && (output <= max)) { ini_num = output; }
+		}
+ 
+		else 
+		{ 
+			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/****** Parses .ini string for integer values - double ******/
+bool parse_ini_number(std::string ini_item, std::string search_item, double &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max)
+{
+	if(ini_item == search_item)
+	{
+		u32 output = 0;
+
+		if((ini_pos + 1) < ini_opts.size())
+		{
+			util::from_str(ini_opts[++ini_pos], output);
+
+			if((output >= min) && (output <= max)) { ini_num = (double)output; }
+		}
+ 
+		else 
+		{ 
+			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/****** Parses .ini string for integer values - float ******/
+bool parse_ini_number(std::string ini_item, std::string search_item, float &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos)
+{
+	if(ini_item == search_item)
+	{
+		if((ini_pos + 1) < ini_opts.size())
+		{
+			float output = std::stof(ini_opts[++ini_pos]);
+			ini_num = output;
 		}
 
 		else 

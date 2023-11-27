@@ -33,6 +33,11 @@ bool save_cheats_file();
 void get_firmware_hashes();
 
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos);
+bool parse_ini_number(std::string ini_item, std::string search_item, u32 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
+bool parse_ini_number(std::string ini_item, std::string search_item, u16 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
+bool parse_ini_number(std::string ini_item, std::string search_item, u8 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
+bool parse_ini_number(std::string ini_item, std::string search_item, double &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
+bool parse_ini_number(std::string ini_item, std::string search_item, float &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos);
 
 bool load_osd_font();
 void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_offset, u8 y_offset);
@@ -122,7 +127,7 @@ namespace config
 	extern u32 hotkey_camera;
 	extern u32 hotkey_swap_screen;
 	extern u32 hotkey_shift_screen;
-	extern int dead_zone;
+	extern u32 dead_zone;
 	extern int joy_id;
 	extern int joy_sdl_id;
 	extern bool use_haptics;
