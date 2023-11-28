@@ -1224,256 +1224,46 @@ bool parse_ini_file()
 		if(!parse_ini_number(ini_item, "#osd_alpha", config::osd_alpha, ini_opts, x, 0, 255)) { return false; }
 
 		//DMG BIOS path
-		if(ini_item == "#dmg_bios_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::dmg_bios_path = ini_item; }
-				else { config::dmg_bios_path = ""; x--;}
- 
-			}
-
-			else { config::dmg_bios_path = ""; }
-		}
+		parse_ini_str(ini_item, "#dmg_bios_path", config::dmg_bios_path, ini_opts, x);
 
 		//GBC BIOS path
-		if(ini_item == "#gbc_bios_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::gbc_bios_path = ini_item; }
-				else { config::gbc_bios_path = ""; x--;}
- 
-			}
-
-			else { config::gbc_bios_path = ""; }
-		}
+		parse_ini_str(ini_item, "#gbc_bios_path", config::gbc_bios_path, ini_opts, x);
 
 		//GBA BIOS path
-		if(ini_item == "#agb_bios_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::agb_bios_path = ini_item; }
-				else { config::agb_bios_path = ""; x--;}
- 
-			}
-
-			else { config::agb_bios_path = ""; }
-		}
+		parse_ini_str(ini_item, "#agb_bios_path", config::agb_bios_path, ini_opts, x);
 
 		//NDS9 BIOS path
-		if(ini_item == "#nds9_bios_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::nds9_bios_path = ini_item; }
-				else { config::nds9_bios_path = ""; x--;}
- 
-			}
-
-			else { config::nds9_bios_path = ""; }
-		}
+		parse_ini_str(ini_item, "#nds9_bios_path", config::nds9_bios_path, ini_opts, x);
 
 		//NDS7 BIOS path
-		if(ini_item == "#nds7_bios_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::nds7_bios_path = ini_item; }
-				else { config::nds7_bios_path = ""; x--;}
- 
-			}
-
-			else { config::nds7_bios_path = ""; }
-		}
+		parse_ini_str(ini_item, "#nds7_bios_path", config::nds7_bios_path, ini_opts, x);
 
 		//NDS firmware path
-		if(ini_item == "#nds_firmware_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::nds_firmware_path = ini_item; }
-				else { config::nds_firmware_path = ""; x--;}
- 
-			}
-
-			else { config::nds_firmware_path = ""; }
-		}
+		parse_ini_str(ini_item, "#nds_firmware_path", config::nds_firmware_path, ini_opts, x);
 
 		//MIN BIOS path
-		if(ini_item == "#min_bios_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::min_bios_path = ini_item; }
-				else { config::min_bios_path = ""; x--;}
- 
-			}
-
-			else { config::min_bios_path = ""; }
-		}
+		parse_ini_str(ini_item, "#min_bios_path", config::min_bios_path, ini_opts, x);
 
 		//Game save path
-		if(ini_item == "#save_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::save_path = ini_item; }
-				else { config::save_path = ""; x--;}
- 
-			}
-
-			else { config::save_path = ""; }
-		}
+		parse_ini_str(ini_item, "#save_path", config::save_path, ini_opts, x);
 
 		//Screenshots path
-		if(ini_item == "#screenshot_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::ss_path = ini_item; }
-				else { config::ss_path = ""; x--;}
- 
-			}
-
-			else { config::ss_path = ""; }
-		}
+		parse_ini_str(ini_item, "#screenshot_path", config::ss_path, ini_opts, x);
 
 		//Cheats path
-		if(ini_item == "#cheats_path")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::cheats_path = ini_item; }
-				else { config::cheats_path = ""; x--;}
- 
-			}
-
-			else { config::cheats_path = ""; }
-		}
+		parse_ini_str(ini_item, "#cheats_path", config::cheats_path, ini_opts, x);
 
 		//External camera file
-		if(ini_item == "#camera_file")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::external_camera_file = ini_item; }
-				else { config::external_camera_file = ""; x--;}
- 
-			}
-
-			else { config::external_camera_file = ""; }
-		}
+		parse_ini_str(ini_item, "#camera_file", config::external_camera_file, ini_opts, x);
 
 		//External card file
-		if(ini_item == "#card_file")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::external_card_file = ini_item; }
-				else { config::external_card_file = ""; x--;}
- 
-			}
-
-			else { config::external_card_file = ""; }
-		}
+		parse_ini_str(ini_item, "#card_file", config::external_card_file, ini_opts, x);
 
 		//External image file
-		if(ini_item == "#image_file")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::external_image_file = ini_item; }
-				else { config::external_image_file = ""; x--;}
- 
-			}
-
-			else { config::external_image_file = ""; }
-		}
+		parse_ini_str(ini_item, "#image_file", config::external_image_file, ini_opts, x);
 
 		//External data file
-		if(ini_item == "#data_file")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::external_data_file = ini_item; }
-				else { config::external_data_file = ""; x--;}
- 
-			}
-
-			else { config::external_data_file = ""; }
-		}
+		parse_ini_str(ini_item, "#data_file", config::external_data_file, ini_opts, x);
 
 		//Use OpenGL
 		if(!parse_ini_bool(ini_item, "#use_opengl", config::use_opengl, ini_opts, x)) { return false; }
@@ -1574,30 +1364,7 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#use_microphone", config::use_microphone, ini_opts, x)) { return false; }
 
 		//Override default audio driver
-		if(ini_item == "#override_audio_driver")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#")
-				{
-					config::override_audio_driver = ini_item;
-				}
-
-				else
-				{
-					config::override_audio_driver = "";
-					x--;
-				}
- 
-			}
-
-			else { config::override_audio_driver = ""; }
-		}
+		parse_ini_str(ini_item, "#override_audio_driver", config::override_audio_driver, ini_opts, x);
 
 		//Sample rate
 		if(!parse_ini_number(ini_item, "#sample_rate", config::sample_rate, ini_opts, x, 1, 48000)) { return false; }
@@ -1984,22 +1751,7 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#virtual_cursor_enable", config::vc_enable, ini_opts, x)) { return false; }
 
 		//NDS virtual cursor file
-		if(ini_item == "#virtual_cursor_file")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::vc_file = ini_item; }
-				else { config::vc_file = ""; x--;}
- 
-			}
-
-			else { config::vc_file = ""; }
-		}
+		parse_ini_str(ini_item, "#virtual_cursor_file", config::vc_file, ini_opts, x);
 
 		//NDS virtual cursor opacity
 		if(!parse_ini_number(ini_item, "#virtual_cursor_opacity", config::vc_opacity, ini_opts, x, 0, 31)) { return false; }
@@ -2032,37 +1784,10 @@ bool parse_ini_file()
 		if(!parse_ini_number(ini_item, "#netplay_client_port", config::netplay_client_port, ini_opts, x, 0, 65535)) { return false; }
 
 		//Netplay client IP address
-		if(ini_item == "#netplay_client_ip")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				config::netplay_client_ip = ini_item;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#netplay_client_ip) \n";
-				return false;
-			}
-		}
-
+		parse_ini_str(ini_item, "#netplay_client_ip", config::netplay_client_ip, ini_opts, x);
 
 		//Real Mobile Adapter GB IP address
-		if(ini_item == "#gbma_server_ip")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				config::gbma_server = ini_item;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbma_server) \n";
-				return false;
-			}
-		}
+		parse_ini_str(ini_item, "#gbma_server_ip", config::gbma_server, ini_opts, x);
 
 		//Netplay Player ID
 		if(!parse_ini_number(ini_item, "#netplay_id", config::netplay_id, ini_opts, x, 0, 255)) { return false; }
@@ -2147,40 +1872,10 @@ bool parse_ini_file()
 		if(!parse_ini_number(ini_item, "#jukebox_total_time", config::jukebox_total_time, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Audio Conversion Command
-		if(ini_item == "#audio_conversion_command")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::audio_conversion_cmd = ini_item; }
-				else { config::audio_conversion_cmd = ""; x--;}
- 
-			}
-
-			else { config::audio_conversion_cmd = ""; }
-		}
+		parse_ini_str(ini_item, "#audio_conversion_command", config::audio_conversion_cmd, ini_opts, x);
 
 		//Remove Vocals Command
-		if(ini_item == "#remove_vocals_command")
-		{
-			if((x + 1) < size) 
-			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::remove_vocals_cmd = ini_item; }
-				else { config::remove_vocals_cmd = ""; x--;}
- 
-			}
-
-			else { config::remove_vocals_cmd = ""; }
-		}
+		parse_ini_str(ini_item, "#remove_vocals_command", config::remove_vocals_cmd, ini_opts, x);
 
 		//Glucoboy - Daily GRPs
 		if(!parse_ini_number(ini_item, "#glucoboy_daily_grps", config::glucoboy_daily_grps, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
@@ -3559,6 +3254,27 @@ bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_boo
 	return true;
 }
 
+/****** Parses .ini string for string value ******/
+void parse_ini_str(std::string ini_item, std::string search_item, std::string &ini_str, std::vector <std::string> &ini_opts, u32 &ini_pos)
+{
+	if(ini_item == search_item)
+	{
+		if((ini_pos + 1) < ini_opts.size()) 
+		{
+			ini_item = ini_opts[++ini_pos];
+			std::string first_char = "";
+			first_char = ini_item[0];
+				
+			//When left blank, don't parse the next line item
+			if(first_char != "#") { ini_str = ini_item; }
+			else { ini_str = ""; ini_pos--;}
+ 
+		}
+
+		else { ini_str = ""; }
+	}
+}
+
 /****** Parses .ini string for integer values - u32 ******/
 bool parse_ini_number(std::string ini_item, std::string search_item, u32 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max)
 {
@@ -3568,9 +3284,7 @@ bool parse_ini_number(std::string ini_item, std::string search_item, u32 &ini_nu
 
 		if((ini_pos + 1) < ini_opts.size())
 		{
-			if(ini_item == "#glucoboy_daily_grps") { std::cout<< ini_opts[ini_pos] << "\n"; }
 			util::from_str(ini_opts[++ini_pos], output);
-			if(ini_item == "#glucoboy_daily_grps") { std::cout<< ini_opts[ini_pos] << "\n"; }
 
 			if((output >= min) && (output <= max)) { ini_num = output; }
 		}
@@ -3677,4 +3391,3 @@ bool parse_ini_number(std::string ini_item, std::string search_item, float &ini_
 
 	return true;
 }
-

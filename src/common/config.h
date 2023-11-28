@@ -33,6 +33,7 @@ bool save_cheats_file();
 void get_firmware_hashes();
 
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos);
+void parse_ini_str(std::string ini_item, std::string search_item, std::string &ini_str, std::vector <std::string> &ini_opts, u32 &ini_pos);
 bool parse_ini_number(std::string ini_item, std::string search_item, u32 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
 bool parse_ini_number(std::string ini_item, std::string search_item, u16 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
 bool parse_ini_number(std::string ini_item, std::string search_item, u8 &ini_num, std::vector <std::string> &ini_opts, u32 &ini_pos, u32 min, u32 max);
