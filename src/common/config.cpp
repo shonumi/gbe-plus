@@ -1317,36 +1317,10 @@ bool parse_ini_file()
 		if(!parse_ini_bool(ini_item, "#use_motion", config::use_motion, ini_opts, x)) { return false; }
 
 		//Motion deadzone
-		if(ini_item == "#motion_dead_zone")
-		{
-			if((x + 1) < size)
-			{
-				float out = std::stof(ini_opts[++x]);
-				config::motion_dead_zone = out;
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#motion_dead_zone) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#motion_dead_zone", config::motion_dead_zone, ini_opts, x)) { return false; }
 
 		//Motion scaler
-		if(ini_item == "#motion_scaler")
-		{
-			if((x + 1) < size)
-			{
-				float out = std::stof(ini_opts[++x]);
-				if(out > 0) { config::motion_scaler = out; }
-			}
-
-			else 
-			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#motion_scaler) \n";
-				return false;
-			}
-		}
+		if(!parse_ini_number(ini_item, "#motion_scaler", config::motion_scaler, ini_opts, x)) { return false; }
 
 		//Use DDR mapping
 		if(!parse_ini_bool(ini_item, "#use_ddr_mapping", config::use_ddr_mapping, ini_opts, x)) { return false; }
