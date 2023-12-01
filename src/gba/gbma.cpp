@@ -842,7 +842,7 @@ void AGB_SIO::mobile_adapter_process_http()
 	bool html = mobile_adapter.http_data.find(".html") != std::string::npos;
 
 	//Build HTTP request
-	mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 7);
+	mobile_adapter.http_data += util::data_to_str(mobile_adapter.packet_buffer.data() + 7, mobile_adapter.packet_buffer.size() - 11);
 
 	//Send empty body until HTTP request is finished transmitting
 	if(mobile_adapter.http_data.find("\r\n\r\n") == std::string::npos)
