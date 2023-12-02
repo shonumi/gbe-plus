@@ -41,6 +41,11 @@ void AGB_MMU::campho_reset()
 	campho.capture_video = false;
 	campho.new_frame = false;
 	campho.is_large_frame = true;
+	campho.is_call_incoming = false;
+	campho.is_call_active = false;
+
+	campho.tele_data.clear();
+	campho.tele_data_index = 0;
 
 	campho.dialed_number = "";
 
@@ -148,7 +153,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			break;
 	}
 
-	//std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Campho I/O ******/
@@ -185,7 +190,7 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
-	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
+	std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
 
@@ -216,6 +221,15 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 			if(campho.video_frame_index < campho.video_frame.size())
 			{
 				result = campho.video_frame[campho.video_frame_index++];
+			}
+		}
+
+		//Telephony Data
+		else if(campho.is_call_active)
+		{
+			if(campho.tele_data_index < campho.tele_data.size())
+			{
+				result = campho.tele_data[campho.tele_data_index++];
 			}
 		}
 
@@ -630,17 +644,7 @@ void AGB_MMU::campho_process_input_stream()
 			//Edit and update existing Name + Phone Number
 			else
 			{
-				for(u32 x = 0; x < campho.g_stream.size(); x++)
-				{
-					std::cout<<"0x" << (u32)campho.g_stream[x] << "\n";
-				}
-
-				std::cout<<"CAMPHO INDEX -> " << std::dec << (s32)campho.contact_index << "\n";
-
 				s32 edit_index = campho.contact_index * 28;
-
-				std::cout<<"EDIT INDEX -> " << std::dec << edit_index << "\n";
-				std::cout<<"MAX SIZE -> " << campho.contact_data.size() << std::hex << "\n";
 
 				//32-bit metadata
 				campho.contact_data[edit_index++] = 0x31;
@@ -889,9 +893,32 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 	return 0xFFFFFFFF;
 }
 
-/****** Processes regular events such as audio/video capture for the Campho Advance ******/
+/****** Processes regular events such as audio/video capture and telephony for the Campho Advance ******/
 void AGB_MMU::process_campho()
 {
+	//Initiate a live phone call
+	if((campho.is_call_incoming) && (!campho.is_call_active) && (!campho.new_frame))
+	{
+		campho.is_call_active = true;
+		campho.rom_stat = 0xA00A;
+
+		campho.tele_data.clear();
+		campho.tele_data_index = 0;
+
+		//Set telephone data stream for accepting a live phone call
+		//16-bit units, 1 - 0xAB00, 2 = Data Length, 3 = ???, 4 = Phone Status Flag
+		campho.tele_data.push_back(0x60);
+		campho.tele_data.push_back(0x15);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x80);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x04);
+		campho.tele_data.push_back(0x00);
+
+		return;
+	}
+
 	campho.video_capture_counter++;
 
 	if(campho.video_capture_counter < 12)
@@ -938,6 +965,8 @@ void AGB_MMU::process_campho()
 		}
 
 		campho_set_video_data();
+
+		return;
 	}
 }
 
