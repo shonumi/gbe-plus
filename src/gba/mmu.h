@@ -378,10 +378,11 @@ class AGB_MMU
 		bool capture_video;
 		bool new_frame;
 		bool is_large_frame;
-		bool is_call_incoming;
-		bool is_call_active;
 
 		u32 tele_data_index;
+		u8 call_state;
+		bool is_call_incoming;
+		bool is_call_active;
 
 		u32 out_stream_index;
 		s8 contact_index;
@@ -555,6 +556,7 @@ class AGB_MMU
 	u8 campho_find_settings_val(u16 input);
 	void campho_make_settings_stream(u32 input);
 	void campho_process_input_stream();
+	void campho_process_call();
 	void process_campho();
 
 	void glucoboy_reset();

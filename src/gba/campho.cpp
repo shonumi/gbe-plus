@@ -41,11 +41,12 @@ void AGB_MMU::campho_reset()
 	campho.capture_video = false;
 	campho.new_frame = false;
 	campho.is_large_frame = true;
+
 	campho.is_call_incoming = false;
 	campho.is_call_active = false;
-
 	campho.tele_data.clear();
 	campho.tele_data_index = 0;
+	campho.call_state = 0;
 
 	campho.dialed_number = "";
 
@@ -144,6 +145,12 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 				campho.repeated_slices = 0;
 			}
 
+			//Continue processing active phone call data
+			else if((campho.rom_cnt == 0xA00A) && (campho.call_state))
+			{
+				campho_process_call();
+			}
+
 			break;
 
 		//Graphics ROM Stream
@@ -153,7 +160,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			break;
 	}
 
-	std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Campho I/O ******/
@@ -190,7 +197,7 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
-	std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
 
@@ -423,6 +430,7 @@ void AGB_MMU::campho_process_input_stream()
 			else
 			{
 				std::cout<<"Unknown Camera Command Detected\n";
+				memory_map[0x12345] = 0x77;
 			} 
 
 			std::cout<<"Camera Command -> 0x" << index << "\n";
@@ -728,6 +736,22 @@ void AGB_MMU::campho_process_input_stream()
 	campho.g_stream.clear();
 }
 
+/****** Handles processing Campho call data when receiving/making a phone call ******/
+void AGB_MMU::campho_process_call()
+{
+	//TODO - Use enums when the actual purpose of all known states has been researched
+	switch(campho.call_state)
+	{
+		//Establish an incoming call
+		case 1:
+			campho.rom_stat = 0x4015;
+			campho.tele_data.clear();
+			campho.tele_data_index = 0;
+			campho.call_state = 2;
+			break;
+	}
+}		
+
 /****** Sets the absolute position within the Campho ROM for a bank's base address ******/
 void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 {
@@ -744,7 +768,7 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 			if(set_hi_bank) { campho.bank_index_hi = campho.mapped_bank_pos[x]; }
 
 			//Set Low ROM bank
-			else { campho.bank_index_lo = campho.mapped_bank_pos[x]; std::cout<<"SET LOW -> 0x" << (u32)campho.bank_index_lo << "\n"; }
+			else { campho.bank_index_lo = campho.mapped_bank_pos[x]; }
 
 			campho.block_len = campho.mapped_bank_len[x];
 			return;
@@ -897,9 +921,10 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 void AGB_MMU::process_campho()
 {
 	//Initiate a live phone call
-	if((campho.is_call_incoming) && (!campho.is_call_active) && (!campho.new_frame))
+	if((campho.is_call_incoming) && (!campho.is_call_active) && (campho.call_state == 0) && (!campho.new_frame))
 	{
 		campho.is_call_active = true;
+		campho.call_state = 1;
 		campho.rom_stat = 0xA00A;
 
 		campho.tele_data.clear();
