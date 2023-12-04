@@ -2238,7 +2238,6 @@ void DMG_SIO::singer_izek_update()
 		singer_izek.stitch_buffer.resize(0x3D090, 0xFFFFFFFF);
 	}
 
-
 	u32 speed = (singer_izek.device_mode == 0) ? (10 - singer_izek.speed) : (10 - singer_izek.speed * 2);
 	if(!speed) { speed = 1; }
 
@@ -2364,6 +2363,13 @@ void DMG_SIO::singer_izek_update()
 	{
 		u8 stat = (singer_izek.sub_screen_status & 0xF);
 
+		//Temporarily force OSD on at 100% alpha for this
+		bool user_osd = config::use_osd;
+		u8 user_alpha = config::osd_alpha;
+
+		config::use_osd = true;
+		config::osd_alpha = 255;
+
 		//Draw options
 		std::string op_name = "";
 
@@ -2412,6 +2418,10 @@ void DMG_SIO::singer_izek_update()
 		//Draw cursor
 		op_name = "*";
 		draw_osd_msg(op_name, singer_izek.stitch_buffer, 0, stat, 500);
+
+		//Restore user OSD settings
+		config::use_osd = user_osd;
+		config::osd_alpha = user_alpha;
 
 		//Correct colors
 		for(u32 x = 0; x < singer_izek.stitch_buffer.size(); x++)
