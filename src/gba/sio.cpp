@@ -2822,6 +2822,13 @@ void AGB_SIO::vrs_draw_menu()
 {
 	u8 stat = (vrs.sub_screen_status & 0xF);
 
+	//Temporarily force OSD on at 100% alpha for this
+	bool user_osd = config::use_osd;
+	u8 user_alpha = config::osd_alpha;
+
+	config::use_osd = true;
+	config::osd_alpha = 255;
+
 	//Draw options
 	std::string op_name = "";
 
@@ -2849,6 +2856,10 @@ void AGB_SIO::vrs_draw_menu()
 	//Draw cursor
 	op_name = "*";
 	draw_osd_msg(op_name, mem->sub_screen_buffer, 0, stat, 240);
+
+	//Restore user OSD settings
+	config::use_osd = user_osd;
+	config::osd_alpha = user_alpha;
 
 	//Correct colors
 	for(u32 x = 0; x < mem->sub_screen_buffer.size(); x++)
