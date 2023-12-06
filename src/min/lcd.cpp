@@ -68,34 +68,31 @@ void MIN_LCD::reset()
 		frame_delay[x] = (std::round(frame_2) - std::round(frame_1));
 	}
 
-	//Define LCD ON, OFF, and mixed colors for all contrast levels
-	float r1 = 255.0 / 31.0;
-	float r2 = 255.0 / 63.0;
+	u32 custom_color = 0xFF000000;
+
+	util::hsl custom_hsl = util::rgb_to_hsl(custom_color);
+	util::hsl target_hsl = custom_hsl;
+	double custom_l = custom_hsl.lightness;
+	double on_l = (1.0 - custom_l) / 31.0;
+	double off_l = (1.0 - custom_l) / 63.0;
 
 	for(u32 x = 0; x < 64; x++)
 	{
-		u8 color_byte = 0xFF;
-
 		if(x < 32)
 		{
-			color_byte -= (r1 * x);
-
-			on_colors[x] = 0xFF000000 | (color_byte << 16) | (color_byte << 8) | color_byte;
+			target_hsl.lightness = 1.0 - (x * on_l);
+			on_colors[x] = util::hsl_to_rgb(target_hsl);
 			off_colors[x] = 0xFFFFFFFF;
 		}
 
 		else
 		{
-			color_byte -= (r1 * (x - 31));
-
-			on_colors[x] = 0xFF000000;
-			off_colors[x] = 0xFF000000 | (color_byte << 16) | (color_byte << 8) | color_byte;
-
+			target_hsl.lightness = 1.0 - ((x - 32) * off_l);
+			on_colors[x] = custom_color;
+			off_colors[x] = util::hsl_to_rgb(target_hsl);
 		}
 
-		u8 mix_byte = 0xFF;
-		mix_byte -= (r2 * x);
-		mix_colors[x] = 0xFF000000 | (mix_byte << 16) | (mix_byte << 8) | mix_byte;
+		mix_colors[x] = util::rgb_blend(on_colors[x], off_colors[x]);
 	}
 
 	//Initialize system screen dimensions
