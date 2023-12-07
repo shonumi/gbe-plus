@@ -73,21 +73,20 @@ void MIN_LCD::reset()
 	util::hsl custom_hsl = util::rgb_to_hsl(custom_color);
 	util::hsl target_hsl = custom_hsl;
 	double custom_l = custom_hsl.lightness;
-	double on_l = (1.0 - custom_l) / 31.0;
-	double off_l = (1.0 - custom_l) / 63.0;
+	double l_ratio = (1.0 - custom_l) / 31.0;
 
 	for(u32 x = 0; x < 64; x++)
 	{
 		if(x < 32)
 		{
-			target_hsl.lightness = 1.0 - (x * on_l);
+			target_hsl.lightness = 1.0 - (x * l_ratio);
 			on_colors[x] = util::hsl_to_rgb(target_hsl);
 			off_colors[x] = 0xFFFFFFFF;
 		}
 
 		else
 		{
-			target_hsl.lightness = 1.0 - ((x - 32) * off_l);
+			target_hsl.lightness = 1.0 - ((x - 32) * l_ratio);
 			on_colors[x] = custom_color;
 			off_colors[x] = util::hsl_to_rgb(target_hsl);
 		}
