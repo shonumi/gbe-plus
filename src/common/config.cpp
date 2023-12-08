@@ -228,7 +228,8 @@ namespace config
 	u8 nds_slot2_device = 0;
 	std::string nds_slot2_file = "";
 
-	//Pokemon Mini flags
+	//Pokemon Mini flags + color
+	u32 min_custom_color = 0xFF000000;
 	u8 min_config = 0x7;
 
 	//Real-time clock offsets
@@ -1438,6 +1439,21 @@ bool parse_ini_file()
 			else 
 			{
 				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_custom_bg_pal) \n";
+				return false;
+			}
+		}
+
+		//Custom MIN color
+		if(ini_item == "#min_custom_color")
+		{
+			if((x + 1) < size)
+			{
+				util::from_hex_str(ini_opts[++x].substr(2), config::min_custom_color);
+			}
+
+			else 
+			{
+				std::cout<<"GBE::Error - Could not parse gbe.ini (#min_custom_color) \n";
 				return false;
 			}
 		}
@@ -2974,6 +2990,7 @@ bool generate_ini_file()
 	ini_contents += "[#dmg_on_gbc_pal]\n\n";
 	ini_contents += "[#dmg_custom_bg_pal]\n\n";
 	ini_contents += "[#dmg_custom_obj_pal]\n\n";
+	ini_contents += "[#min_custom_color]\n\n";
 	ini_contents += "[#dmg_bios_path]\n\n";
 	ini_contents += "[#gbc_bios_path]\n\n";
 	ini_contents += "[#agb_bios_path]\n\n";

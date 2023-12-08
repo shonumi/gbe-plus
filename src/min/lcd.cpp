@@ -68,7 +68,8 @@ void MIN_LCD::reset()
 		frame_delay[x] = (std::round(frame_2) - std::round(frame_1));
 	}
 
-	u32 custom_color = 0xFF000000;
+	//Set LCD colors
+	u32 custom_color = config::min_custom_color;
 
 	util::hsl custom_hsl = util::rgb_to_hsl(custom_color);
 	util::hsl target_hsl = custom_hsl;

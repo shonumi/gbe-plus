@@ -169,6 +169,7 @@ namespace config
 	extern u8 nds_slot2_device;
 	extern std::string nds_slot2_file;
 
+	extern u32 min_custom_color;
 	extern u8 min_config;
 
 	extern bool use_cheats;
