@@ -1083,6 +1083,34 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 		u8 g = (img_data[data_index + 1] >> 3);
 		u8 b = (img_data[data_index] >> 3);
 
+		//Adjust brightness as per user settings - Do nothing if settings are in the middle
+		if(campho.video_brightness != 5)
+		{
+			u32 input_color = 0xFF000000 | (img_data[data_index + 2] << 16) | (img_data[data_index + 1] << 8) | img_data[data_index];
+
+			util::hsl temp_color = util::rgb_to_hsl(input_color);
+			double l = temp_color.lightness;
+			double ratio;
+
+			if(campho.video_brightness < 5)
+			{
+				ratio = (l / 5.0);
+				temp_color.lightness = (campho.video_brightness * ratio);
+			}
+
+			else
+			{
+				ratio = ((1.0 - l) / 5.0);
+				temp_color.lightness += (campho.video_brightness * ratio);
+			}
+
+			input_color = util::hsl_to_rgb(temp_color);
+
+			r = (input_color >> 19) & 0x1F;
+			g = (input_color >> 11) & 0x1F;
+			b = (input_color >> 3) & 0x1F;
+		}
+
 		u16 color = ((b << 10) | (g << 5) | r);
 		color = ((color >> 3) | (color << 13));
 
