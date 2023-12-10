@@ -1101,7 +1101,7 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 			else
 			{
 				ratio = ((1.0 - l) / 5.0);
-				temp_color.lightness += (campho.video_brightness * ratio);
+				temp_color.lightness += ((campho.video_brightness - 5) * ratio);
 			}
 
 			input_color = util::hsl_to_rgb(temp_color);
