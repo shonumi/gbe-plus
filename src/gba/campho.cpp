@@ -427,12 +427,6 @@ void AGB_MMU::campho_process_input_stream()
 				campho.last_slice = 0;
 			}
 
-			else
-			{
-				std::cout<<"Unknown Camera Command Detected\n";
-				memory_map[0x12345] = 0x77;
-			} 
-
 			std::cout<<"Camera Command -> 0x" << index << "\n";
 		}
 
@@ -1008,7 +1002,7 @@ void AGB_MMU::campho_set_video_data()
 	pos &= (campho.is_large_frame) ? 0xFFFF : 0xFF01;
 	pos = ((pos >> 3) | (pos << 13));
 
-	u16 v_size = campho.video_frame_size / 4;
+	u16 v_size = campho.video_frame_size * 2;
 	u8 line_size = (campho.is_large_frame) ? 176 : 58;
 
 	u8 slice_limit_prep = campho.is_large_frame ? 13 : 2;
@@ -1018,11 +1012,8 @@ void AGB_MMU::campho_set_video_data()
 	//Normally okay to do 58*35 twice, except when changing settings (which draws garbage data)
 	if((!campho.is_large_frame) && (campho.video_frame_slice == 1))
 	{
-		v_size = (58 * 13) / 4;
+		v_size = (58 * 13 * 2);
 	}
-
-	//Make sure number of bytes to read is a multiple of 4
-	if(v_size & 0x3) { v_size += (4 - (v_size & 0x3)); }
 
 	//Check whether the video frame has been fully rendered
 	//In that case, set position and size to 0xCFFF and 0x00 respectively
@@ -1039,6 +1030,8 @@ void AGB_MMU::campho_set_video_data()
 		campho.rom_stat = 0x4015;
 		return;
 	}
+
+	v_size = ((v_size >> 3) | (v_size << 13));
 
 	campho.video_frame.push_back(pos & 0xFF);
 	campho.video_frame.push_back(pos >> 8);
@@ -1083,11 +1076,11 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 		u8 g = (img_data[data_index + 1] >> 3);
 		u8 b = (img_data[data_index] >> 3);
 
+		u32 input_color = 0xFF000000 | (img_data[data_index + 2] << 16) | (img_data[data_index + 1] << 8) | img_data[data_index];
+
 		//Adjust brightness as per user settings - Do nothing if settings are in the middle
 		if(campho.video_brightness != 5)
 		{
-			u32 input_color = 0xFF000000 | (img_data[data_index + 2] << 16) | (img_data[data_index + 1] << 8) | img_data[data_index];
-
 			util::hsl temp_color = util::rgb_to_hsl(input_color);
 			double l = temp_color.lightness;
 			double ratio;
