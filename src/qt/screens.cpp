@@ -19,14 +19,11 @@ soft_screen::soft_screen(QWidget *parent) : QWidget(parent) { }
 /****** Software screen paint event ******/
 void soft_screen::paintEvent(QPaintEvent* event)
 {
-	if(qt_gui::screen == NULL)
-	{
-		QPainter painter(this);
-		painter.setBrush(Qt::black);
-		painter.drawRect(0, 0, width(), height());
-	}
+	QPainter painter(this);
+	painter.setBrush(Qt::black);
+	painter.drawRect(0, 0, width(), height());
 
-	else
+	if(qt_gui::screen != NULL)
 	{
 		//Maintain aspect ratio
 		if(config::maintain_aspect_ratio)
