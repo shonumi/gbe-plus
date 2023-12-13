@@ -1105,6 +1105,7 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 		}
 
 		//Adjust contrast as per user settings - Do nothing if settings are in the middle
+		//The color math here is very linear and hacky
 		if(campho.video_contrast != 5)
 		{
 			util::hsl temp_color = util::rgb_to_hsl(input_color);
@@ -1119,13 +1120,37 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 
 				ratio = (s / 5.0);
 				temp_color.saturation -= ((5 - campho.video_contrast) * ratio);
-
-				input_color = util::hsl_to_rgb(temp_color);
-
-				r = (input_color >> 19) & 0x1F;
-				g = (input_color >> 11) & 0x1F;
-				b = (input_color >> 3) & 0x1F;
 			}
+
+			else
+			{
+				if(l >= 0.67)
+				{
+					ratio = (1.0 - l) / 5.0;
+					temp_color.lightness += ((campho.video_contrast - 5) * ratio);
+				}
+
+				else if(l <= 0.33)
+				{
+					ratio = (l / 5.0);
+					temp_color.lightness -= ((campho.video_contrast - 5) * ratio);
+				}
+
+				else
+				{
+					ratio = (0.5 - l) / 5.0;
+					temp_color.lightness += ((campho.video_contrast - 5) * ratio);
+				}
+
+				ratio = (1.0 - s) / 5.0;
+				temp_color.saturation += ((campho.video_contrast - 5) * ratio);
+			}
+
+			input_color = util::hsl_to_rgb(temp_color);
+
+			r = (input_color >> 19) & 0x1F;
+			g = (input_color >> 11) & 0x1F;
+			b = (input_color >> 3) & 0x1F;
 
 		}
 
