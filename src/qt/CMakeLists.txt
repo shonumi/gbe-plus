@@ -47,14 +47,14 @@ set(HEADERS
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
 target_link_libraries(gbe_plus_qt common gba dmg sgb nds min)
-target_link_libraries(gbe_plus_qt ${SDL2_LIBRARY} ${OPENGL_gl_LIBRARY} ${GBE_QT_LIBS} ${SDL2MAIN_LIBRARY})
+target_link_libraries(gbe_plus_qt SDL2::SDL2 OpenGL::GL ${GBE_QT_LIBS})
 
 if (LINK_CABLE)
-    target_link_libraries(gbe_plus_qt ${SDL2NET_LIBRARY})
+	target_link_libraries(gbe_plus_qt SDL2_net::SDL2_net)
 endif()
 
 if (WIN32)
-    target_link_libraries(gbe_plus_qt ${GLEW_LIBRARY})
+	target_link_libraries(gbe_plus_qt GLEW::GLEW)
 endif()
 
-install(TARGETS gbe_plus_qt DESTINATION bin) 
+install(TARGETS gbe_plus_qt DESTINATION ${CMAKE_INSTALL_BINDIR})
