@@ -1085,12 +1085,14 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 			double l = temp_color.lightness;
 			double ratio;
 
+			//Decrease image brightness
 			if(campho.video_brightness < 5)
 			{
 				ratio = (l / 5.0);
 				temp_color.lightness = (campho.video_brightness * ratio);
 			}
 
+			//Increase image brightness
 			else
 			{
 				ratio = ((1.0 - l) / 5.0);
@@ -1113,33 +1115,42 @@ void AGB_MMU::campho_get_image_data(u8* img_data, u32 width, u32 height)
 			double s = temp_color.saturation;
 			double ratio;
 
+			//Decrease contrast
 			if(campho.video_contrast < 5)
 			{
+				u8 contrast = (5 - campho.video_contrast);
+
 				ratio = (0.5 - l) / 5.0;
-				temp_color.lightness += ((5 - campho.video_contrast) * ratio);
+				temp_color.lightness += (contrast * ratio);
 
 				ratio = (s / 5.0);
-				temp_color.saturation -= ((5 - campho.video_contrast) * ratio);
+				temp_color.saturation -= (contrast * ratio);
 			}
 
+			//Increase contrast
 			else
 			{
+				u8 contrast = (campho.video_contrast - 5);
+
+				//Make bright colors brighter
 				if(l >= 0.67)
 				{
 					ratio = (1.0 - l) / 5.0;
-					temp_color.lightness += ((campho.video_contrast - 5) * ratio);
+					temp_color.lightness += (contrast * ratio);
 				}
 
+				//Make dark colors darker
 				else if(l <= 0.33)
 				{
 					ratio = (l / 5.0);
-					temp_color.lightness -= ((campho.video_contrast - 5) * ratio);
+					temp_color.lightness -= (contrast * ratio);
 				}
 
+				//Move all other colors towards neutral brightness
 				else
 				{
 					ratio = (0.5 - l) / 5.0;
-					temp_color.lightness += ((campho.video_contrast - 5) * ratio);
+					temp_color.lightness += (contrast * ratio);
 				}
 
 				ratio = (1.0 - s) / 5.0;
