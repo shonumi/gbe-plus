@@ -908,7 +908,7 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 	}
 
 	//Toggle vertical or horizontal mode
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == config::hotkey_shift_screen))
+	else if((input == config::hotkey_shift_screen) && (pressed))
 	{
 		if(config::lcd_config & 0x2) { config::resize_mode = 0; }
 		else { config::resize_mode = 1; }
@@ -918,7 +918,7 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 
 	//Initiate various communication functions
 	//HCV-1000 - Swipe barcode
-	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F11))
+	else if((input == SDLK_F11) && (pressed))
 	{
 		switch(core_mmu.current_slot2_device)
 		{
