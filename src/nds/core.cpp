@@ -923,6 +923,7 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 		switch(core_mmu.current_slot2_device)
 		{
 			case NTR_MMU::SLOT2_HCV_1000:
+				core_mmu.slot2_hcv_load_barcode(config::external_card_file);
 				core_mmu.hcv.cnt &= ~0x80;
 				break;
 		}
