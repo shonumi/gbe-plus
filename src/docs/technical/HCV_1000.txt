@@ -108,3 +108,77 @@ While it is possible to continually read Bit 1 of HCV_CNT and measure the delays
 5) Set HCV_CNT to 0x00 (turn off camera + clear flags).
 
 6) Repeat as necessary
+
+
+***************************************************
+7. Bardcodes
+***************************************************
+
+Below is a list of known and verified barcodes used in the games. Note that with the exception of Card de Asobu, this section is not yet complete.
+
+---------------------------------------------------
+Card de Asobu! Hajimete no DS
+---------------------------------------------------
+Barcode 	| Name
+---------------------------------------------------
+*AA01C0RD00V01*	| あひる
+*AA02D0NC00V01*	| いぬ 
+*AA0380GC00V01*	| うさぎ
+*AA04F0T000V01*	| えんぴつ
+*AA05A0RB00V01*	| おにぎり
+*AA47CKRC00V01*	| かえる
+*AA07DK0E00V01*	| ききゅう
+*AA082KRC00V01*	| くじら
+*AA099KSG00V01*	| けむし
+*AA104KRC00V01*	| こあら
+*AA110SRF00V01*	| さくら
+*AA121SYE00V01*	| しょうばうしゃ
+*AA132SKB00V01*	| すいか
+*AA149SMG00V01*	| せみ
+*AA15MSMB00V01*	| そらまめ
+*AA16OTKA00V01*	| たいこ
+*AA17DTPF00V01*	| ちゅーりっぷ
+*AA18KTMD00V01*	| つばめ
+*AA199TSG00V01*	| てんとうむし
+*AA20GTRA00V01*	| とらいあんぐる
+*AA21CNSB00V01*	| なす
+*AA227NRD00V01*	| にわとり
+*AA238NM000V01*	| めいぐるみ
+*AA24RNKC00V01*	| ねこ
+*AA25ANR000V01*	| のこぎり
+*AA26OHTD00V01*	| はと
+*AA277HRF00V01*	| ひまわり
+*AA28KHNE00V01*	| ふね
+*AA293HTE00V01*	| へりこぷたー
+*AA30GHRG00V01*	| ほたる
+*AA310MR000V01*	| まくら
+*AA327MTG00V01*	| みつばち
+*AA338MS000V01*	| むぎわらばうし
+*AA34LMN000V01*	| めがね
+*AA35YM0A00V01*	| もっきん
+*AA366YGC00V01*	| やぎ
+*AA378YRF00V01*	| ゆり
+*AA38SYTE00V01*	| よっと
+*AA390RPA00V01*	| らっぽ
+*AA40PRGB00V01*	| りんご
+*AA418RB000V01*	| るびー
+*AA42XR0B00V01*	| れもん
+*AA43SRTE00V01*	| ろけっと
+*AA446WNC00V01*	| わに
+*AA45SWW000V01*	| カードをさがす
+*AA46Z00000V01*	| ん
+---------------------------------------------------
+
+
+---------------------------------------------------
+Oshare Majo Love and Berry: DS Collection
+---------------------------------------------------
+Barcode 	| Name
+---------------------------------------------------
+*OUQV-9AU5JD*	| TD-01
+*O3OH4749GJG*	| TD-02
+*OUSGC3RO6KD*	| TF-01
+*OUMQ9CDKT4D*	| TF-02
+*OUSPY5Q69GD*	| TH-01
+*OUMPDRQ69VD*	| TH-02
+---------------------------------------------------
