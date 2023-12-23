@@ -113,10 +113,12 @@ Some commands return data for the Campho Advance to read after issuing the comma
 Unwarped	| Warped 	| Description
 ------------------------------------------------------------------------
 0xBA01		| 0x3740	| Dial a phone number
-0xBA04		| 0x9740	| Unknown
+0xBA02		| 0x5740	| Answer a phone call
+0xBA04		| 0x9740	| Reset telephone after call?
 0xBA05		| 0xB740	| Starts input data from the camera (small 58x48 frame)
 0xBA06		| 0xD740	| Starts input data from the camera (large 176x144 frame)
 0xBA07		| 0xF740	| Halts input data from the camera
+0xBA08		| 0x1741	| End a phone call
 0xBA10		| 0x1742	| Set microphone volume
 0xBA11		| 0x3742	| Set speaker volume
 0xBA12		| 0x5742	| Set video brightness
