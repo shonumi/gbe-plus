@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <map>
 
 #include "common.h"
 #include "gamepad.h"
@@ -399,6 +400,8 @@ class AGB_MMU
 		bool image_flip;
 
 		std::string dialed_number;
+		std::map<std::string, std::string> phone_number_to_ip_addr;
+		std::map<std::string, std::string> phone_number_to_port;
 
 		std::vector<u32> mapped_bank_id;
 		std::vector<u32> mapped_bank_index;
@@ -558,6 +561,7 @@ class AGB_MMU
 	void campho_process_input_stream();
 	void campho_process_call();
 	void process_campho();
+	bool campho_read_contact_list();
 
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);

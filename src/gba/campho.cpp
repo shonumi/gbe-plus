@@ -54,6 +54,8 @@ void AGB_MMU::campho_reset()
 	campho.repeated_slices = 0;
 
 	campho.contact_index = -1;
+
+	campho_read_contact_list();
 }
 
 /****** Writes data to Campho I/O ******/
@@ -426,6 +428,12 @@ void AGB_MMU::campho_process_input_stream()
 				campho.video_frame_slice = 0;
 				campho.last_slice = 0;
 			}
+
+			//Answer phone call
+			else if(index == 0x5740) { campho.call_state = 3; }
+
+			//End call
+			else if(index == 0x1741) { campho.call_state = 5; }
 
 			std::cout<<"Camera Command -> 0x" << index << "\n";
 		}
@@ -931,11 +939,31 @@ void AGB_MMU::process_campho()
 		campho.tele_data.push_back(0x00);
 		campho.tele_data.push_back(0x80);
 		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0xA0);
 		campho.tele_data.push_back(0x00);
-		campho.tele_data.push_back(0x04);
 		campho.tele_data.push_back(0x00);
 
 		return;
+	}
+
+	else if((campho.is_call_active) && (campho.call_state == 3) && (!campho.new_frame))
+	{
+		campho.call_state = 4;
+		campho.rom_stat = 0xA00A;
+
+		campho.tele_data.clear();
+		campho.tele_data_index = 0;
+
+		//Set telephone data stream for accepting a live phone call
+		//16-bit units, 1 - 0xAB00, 2 = Data Length, 3 = ???, 4 = Phone Status Flag
+		campho.tele_data.push_back(0x60);
+		campho.tele_data.push_back(0x15);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x80);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0xA0);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x00);
 	}
 
 	campho.video_capture_counter++;
@@ -1363,4 +1391,75 @@ std::string AGB_MMU::campho_convert_contact_name()
 	}
 
 	return result;
+}
+
+/****** Reads a list of IP addresses and ports that correspond with a given phone number ******/
+bool AGB_MMU::campho_read_contact_list()
+{
+	campho.phone_number_to_ip_addr.clear();
+	campho.phone_number_to_port.clear();
+
+	std::string filename = config::data_path + "campho_contacts.txt";
+
+	std::string input_line = "";
+	std::ifstream file(filename.c_str(), std::ios::in);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open Campho contact data from " << filename << "\n";
+		return false;
+	}
+
+	//Parse line for filename, time, and any other data. Data is separated by a colon
+	while(getline(file, input_line))
+	{
+		if(!input_line.empty())
+		{
+			std::size_t parse_symbol;
+			s32 pos = 0;
+			s32 end_pos;
+
+			std::string phone_number = "";
+			std::string ip_address = "";
+			std::string port_number = "";
+
+			u32 progress = 0;
+
+			//Grab phone number
+			parse_symbol = input_line.find(":", pos);
+
+			if(parse_symbol != std::string::npos)
+			{
+				phone_number = input_line.substr(pos, parse_symbol);
+				pos += parse_symbol;
+				progress++;
+			}
+
+			//Grab phone number
+			parse_symbol = input_line.find(":", pos);
+
+			if(parse_symbol != std::string::npos)
+			{
+				ip_address = input_line.substr((pos + 1), parse_symbol);
+				pos += parse_symbol;
+				progress++;
+			}
+
+			//Grab port number
+			if((pos + 2) <= input_line.size())
+			{
+				port_number = input_line.substr(pos + 2);
+				progress++;
+			}
+
+			if(progress == 3)
+			{
+				campho.phone_number_to_ip_addr[phone_number] = ip_address;
+				campho.phone_number_to_port[phone_number] = port_number;
+			}
+		}
+	} 
+
+	file.close();
+	return true;
 }
