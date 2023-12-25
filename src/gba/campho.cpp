@@ -56,6 +56,44 @@ void AGB_MMU::campho_reset()
 	campho.contact_index = -1;
 
 	campho_read_contact_list();
+
+	//Setup Campho networking
+	//Note that all networking done here is completely separate from SIO
+	campho.network_init = false;
+
+	#ifdef GBE_NETPLAY
+
+	if(SDLNet_Init() >= 0)
+	{
+		campho_close_network();
+
+		campho.network_init = true;
+		
+		campho.ringer.host_socket = NULL;
+		campho.ringer.host_init = false;
+		campho.ringer.remote_socket = NULL;
+		campho.ringer.remote_init = false;
+		campho.ringer.connected = false;
+		campho.ringer.port = 1980;
+
+		//Setup ringer to listen for any incoming connections
+		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
+		{
+			std::cout<<"MMU::Error - Campho Ringer could not resolve hostname\n";
+		}
+
+		if(!(campho.ringer.host_socket = SDLNet_TCP_Open(&campho.ringer.host_ip)))
+		{
+			std::cout<<"SIO::Error - Campho Ringer could not open a connection on Port " << campho.ringer.port << "\n";
+		}
+
+		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
+
+		//Create sockets sets
+		campho.phone_sockets = SDLNet_AllocSocketSet(2);
+	}
+
+	#endif
 }
 
 /****** Writes data to Campho I/O ******/
@@ -1462,4 +1500,31 @@ bool AGB_MMU::campho_read_contact_list()
 
 	file.close();
 	return true;
+}
+
+/****** Cleans up any networking related to the Campho Advance ******/
+void AGB_MMU::campho_close_network()
+{
+	#ifdef GBE_NETPLAY
+
+	//Close SDL_net and any current connections
+	if(campho.ringer.host_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.host_socket);
+		if(campho.ringer.host_init) { SDLNet_TCP_Close(campho.ringer.host_socket); }
+	}
+
+	if(campho.ringer.remote_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.remote_socket);
+		if(campho.ringer.remote_init) { SDLNet_TCP_Close(campho.ringer.remote_socket); }
+	}
+
+	campho.ringer.connected = false;
+	campho.ringer.host_init = false;
+	campho.ringer.remote_init = false;
+
+	campho.network_init = false;
+
+	#endif
 }

@@ -17,6 +17,10 @@
 #include <iostream>
 #include <map>
 
+#ifdef GBE_NETPLAY
+#include <SDL2/SDL_net.h>
+#endif
+
 #include "common.h"
 #include "gamepad.h"
 #include "timer.h"
@@ -407,6 +411,28 @@ class AGB_MMU
 		std::vector<u32> mapped_bank_index;
 		std::vector<u32> mapped_bank_len;
 		std::vector<u32> mapped_bank_pos;
+
+		#ifdef GBE_NETPLAY
+
+		//"RINGER" - An always on socket that receives calls
+		struct campho_ringer
+		{
+			TCPsocket host_socket, remote_socket;
+			IPaddress host_ip;
+			bool connected;
+			bool host_init;
+			bool remote_init;
+			u16 port;
+		} ringer;
+
+		SDLNet_SocketSet phone_sockets;
+
+		#endif
+
+		u16 ring_port;
+		u16 phone_in_port;
+		u16 phone_out_port;
+		bool network_init;
 	} campho;
 
 	//Structure to handle Glucoboy
@@ -562,6 +588,7 @@ class AGB_MMU
 	void campho_process_call();
 	void process_campho();
 	bool campho_read_contact_list();
+	void campho_close_network();
 
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);

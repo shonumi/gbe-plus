@@ -24,6 +24,7 @@ AGB_MMU::~AGB_MMU()
 { 
 	save_backup(config::save_file);
 	memory_map.clear();
+	campho_close_network();
 	std::cout<<"MMU::Shutdown\n"; 
 }
 
