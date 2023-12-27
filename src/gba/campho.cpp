@@ -75,6 +75,7 @@ void AGB_MMU::campho_reset()
 		campho.ringer.remote_init = false;
 		campho.ringer.connected = false;
 		campho.ringer.port = 1980;
+		campho.network_state = 0;
 
 		//Setup ringer to listen for any incoming connections
 		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
@@ -960,6 +961,9 @@ u32 AGB_MMU::campho_get_bank_by_id(u32 id, u32 index)
 /****** Processes regular events such as audio/video capture and telephony for the Campho Advance ******/
 void AGB_MMU::process_campho()
 {
+	//Prioritize Campho Networking first!
+	campho_process_networking();
+
 	//Initiate a live phone call
 	if((campho.is_call_incoming) && (!campho.is_call_active) && (campho.call_state == 0) && (!campho.new_frame))
 	{
@@ -1500,6 +1504,35 @@ bool AGB_MMU::campho_read_contact_list()
 
 	file.close();
 	return true;
+}
+
+/****** Processes network communications for the Campho Advance ******/
+void AGB_MMU::campho_process_networking()
+{
+	#ifdef GBE_NETPLAY
+
+	if(!campho.network_init) { return; }
+
+	switch(campho.network_state)
+	{
+		//Listen for incoming phone calls
+		case 0:
+			if(!campho.ringer.connected)
+			{
+				if(campho.ringer.remote_socket = SDLNet_TCP_Accept(campho.ringer.host_socket))
+				{
+					std::cout<<"MMU::Incoming Campho Call Detected\n";
+					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.ringer.host_socket);
+					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.ringer.remote_socket);
+					campho.ringer.connected = true;
+					campho.ringer.remote_init = true;
+				}
+			}
+
+			break;
+	}
+
+	#endif
 }
 
 /****** Cleans up any networking related to the Campho Advance ******/

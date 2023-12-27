@@ -432,6 +432,7 @@ class AGB_MMU
 		u16 ring_port;
 		u16 phone_in_port;
 		u16 phone_out_port;
+		u32 network_state;
 		bool network_init;
 	} campho;
 
@@ -588,6 +589,7 @@ class AGB_MMU
 	void campho_process_call();
 	void process_campho();
 	bool campho_read_contact_list();
+	void campho_process_networking();
 	void campho_close_network();
 
 	void glucoboy_reset();
