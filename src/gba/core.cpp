@@ -169,6 +169,7 @@ void AGB_core::reset()
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
+	core_mmu.campho_close_network();
 	core_mmu.reset();
 
 	//Link CPU and MMU

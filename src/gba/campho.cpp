@@ -65,8 +65,6 @@ void AGB_MMU::campho_reset()
 
 	if(SDLNet_Init() >= 0)
 	{
-		campho_close_network();
-
 		campho.network_init = true;
 		
 		campho.ringer.host_socket = NULL;
@@ -1509,9 +1507,9 @@ bool AGB_MMU::campho_read_contact_list()
 /****** Processes network communications for the Campho Advance ******/
 void AGB_MMU::campho_process_networking()
 {
-	#ifdef GBE_NETPLAY
-
 	if(!campho.network_init) { return; }
+
+	#ifdef GBE_NETPLAY
 
 	switch(campho.network_state)
 	{
@@ -1538,6 +1536,8 @@ void AGB_MMU::campho_process_networking()
 /****** Cleans up any networking related to the Campho Advance ******/
 void AGB_MMU::campho_close_network()
 {
+	if(!campho.network_init) { return; }
+
 	#ifdef GBE_NETPLAY
 
 	//Close SDL_net and any current connections
