@@ -962,7 +962,7 @@ void AGB_MMU::process_campho()
 	//Prioritize Campho Networking first!
 	campho_process_networking();
 
-	//Initiate a live phone call
+	//Initiate a live phone call -> Act as the Campho *sending* a call
 	if((campho.is_call_incoming) && (!campho.is_call_active) && (campho.call_state == 0) && (!campho.new_frame))
 	{
 		campho.is_call_active = true;
@@ -986,6 +986,7 @@ void AGB_MMU::process_campho()
 		return;
 	}
 
+	//Initiate a live phone call -> Act as the Campho *receiving* a call
 	else if((campho.is_call_active) && (campho.call_state == 3) && (!campho.new_frame))
 	{
 		campho.call_state = 4;
@@ -1511,6 +1512,9 @@ void AGB_MMU::campho_process_networking()
 
 	#ifdef GBE_NETPLAY
 
+	u8 temp_buffer[2];
+	temp_buffer[0] = temp_buffer[1] = 0;
+
 	switch(campho.network_state)
 	{
 		//Listen for incoming phone calls
@@ -1524,6 +1528,27 @@ void AGB_MMU::campho_process_networking()
 					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.ringer.remote_socket);
 					campho.ringer.connected = true;
 					campho.ringer.remote_init = true;
+					campho.network_state = 1;
+				}
+			}
+
+			break;
+
+		//Listen for port to communicate with caller
+		case 1:
+			//Check the status of connection
+			SDLNet_CheckSockets(campho.phone_sockets, 0);
+
+			//If this socket is active, receive the transfer
+			if(SDLNet_SocketReady(campho.ringer.remote_socket))
+			{
+				//Grab 16-bit value from caller, i.e. the port this Campho Advance will use for the call
+				//Data should be LSB first
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				{
+					campho.phone_out_port = (temp_buffer[1] << 8) | temp_buffer[0];
+					campho.network_state = 2;
+					std::cout<<"MMU::Campho Caller TCP Port: " << std::dec << campho.phone_out_port << std::hex << "\n";
 				}
 			}
 
