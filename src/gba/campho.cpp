@@ -962,7 +962,7 @@ void AGB_MMU::process_campho()
 	//Prioritize Campho Networking first!
 	campho_process_networking();
 
-	//Initiate a live phone call -> Act as the Campho *sending* a call
+	//Initiate a live phone call -> Alert the Campho *receiving* a call
 	if((campho.is_call_incoming) && (!campho.is_call_active) && (campho.call_state == 0) && (!campho.new_frame))
 	{
 		campho.is_call_active = true;
@@ -979,14 +979,14 @@ void AGB_MMU::process_campho()
 		campho.tele_data.push_back(0x00);
 		campho.tele_data.push_back(0x80);
 		campho.tele_data.push_back(0x00);
-		campho.tele_data.push_back(0xA0);
 		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x04);
 		campho.tele_data.push_back(0x00);
 
 		return;
 	}
 
-	//Initiate a live phone call -> Act as the Campho *receiving* a call
+	//Answer a live phone call -> Answer the phone call as the Campho *receiving* a call
 	else if((campho.is_call_active) && (campho.call_state == 3) && (!campho.new_frame))
 	{
 		campho.call_state = 4;
@@ -1528,6 +1528,7 @@ void AGB_MMU::campho_process_networking()
 					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.ringer.remote_socket);
 					campho.ringer.connected = true;
 					campho.ringer.remote_init = true;
+					campho.is_call_incoming = true;
 					campho.network_state = 1;
 				}
 			}
