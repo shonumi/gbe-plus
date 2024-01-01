@@ -72,7 +72,7 @@ void AGB_MMU::campho_reset()
 		campho.ringer.remote_socket = NULL;
 		campho.ringer.remote_init = false;
 		campho.ringer.connected = false;
-		campho.ringer.port = 1980;
+		campho.ringer.port = config::campho_ringer_port;
 		campho.network_state = 0;
 
 		//Setup ringer to listen for any incoming connections

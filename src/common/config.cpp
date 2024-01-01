@@ -280,6 +280,8 @@ namespace config
 	u32 glucoboy_good_days = 0;
 	u32 glucoboy_days_until_bonus = 0;
 
+	u16 campho_ringer_port = 1980;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -1782,6 +1784,9 @@ bool parse_ini_file()
 		//Netplay Player ID
 		if(!parse_ini_number(ini_item, "#netplay_id", config::netplay_id, ini_opts, x, 0, 255)) { return false; }
 
+		//Campho Ringer Port
+		if(!parse_ini_number(ini_item, "#campho_ringer_port", config::campho_ringer_port, ini_opts, x, 0, 65535)) { return false; }
+
 		//IR database index
 		if(!parse_ini_number(ini_item, "#id_db_index", config::ir_db_index, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
@@ -2639,6 +2644,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#gbma_server_http_port:" + val + "]";
 		}
 
+		//Campho Ringer Port
+		else if(ini_item == "#campho_ringer_port")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::campho_ringer_port);
+
+			output_lines[line_pos] = "[#campho_ringer_port:" + val + "]";
+		}
+
 		//IR database index
 		else if(ini_item == "#ir_db_index")
 		{
@@ -3048,6 +3062,7 @@ bool generate_ini_file()
 	ini_contents += "[#netplay_client_ip]\n\n";
 	ini_contents += "[#gbma_server_ip]\n\n";
 	ini_contents += "[#netplay_id]\n\n";
+	ini_contents += "[#campho_ringer_port]\n\n";
 	ini_contents += "[#ir_db_index]\n\n";
 	ini_contents += "[#nds_touch_mode]\n\n";
 	ini_contents += "[#virtual_cursor_enable]\n\n";
