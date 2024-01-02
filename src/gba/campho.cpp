@@ -67,6 +67,12 @@ void AGB_MMU::campho_reset()
 	{
 		campho.network_init = true;
 		
+		campho.line.host_socket = NULL;
+		campho.line.host_init = false;
+		campho.line.remote_socket = NULL;
+		campho.line.remote_init = false;
+		campho.line.connected = false;
+
 		campho.ringer.host_socket = NULL;
 		campho.ringer.host_init = false;
 		campho.ringer.remote_socket = NULL;
@@ -89,7 +95,7 @@ void AGB_MMU::campho_reset()
 		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
 
 		//Create sockets sets
-		campho.phone_sockets = SDLNet_AllocSocketSet(2);
+		campho.phone_sockets = SDLNet_AllocSocketSet(4);
 	}
 
 	#endif
@@ -1610,6 +1616,7 @@ void AGB_MMU::campho_process_networking()
 			}	
 
 			break;
+			
 	}
 
 	#endif
@@ -1623,6 +1630,18 @@ void AGB_MMU::campho_close_network()
 	#ifdef GBE_NETPLAY
 
 	//Close SDL_net and any current connections
+	if(campho.line.host_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.line.host_socket);
+		if(campho.line.host_init) { SDLNet_TCP_Close(campho.line.host_socket); }
+	}
+
+	if(campho.line.remote_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.line.remote_socket);
+		if(campho.line.remote_init) { SDLNet_TCP_Close(campho.line.remote_socket); }
+	}
+
 	if(campho.ringer.host_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.host_socket);
@@ -1634,6 +1653,10 @@ void AGB_MMU::campho_close_network()
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.remote_socket);
 		if(campho.ringer.remote_init) { SDLNet_TCP_Close(campho.ringer.remote_socket); }
 	}
+
+	campho.line.connected = false;
+	campho.line.host_init = false;
+	campho.line.remote_init = false;
 
 	campho.ringer.connected = false;
 	campho.ringer.host_init = false;

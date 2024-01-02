@@ -425,6 +425,16 @@ class AGB_MMU
 			u16 port;
 		} ringer;
 
+		//"LINE" - Input/Output sockets for sending/receiving data to remote Campho
+		struct campho_line
+		{
+			TCPsocket host_socket, remote_socket;
+			IPaddress host_ip;
+			bool connected;
+			bool host_init;
+			bool remote_init;
+		} line;
+
 		SDLNet_SocketSet phone_sockets;
 
 		#endif
