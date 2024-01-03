@@ -66,7 +66,8 @@ void AGB_MMU::campho_reset()
 	if(SDLNet_Init() >= 0)
 	{
 		campho.network_init = true;
-		
+		campho.phone_in_port = config::campho_input_port;		
+
 		campho.line.host_socket = NULL;
 		campho.line.host_init = false;
 		campho.line.remote_socket = NULL;
@@ -1613,10 +1614,48 @@ void AGB_MMU::campho_process_networking()
 				campho.ringer.connected = true;
 				campho.ringer.host_init = true;
 				campho.network_state = 0x82;
+
+				//Listen for any incoming connections from remote Campho
+				if(SDLNet_ResolveHost(&campho.line.host_ip, NULL, campho.phone_in_port) < 0)
+				{
+					std::cout<<"MMU::Error - Campho Phone Line could not resolve hostname\n";
+					campho.network_state = 0;
+					return;
+				}
+
+				if(!(campho.line.host_socket = SDLNet_TCP_Open(&campho.line.host_ip)))
+				{
+					std::cout<<"MMU::Error - Campho Phone could not open a connection on Port " << campho.phone_in_port << "\n";
+					campho.network_state = 0;
+					return;
+				}
+
+				campho.line.host_init = (campho.line.host_socket == NULL) ? false : true;
 			}	
 
 			break;
-			
+
+		//Continually send local input port to remote Campho Advance (via ringer)
+		//Wait for confirmation by checking input port for activity (via line)
+		case 0x82:
+			temp_buffer[0] = campho.phone_in_port;
+			temp_buffer[1] = (campho.phone_in_port >> 8);
+			SDLNet_TCP_Send(campho.ringer.host_socket, (void*)temp_buffer, 2);
+
+			if(!campho.line.connected)
+			{
+				if(campho.line.remote_socket = SDLNet_TCP_Accept(campho.line.host_socket))
+				{
+					std::cout<<"MMU::Campho Advance Phone Line Established\n";
+					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.line.host_socket);
+					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.line.remote_socket);
+					campho.line.connected = true;
+					campho.line.remote_init = true;
+					campho.network_state = 0x83;
+				}
+			}
+
+			break;
 	}
 
 	#endif
