@@ -1590,6 +1590,7 @@ void AGB_MMU::campho_process_networking()
 			campho.network_state = 3;
 			break;
 
+		//Transfer Audio/Video data (as the receiver)
 		case 0x03:
 
 			break;
@@ -1681,12 +1682,21 @@ void AGB_MMU::campho_process_networking()
 					SDLNet_TCP_AddSocket(campho.phone_sockets, campho.line.remote_socket);
 					campho.line.connected = true;
 					campho.line.remote_init = true;
-					campho.network_state = 0x83;
+
+					//Receive 16-bit port to communicate with remote Campho Advance
+					//Technically this is blocking, but the TCP data should be available immediately at this point
+					if(SDLNet_TCP_Recv(campho.line.remote_socket, temp_buffer, 2) > 0)
+					{
+						campho.phone_out_port = (temp_buffer[1] << 8) | temp_buffer[0];
+						campho.network_state = 0x83;
+						std::cout<<"MMU::Campho Receiver TCP Port: " << std::dec << campho.phone_out_port << std::hex << "\n";
+					}
 				}
 			}
 
 			break;
 
+		//Transfer Audio/Video data (as the caller)
 		case 0x83:
 
 			break;
