@@ -61,45 +61,7 @@ void AGB_MMU::campho_reset()
 	//Note that all networking done here is completely separate from SIO
 	campho.network_init = false;
 
-	#ifdef GBE_NETPLAY
-
-	if(SDLNet_Init() >= 0)
-	{
-		campho.network_init = true;
-		campho.phone_in_port = config::campho_input_port;		
-
-		campho.line.host_socket = NULL;
-		campho.line.host_init = false;
-		campho.line.remote_socket = NULL;
-		campho.line.remote_init = false;
-		campho.line.connected = false;
-
-		campho.ringer.host_socket = NULL;
-		campho.ringer.host_init = false;
-		campho.ringer.remote_socket = NULL;
-		campho.ringer.remote_init = false;
-		campho.ringer.connected = false;
-		campho.ringer.port = config::campho_ringer_port;
-		campho.network_state = 0;
-
-		//Setup ringer to listen for any incoming connections
-		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
-		{
-			std::cout<<"MMU::Error - Campho Ringer could not resolve hostname\n";
-		}
-
-		if(!(campho.ringer.host_socket = SDLNet_TCP_Open(&campho.ringer.host_ip)))
-		{
-			std::cout<<"SIO::Error - Campho Ringer could not open a connection on Port " << campho.ringer.port << "\n";
-		}
-
-		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
-
-		//Create sockets sets
-		campho.phone_sockets = SDLNet_AllocSocketSet(4);
-	}
-
-	#endif
+	campho_reset_network();
 }
 
 /****** Writes data to Campho I/O ******/
@@ -1746,6 +1708,51 @@ void AGB_MMU::campho_close_network()
 	campho.ringer.remote_init = false;
 
 	campho.network_init = false;
+	campho.phone_out_port = 0;
+
+	#endif
+}
+
+/****** Resets any networking related to the Campho Advance ******/
+void AGB_MMU::campho_reset_network()
+{
+	#ifdef GBE_NETPLAY
+
+	if(SDLNet_Init() >= 0)
+	{
+		campho.network_init = true;
+		campho.phone_in_port = config::campho_input_port;
+
+		campho.line.host_socket = NULL;
+		campho.line.host_init = false;
+		campho.line.remote_socket = NULL;
+		campho.line.remote_init = false;
+		campho.line.connected = false;
+
+		campho.ringer.host_socket = NULL;
+		campho.ringer.host_init = false;
+		campho.ringer.remote_socket = NULL;
+		campho.ringer.remote_init = false;
+		campho.ringer.connected = false;
+		campho.ringer.port = config::campho_ringer_port;
+		campho.network_state = 0;
+
+		//Setup ringer to listen for any incoming connections
+		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
+		{
+			std::cout<<"MMU::Error - Campho Ringer could not resolve hostname\n";
+		}
+
+		if(!(campho.ringer.host_socket = SDLNet_TCP_Open(&campho.ringer.host_ip)))
+		{
+			std::cout<<"SIO::Error - Campho Ringer could not open a connection on Port " << campho.ringer.port << "\n";
+		}
+
+		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
+
+		//Create sockets sets
+		campho.phone_sockets = SDLNet_AllocSocketSet(4);
+	}
 
 	#endif
 }

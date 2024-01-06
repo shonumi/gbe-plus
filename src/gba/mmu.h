@@ -601,6 +601,7 @@ class AGB_MMU
 	bool campho_read_contact_list();
 	void campho_process_networking();
 	void campho_close_network();
+	void campho_reset_network();
 
 	void glucoboy_reset();
 	u8 read_glucoboy(u32 address);
