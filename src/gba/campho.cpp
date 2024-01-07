@@ -437,7 +437,11 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Answer phone call
-			else if(index == 0x5740) { campho.call_state = 3; }
+			else if(index == 0x5740)
+			{
+				campho.call_state = 3;
+				campho.network_state = 4;
+			}
 
 			//End call
 			else if(index == 0x1741) { campho.call_state = 5; }
@@ -1552,8 +1556,17 @@ void AGB_MMU::campho_process_networking()
 			campho.network_state = 3;
 			break;
 
+		//Answer Phone Call - Send 0xFFFF to caller (via line)
+		case 0x04:
+			temp_buffer[0] = 0xFF;
+			temp_buffer[1] = 0xFF;
+			SDLNet_TCP_Send(campho.line.host_socket, (void*)temp_buffer, 2);
+			campho.network_state = 5;
+			break;
+			
+
 		//Transfer Audio/Video data (as the receiver)
-		case 0x03:
+		case 0x05:
 
 			break;
 
@@ -1658,8 +1671,27 @@ void AGB_MMU::campho_process_networking()
 
 			break;
 
-		//Transfer Audio/Video data (as the caller)
+		//Wait for remote Campho Advance to answer phone call
 		case 0x83:
+			SDLNet_CheckSockets(campho.phone_sockets, 0);
+
+			if(SDLNet_SocketReady(campho.line.remote_socket))
+			{
+				if(SDLNet_TCP_Recv(campho.line.remote_socket, temp_buffer, 2) > 0)
+				{
+					if((temp_buffer[0] == 0xFF) && (temp_buffer[1] == 0xFF))
+					{
+						campho.network_state = 0x84;
+						std::cout<<"MMU::Remote Campho Answered Call\n";
+					}
+				}
+
+			}
+
+			break;
+
+		//Transfer Audio/Video data (as the caller)
+		case 0x84:
 
 			break;
 	}
