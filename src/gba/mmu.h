@@ -383,6 +383,8 @@ class AGB_MMU
 		bool capture_video;
 		bool new_frame;
 		bool is_large_frame;
+		bool update_local_camera;
+		bool update_remote_camera;
 
 		u32 tele_data_index;
 		u8 call_state;

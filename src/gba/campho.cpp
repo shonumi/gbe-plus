@@ -41,6 +41,8 @@ void AGB_MMU::campho_reset()
 	campho.capture_video = false;
 	campho.new_frame = false;
 	campho.is_large_frame = true;
+	campho.update_local_camera = true;
+	campho.update_remote_camera = false;
 
 	campho.is_call_incoming = false;
 	campho.is_call_active = false;
@@ -380,6 +382,7 @@ void AGB_MMU::campho_process_input_stream()
 			{
 				campho.capture_video = true;
 				campho.is_large_frame = true;
+				campho.update_local_camera = true;
 
 				//Large video frame = 176x144, drawn 12 lines at a time
 				campho.video_frame_size = 176 * 12;
@@ -417,6 +420,7 @@ void AGB_MMU::campho_process_input_stream()
 			{
 				campho.capture_video = true;
 				campho.is_large_frame = false;
+				campho.update_local_camera = true;
 
 				//Small video frame = 58x48, drawn 35 and 13 lines at a time
 				campho.video_frame_size = 58 * 35;
@@ -444,7 +448,10 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//End call
-			else if(index == 0x1741) { campho.call_state = 5; }
+			else if(index == 0x1741)
+			{
+				campho.call_state = 5;
+			}
 
 			std::cout<<"Camera Command -> 0x" << index << "\n";
 		}
@@ -546,6 +553,7 @@ void AGB_MMU::campho_process_input_stream()
 				campho.video_brightness = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
 				campho_make_settings_stream(read_data);
+				campho.update_local_camera = true;
 			}
 
 			//Set video contrast
@@ -554,6 +562,7 @@ void AGB_MMU::campho_process_input_stream()
 				campho.video_contrast = campho_find_settings_val(hi_set);
 				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
 				campho_make_settings_stream(read_data);
+				campho.update_local_camera = true;
 			}
 
 			//Erase contact data
@@ -605,6 +614,7 @@ void AGB_MMU::campho_process_input_stream()
 				//Process Image Flip now. Now dedicated command for this like the others?
 				bool old_flag = campho.image_flip;
 				campho.image_flip = ((campho.g_stream[0x11] << 8) | campho.g_stream[0x10]) ? true : false;
+				campho.update_local_camera = true;
 
 				//Allow settings to be read now (until next stream)
 				campho.out_stream_index = 0;
@@ -1017,13 +1027,18 @@ void AGB_MMU::process_campho()
 
 		//Grab pixel data for captured video frame
 		//Pull data from BMP file
-		SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
-
-		if(source != NULL)
+		if(campho.update_local_camera)
 		{
-			SDL_Surface* temp_bmp = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
-			u8* cam_pixel_data = (u8*)source->pixels;
-			campho_get_image_data(cam_pixel_data, source->w, source->h);	
+			SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
+
+			if(source != NULL)
+			{
+				SDL_Surface* temp_bmp = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
+				u8* cam_pixel_data = (u8*)source->pixels;
+				campho_get_image_data(cam_pixel_data, source->w, source->h);	
+			}
+
+			campho.update_local_camera = false;
 		}
 
 		campho_set_video_data();
