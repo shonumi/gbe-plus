@@ -1697,6 +1697,8 @@ void AGB_MMU::campho_process_networking()
 					if((temp_buffer[0] == 0xFF) && (temp_buffer[1] == 0xFF))
 					{
 						campho.network_state = 0x84;
+						campho.is_call_active = true;
+						campho.call_state = 0x03;
 						std::cout<<"MMU::Remote Campho Answered Call\n";
 					}
 				}
