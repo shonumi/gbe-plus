@@ -991,6 +991,27 @@ void AGB_MMU::process_campho()
 		campho.tele_data.push_back(0x00);
 	}
 
+	//End current phone call
+	else if((campho.is_call_active) && (campho.call_state == 5) && (!campho.new_frame))
+	{
+		campho.call_state = 6;
+		campho.rom_stat = 0xA00A;
+
+		campho.tele_data.clear();
+		campho.tele_data_index = 0;
+
+		//Set telephone data stream for accepting a live phone call
+		//16-bit units, 1 - 0xAB00, 2 = Data Length, 3 = ???, 4 = Phone Status Flag
+		campho.tele_data.push_back(0x60);
+		campho.tele_data.push_back(0x15);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x80);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x00);
+		campho.tele_data.push_back(0x00);
+	}
+
 	campho.video_capture_counter++;
 
 	if(campho.video_capture_counter < 12)
