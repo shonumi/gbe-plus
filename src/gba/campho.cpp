@@ -772,6 +772,19 @@ void AGB_MMU::campho_process_call()
 			campho.tele_data_index = 0;
 			campho.call_state = 2;
 			break;
+
+		//End call
+		case 6:
+			campho.rom_stat = 0x4015;
+			campho.tele_data.clear();
+			campho.tele_data_index = 0;
+			campho.call_state = 0;
+
+			campho_close_network();
+			campho_reset_network();
+
+			break;
+			
 	}
 }		
 
@@ -1748,25 +1761,25 @@ void AGB_MMU::campho_close_network()
 	if(campho.line.host_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.line.host_socket);
-		if(campho.line.host_init) { SDLNet_TCP_Close(campho.line.host_socket); }
+		SDLNet_TCP_Close(campho.line.host_socket);
 	}
 
 	if(campho.line.remote_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.line.remote_socket);
-		if(campho.line.remote_init) { SDLNet_TCP_Close(campho.line.remote_socket); }
+		SDLNet_TCP_Close(campho.line.remote_socket);
 	}
 
 	if(campho.ringer.host_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.host_socket);
-		if(campho.ringer.host_init) { SDLNet_TCP_Close(campho.ringer.host_socket); }
+		SDLNet_TCP_Close(campho.ringer.host_socket);
 	}
 
 	if(campho.ringer.remote_socket != NULL)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.remote_socket);
-		if(campho.ringer.remote_init) { SDLNet_TCP_Close(campho.ringer.remote_socket); }
+		SDLNet_TCP_Close(campho.ringer.remote_socket);
 	}
 
 	campho.line.connected = false;
@@ -1805,7 +1818,10 @@ void AGB_MMU::campho_reset_network()
 		campho.ringer.remote_init = false;
 		campho.ringer.connected = false;
 		campho.ringer.port = config::campho_ringer_port;
+
 		campho.network_state = 0;
+		campho.is_call_incoming = false;
+		campho.is_call_active = false;
 
 		//Setup ringer to listen for any incoming connections
 		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
