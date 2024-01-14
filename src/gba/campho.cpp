@@ -63,7 +63,10 @@ void AGB_MMU::campho_reset()
 	//Note that all networking done here is completely separate from SIO
 	campho.network_init = false;
 
-	campho_reset_network();
+	if(config::cart_type == AGB_CAMPHO)
+	{
+		campho_reset_network();
+	}
 }
 
 /****** Writes data to Campho I/O ******/

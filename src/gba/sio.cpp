@@ -125,6 +125,13 @@ bool AGB_SIO::init()
 		return false;
 	}
 
+	//Keep SIO Netplay separate from Campho Advance networking
+	if(config::cart_type == AGB_CAMPHO)
+	{
+		std::cout<<"SIO::Initialized\n";
+		return false;
+	}
+
 	//Setup SDL_net
 	if(SDLNet_Init() < 0)
 	{
