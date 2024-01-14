@@ -1793,6 +1793,8 @@ void AGB_MMU::campho_close_network()
 	campho.network_init = false;
 	campho.phone_out_port = 0;
 
+	SDLNet_Quit();
+
 	#endif
 }
 
@@ -1827,11 +1829,15 @@ void AGB_MMU::campho_reset_network()
 		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
 		{
 			std::cout<<"MMU::Error - Campho Ringer could not resolve hostname\n";
+			campho.network_init = false;
+			return;
 		}
 
 		if(!(campho.ringer.host_socket = SDLNet_TCP_Open(&campho.ringer.host_ip)))
 		{
 			std::cout<<"SIO::Error - Campho Ringer could not open a connection on Port " << campho.ringer.port << "\n";
+			campho.network_init = false;
+			return;
 		}
 
 		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
