@@ -1649,7 +1649,7 @@ void AGB_MMU::campho_process_networking()
 				}
 
 				//Setup client, listen on another port
-				if(SDLNet_ResolveHost(&campho.ringer.host_ip, ip_addr.c_str(), campho.ringer.port) < 0)
+				if(SDLNet_ResolveHost(&campho.ringer.remote_ip, ip_addr.c_str(), campho.ringer.port) < 0)
 				{
 					std::cout<<"MMU::Error - Could not resolve hostname for Campho Advance calling.\n";
 					campho.network_state = 0;
@@ -1665,10 +1665,10 @@ void AGB_MMU::campho_process_networking()
 
 		//Establish a connection to a remote Campho Advance as the caller
 		case 0x81:
-			if(campho.ringer.host_socket = SDLNet_TCP_Open(&campho.ringer.host_ip))
+			if(campho.ringer.remote_socket = SDLNet_TCP_Open(&campho.ringer.remote_ip))
 			{
 				std::cout<<"MMU::Connected to Campho Advance\n";
-				SDLNet_TCP_AddSocket(campho.phone_sockets, campho.ringer.host_socket);
+				SDLNet_TCP_AddSocket(campho.phone_sockets, campho.ringer.remote_socket);
 				campho.ringer.connected = true;
 				campho.ringer.host_init = true;
 				campho.network_state = 0x82;
@@ -1698,7 +1698,7 @@ void AGB_MMU::campho_process_networking()
 		case 0x82:
 			temp_buffer[0] = campho.phone_in_port;
 			temp_buffer[1] = (campho.phone_in_port >> 8);
-			SDLNet_TCP_Send(campho.ringer.host_socket, (void*)temp_buffer, 2);
+			SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
 
 			if(!campho.line.connected)
 			{

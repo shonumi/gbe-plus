@@ -421,6 +421,7 @@ class AGB_MMU
 		{
 			TCPsocket host_socket, remote_socket;
 			IPaddress host_ip;
+			IPaddress remote_ip;
 			bool connected;
 			bool host_init;
 			bool remote_init;
