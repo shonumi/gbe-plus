@@ -456,6 +456,12 @@ void AGB_MMU::campho_process_input_stream()
 				campho.call_state = 5;
 			}
 
+			//Cancel a phone call before connecting
+			else if(index == 0x9740)
+			{
+				campho.network_state = 0xFF;
+			}
+
 			std::cout<<"Camera Command -> 0x" << index << "\n";
 		}
 
@@ -1747,6 +1753,12 @@ void AGB_MMU::campho_process_networking()
 		//Transfer Audio/Video data (as the caller)
 		case 0x84:
 
+			break;
+
+		//Terminate networking and restart
+		case 0xFF:
+			campho_close_network();
+			campho_reset_network();
 			break;
 	}
 
