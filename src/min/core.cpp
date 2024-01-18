@@ -588,6 +588,14 @@ void MIN_core::feed_key_input(int sdl_key, bool pressed)
 {
 	core_pad.process_keyboard(sdl_key, pressed);
 	handle_hotkey(sdl_key, pressed);
+	process_keypad_irqs();
+
+	//Handle Shock Sensor
+	if(core_pad.send_shock_irq)
+	{
+		core_mmu.update_irq_flags(SHOCK_SENSOR_IRQ);
+		core_pad.send_shock_irq = false;
+	}
 }
 
 /****** Return a CPU register ******/
