@@ -21,6 +21,18 @@ MIN_GamePad::MIN_GamePad()
 	send_shock_irq = true;
 
 	joy_init = false;
+
+	//Check for turbo button enabled status by adding all frame delays
+	//As long as the total amount of frame delays is non-zero, enable turbo buttons
+	turbo_button_enabled = 0;
+
+	for(u32 x = 0; x < 12; x++)
+	{
+		turbo_button_enabled += config::gbe_turbo_button[x];
+		turbo_button_val[x] = 0;
+		turbo_button_stat[x] = false;
+		turbo_button_end[x] = false;
+	}
 }
 
 /****** Initialize GamePad ******/
@@ -62,18 +74,6 @@ void MIN_GamePad::init()
 			SDL_HapticRumbleInit(rumble);
 			std::cout<<"JOY::Rumble initialized\n";
 		}
-	}
-
-	//Check for turbo button enabled status by adding all frame delays
-	//As long as the total amount of frame delays is non-zero, enable turbo buttons
-	turbo_button_enabled = 0;
-
-	for(u32 x = 0; x < 12; x++)
-	{
-		turbo_button_enabled += config::gbe_turbo_button[x];
-		turbo_button_val[x] = 0;
-		turbo_button_stat[x] = false;
-		turbo_button_end[x] = false;
 	}
 }
 
