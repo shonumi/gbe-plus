@@ -548,7 +548,7 @@ void MIN_core::handle_hotkey(int input, bool pressed)
 void MIN_core::process_keypad_irqs()
 {
 	//Fire IRQs only when emulating button presses
-	if(core_pad.key_input != 0xFF)
+	if((core_pad.key_input != 0xFF) && (core_pad.send_keypad_irq))
 	{
 		//A Button IRQ
 		if(~core_pad.key_input & 0x1) { core_mmu.update_irq_flags(A_KEY_IRQ); }

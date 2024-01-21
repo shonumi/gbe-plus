@@ -15,10 +15,12 @@ MIN_GamePad::MIN_GamePad()
 {
 	pad = 0;
 	key_input = 0xFF;
+	last_input = 0xFF;
 	jstick = NULL;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
 	send_shock_irq = true;
+	send_keypad_irq = false;
 
 	joy_init = false;
 
@@ -284,6 +286,9 @@ void MIN_GamePad::process_keyboard(int pad, bool pressed)
 		else if(pad == config::gbe_key_up) { turbo_button_end[8] = (pressed) ? false : true; }
 		else if(pad == config::gbe_key_down) { turbo_button_end[9] = (pressed) ? false : true; }
 	}
+
+	send_keypad_irq = (last_input != key_input) ? true : false;
+	last_input = key_input;
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -352,6 +357,9 @@ void MIN_GamePad::process_joystick(int pad, bool pressed)
 		else if(pad == config::gbe_joy_up) { turbo_button_end[8] = (pressed) ? false : true; }
 		else if(pad == config::gbe_joy_down) { turbo_button_end[9] = (pressed) ? false : true; }
 	}
+
+	send_keypad_irq = (last_input != key_input) ? true : false;
+	last_input = key_input;
 }
 
 /****** Start haptic force-feedback on joypad ******/
@@ -427,6 +435,8 @@ void MIN_GamePad::process_turbo_buttons()
 				key_input |= mask;
 			}
 		}
-	}	
-}
+	}
 
+	send_keypad_irq = (last_input != key_input) ? true : false;
+	last_input = key_input;
+}
