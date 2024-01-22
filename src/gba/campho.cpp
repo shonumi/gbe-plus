@@ -444,20 +444,20 @@ void AGB_MMU::campho_process_input_stream()
 			}
 
 			//Answer phone call
-			else if(index == 0x5740)
+			else if(index == CAMPHO_ANSWER_PHONE_CALL)
 			{
 				campho.call_state = 3;
 				campho.network_state = 4;
 			}
 
 			//End call
-			else if(index == 0x1741)
+			else if(index == CAMPHO_END_PHONE_CALL)
 			{
 				campho.call_state = 5;
 			}
 
 			//Cancel a phone call before connecting
-			else if(index == 0x9740)
+			else if(index == CAMPHO_CANCEL_PHONE_CALL)
 			{
 				campho.network_state = 0xFF;
 			}
