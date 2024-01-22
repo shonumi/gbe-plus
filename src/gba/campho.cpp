@@ -1776,9 +1776,12 @@ void AGB_MMU::campho_process_networking()
 
 		//Terminate networking and restart
 		case 0xFF:
-			temp_buffer[0] = 0;
-			temp_buffer[1] = 0;
-			SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+			if(campho.ringer.connected)
+			{
+				temp_buffer[0] = 0;
+				temp_buffer[1] = 0;
+				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+			}
 
 			campho_close_network();
 			campho_reset_network();
