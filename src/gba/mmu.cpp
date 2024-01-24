@@ -24,7 +24,18 @@ AGB_MMU::~AGB_MMU()
 { 
 	save_backup(config::save_file);
 	memory_map.clear();
+
+	//Shutdown Campho networking
+	if(campho.ringer.connected)
+	{
+		u8 temp_buffer[2];
+		temp_buffer[0] = 0;
+		temp_buffer[1] = 0;
+		SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+	}
+	
 	campho_close_network();
+	
 	std::cout<<"MMU::Shutdown\n"; 
 }
 
