@@ -454,6 +454,7 @@ void AGB_MMU::campho_process_input_stream()
 			else if(index == CAMPHO_END_PHONE_CALL)
 			{
 				campho.call_state = 5;
+				campho.network_state = 0xFE;
 			}
 
 			//Cancel a phone call before connecting
@@ -1644,6 +1645,21 @@ void AGB_MMU::campho_process_networking()
 
 		//Transfer Audio/Video data (as the receiver)
 		case 0x05:
+			SDLNet_CheckSockets(campho.phone_sockets, 0);
+
+			if(SDLNet_SocketReady(campho.ringer.remote_socket))
+			{
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				{
+					u16 status = (temp_buffer[1] << 8) | temp_buffer[0];
+					
+					if(status == 0)
+					{
+						std::cout<<"MMU::Call Ended Remotely\n";
+						campho.call_state = 5;
+					}
+				}
+			}
 
 			break;
 
@@ -1771,6 +1787,32 @@ void AGB_MMU::campho_process_networking()
 
 		//Transfer Audio/Video data (as the caller)
 		case 0x84:
+			SDLNet_CheckSockets(campho.phone_sockets, 0);
+
+			if(SDLNet_SocketReady(campho.ringer.remote_socket))
+			{
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				{
+					u16 status = (temp_buffer[1] << 8) | temp_buffer[0];
+					
+					if(status == 0)
+					{
+						std::cout<<"MMU::Call Ended Remotely\n";
+						campho.call_state = 5;
+					}
+				}
+			}
+
+			break;
+
+		//Terminate networking (no restart)
+		case 0xFE:
+			if(campho.ringer.connected)
+			{
+				temp_buffer[0] = 0;
+				temp_buffer[1] = 0;
+				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+			}
 
 			break;
 
@@ -1785,6 +1827,7 @@ void AGB_MMU::campho_process_networking()
 
 			campho_close_network();
 			campho_reset_network();
+
 			break;
 	}
 
