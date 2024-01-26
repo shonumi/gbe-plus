@@ -47,6 +47,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Dogz							Trade Petz and Toyz
 - Doki Doki Densetsu: Mahoujin Guru Guru		Fight card battles using magic circles from the game
 - Donkey Kong Country					Transfer pictures to stickerbook
+- Doraemon Memories - Nobita no Omoide Daibouken	Unlocks secret levels via TV remote input
 - Dr. Rin Ni Kiitemite!					Do fortune-telling with a friend and exchange stickers
 - Dungeon Savior					Transfer a Guardian from one game to another
 - Flipper & Lopaka					Ubi Key -> Unlocks a bonus "Ubi Key Level"
