@@ -828,7 +828,7 @@ void AGB_MMU::campho_set_rom_bank(u32 bank, u32 address, bool set_hi_bank)
 void AGB_MMU::campho_map_rom_banks()
 {
 	u32 rom_pos = 0;
-	u32 bank_id = 0x01;
+	u32 bank_id = 0x03;
 	u32 bank_index = 0x00;
 
 	campho.mapped_bank_id.clear();
@@ -866,10 +866,12 @@ void AGB_MMU::campho_map_rom_banks()
 	rom_pos += 0x04;
 
 	//Setup Graphics ROM
-	while(bank_id < 0xFFFF)
+	while(bank_id < 320)
 	{
+		u16 real_id = ((bank_id << 13) | (bank_id >> 3));
+
 		//Setup 0xFFFFFFFF bank
-		campho.mapped_bank_id.push_back(bank_id);
+		campho.mapped_bank_id.push_back(real_id);
 		campho.mapped_bank_index.push_back(0xFFFFFFFF);
 		campho.mapped_bank_len.push_back(0x10);
 		campho.mapped_bank_pos.push_back(rom_pos);
@@ -891,7 +893,7 @@ void AGB_MMU::campho_map_rom_banks()
 			total_len -= current_len;
 			current_len *= 8;
 
-			campho.mapped_bank_id.push_back(bank_id);
+			campho.mapped_bank_id.push_back(real_id);
 			campho.mapped_bank_index.push_back(bank_index);
 			campho.mapped_bank_len.push_back(current_len);
 			campho.mapped_bank_pos.push_back(rom_pos);
@@ -902,24 +904,14 @@ void AGB_MMU::campho_map_rom_banks()
 			rom_pos += 4;
 		}
 
-		//Increment bank ID
-		if((bank_id == 0x6026) || (bank_id == 0x8026) || ((bank_id & 0xFF) == 0x27))
-		{
-			bank_id &= 0xFF00;
-			bank_id += 0x2000;
-		}
+		bank_id++;
 
-		else { bank_id++; }
-
-		//Some banks IDs are non-existent, however. In that case, move on to the next valid ID 
-		switch(bank_id)
-		{
-			case 0x2000: bank_id = 0x2001; break;
-			case 0x4000: bank_id = 0x4001; break;
-			case 0xA00B: bank_id = 0xA00C; break;
-		}
+		//Skip the following banks
+		//Some generate I/O errors when reading and are not part of the Campho Advance
+		//Others are empty banks (zero-length) and are also not part of the Campho Advance dump
+		if(bank_id == 93) { bank_id++; }
+		else if(bank_id == 315) { bank_id += 2; }
 	}
-
 
 	//Use initial BS1 and BS2 banks
 	u32 bs1_bank = campho_get_bank_by_id(0x08000000);
