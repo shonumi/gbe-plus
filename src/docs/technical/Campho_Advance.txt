@@ -547,7 +547,24 @@ Bit	| Modem State
 5	| Ringing
 ------------------------------------------------------------------------
 
-To connect two Campho Advances, the caller initiates dialing and eventually starts ringing the receiver's end. The modem will transfer a Modem Status of 0x20, causing the receiver's software to switch to a screen with a ringing phone. Once the receiver accepts the incoming call, both the caller's and receiver's Modem Status should read 0x00 temporarily, with relevant data stored in the Internal Phone Function.
+To connect two Campho Advances, the caller initiates dialing and eventually starts ringing the receiver's end. The modem will transfer a Modem Status of 0x20, causing the receiver's software to switch to a screen with a ringing phone. Once the receiver accepts the incoming call, both the caller's and receiver's Modem Status should read 0x00 temporarily, with relevant value (0x05) stored in the Internal Phone Function. That value for the Internal Phone Function signals a connection being established and alerts the software to show the menu for an active call. The Internal Phone Function's values have the following effects:
+
+------------------------------------------------------------------------
+Value	| Function
+------------------------------------------------------------------------
+0	| Return to main menu (used when disconnecting)
+1	| N/A
+2	| N/A
+3	| N/A
+4	| Pauses all menus and animations 
+5	| Display active call menu
+------------------------------------------------------------------------
+
+Note that the Internal Phone Function only affects how the Campho Advance's software switches between menus and contexts. It's a value returned by the modem, which the ROM's code processes accordingly. Theoretically, a value of 0x04 may be sent briefly by the modem before sending a value of 0x05, causing the Campho Advance to appear to pause shortly during the connection phase. This has not been tested on real hardware yet, however.
+
+Once the caller and receiver are connected, the Campho Advance presumably activates each user's camera automatically. The Campho Advance will display the user's own camera input in the top-left smaller frame (58x48) while the other side's camera input will appear on the larger frame (176x144). The software will prep the Campho Advance to read pixel data by writing to ROM_STAT and ROM_DATA_1 (see the Camera Capture section above) and receive data for each frame in slices. While the user's own camera input should update at a constant 5FPS, the incoming data from the other side will be dependent on any latency from the landline. It appears the Campho Advance's hardware will transfer video data on its own during a call, so there is no need for software to handle that task.
+
+To cancel an active call, either Campho Advance may select the large "X" from the menu to "kill" the connection. This triggers a command to end the call (0xBA08 unwarped, 0x1741 warped). Once the Campho Advance hardware terminates the connection, the modem will send data where both the Internal Phone Function and Modem Status fields are set to 0x00. As a result, the software will return to the main menu.
 
 ***************************************************
 13. System Compatibility
