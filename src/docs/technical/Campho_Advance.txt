@@ -522,10 +522,32 @@ Note that the "*" / "#" key appears to be just "." on the Campho Advance.
 
 The Campho Advance software constantly checks for incoming data that signals the start of a phone call. At any given  moment, the software may be interrupted by this call, at which point the user is prompted to answer or reject it. If accepted, the connection is established and the call begins with audio and video transmissions. Checking the status of the telephone alerts the Campho Advance whenever any sort of change occurs and respond appropiately.
 
-The process of reading the phone line status is very similar to how the Campho Advance updates the camera. Typically, ROM_STAT will read 0x4015 when the cartridge receives no external input (either via the camera or the telephone). When new input data becomes available, ROM_STAT will change to 0xA00A. Afterwards, the GBA will read 32-bits from ROM_DATA_1. This value contains 2 16-bit components: a Transfer Type and the length of incoming data. For telephony, only one Transfer Type exists, 0xAB00. For updating the status of the telephone line, the Campho Advance receives an additional 32-bits of data via ROM_STAT, thus the length is always 4. All data read from ROM_DATA_1 at this time is warped.
+The process of reading the Modem Status is very similar to how the Campho Advance updates the camera. Typically, ROM_STAT will read 0x4015 when the cartridge receives no external input (either via the camera or the telephone). When new input data becomes available, ROM_STAT will change to 0xA00A. Afterwards, the GBA will read 32-bits from ROM_DATA_1. This value contains 2 16-bit components: a Transfer Type and the length of incoming data. For telephony, only one Transfer Type exists, 0xAB00. For updating the status of the telephone line, the Campho Advance receives an additional 32-bits of data via ROM_STAT, thus the length is always 4. All data read from ROM_DATA_1 at this time is warped.
 
-The additional 32-bits of data is again 2 distinct 16-bit values, labeled here as Internal Phone Function and Phone Line Status. Internal Phone Function represents a value of 0 - 5 where that forces the Campho Advance to execute certain telephony-related commands, such as answering and ending calls. 
+The additional 32-bits of data is again 2 distinct 16-bit values, labeled here as Internal Phone Function and Modem Status. Internal Phone Function represents a value of 0 - 5 where that forces the Campho Advance to execute certain telephony-related commands, such as answering and ending calls. The below chart demonstrates the structure of the data sent to the Campho Advance:
 
+------------------------------------------------------------------------
+Address		| Description
+------------------------------------------------------------------------
+0x00 - 0x01	| Transfer Type. Always 0xAB00 (0x1560 when warped)
+0x02		| Internal Phone Function
+0x03		| Modem Status 
+------------------------------------------------------------------------
+
+The Modem Status byte uses 6-bits to represent various changes in the modem during calls. Each bit seems to represent a distinct state for the Campho Advance. Currently the only definitely known function of these is Bit 5, which indicates that a call is incoming and has triggered the receiver's ringer. Based on string data and code from the ROM, the rest of the bits likely correspond to states for idle, dialing, ringing, connecting, and answering. The following needs hardware verification, but Modem Status may look like this:
+
+------------------------------------------------------------------------
+Bit	| Modem State
+------------------------------------------------------------------------
+0	| Idle
+1	| Dialing
+2	| Call Connecting
+3	| Call Connected
+4	| Answering
+5	| Ringing
+------------------------------------------------------------------------
+
+To connect two Campho Advances, the caller initiates dialing and eventually starts ringing the receiver's end. The modem will transfer a Modem Status of 0x20, causing the receiver's software to switch to a screen with a ringing phone. Once the receiver accepts the incoming call, both the caller's and receiver's Modem Status should read 0x00 temporarily, with relevant data stored in the Internal Phone Function.
 
 ***************************************************
 13. System Compatibility
