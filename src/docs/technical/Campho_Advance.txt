@@ -130,6 +130,7 @@ Unwarped	| Warped 	| Description
 0xBBC6		| 0xD778	| Read the total number of contact data entries
 0xBBC8		| 0x1779	| Erase contact data
 0xCFFF		| 0xFF9F	| Finishes input frame from camera (and requests another?)
+0xFF84		| 0x9FF0	| Sends an AT command to the modem
 ------------------------------------------------------------------------
 
 For a full explanation of how each command works, see the following sections.
@@ -567,7 +568,38 @@ Once the caller and receiver are connected, the Campho Advance presumably activa
 To cancel an active call, either Campho Advance may select the large "X" from the menu to "kill" the connection. This triggers a command to end the call (0xBA08 unwarped, 0x1741 warped). Once the Campho Advance hardware terminates the connection, the modem will send data where both the Internal Phone Function and Modem Status fields are set to 0x00. As a result, the software will return to the main menu.
 
 ***************************************************
-13. System Compatibility
+13. Modem Test Mode
+***************************************************
+
+The Campho Advance has a hidden debugger that allows users to directly send commands to the modem for testing purposes. To access it, the L, R, and B buttons must be simultaneously pressed on the same frame and held for a least one additional frame. Once successful, the software enters Modem Test Mode and displays a virtual keyboard, which can be used to enter AT commands. The D-Pad changes the cursor and selected key, the A button enters a key as input, the B button erases a character from input, the L button exits Modem Test Mode, and START initiates the AT command transfer. Any text-based output from the modem as a result of the command is also displayed on-screen.
+
+To send the AT command, the Campho Advance software issues the 0xFF84 (0x9FF0 warped) command in the following format:
+
+------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write AT send command
+[ROM_DATA_2] = 0x9FF0
+
+[ROM_DATA_2] = COMMAND_LENGTH
+[ROM_DATA_2] = AT_CMD_01_AND_02
+[ROM_DATA_2] = AT_CMD_02_AND_03
+[ROM_DATA_2] = AT_CMD_04_AND_05
+...
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------
+
+The input will be variable in length depending on the AT command, which is an ASCII string (with no null termination) encoded in much the same fashion as names for contact data. That is to say, each ASCII character is grouped into 16-bit LSB-first pairs and then warped. COMMAND_LENGTH is the total of characters in the string, not the total number of bytes written to ROM_DATA_2.
+
+Eventually, the modem will respond with data in much the same way it sends camera and telephony input. ROM_STAT will change to 0xA00A. Afterwards, the GBA will read 32-bits from ROM_DATA_1, which will contain 2 16-bit components: a Transfer Type and the length of incoming data. For AT command responses, the Transfer Type will be 0x41A0. The length here, however, does refer to the total number of bytes received from the modem. The response data is another ASCII string with the same encoding as previously described. Once the Campho Advance parses the string, it will be displayed.
+
+As a somewhat unrelated side note, for whatever reason, pressing L and R (and ignoring the B button) causes the Campho Advance to rotate its entire screen 180 degrees. This can be done at any time outside of Modem Test Mode, although users can enter User Test Mode with a rotated screen. Curiously, the controls flip accordingly as well, so pressing Up on the D-Pad acts as it should when manipulating menus. This screen rotation seems deliberate and intentional, but its purpose is currently unknown. The Campho Advance's manual makes no mention of this at all.
+
+
+***************************************************
+14. System Compatibility
 ***************************************************
 
 The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. Whether due to the unique power requirements of the cartridge or the novel way it streams ROM data, the cause of this failure remains unknown. Nevertheless, the likely culprit is the way in which DS firmware tries to read Slot-2 when turning on the system, which differs significantly from the GBA BIOS.
