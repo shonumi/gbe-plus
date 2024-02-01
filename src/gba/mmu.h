@@ -393,6 +393,7 @@ class AGB_MMU
 		u8 call_state;
 		bool is_call_incoming;
 		bool is_call_active;
+		bool is_call_video_enabled;
 
 		u32 out_stream_index;
 		s8 contact_index;

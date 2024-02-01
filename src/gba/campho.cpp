@@ -1633,6 +1633,21 @@ void AGB_MMU::campho_process_networking()
 			temp_buffer[1] = 0xFF;
 			SDLNet_TCP_Send(campho.line.host_socket, (void*)temp_buffer, 2);
 			campho.network_state = 5;
+			campho.is_call_video_enabled = true;
+
+			//Enable small video frame
+			campho.capture_video = true;
+			campho.is_large_frame = false;
+			campho.update_local_camera = true;
+
+			//Small video frame = 58x48, drawn 35 and 13 lines at a time
+			campho.video_frame_size = 58 * 35;
+
+			campho.video_capture_counter = 0;
+			campho.new_frame = false;
+			campho.video_frame_slice = 0;
+			campho.last_slice = 0;
+
 			break;
 
 		//Transfer Audio/Video data (as the receiver)
@@ -1768,11 +1783,25 @@ void AGB_MMU::campho_process_networking()
 					{
 						campho.network_state = 0x84;
 						campho.is_call_active = true;
+						campho.is_call_video_enabled = true;
 						campho.call_state = 0x03;
+
+						//Enable small video frame
+						campho.capture_video = true;
+						campho.is_large_frame = false;
+						campho.update_local_camera = true;
+
+						//Small video frame = 58x48, drawn 35 and 13 lines at a time
+						campho.video_frame_size = 58 * 35;
+
+						campho.video_capture_counter = 0;
+						campho.new_frame = false;
+						campho.video_frame_slice = 0;
+						campho.last_slice = 0;
+
 						std::cout<<"MMU::Remote Campho Answered Call\n";
 					}
 				}
-
 			}
 
 			break;
@@ -1900,6 +1929,7 @@ void AGB_MMU::campho_reset_network()
 		campho.network_state = 0;
 		campho.is_call_incoming = false;
 		campho.is_call_active = false;
+		campho.is_call_video_enabled = false;
 
 		//Setup ringer to listen for any incoming connections
 		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
