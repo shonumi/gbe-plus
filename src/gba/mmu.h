@@ -394,6 +394,8 @@ class AGB_MMU
 		bool is_call_incoming;
 		bool is_call_active;
 		bool is_call_video_enabled;
+		bool send_video_data;
+		bool send_audio_data;
 
 		u32 out_stream_index;
 		s8 contact_index;

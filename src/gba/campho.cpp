@@ -1049,6 +1049,7 @@ void AGB_MMU::process_campho()
 			campho.video_capture_counter = 0;
 			campho.new_frame = false;
 			campho.video_frame_slice = 0;
+
 			return;
 		}
 	}
@@ -1121,6 +1122,9 @@ void AGB_MMU::campho_set_video_data()
 	//Forcing ROM_STAT to 0x4015 signals end all of video frame data from Campho
 	else if(campho.video_frame_slice == slice_limit_end)
 	{
+		//Transfer user's current camera input over network
+		if((campho.is_call_video_enabled) && (!campho.is_large_frame)) { campho.send_video_data = true; }
+
 		campho.rom_stat = 0x4015;
 		return;
 	}
@@ -1649,20 +1653,39 @@ void AGB_MMU::campho_process_networking()
 
 		//Transfer Audio/Video data (as the receiver)
 		case 0x05:
+			//Receive kill signal if necessary
 			SDLNet_CheckSockets(campho.phone_sockets, 0);
 
 			if(SDLNet_SocketReady(campho.ringer.remote_socket))
 			{
-				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 2) > 0)
+				u32 recv_bytes = SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 0x10000);
+
+				if(recv_bytes > 0)
 				{
-					u16 status = campho.net_buffer[0];
-					
-					if(status == 0)
+					switch(campho.net_buffer[0])
 					{
-						std::cout<<"MMU::Call Ended Remotely\n";
-						campho.call_state = 5;
+						case 0x0000:
+							std::cout<<"MMU::Call Ended Remotely\n";
+							campho.call_state = 5;
+							return;
+
+						case 0x1111:
+							std::cout<<"VIDEO DATA RECV'D\n";
+							break;
 					}
 				}
+			}
+
+			//Send audio/video data
+			if(campho.send_video_data)
+			{
+				//Internal GBE+ header for video transfers. Type and Data Len. Actual data follows
+				campho.net_buffer[0] = 0x1111;
+				campho.net_buffer[1] = 0x6300;
+
+				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.net_buffer.data(), 0xC604);
+
+				campho.send_video_data = false;
 			}
 
 			break;
@@ -1804,6 +1827,7 @@ void AGB_MMU::campho_process_networking()
 
 		//Transfer Audio/Video data (as the caller)
 		case 0x84:
+			//Receive kill signal if necessary
 			SDLNet_CheckSockets(campho.phone_sockets, 0);
 
 			if(SDLNet_SocketReady(campho.ringer.remote_socket))
@@ -1816,8 +1840,36 @@ void AGB_MMU::campho_process_networking()
 					{
 						std::cout<<"MMU::Call Ended Remotely\n";
 						campho.call_state = 5;
+						return;
 					}
 				}
+			}
+
+			if(SDLNet_SocketReady(campho.line.remote_socket))
+			{
+				u32 recv_bytes = SDLNet_TCP_Recv(campho.line.remote_socket, campho.net_buffer.data(), 0x10000);
+				
+				if(recv_bytes > 0)
+				{
+					switch(campho.net_buffer[0])
+					{
+						case 0x1111:
+							std::cout<<"VIDEO DATA RECV'D\n";
+							break;
+					}
+				}
+			}
+
+			//Send audio/video data
+			if(campho.send_video_data)
+			{
+				//Internal GBE+ header for video transfers. Type and Data Len. Actual data follows
+				campho.net_buffer[0] = 0x1111;
+				campho.net_buffer[1] = 0x6300;
+
+				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 0xC604);
+
+				campho.send_video_data = false;
 			}
 
 			break;
@@ -1926,6 +1978,8 @@ void AGB_MMU::campho_reset_network()
 		campho.is_call_incoming = false;
 		campho.is_call_active = false;
 		campho.is_call_video_enabled = false;
+		campho.send_video_data = false;
+		campho.send_audio_data = false;
 
 		//Setup ringer to listen for any incoming connections
 		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
