@@ -1537,8 +1537,7 @@ void AGB_MMU::campho_process_networking()
 
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[2];
-	temp_buffer[0] = temp_buffer[1] = 0;
+	if(campho.net_buffer.size() < 0x8000) { campho.net_buffer.resize(0x8000); }
 
 	switch(campho.network_state)
 	{
@@ -1570,9 +1569,9 @@ void AGB_MMU::campho_process_networking()
 			{
 				//Grab 16-bit value from caller, i.e. the port this Campho Advance will use for the call
 				//Data should be LSB first
-				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 2) > 0)
 				{
-					campho.phone_out_port = (temp_buffer[1] << 8) | temp_buffer[0];
+					campho.phone_out_port = campho.net_buffer[0];
 					std::cout<<"MMU::Campho Caller TCP Port: " << std::dec << campho.phone_out_port << std::hex << "\n";
 
 					//Get IP address of Campho calling us
@@ -1601,9 +1600,8 @@ void AGB_MMU::campho_process_networking()
 
 		//Send local input port to remote Campho Advance (via line)
 		case 0x02:
-			temp_buffer[0] = campho.phone_in_port;
-			temp_buffer[1] = (campho.phone_in_port >> 8);
-			SDLNet_TCP_Send(campho.line.host_socket, (void*)temp_buffer, 2);
+			campho.net_buffer[0] = campho.phone_in_port;
+			SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.net_buffer.data(), 2);
 			campho.network_state = 3;
 			break;
 
@@ -1613,9 +1611,9 @@ void AGB_MMU::campho_process_networking()
 
 			if(SDLNet_SocketReady(campho.ringer.remote_socket))
 			{
-				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 2) > 0)
 				{
-					u16 status = (temp_buffer[1] << 8) | temp_buffer[0];
+					u16 status = campho.net_buffer[0];
 					
 					if(status == 0)
 					{
@@ -1629,9 +1627,8 @@ void AGB_MMU::campho_process_networking()
 
 		//Answer Phone Call - Send 0xFFFF to caller (via line)
 		case 0x04:
-			temp_buffer[0] = 0xFF;
-			temp_buffer[1] = 0xFF;
-			SDLNet_TCP_Send(campho.line.host_socket, (void*)temp_buffer, 2);
+			campho.net_buffer[0] = 0xFFFF;
+			SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.net_buffer.data(), 2);
 			campho.network_state = 5;
 			campho.is_call_video_enabled = true;
 
@@ -1656,9 +1653,9 @@ void AGB_MMU::campho_process_networking()
 
 			if(SDLNet_SocketReady(campho.ringer.remote_socket))
 			{
-				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 2) > 0)
 				{
-					u16 status = (temp_buffer[1] << 8) | temp_buffer[0];
+					u16 status = campho.net_buffer[0];
 					
 					if(status == 0)
 					{
@@ -1744,9 +1741,8 @@ void AGB_MMU::campho_process_networking()
 		//Continually send local input port to remote Campho Advance (via ringer)
 		//Wait for confirmation by checking input port for activity (via line)
 		case 0x82:
-			temp_buffer[0] = campho.phone_in_port;
-			temp_buffer[1] = (campho.phone_in_port >> 8);
-			SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+			campho.net_buffer[0] = campho.phone_in_port;
+			SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 2);
 
 			if(!campho.line.connected)
 			{
@@ -1760,9 +1756,9 @@ void AGB_MMU::campho_process_networking()
 
 					//Receive 16-bit port to communicate with remote Campho Advance
 					//Technically this is blocking, but the TCP data should be available immediately at this point
-					if(SDLNet_TCP_Recv(campho.line.remote_socket, temp_buffer, 2) > 0)
+					if(SDLNet_TCP_Recv(campho.line.remote_socket, campho.net_buffer.data(), 2) > 0)
 					{
-						campho.phone_out_port = (temp_buffer[1] << 8) | temp_buffer[0];
+						campho.phone_out_port = campho.net_buffer[0];
 						campho.network_state = 0x83;
 						std::cout<<"MMU::Campho Receiver TCP Port: " << std::dec << campho.phone_out_port << std::hex << "\n";
 					}
@@ -1777,9 +1773,9 @@ void AGB_MMU::campho_process_networking()
 
 			if(SDLNet_SocketReady(campho.line.remote_socket))
 			{
-				if(SDLNet_TCP_Recv(campho.line.remote_socket, temp_buffer, 2) > 0)
+				if(SDLNet_TCP_Recv(campho.line.remote_socket, campho.net_buffer.data(), 2) > 0)
 				{
-					if((temp_buffer[0] == 0xFF) && (temp_buffer[1] == 0xFF))
+					if(campho.net_buffer[0] == 0xFFFF)
 					{
 						campho.network_state = 0x84;
 						campho.is_call_active = true;
@@ -1812,9 +1808,9 @@ void AGB_MMU::campho_process_networking()
 
 			if(SDLNet_SocketReady(campho.ringer.remote_socket))
 			{
-				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, temp_buffer, 2) > 0)
+				if(SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 2) > 0)
 				{
-					u16 status = (temp_buffer[1] << 8) | temp_buffer[0];
+					u16 status = campho.net_buffer[0];
 					
 					if(status == 0)
 					{
@@ -1830,9 +1826,8 @@ void AGB_MMU::campho_process_networking()
 		case 0xFE:
 			if(campho.ringer.connected)
 			{
-				temp_buffer[0] = 0;
-				temp_buffer[1] = 0;
-				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+				campho.net_buffer[0] = 0;
+				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 2);
 			}
 
 			break;
@@ -1841,9 +1836,8 @@ void AGB_MMU::campho_process_networking()
 		case 0xFF:
 			if(campho.ringer.connected)
 			{
-				temp_buffer[0] = 0;
-				temp_buffer[1] = 0;
-				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)temp_buffer, 2);
+				campho.net_buffer[0] = 0;
+				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 2);
 			}
 
 			campho_close_network();
@@ -1926,6 +1920,8 @@ void AGB_MMU::campho_reset_network()
 		campho.ringer.connected = false;
 		campho.ringer.port = config::campho_ringer_port;
 
+		campho.net_buffer.clear();
+		campho.net_buffer.resize(0x8000, 0);
 		campho.network_state = 0;
 		campho.is_call_incoming = false;
 		campho.is_call_active = false;

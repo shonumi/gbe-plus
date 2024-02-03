@@ -449,6 +449,7 @@ class AGB_MMU
 		u16 ring_port;
 		u16 phone_in_port;
 		u16 phone_out_port;
+		std::vector <u16> net_buffer;
 		u32 network_state;
 		bool network_init;
 	} campho;
