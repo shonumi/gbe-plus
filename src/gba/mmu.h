@@ -600,7 +600,7 @@ class AGB_MMU
 	u32 campho_get_bank_by_id(u32 id);
 	u32 campho_get_bank_by_id(u32 id, u32 index);
 	void campho_set_video_data();
-	void campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, u32 width, u32 height);
+	void campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, u32 width, u32 height, bool is_net_video);
 	u16 campho_convert_settings_val(u8 input);
 	std::string campho_convert_contact_name();
 	u8 campho_find_settings_val(u16 input);

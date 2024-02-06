@@ -1070,9 +1070,8 @@ void AGB_MMU::process_campho()
 
 			if(source != NULL)
 			{
-				SDL_Surface* temp_bmp = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
 				u8* cam_pixel_data = (u8*)source->pixels;
-				campho_get_image_data(cam_pixel_data, campho.capture_buffer, source->w, source->h);	
+				campho_get_image_data(cam_pixel_data, campho.capture_buffer, source->w, source->h, false);	
 			}
 
 			campho.update_local_camera = false;
@@ -1158,14 +1157,14 @@ void AGB_MMU::campho_set_video_data()
 }
 
 /****** Converts 24-bit RGB data into 15-bit GBA colors for Campho video buffer ******/
-void AGB_MMU::campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, u32 width, u32 height)
+void AGB_MMU::campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, u32 width, u32 height, bool is_net_video)
 {
 	u32 len = width * height;
 	u32 data_index = 0;
 	std::vector <u8> temp_buffer;
 
-	u8 target_width = (campho.is_large_frame) ? 176 : 58;
-	u8 target_height = (campho.is_large_frame) ? 144 : 48;
+	u8 target_width = (campho.is_large_frame || is_net_video) ? 176 : 58;
+	u8 target_height = (campho.is_large_frame || is_net_video) ? 144 : 48;
 
 	//Grab original image data, scale later if necessary
 	for(u32 x = 0; x < len; x++)
@@ -1272,7 +1271,10 @@ void AGB_MMU::campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, 
 		data_index += 3;
 	}
 
-	out_buffer.clear();
+	//Preserve 1st 4 bytes of buffer for video transmissions over network (used for header)
+	//Otherwise, start from scratch
+	if(is_net_video) { out_buffer.resize(4); }
+	else { out_buffer.clear(); }
 
 	//Calculate X and Y ratio for stretching/shrinking
 	float x_ratio = float(width) / target_width;
@@ -1300,7 +1302,9 @@ void AGB_MMU::campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, 
 	//Flip final output if necessary
 	if(campho.image_flip)
 	{
-		for(u32 x = 0; x < out_buffer.size() / 2;)
+		u32 offset = (is_net_video) ? 4 : 0;
+
+		for(u32 x = offset; x < out_buffer.size() / 2;)
 		{
 			u16 current_y = (x / 2) / target_width;
 			u16 current_x = (x / 2) % target_width;
@@ -1688,6 +1692,15 @@ void AGB_MMU::campho_process_networking()
 				campho.net_buffer[2] = 0x00;
 				campho.net_buffer[3] = 0x63;
 
+				SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
+
+				if(source != NULL)
+				{
+					SDL_Surface* temp_bmp = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
+					u8* cam_pixel_data = (u8*)source->pixels;
+					campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
+				}
+
 				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.net_buffer.data(), 0xC604);
 
 				campho.send_video_data = false;
@@ -1875,6 +1888,14 @@ void AGB_MMU::campho_process_networking()
 				campho.net_buffer[1] = 0x11;
 				campho.net_buffer[2] = 0x00;
 				campho.net_buffer[3] = 0x63;
+
+				SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
+
+				if(source != NULL)
+				{
+					u8* cam_pixel_data = (u8*)source->pixels;
+					campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
+				}
 
 				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 0xC604);
 
