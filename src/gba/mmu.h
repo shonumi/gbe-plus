@@ -388,6 +388,7 @@ class AGB_MMU
 		bool is_large_frame;
 		bool update_local_camera;
 		bool update_remote_camera;
+		u8 camera_mode;
 
 		u32 tele_data_index;
 		u8 call_state;
@@ -599,7 +600,8 @@ class AGB_MMU
 	void campho_map_rom_banks();
 	u32 campho_get_bank_by_id(u32 id);
 	u32 campho_get_bank_by_id(u32 id, u32 index);
-	void campho_set_video_data();
+	void campho_set_local_video_data();
+	void campho_set_remote_video_data();
 	void campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, u32 width, u32 height, bool is_net_video);
 	u16 campho_convert_settings_val(u8 input);
 	std::string campho_convert_contact_name();

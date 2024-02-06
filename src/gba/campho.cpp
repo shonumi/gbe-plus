@@ -43,6 +43,7 @@ void AGB_MMU::campho_reset()
 	campho.is_large_frame = true;
 	campho.update_local_camera = true;
 	campho.update_remote_camera = false;
+	campho.camera_mode = 0;
 
 	campho.is_call_incoming = false;
 	campho.is_call_active = false;
@@ -152,7 +153,9 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			if((campho.rom_cnt == 0xA00A) && (campho.new_frame))
 			{
 				campho.video_frame_slice++;
-				campho_set_video_data();
+
+				if(campho.camera_mode == 1) { campho_set_local_video_data(); }
+				else if(campho.camera_mode == 2) { campho_set_remote_video_data(); }
 
 				campho.last_slice = campho.video_frame_slice;
 				campho.repeated_slices = 0;
@@ -378,6 +381,7 @@ void AGB_MMU::campho_process_input_stream()
 				campho.new_frame = false;
 				campho.video_frame_slice = 0;
 				campho.last_slice = 0;
+				campho.camera_mode = 0;
 			}
 
 			//Turn on camera for large frame?
@@ -1062,9 +1066,25 @@ void AGB_MMU::process_campho()
 		campho.last_slice = 0;
 		campho.rom_stat = 0xA00A;
 
+		//Grab pixel data from remotely captured video frame
+		//Use network buffer
+		if(campho.update_remote_camera)
+		{
+			campho.capture_buffer.clear();
+			
+			for(u32 x = 4; x < campho.net_buffer.size(); x++)
+			{
+				campho.capture_buffer.push_back(campho.net_buffer[x]);
+			}
+
+			
+			campho.update_remote_camera = false;
+			campho.camera_mode |= 0x02;
+		}
+
 		//Grab pixel data for captured video frame
 		//Pull data from BMP file
-		if(campho.update_local_camera)
+		else if(campho.update_local_camera)
 		{
 			SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
 
@@ -1074,17 +1094,20 @@ void AGB_MMU::process_campho()
 				campho_get_image_data(cam_pixel_data, campho.capture_buffer, source->w, source->h, false);	
 			}
 
+			campho_set_local_video_data();
 			campho.update_local_camera = false;
+			campho.camera_mode |= 0x01;
 		}
 
-		campho_set_video_data();
+		if(campho.camera_mode & 0x02) { campho_set_remote_video_data(); }
+		else if(campho.camera_mode & 0x01) { campho_set_local_video_data(); }
 
 		return;
 	}
 }
 
-/****** Sets the framebuffer data for Campho's video input ******/
-void AGB_MMU::campho_set_video_data()
+/****** Sets the framebuffer data for Campho's video input - Local Version ******/
+void AGB_MMU::campho_set_local_video_data()
 {
 	//Setup new frame data
 	campho.video_frame.clear();
@@ -1154,6 +1177,12 @@ void AGB_MMU::campho_set_video_data()
 			campho.video_frame.push_back(campho.capture_buffer[line_pos++]);
 		}
 	}
+}
+
+/****** Sets the framebuffer data for Campho's video input - Remote Version ******/
+void AGB_MMU::campho_set_remote_video_data()
+{
+
 }
 
 /****** Converts 24-bit RGB data into 15-bit GBA colors for Campho video buffer ******/
