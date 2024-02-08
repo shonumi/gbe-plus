@@ -1,6 +1,6 @@
-Mario Kart Advance Server Technical Documentation 0.1
-February 06, 2022
-Shonumi aka D.S. Baxter
+Mario Kart Advance Server Technical Documentation 0.2
+February 08, 2024
+Shonumi aka D.S. Baxter, Winter1760
 
 ***************************************************
 1. Introduction
@@ -15,18 +15,211 @@ Mario Kart Advance is the 3rd entry in the famed Mario Kart series. Its debut on
 Mario Kart Advance is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/01/AGB-AMKJ/index.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/01/AGB-AMKJ/rule.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*total.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*query.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*0.dlghost.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*0.dlghost2.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*0.dlghost3.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*0.dlghostdr.cgb
+* http://gameboy.datacenter.ne.jp/cgb/ranking?name=/01/AGB-AMKJ/*0.dlghostst.cgb
+* http://gameboy.datacenter.ne.jp/cgb/upload?name=/01/AGB-AMKJ/*0.entry.cgb
 
+Asterisks in the above URLs are filled with a relevant string from index.cgb.
 
 ***************************************************
 3. index.cgb
 ***************************************************
 
-This file appears to be a method of updating URLs dynamically, perhaps in the event that the underlying server structure changed after the game launched. It prepends data to the URL. For example, if the contents of index.cgb is the string "new_path/" and the original URL is:
+This is a text file with 21 lines, each containing 255 bytes or less, and a 22nd empty line. The first 20 lines correspond to the 20 Super Circuit tracks in the game (the 16 initial tracks and the first 4 unlockable tracks), while the final line corresponds to the current Mobile GP. These lines are used to fill ranking and upload URLs.
 
-/cgb/download?name=/01/AGB-AMKJ/some_file.cgb
+***************************************************
+4. rule.cgb
+***************************************************
 
-then the brand new URL becomes
+This is a text file describing the current Mobile GP rules. It has 13-45 lines, using CR/LF line endings, in the following format:
 
-/cgb/download?name=/01/AGB-AMKJ/new_path/some_file.cgb
+Line 1				::  File name to join (http://gameboy.datacenter.ne.jp/cgb/download?name=/01/AGB-AMKJ/*), 20 bytes or less.
+Line 2				::  First day to download and view these rules (YYYYMMDD).
+Line 3				::  Last day to download these rules (YYYYMMDD).
+Line 4				::  First day to download and view the next set of rules (YYYYMMDD).
+Line 5				::  Last day to download the next set of rules (YYYYMMDD).
+Line 6				::  First day to join and upload rankings (YYYYMMDD).
+Line 7				::  Last day to join and upload rankings (YYYYMMDD).
+Line 8				::  First day to download and view rankings (YYYYMMDD).
+Line 9				::  Last day to download and view rankings (YYYYMMDD).
+Line 10				::  Special rules (8 hex digits, see below).
+Line 11				::  Track number (2 digits).
+Line 12				::  Number of tries when joining (2 digits).
+Line 13				::  Number of lines in description (2 digits).
+Lines 14+				::  Description.
 
-If the file is blank when downloaded or contains no detectable ASCII characters, then nothing is prepended to the URL. The string in index.cgb should be 256 bytes or less and the file itself should have a new line or carriage return character.
+Each digit of the special rules (line 10) specifies a different rule as follows:
+
+* Enable coins on track.
+* Enable item boxes.
+* Enable triple mushroom at start.
+* Enable mushrooms-only mode.
+* Enable COM opponents.
+* Forced character (driver number plus one, 0 = any).
+* Starting coin count divided by 5.
+* Enable five-lap race.
+
+Rules with "enable" are enabled when their digit is not zero.
+
+***************************************************
+5. total.cgb
+***************************************************
+
+This file is downloaded when downloading rankings. It simply contains a four-byte integer in big endian representing the number of ranked ghosts, used to inform which rank numbers the game requests for its overall ranking category.
+
+***************************************************
+6. query.cgb
+***************************************************
+
+This file is downloaded after total.cgb via a POST request in the format "myid=<32 hex digits>&myrecord=<4 hex digits>&pickuprecord=<4 hex digits>&state=<2 hex digits>&driver=<2 hex digits>&rk_1=<8 hex digits>&rk_2=<8 hex digits>&rk_3=<8 hex digits>&rk_4=<8 hex digits>&rk_5=<8 hex digits>&rk_6=<8 hex digits>&rk_7=<8 hex digits>&rk_8=<8 hex digits>&rk_9=<8 hex digits>&rk_10=<8 hex digits>&rk_11=<8 hex digits>", where the "pickuprecord" value is the player's actual record while the "myrecord" value is 1/100 second slower, and the "rk_*" values are the rank numbers to be displayed in the overall rankings category. The file itself has the following format:
+
+----------------------------------
+File format
+----------------------------------
+* Global ranking set.
+* High byte of rival count.
+* Low byte of rival count.
+* Up to eleven rival ranking entries.
+* Global player rank.
+* Eleven overall ranking entries.
+-- The file ends here for Mobile GP. --
+* State ranking set.
+* State player rank.
+* Driver ranking set.
+* Driver player rank.
+* 4 bytes: Global number of ranked players in big endian.
+
+----------------------------------
+Ranking set
+----------------------------------
+0x00				::  High byte of year number.
+0x01				::  Low byte of year number.
+0x02				::  Month number.
+0x03				::  Day number.
+0x04				::  Hour number.
+0x05				::  Minute number.
+0x06 - 0x09				::  Number of ranked players in big endian.
+0x0A - 0x0D				::  Number of total players in big endian.
+0x0E				::  High byte of top 10 count (N <= 11).
+0x0F				::  Low byte of top 10 count (N <= 11).
+0x10 - ...				::  Up to eleven top 10 ranking entries.
+
+----------------------------------
+Ranking entry
+----------------------------------
+0x00 - 0x03				::  Rank number in big endian.
+0x04				::  Driver number.
+0x05 - 0x09				::  Nickname.
+0x0A				::  High byte of race time.
+0x0B				::  Low byte of race time.
+0x0C - 0x1B				::  Kart ID.
+
+----------------------------------
+Player rank
+----------------------------------
+0x00 - 0x01				::  If both are 0x00, rank number is not present.
+0x02 - 0x05				::  Rank number in big endian, optional.
+(0x06 - 0x07)				::  If both are 0x00, extended info is not present.
+(0x08 - 0x0B)				::  Extended rank number in big endian, optional. Seems to overrule the prior rank number.
+(0x0C)				::  Extended driver number, optional.
+(0x0D)				::  High byte of extended race time, optional.
+(0x0E)				::  Low byte of extended race time, optional.
+
+----------------------------------
+Overall ranking entry
+----------------------------------
+0x00 - 0x01				::  If both are 0x00, ranking entry is not present.
+0x02 - 0x1D				::  Ranking entry, optional.
+
+***************************************************
+7. 0.dlghost.cgb, 0.dlghost2.cgb, 0.dlghost3.cgb
+***************************************************
+
+These files are downloaded via POST requests in varying formats: 0.dlghost.cgb, used when downloading by global rank, receives "ghostrank=<8 hex digits>&state=00&driver=00"; 0.dlghost2.cgb, used when downloading by race time, receives "ghostscore=<4 hex digits>&state=00&driver=00", where the "ghostscore" value is 1/100 second slower than the requested time; and 0.dlghost3.cgb, used when downloading by kart ID, receives "myid=<32 hex digits>&state=00&driver=00". They all share the following format:
+
+0x0000				::  High byte of year number, not used.
+0x0001				::  Low byte of year number, not used.
+0x0002				::  Month number, not used.
+0x0003				::  Day number, not used.
+0x0004				::  Hour number, not used.
+0x0005				::  Minute number, not used.
+0x0006 - 0x0009				::  Global number of ranked players in big endian.
+0x000A - 0x000B				::  If both are 0x00, the file ends here.
+0x000C				::  Driver number.
+0x000D - 0x0011				::  Nickname.
+0x0012				::  High byte of race time.
+0x0013				::  Low byte of race time.
+0x0014 - 0x1013				::  Ghost data.
+0x1014 - 0x1023				::  Kart ID.
+0x1024 - 0x1027				::  Global number of ranked players in big endian.
+0x1028 - 0x102B				::  Unknown, not used.
+0x102C - 0x102F				::  State number of ranked players in big endian.
+0x1030 - 0x1033				::  Driver number of ranked players in big endian.
+
+***************************************************
+8. 0.dlghostdr.cgb, 0.dlghostst.cgb, 0.dlghostid.cgb
+***************************************************
+
+These files are downloaded via POST requests in the same format as 0.dlghost.cgb. 0.dlghostdr.cgb is used for downloading by driver, 0.dlghostst.cgb is used for downloading by state, and 0.dlghostid.cgb would be used for downloading globally, but is replaced by 0.dlghost.cgb. All three share the following format:
+
+0x0000				::  High byte of year number, not used.
+0x0001				::  Low byte of year number, not used.
+0x0002				::  Month number, not used.
+0x0003				::  Day number, not used.
+0x0004				::  Hour number, not used.
+0x0005				::  Minute number, not used.
+0x0006 - 0x0009				::  Global number of ranked players in big endian.
+0x000A - 0x000B				::  If both are 0x00, the file ends here.
+0x000C - 0x001C				::  Kart ID, optional.
+
+***************************************************
+9. 0.entry.cgb
+***************************************************
+
+This file is uploaded to via a POST request. The downloaded data is irrelevant. The uploaded data is in the following format:
+
+0x0000 - 0x000F				::  Kart ID.
+0x0010				::  Track number.
+0x0011				::  Driver number.
+0x0012 - 0x0016				::  Nickname.
+0x0017				::  State number.
+0x0018 - 0x0019				::  Unknown.
+0x001A				::  High byte of race time.
+0x001B				::  Low byte of race time.
+0x001C - 0x101B				::  Ghost data.
+0x101C - 0x102B				::  Player's name.
+0x102C - 0x1037				::  Player's phone number.
+0x1038 - 0x103F				::  Player's postal code.
+0x1040 - 0x10BF				::  Player's home address.
+
+Outside of Mobile GP, personal info is not uploaded: the two numbers are filled with forward slashes, and the other two text fields are filled with asterisks. Otherwise, on an unmodified game, the postal code is always seven digits followed by a lowercase letter "p".
+
+***************************************************
+10. String Format
+***************************************************
+
+These characters are taken directly from the game's Shift-JIS decoding function. 0x00 is used as a terminator, and is usually invoked using two or four consecutive null bytes in ROM strings, or using a CR/LF line terminator in downloaded strings, rather than actually using 危.
+
+        0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+0x00    危    ！    ”    ＃    ＄    ％    ’    ＆    （    ）    ＊    ＋    ，    ー    ．    ／
+0x10    ０    １    ２    ３    ４    ５    ６    ７    ８    ９    ：    ；    ＜    ＝    ＞    ？
+0x20    ＠    Ａ    Ｂ    Ｃ    Ｄ    Ｅ    Ｆ    Ｇ    Ｈ    Ｉ    Ｊ    Ｋ    Ｌ    Ｍ    Ｎ    Ｏ
+0x30    Ｐ    Ｑ    Ｒ    Ｓ    Ｔ    Ｕ    Ｖ    Ｗ    Ｘ    Ｙ    Ｚ    ［    ￥    ］    ＾    ＿
+0x40    ‘    ａ    ｂ    ｃ    ｄ    ｅ    ｆ    ｇ    ｈ    ｉ    ｊ    ｋ    ｌ    ｍ    ｎ    ｏ
+0x50    ｐ    ｑ    ｒ    ｓ    ｔ    ｕ    ｖ    ｗ    ｘ    ｙ    ｚ    ｛    ｜    ｝    〜    　
+0x60    ぁ    あ    ぃ    い    ぅ    う    ぇ    え    ぉ    お    か    が    き    ぎ    く    ぐ
+0x70    け    げ    こ    ご    さ    ざ    し    じ    す    ず    せ    ぜ    そ    ぞ    た    だ
+0x80    ち    ぢ    っ    つ    づ    て    で    と    ど    な    に    ぬ    ね    の    は    ば
+0x90    ぱ    ひ    び    ぴ    ふ    ぶ    ぷ    へ    べ    ぺ    ほ    ぼ    ぽ    ま    み    む
+0xA0    め    も    ゃ    や    ゅ    ゆ    ょ    よ    ら    り    る    れ    ろ    わ    を    ん
+0xB0    ァ    ア    ィ    イ    ゥ    ウ    ェ    エ    ォ    オ    カ    ガ    キ    ギ    ク    グ
+0xC0    ケ    ゲ    コ    ゴ    サ    ザ    シ    ジ    ス    ズ    セ    ゼ    ソ    ゾ    タ    ダ
+0xD0    チ    ヂ    ッ    ツ    ヅ    テ    デ    ト    ド    ナ    ニ    ヌ    ネ    ノ    ハ    バ
+0xE0    パ    ヒ    ビ    ピ    フ    ブ    プ    ヘ    ベ    ペ    ホ    ボ    ポ    マ    ミ    ム
+0xF0    メ    モ    ャ    ヤ    ュ    ユ    ョ    ヨ    ラ    リ    ル    レ    ロ    ワ    ヲ    ン
