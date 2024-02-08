@@ -382,6 +382,8 @@ void AGB_MMU::campho_process_input_stream()
 				campho.video_frame_slice = 0;
 				campho.last_slice = 0;
 				campho.camera_mode = 0;
+				campho.update_local_camera = false;
+				campho.update_remote_camera = false;
 			}
 
 			//Turn on camera for large frame?
@@ -1080,18 +1082,14 @@ void AGB_MMU::process_campho()
 			campho_set_local_video_data();
 			campho.update_local_camera = false;
 			campho.camera_mode |= 0x01;
-
-			std::cout<<"PROCESS LOCAL\n";
 		}
 
-		//Grab pixel data from remotely captured video frame
-		//Use network buffer
+		//Flag a remote video frame as ready to draw
+		//Data previously pulled from network buffer
 		else if(campho.update_remote_camera)
 		{			
 			campho.update_remote_camera = false;
 			campho.camera_mode |= 0x02;
-
-			std::cout<<"PROCESS REMOTE\n";
 		}
 
 		if(campho.camera_mode & 0x04) { campho_set_remote_video_data(); }
@@ -1144,6 +1142,8 @@ void AGB_MMU::campho_set_local_video_data()
 
 		campho.rom_stat = 0x4015;
 
+		//If a remote video frame has been queued, draw it only after local video is done
+		//Also, do this *immediately* afterwards instead of delaying 12 frames to achieve ~5PS
 		if(campho.camera_mode & 0x02)
 		{
 			campho.camera_mode &= 0x01;
