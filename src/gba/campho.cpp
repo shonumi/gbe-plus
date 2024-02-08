@@ -154,8 +154,8 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			{
 				campho.video_frame_slice++;
 
-				if(campho.camera_mode == 1) { campho_set_local_video_data(); }
-				else if(campho.camera_mode == 2) { campho_set_remote_video_data(); }
+				if(campho.camera_mode & 0x04) { campho_set_remote_video_data(); }
+				else if(campho.camera_mode & 0x01) { campho_set_local_video_data(); }
 
 				campho.last_slice = campho.video_frame_slice;
 				campho.repeated_slices = 0;
@@ -797,8 +797,7 @@ void AGB_MMU::campho_process_call()
 			campho_close_network();
 			campho_reset_network();
 
-			break;
-			
+			break;	
 	}
 }		
 
@@ -1066,40 +1065,36 @@ void AGB_MMU::process_campho()
 		campho.last_slice = 0;
 		campho.rom_stat = 0xA00A;
 
-		//Grab pixel data from remotely captured video frame
-		//Use network buffer
-		if(campho.update_remote_camera)
-		{
-			campho.capture_buffer.clear();
-			
-			for(u32 x = 4; x < campho.net_buffer.size(); x++)
-			{
-				campho.capture_buffer.push_back(campho.net_buffer[x]);
-			}
-
-			
-			campho.update_remote_camera = false;
-			campho.camera_mode |= 0x02;
-		}
-
 		//Grab pixel data for captured video frame
 		//Pull data from BMP file
-		else if(campho.update_local_camera)
+		if(campho.update_local_camera)
 		{
 			SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
 
 			if(source != NULL)
 			{
 				u8* cam_pixel_data = (u8*)source->pixels;
-				campho_get_image_data(cam_pixel_data, campho.capture_buffer, source->w, source->h, false);	
+				campho_get_image_data(cam_pixel_data, campho.local_capture_buffer, source->w, source->h, false);	
 			}
 
 			campho_set_local_video_data();
 			campho.update_local_camera = false;
 			campho.camera_mode |= 0x01;
+
+			std::cout<<"PROCESS LOCAL\n";
 		}
 
-		if(campho.camera_mode & 0x02) { campho_set_remote_video_data(); }
+		//Grab pixel data from remotely captured video frame
+		//Use network buffer
+		else if(campho.update_remote_camera)
+		{			
+			campho.update_remote_camera = false;
+			campho.camera_mode |= 0x02;
+
+			std::cout<<"PROCESS REMOTE\n";
+		}
+
+		if(campho.camera_mode & 0x04) { campho_set_remote_video_data(); }
 		else if(campho.camera_mode & 0x01) { campho_set_local_video_data(); }
 
 		return;
@@ -1148,6 +1143,14 @@ void AGB_MMU::campho_set_local_video_data()
 		if((campho.is_call_video_enabled) && (!campho.is_large_frame)) { campho.send_video_data = true; }
 
 		campho.rom_stat = 0x4015;
+
+		if(campho.camera_mode & 0x02)
+		{
+			campho.camera_mode &= 0x01;
+			campho.camera_mode |= 0x04;
+			campho.video_capture_counter = 11;
+		}	
+
 		return;
 	}
 
@@ -1172,9 +1175,9 @@ void AGB_MMU::campho_set_local_video_data()
 
 	for(u32 x = 0; x < campho.video_frame_size * 2; x++)
 	{	
-		if(line_pos < campho.capture_buffer.size())
+		if(line_pos < campho.local_capture_buffer.size())
 		{
-			campho.video_frame.push_back(campho.capture_buffer[line_pos++]);
+			campho.video_frame.push_back(campho.local_capture_buffer[line_pos++]);
 		}
 	}
 }
@@ -1182,7 +1185,62 @@ void AGB_MMU::campho_set_local_video_data()
 /****** Sets the framebuffer data for Campho's video input - Remote Version ******/
 void AGB_MMU::campho_set_remote_video_data()
 {
+	//Setup new frame data
+	campho.video_frame.clear();
+	campho.video_frame_index = 0;
+	u16 frame_msb = 0xAA00;
 
+	//2-byte metadata, position and size of frame
+	u16 pos = frame_msb + campho.video_frame_slice;
+	pos = ((pos >> 3) | (pos << 13));
+
+	u16 f_size = (176 * 12);
+	u16 v_size = f_size * 2;
+	u8 line_size = 176;
+
+	u8 slice_limit_prep = 13;
+	u8 slice_limit_end = 14;
+
+	//Check whether the video frame has been fully rendered
+	//In that case, set position and size to 0xCFFF and 0x00 respectively
+	if(campho.video_frame_slice == slice_limit_prep)
+	{
+		pos = 0xF9FF;
+		v_size = 0;
+	}
+
+	//Check whether 0xCFFF has been previously sent, end video frame rendering now
+	//Forcing ROM_STAT to 0x4015 signals end all of video frame data from Campho
+	else if(campho.video_frame_slice == slice_limit_end)
+	{
+		campho.rom_stat = 0x4015;
+		campho.camera_mode &= 0x01;
+		return;
+	}
+
+	v_size = ((v_size >> 3) | (v_size << 13));
+
+	campho.video_frame.push_back(pos & 0xFF);
+	campho.video_frame.push_back(pos >> 8);
+	campho.video_frame.push_back(v_size & 0xFF);
+	campho.video_frame.push_back(v_size >> 8);
+
+	if(!v_size) { return; }
+
+	u32 line_pos = campho.video_frame_slice;
+	line_pos *= 12;
+
+	if(campho.video_frame_slice != 0) { line_pos -= campho.video_frame_slice; }
+
+	line_pos *= (line_size * 2);
+
+	for(u32 x = 0; x < f_size * 2; x++)
+	{	
+		if(line_pos < campho.remote_capture_buffer.size())
+		{
+			campho.video_frame.push_back(campho.remote_capture_buffer[line_pos++]);
+		}
+	}
 }
 
 /****** Converts 24-bit RGB data into 15-bit GBA colors for Campho video buffer ******/
@@ -1707,6 +1765,15 @@ void AGB_MMU::campho_process_networking()
 
 						case 0x1111:
 							std::cout<<"VIDEO DATA RECV'D\n";
+
+							campho.update_remote_camera = true;
+							campho.remote_capture_buffer.clear();
+			
+							for(u32 x = 4; x < campho.net_buffer.size(); x++)
+							{
+								campho.remote_capture_buffer.push_back(campho.net_buffer[x]);
+							}
+
 							break;
 					}
 				}
@@ -1904,6 +1971,15 @@ void AGB_MMU::campho_process_networking()
 					{
 						case 0x1111:
 							std::cout<<"VIDEO DATA RECV'D\n";
+
+							campho.update_remote_camera = true;
+							campho.remote_capture_buffer.clear();
+			
+							for(u32 x = 4; x < campho.net_buffer.size(); x++)
+							{
+								campho.remote_capture_buffer.push_back(campho.net_buffer[x]);
+							}
+
 							break;
 					}
 				}

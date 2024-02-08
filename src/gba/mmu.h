@@ -363,7 +363,8 @@ class AGB_MMU
 		std::vector<u8> data;
 		std::vector<u8> g_stream;
 		std::vector<u8> video_frame;
-		std::vector<u8> capture_buffer;
+		std::vector<u8> local_capture_buffer;
+		std::vector<u8> remote_capture_buffer;
 		std::vector<u8> tele_data;
 		u32 last_id;
 		u32 bank_index_lo;
