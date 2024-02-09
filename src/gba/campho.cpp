@@ -44,6 +44,7 @@ void AGB_MMU::campho_reset()
 	campho.update_local_camera = true;
 	campho.update_remote_camera = false;
 	campho.camera_mode = 0;
+	campho.image_flip = false;
 
 	campho.is_call_incoming = false;
 	campho.is_call_active = false;
@@ -467,6 +468,12 @@ void AGB_MMU::campho_process_input_stream()
 			else if(index == CAMPHO_CANCEL_PHONE_CALL)
 			{
 				campho.network_state = 0xFF;
+			}
+
+			//Flip camera image
+			else if(index == CAMPHO_SET_VIDEO_FLIP)
+			{
+				campho.image_flip = !campho.image_flip;
 			}
 
 			std::cout<<"Camera Command -> 0x" << index << "\n";

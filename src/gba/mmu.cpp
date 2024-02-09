@@ -2787,7 +2787,6 @@ bool AGB_MMU::load_backup(std::string filename)
 		campho.mic_volume = campho_find_settings_val((campho.config_data[11] << 8) | campho.config_data[10]);
 		campho.video_brightness = campho_find_settings_val((campho.config_data[13] << 8) | campho.config_data[12]);
 		campho.video_contrast = campho_find_settings_val((campho.config_data[15] << 8) | campho.config_data[14]);
-		campho.image_flip = ((campho.config_data[17] << 8) | campho.config_data[16]) ? true : false;
 	}
 
 	file.close();
