@@ -177,7 +177,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			break;
 	}
 
-	std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Campho I/O ******/
@@ -214,7 +214,7 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
-	std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
 
@@ -1040,6 +1040,8 @@ void AGB_MMU::process_campho()
 		campho.tele_data.push_back(0x00);
 		campho.tele_data.push_back(0x00);
 		campho.tele_data.push_back(0x00);
+
+		return;
 	}
 
 	campho.video_capture_counter++;
