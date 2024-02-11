@@ -177,7 +177,7 @@ void AGB_MMU::write_campho(u32 address, u8 value)
 			break;
 	}
 
-	//std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"CAMPHO WRITE 0x" << address << " :: 0x" << (u32)value << "\n";
 }
 
 /****** Reads data from Campho I/O ******/
@@ -214,7 +214,7 @@ u8 AGB_MMU::read_campho(u32 address)
 			result = read_campho_seq(address);
 	}
 
-	//std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
+	std::cout<<"CAMPHO READ 0x" << address << " :: 0x" << (u32)result << "\n";
 	return result;
 }
 
@@ -293,6 +293,7 @@ void AGB_MMU::campho_process_input_stream()
 {
 	campho.stream_started = false;
 	campho.read_out_stream = false;
+	memory_map[0x12345] = 0x00;
 
 	u16 header = (campho.g_stream[0] | (campho.g_stream[1] << 8));
 
@@ -474,6 +475,8 @@ void AGB_MMU::campho_process_input_stream()
 			else if(index == CAMPHO_SET_VIDEO_FLIP)
 			{
 				campho.image_flip = !campho.image_flip;
+				campho.read_out_stream = true;
+				campho.out_stream.clear();
 			}
 
 			std::cout<<"Camera Command -> 0x" << index << "\n";
