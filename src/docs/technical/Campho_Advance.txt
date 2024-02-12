@@ -23,6 +23,7 @@ The Campho Advance is a cartridge for the Game Boy Advance that allowed users to
 - Not compatible with any model of Nintendo DS; system will fail to boot.
 - Contains some memory used to save contact information.
 - Uses a unique method of mapping ROM data.
+- Modem is capable of handling several AT commands.
 
 
 ***************************************************
@@ -123,6 +124,7 @@ Unwarped	| Warped 	| Description
 0xBA11		| 0x3742	| Set speaker volume
 0xBA12		| 0x5742	| Set video brightness
 0xBA13		| 0x7742	| Set video contrast
+0xBA14		| 0x9742	| Set camera image flip
 0xBA15		| 0xB742	| Read Graphics ROM data
 0xBA21		| 0x3744	| Unknown (used when pulse dialing is enabled)
 0xBBC1		| 0x3778	| Write full configuration settings or contact data
@@ -337,7 +339,7 @@ ROM_CNT = 0x4015
 
 The DATA_TYPE value determines what data the Campho Advance will return. To read configuration data, use the value 0x1FFE4000. To read contact data, use the value 0x----4000. The upper 16-bits must be warped for contact data. Depending on this 16-bit value, different entires in the contact data list can be chosen, if multiple entries are present. The Campho Advance typically uses this to navigate up and down the list one entry at a time.
 
-This 16-bit value, when unwarped contains 2 8-bit components that control what contact data is being looked up. The upper 8-bits is the index used for the contact data list. The lower 8-bits is the operating mode. This operating mode determines what happens to the index after the command is issued. There are 3 valid values:
+This 16-bit value, when unwarped, contains 2 separate 8-bit components that control what contact data is being looked up. The upper 8-bits is the index used for the contact data list. The lower 8-bits is the operating mode. This operating mode determines what happens to the index after the command is issued. There are 3 valid values:
 
 ------------------------------------------------------------------------
 Operating Mode	| Effect
@@ -397,9 +399,10 @@ Command	| Setting
 0x3742	| Speaker Volume
 0x5742	| Video Brightness
 0x7742	| Video Contrast
+0x9742	| Camera Image Flip
 ------------------------------------------------------------------------
 
-The upper half of settings data uses values of 0 - 100 in increments of 10, then that value is warped. The lower 16-bits are always 0x4000. 
+The upper half of settings data uses values of 0 - 100 in increments of 10, then that value is warped. The lower 16-bits are always 0x4000. Note that Camera Image Flip is an exception. It only writes 16-bits of data instead of 32-bits (so a total of 4 bytes are written to ROM_DATA_2 in the process shown above). Additionally, the 16-bits of data for Camera Image Flip is always 0x0000. The user's camera will invert vertically every time the command is called.
 
 Once this settings data has been written to the Campho Advance's configuration, the current value can be read back from ROM_DATA_2. Note that the first 32-bits are metadata for the Campho Advance. Below is a layout of the Campho's 24-byte configuration data:
 
