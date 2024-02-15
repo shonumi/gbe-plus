@@ -293,7 +293,6 @@ void AGB_MMU::campho_process_input_stream()
 {
 	campho.stream_started = false;
 	campho.read_out_stream = false;
-	memory_map[0x12345] = 0x00;
 
 	u16 header = (campho.g_stream[0] | (campho.g_stream[1] << 8));
 
@@ -304,8 +303,20 @@ void AGB_MMU::campho_process_input_stream()
 		u32 index = (campho.g_stream[pos] | (campho.g_stream[pos+1] << 8) | (campho.g_stream[pos+2] << 16) | (campho.g_stream[pos+3] << 24));
 		u16 param_1 = header;
 
+		//Send AT Command
+		if(header == CAMPHO_SEND_AT_COMMAND)
+		{
+			campho.out_stream.clear();
+
+			//Allow settings to be read now (until next stream)
+			campho.out_stream_index = 0;
+			campho.read_out_stream = true;
+
+			std::cout<<"AT Command Received\n";
+		}
+
 		//Dial Phone Number
-		if(header == CAMPHO_DIAL_PHONE_NUMBER)
+		else if(header == CAMPHO_DIAL_PHONE_NUMBER)
 		{
 			u16 number_len = (campho.g_stream[2] | (campho.g_stream[3] << 8));
 			number_len = ((number_len >> 13) | (number_len << 3));
