@@ -128,6 +128,7 @@ class AGB_MMU
 		CAMPHO_GET_CONFIG_ENTRY_COUNT = 0xD778,
 		CAMPHO_ERASE_CONTACT_DATA = 0x1779,
 		CAMPHO_FINISH_CAMERA_FRAME = 0xFF9F,
+		CAMPHO_SEND_AT_COMMAND = 0x9FF0,
 	};
 
 	backup_types current_save_type;
@@ -414,6 +415,7 @@ class AGB_MMU
 		u8 video_contrast;
 		bool image_flip;
 
+		std::string at_command;
 		std::string dialed_number;
 		std::map<std::string, std::string> phone_number_to_ip_addr;
 		std::map<std::string, std::string> phone_number_to_port;

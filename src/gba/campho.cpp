@@ -53,6 +53,7 @@ void AGB_MMU::campho_reset()
 	campho.call_state = 0;
 
 	campho.dialed_number = "";
+	campho.at_command = "";
 
 	campho.last_slice = 0;
 	campho.repeated_slices = 0;
@@ -306,13 +307,44 @@ void AGB_MMU::campho_process_input_stream()
 		//Send AT Command
 		if(header == CAMPHO_SEND_AT_COMMAND)
 		{
+			u16 cmd_len = (campho.g_stream[2] | (campho.g_stream[3] << 8));
+			cmd_len = ((cmd_len >> 13) | (cmd_len << 3));
+
+			campho.at_command = "";
+
+			//Grab AT command
+			for(u32 x = 0, char_index = 4; x < cmd_len; x++)
+			{
+				u16 val = (campho.g_stream[char_index] | (campho.g_stream[char_index + 1] << 8));
+				val = ((val >> 13) | (val << 3));
+
+				//Even Characters
+				if(x & 0x01)
+				{
+					u8 chr_val = ((val >> 8) & 0xFF);
+					if(chr_val == 0) { break; }
+
+					campho.at_command += ((val >> 8) & 0xFF);
+					char_index += 2;
+				}
+
+				//Odd Characters
+				else
+				{
+					u8 chr_val = (val & 0xFF);
+					if(chr_val == 0) { break; }
+
+					campho.at_command += (val & 0xFF);
+				}
+			}
+
 			campho.out_stream.clear();
 
 			//Allow settings to be read now (until next stream)
 			campho.out_stream_index = 0;
 			campho.read_out_stream = true;
 
-			std::cout<<"AT Command Received\n";
+			std::cout<<"AT Command Received: " << campho.at_command << "\n";
 		}
 
 		//Dial Phone Number
