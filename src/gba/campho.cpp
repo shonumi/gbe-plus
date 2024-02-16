@@ -338,11 +338,32 @@ void AGB_MMU::campho_process_input_stream()
 				}
 			}
 
-			campho.out_stream.clear();
+			campho.tele_data.clear();
+			campho.tele_data_index = 0;
 
-			//Allow settings to be read now (until next stream)
-			campho.out_stream_index = 0;
-			campho.read_out_stream = true;
+			std::string at_response = "OK";
+			u16 transfer_type = 0x0D02;
+			u16 at_size = ((at_response.size() >> 13) | (at_response.size() << 3));
+
+			campho.tele_data.push_back(transfer_type & 0xFF);
+			campho.tele_data.push_back(transfer_type << 8);
+			campho.tele_data.push_back(at_size & 0xFF);
+			campho.tele_data.push_back(at_size << 8);
+
+			if(at_response.size() & 0x1)
+			{
+				u8 pad = 0x00;
+				at_response += pad;
+			}
+
+			for(u32 x = 0; x < at_response.size(); x += 2)
+			{
+				u16 at_chr = (at_response[x] | (at_response[x + 1] << 8));
+				at_chr = ((at_chr >> 13) | (at_chr << 3));
+
+				campho.tele_data.push_back(at_chr & 0xFF);
+				campho.tele_data.push_back(at_chr << 8);
+			}
 
 			std::cout<<"AT Command Received: " << campho.at_command << "\n";
 		}
