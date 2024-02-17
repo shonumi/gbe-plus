@@ -250,7 +250,7 @@ u8 AGB_MMU::read_campho_seq(u32 address)
 		}
 
 		//Telephony Data
-		else if(campho.is_call_active)
+		else if((campho.is_call_active) || (campho.call_state == 8))
 		{
 			if(campho.tele_data_index < campho.tele_data.size())
 			{
@@ -340,15 +340,17 @@ void AGB_MMU::campho_process_input_stream()
 
 			campho.tele_data.clear();
 			campho.tele_data_index = 0;
+			campho.call_state = 7;
 
 			std::string at_response = "OK";
-			u16 transfer_type = 0x0D02;
-			u16 at_size = ((at_response.size() >> 13) | (at_response.size() << 3));
+			u16 transfer_type = 0x0834;
+			u16 at_size = ((at_response.size() << 13) | (at_response.size() >> 3));
+
 
 			campho.tele_data.push_back(transfer_type & 0xFF);
-			campho.tele_data.push_back(transfer_type << 8);
+			campho.tele_data.push_back((transfer_type >> 8) & 0xFF);
 			campho.tele_data.push_back(at_size & 0xFF);
-			campho.tele_data.push_back(at_size << 8);
+			campho.tele_data.push_back((at_size >> 8) & 0xFF);
 
 			if(at_response.size() & 0x1)
 			{
@@ -359,10 +361,10 @@ void AGB_MMU::campho_process_input_stream()
 			for(u32 x = 0; x < at_response.size(); x += 2)
 			{
 				u16 at_chr = (at_response[x] | (at_response[x + 1] << 8));
-				at_chr = ((at_chr >> 13) | (at_chr << 3));
+				at_chr = ((at_chr << 13) | (at_chr >> 3));
 
 				campho.tele_data.push_back(at_chr & 0xFF);
-				campho.tele_data.push_back(at_chr << 8);
+				campho.tele_data.push_back(at_chr >> 8);
 			}
 
 			std::cout<<"AT Command Received: " << campho.at_command << "\n";
@@ -873,7 +875,16 @@ void AGB_MMU::campho_process_call()
 			campho_close_network();
 			campho_reset_network();
 
-			break;	
+			break;
+
+		//Finish AT command
+		case 8:
+			campho.rom_stat = 0x4015;
+			campho.tele_data.clear();
+			campho.tele_data_index = 0;
+			campho.call_state = 0;
+
+			break;
 	}
 }		
 
@@ -1108,6 +1119,15 @@ void AGB_MMU::process_campho()
 		return;
 	}
 
+	//Send AT command
+	else if(campho.call_state == 7)
+	{
+		campho.call_state = 8;
+		campho.rom_stat = 0xA00A;
+
+		return;
+	}
+
 	campho.video_capture_counter++;
 
 	if(campho.video_capture_counter < 12)
@@ -1118,7 +1138,7 @@ void AGB_MMU::process_campho()
 	else { campho.video_capture_counter = 0; }
 
 	//Abort/Finish video rendering midframe if delayed by other I/O like ROM
-	if(campho.last_slice == campho.video_frame_slice)
+	if((campho.capture_video) && (campho.last_slice == campho.video_frame_slice))
 	{
 		campho.repeated_slices++;
 
