@@ -5105,7 +5105,8 @@ Bit	| Description
 	<p class="list_item"><a href="#cam_gfx">Graphics ROM</a></p>
 	<p class="list_item"><a href="#cam_cap">Camera Capture</a></p>
 	<p class="list_item"><a href="#cam_cfg">Configuration and Contact Data</a></p>
-	<p class="list_item"><a href="#cam_num">Dialing Phone Numbers</a></p>
+	<p class="list_item"><a href="#cam_tel">Telephony</a></p>
+	<p class="list_item"><a href="#cam_tst">Modem Test Mode</a></p>
 	<p class="list_item"><a href="#cam_com">System Compatibility</a></p>
 
 	<a name="cam_gen"></a>
@@ -5123,6 +5124,7 @@ Bit	| Description
 		<li class="list_item">Not compatible with any model of Nintendo DS; system will fail to boot.</li>
 		<li class="list_item">Contains some memory used to save contact information.</li>
 		<li class="list_item">Uses a unique method of mapping ROM data.</li>
+		<li class="list_item">Modem is capable of handling several AT commands.</li>
 	</ul>
 
 	<a name="cam_ior"></a>
@@ -5183,7 +5185,7 @@ OUTPUT_16 = ((INPUT_16 LSL 3) OR (INPUT_16 LSR 13))</pre>
 	<a name="cam_cmd"></a>
 	<p class="gray_title">[Campho Advance] : Commands</p>
 
-	<p>The Campho Advance can issue a small number of commands to control various bits of hardware outside memory management. Once again, all I/O registers use their Wait State 1 mirrors (0xA000000). Each command follows this general format:</p>
+	<p>The Campho Advance can issue a number of commands to control various bits of hardware outside memory management. Once again, all I/O registers use their Wait State 1 mirrors (0xA000000). Each command follows this general format:</p>
 
 <pre>------------------------------------------------------------------------
 //All writes to ROM_DATA_2 are 16-bit
@@ -5206,21 +5208,25 @@ ROM_CNT = 0x4015
 Unwarped	| Warped 	| Description
 ------------------------------------------------------------------------
 0xBA01		| 0x3740	| Dial a phone number
-0xBA04		| 0x9740	| Unknown
+0xBA02		| 0x5740	| Answer a phone call
+0xBA04		| 0x9740	| Cancel a phone call (before connecting)
 0xBA05		| 0xB740	| Starts input data from the camera (small 58x48 frame)
 0xBA06		| 0xD740	| Starts input data from the camera (large 176x144 frame)
 0xBA07		| 0xF740	| Halts input data from the camera
+0xBA08		| 0x1741	| End a phone call
 0xBA10		| 0x1742	| Set microphone volume
 0xBA11		| 0x3742	| Set speaker volume
 0xBA12		| 0x5742	| Set video brightness
 0xBA13		| 0x7742	| Set video contrast
+0xBA14		| 0x9742	| Set camera image flip
 0xBA15		| 0xB742	| Read Graphics ROM data
 0xBA21		| 0x3744	| Unknown (used when pulse dialing is enabled)
 0xBBC1		| 0x3778	| Write full configuration settings or contact data
 0xBBC5		| 0xB778	| Read full configuration settings or contact data
 0xBBC6		| 0xD778	| Read the total number of contact data entries
 0xBBC8		| 0x1779	| Erase contact data
-0xCFFF		| 0xF9FF	| Finishes input frame from camera (and requests another?)
+0xCFFF		| 0xFF9F	| Finishes input frame from camera (and requests another?)
+0xFF84		| 0x9FF0	| Sends an AT command to the modem
 ------------------------------------------------------------------------</pre>
 
 	<p>For a full explanation of how each command works, see the following sections.</p>
@@ -5312,7 +5318,7 @@ ROM_STAT = 0x4015
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------</pre>
 
-	<p>G_ROM_BANK refers to the specific 32-bit internal address the Campho Advance assigns portions of Graphics ROM. It is broken down into 2 16-bit components (LO and HI) and written LSB first. G_ROM_BANK is *not* warped. G_ROM_OFFSET refers to a 32-bit offset typically used when reading sections of Graphics ROM larger than 4000 bytes. G_ROM_OFFSET *is* warped using the 32-bit method described earlier.</p>
+	<p>G_ROM_BANK refers to the specific 32-bit internal address the Campho Advance assigns portions of Graphics ROM. It is broken down into 2 16-bit components (LO and HI) and written LSB first. G_ROM_BANK *is* warped using the 16-bit method (the upper 16-bits is unused). G_ROM_OFFSET refers to a 32-bit offset typically used when reading sections of Graphics ROM larger than 4000 bytes. G_ROM_OFFSET *is* warped using the 32-bit method described earlier.</p>
 
 	<p>As with other commands, the GBA&#39;s CPU needs to first wait for the I/O delay signal from ROM_STAT. Once that is done, the data can be read at ROM_DATA_2 in 16-bit units. Although Graphics ROM is normally read in 4000 bytes block at maximum, other smaller sizes are frequently read as well. The first two 16-bit reads will typically return an unknown parameter, possibly a Block ID or some kind of status, followed by the overall length of the block (written as a 32-bit warped value). Afterwards, the rest of the graphics data in that block is streamed. The graphics data itself are 16-bit RGB555 values used by the GBA&#39;s bitmap graphics mode that have been warped.</p>
 
@@ -5320,17 +5326,17 @@ ROM_CNT = 0x4015
 
 	<p>When changing from one bank to another, data from the previous bank can still be read. For example, when switching to the offset 0xFFFFFFFF and reading more than 16-bytes, the Campho Advance will then respond with the next data from the old bank as if nothing had changed. Afterwards, when using a different offset for the new bank, new data will appear as expected. In effect, it takes a bit for the hardware to fully switch Graphics ROM banks, therefore it is important to check the length of data being read at this stage. This does not appear to be an issue if it is the first bank the Campho Advance is reading since boot.</p>
 
-	<p>There are a total of 314 different banks in Graphics ROM. Typically, there are 40 banks which can be addressed in increments of 0x2000, i.e. valid bank IDs range from 0x0000 - 0x0027, then 0x2000 - 0x2027, then 0x4000 - 0x4027, and etc, with the final addressable bank at 0xE027. However, some banks are either not addressable/non-existent (in the case of an I/O error) or have a length of zero bytes when trying to read them. The invalid banks are listed below:</p>
+	<p>There are a total of 314 different banks in Graphics ROM. Valid bank IDs range from 0 - 319 inclusive. However, some banks are either not addressable/non-existent (in the case of an I/O error) or have a length of zero bytes when trying to read them. The invalid banks are listed below:</p>
 
 <pre>------------------------------------------------------------------------
 Bank ID	| Error Type
 ------------------------------------------------------------------------
-0x0000	| Zero Length
-0x2000	| I/O Error
-0x4000	| I/O Error
-0x6026	| I/O Error
-0x8026	| I/O Error
-0xA00B	| Zero Length
+0	| Zero Length
+1	| I/O Error
+2	| I/O Error
+93	| Zero Length
+315	| I/O Error
+316	| I/O Error
 ------------------------------------------------------------------------</pre>
 
 	<p>To check for these I/O errors, the Campho Advance&#39;s software runs a fairly tight loop for a few thousand iterations tring to verify that the I/O delay from ROM_STAT has ended. If ROM_STAT has not changed after a certain number of checks, it drops any attempts at reading that bank completely.</p>
@@ -5396,6 +5402,7 @@ Slice	| Lines Drawn
 
 	<p>Note that the smaller framebuffer does not use anything like this at all. Although it uses 2 separate slices of 35 lines and 13 lines, they don&#39;t overlap. All pixels for both framebuffers (once reformatted) are 16-bit RGB555 values, meaning they can be plugged into the GBA&#39;s VRAM to draw a bitmap images. Once all pixel data for the camera has been pulled from each slice the Framebuffer Transfer Type changes to 0xCFFF. This signifies the end of readable camera input for a given frame. The Campho Advance then issues the 0xF9FF command to finish camera input and possibly request the next frame. It also writes 0x4015 to ROM_STAT before beginning the entire process all over again. When a new frame is ready, ROM_STAT will automatically read 0xA00A again.</p>
 
+
 	<a name="cam_cfg"></a>
 	<p class="gray_title">[Campho Advance] : Configuration and Contact Data</p>
 
@@ -5417,7 +5424,7 @@ ROM_CNT = 0x4015
 
 	<p>The DATA_TYPE value determines what data the Campho Advance will return. To read configuration data, use the value 0x1FFE4000. To read contact data, use the value 0x----4000. The upper 16-bits must be warped for contact data. Depending on this 16-bit value, different entires in the contact data list can be chosen, if multiple entries are present. The Campho Advance typically uses this to navigate up and down the list one entry at a time.</p>
 
-	<p>This 16-bit value, when unwarped contains 2 8-bit components that control what contact data is being looked up. The upper 8-bits is the index used for the contact data list. The lower 8-bits is the operating mode. This operating mode determines what happens to the index after the command is issued. There are 3 valid values:</p>
+	<p>This 16-bit value, when unwarped, contains 2 separate 8-bit components that control what contact data is being looked up. The upper 8-bits is the index used for the contact data list. The lower 8-bits is the operating mode. This operating mode determines what happens to the index after the command is issued. There are 3 valid values:</p>
 
 <pre>------------------------------------------------------------------------
 Operating Mode	| Effect
@@ -5468,7 +5475,7 @@ ROM_STAT = 0x4015
 ROM_CNT = 0x4015
 ------------------------------------------------------------------------</pre>
 
-	<p>Here, only 6 bytes are written: 16-bits for the settings commands and 32-bits for the actual data. The settings command determines which setting will change. This chart details the known IDs for their settings:<p>
+	<p>Here, only 6 bytes are written: 16-bits for the settings commands and 32-bits for the actual data. The settings command determines which setting will change. This chart details the known IDs for their settings:</p>
 
 <pre>------------------------------------------------------------------------
 Command	| Setting
@@ -5477,9 +5484,10 @@ Command	| Setting
 0x3742	| Speaker Volume
 0x5742	| Video Brightness
 0x7742	| Video Contrast
+0x9742	| Camera Image Flip
 ------------------------------------------------------------------------</pre>
 
-	<p>The upper half of settings data uses values of 0 - 100 in increments of 10, then that value is warped. The lower 16-bits are always 0x4000.</p>
+	<p>The upper half of settings data uses values of 0 - 100 in increments of 10, then that value is warped. The lower 16-bits are always 0x4000. Note that Camera Image Flip is an exception. It only writes 16-bits of data instead of 32-bits (so a total of 4 bytes are written to ROM_DATA_2 in the process shown above). Additionally, the 16-bits of data for Camera Image Flip is always 0x0000. The user&#39;s camera will invert vertically every time the command is called.</p>
 
 	<p>Once this settings data has been written to the Campho Advance&#39;s configuration, the current value can be read back from ROM_DATA_2. Note that the first 32-bits are metadata for the Campho Advance. Below is a layout of the Campho&#39;s 24-byte configuration data:</p>
 
@@ -5523,7 +5531,7 @@ Address		| Description
 0xD0	| ョ	ァ	ィ	ッ	ン	ゥ	ェ	ォ	ﾞ	ﾟ
 ------------------------------------------------------------------------------------------------------------------------------------</pre>
 
-	<p>Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. All characters use the same transformation at the even digits used for the phone number. Characters are grouped into 16-bit pairs; the first character occupies the LSB and the next character occupies the MSB. That 16-bit value is then warped.</p>
+	<p>Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. Characters are grouped into 16-bit pairs; the first character occupies the LSB and the next character occupies the MSB. That 16-bit value is then warped.</p>
 
 	<p>The contact&#39;s phone number uses the same encoding format as dialing phone numbers. See the next section (Dialing Phone Numbers) for more details.</p>
 
@@ -5570,10 +5578,12 @@ Address		| Description
 
 	<p>Note that both the Data Length and Contact List Size are warped values.</p>
 
-	<a name="cam_num"></a>
-	<p class="gray_title">[Campho Advance] : Dialing Phone Numbers</p>
+	<a name="cam_tel"></a>
+	<p class="gray_title">[Campho Advance] : Telephony</p>
 
-	<p>The Campho Advance has a specific command that will dial a phone number entered by the user. Unlike several other commands, this one takes parameters of variable lengths. The process of sending commands, with the parameters appended. All I/O registers use their Wait State 1 mirrors (0xA000000).</p>
+	<p>As the Campho Advance is capable of video phone calls over landlines, it offers a few commands related to dialing phone numbers, answering phone calls, ending active phone calls, and initializing the camera for simultaneous input from the user and the Campho Advance being called. From the perspective of the GBA, the software does not deal with many low-level details of telephony. The Campho Advance provides an abstracted interface so the handheld can easily deal with this task.</p>
+
+	<p>For one Campho Advance to connect to another, one of the users must first dial a phone number via the following command. Unlike several other commands, this one takes parameters of variable lengths, as described below. All I/O registers use their Wait State 1 mirrors (0xA000000).</p>
 
 <pre>------------------------------------------------------------------------
 //All writes to ROM_DATA_2 are 16-bit
@@ -5597,12 +5607,87 @@ ROM_CNT = 0x4015
 
 	<p>Note that the &#34;*&#34; / &#34;#&#34; key appears to be just &#34;.&#34; on the Campho Advance.</p>
 
-	<a name="cam_com"></a>
+	<p>The Campho Advance software constantly checks for incoming data that signals the start of a phone call. At any given  moment, the software may be interrupted by this call, at which point the user is prompted to answer or reject it. If accepted, the connection is established and the call begins with audio and video transmissions. Checking the status of the telephone alerts the Campho Advance whenever any sort of change occurs and respond appropiately.</p>
+
+	<p>The process of reading the Modem Status is very similar to how the Campho Advance updates the camera. Typically, ROM_STAT will read 0x4015 when the cartridge receives no external input (either via the camera or the telephone). When new input data becomes available, ROM_STAT will change to 0xA00A. Afterwards, the GBA will read 32-bits from ROM_DATA_1. This value contains 2 16-bit components: a Transfer Type and the length of incoming data. For telephony, only one Transfer Type exists, 0xAB00. For updating the status of the telephone line, the Campho Advance receives an additional 32-bits of data via ROM_STAT, thus the length is always 4. All data read from ROM_DATA_1 at this time is warped.</p>
+
+	<p>The additional 32-bits of data is again 2 distinct 16-bit values, labeled here as Internal Phone Function and Modem Status. Internal Phone Function represents a value of 0 - 5 where that forces the Campho Advance to execute certain telephony-related commands, such as answering and ending calls. The below chart demonstrates the structure of the data sent to the Campho Advance:</p>
+
+<pre>------------------------------------------------------------------------
+Address		| Description
+------------------------------------------------------------------------
+0x00 - 0x01	| Transfer Type. Always 0xAB00 (0x1560 when warped)
+0x02		| Internal Phone Function
+0x03		| Modem Status 
+------------------------------------------------------------------------</pre>
+
+	<p>The Modem Status byte uses 6-bits to represent various changes in the modem during calls. Each bit seems to represent a distinct state for the Campho Advance. Currently the only definitely known function of these is Bit 5, which indicates that a call is incoming and has triggered the receiver&#39;s ringer. Based on string data and code from the ROM, the rest of the bits likely correspond to states for idle, dialing, ringing, connecting, and answering. The following needs hardware verification, but Modem Status may look like this:</p>
+
+<pre>------------------------------------------------------------------------
+Bit	| Modem State
+------------------------------------------------------------------------
+0	| Idle
+1	| Dialing
+2	| Call Connecting
+3	| Call Connected
+4	| Answering
+5	| Ringing
+------------------------------------------------------------------------</pre>
+
+	<p>To connect two Campho Advances, the caller initiates dialing and eventually starts ringing the receiver&#39;s end. The modem will transfer a Modem Status of 0x20, causing the receiver&#39;s software to switch to a screen with a ringing phone. Once the receiver accepts the incoming call, both the caller&#39;s and receiver&#39;s Modem Status should read 0x00 temporarily, with relevant value (0x05) stored in the Internal Phone Function. That value for the Internal Phone Function signals a connection being established and alerts the software to show the menu for an active call. The Internal Phone Function&#39;s values have the following effects:</p>
+
+<pre>------------------------------------------------------------------------
+Value	| Function
+------------------------------------------------------------------------
+0	| Return to main menu (used when disconnecting)
+1	| N/A
+2	| N/A
+3	| N/A
+4	| Pauses all menus and animations 
+5	| Display active call menu
+------------------------------------------------------------------------</pre>
+
+	<p>Note that the Internal Phone Function only affects how the Campho Advance&#39;s software switches between menus and contexts. It&#39;s a value returned by the modem, which the ROM&#39;s code processes accordingly. Theoretically, a value of 0x04 may be sent briefly by the modem before sending a value of 0x05, causing the Campho Advance to appear to pause shortly during the connection phase. This has not been tested on real hardware yet, however.</p>
+
+	<p>Once the caller and receiver are connected, the Campho Advance presumably activates each user&#39;s camera automatically. The Campho Advance will display the user&#39;s own camera input in the top-left smaller frame (58x48) while the other side&#39;s camera input will appear on the larger frame (176x144). The software will prep the Campho Advance to read pixel data by writing to ROM_STAT and ROM_DATA_1 (see the Camera Capture section above) and receive data for each frame in slices. While the user&#39;s own camera input should update at a constant 5FPS, the incoming data from the other side will be dependent on any latency from the landline. It appears the Campho Advance&#39;s hardware will transfer video data on its own during a call, so there is no need for software to handle that task.</p>
+
+	<p>To cancel an active call, either Campho Advance may select the large &#34;X&#34; from the menu to &#34;kill&#34; the connection. This triggers a command to end the call (0xBA08 unwarped, 0x1741 warped). Once the Campho Advance hardware terminates the connection, the modem will send data where both the Internal Phone Function and Modem Status fields are set to 0x00. As a result, the software will return to the main menu.</p>
+
+	<a name="cam_tst"></a>
+	<p class="gray_title">[Campho Advance] : Modem Test Mode</p>
+
+	<p>The Campho Advance has a hidden debugger that allows users to directly send commands to the modem for testing purposes. To access it, the L, R, and B buttons must be simultaneously pressed on the same frame and held for a least one additional frame. Once successful, the software enters Modem Test Mode and displays a virtual keyboard, which can be used to enter AT commands. The D-Pad changes the cursor and selected key, the A button enters a key as input, the B button erases a character from input, the L button exits Modem Test Mode, and START initiates the AT command transfer. Any text-based output from the modem as a result of the command is also displayed on-screen.</p>
+
+	<p>To send the AT command, the Campho Advance software issues the 0xFF84 (0x9FF0 warped) command in the following format:</p>
+
+<pre>------------------------------------------------------------------------
+//All writes are 16-bit
+ROM_STAT = 0x4015
+
+//Write AT send command
+[ROM_DATA_2] = 0x9FF0
+
+[ROM_DATA_2] = COMMAND_LENGTH
+[ROM_DATA_2] = AT_CMD_01_AND_02
+[ROM_DATA_2] = AT_CMD_02_AND_03
+[ROM_DATA_2] = AT_CMD_04_AND_05
+...
+
+ROM_CNT = 0x4015
+------------------------------------------------------------------------</pre>
+
+	<p>The input will be variable in length depending on the AT command, which is an ASCII string (with no null termination) encoded in much the same fashion as names for contact data. That is to say, each ASCII character is grouped into 16-bit LSB-first pairs and then warped. COMMAND_LENGTH is the total of characters in the string, not the total number of bytes written to ROM_DATA_2.</p>
+
+	<p>Eventually, the modem will respond with data in much the same way it sends camera and telephony input. ROM_STAT will change to 0xA00A. Afterwards, the GBA will read 32-bits from ROM_DATA_1, which will contain 2 16-bit components: a Transfer Type and the length of incoming data. For AT command responses, the Transfer Type will be 0x41A0. The length here, however, does refer to the total number of bytes received from the modem. The response data is another ASCII string with the same encoding as previously described. Once the Campho Advance parses the string, it will be displayed.</p>
+
+	<p>As a somewhat unrelated side note, for whatever reason, pressing L and R (and ignoring the B button) causes the Campho Advance to rotate its entire screen 180 degrees. This can be done at any time outside of Modem Test Mode, although users can enter User Test Mode with a rotated screen. Curiously, the controls flip accordingly as well, so pressing Up on the D-Pad acts as it should when manipulating menus. This screen rotation seems deliberate and intentional, but its purpose is currently unknown. The Campho Advance&#39;s manual makes no mention of this at all.</p>
+
+	<a name="cam_cfg"></a>
 	<p class="gray_title">[Campho Advance] : System Compatibility</p>
 
-	<p>The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. Whether due to the unique power requirements of the cartridge or the novel way it streams ROM data, the cause of this failure remains unknown.</p>
+	<p>The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. Whether due to the unique power requirements of the cartridge or the novel way it streams ROM data, the cause of this failure remains unknown. Nevertheless, the likely culprit is the way in which DS firmware tries to read Slot-2 when turning on the system, which differs significantly from the GBA BIOS.</p>
 
-	<p>In theory, however, the Campho Advance should work with the following Game Boy Advance models: AGB-001 (original GBA), AGS-001 (GBA SP), AGS-101 (GBA SP), OXY-001 (Game Boy Micro). According to official documentation, the Campho Advance is not compatible with the DOL-017 (Game Boy Player). This may be due to the fact that the Game Boy Player&#39;s BIOS is slightly different from the handheld models, and the Campho Advance was designed rather precisely around the most common version of the BIOS. It must be noted that the Campho Advance was developed and released before the DS launched, so Digital Act likely had no idea it would become incompatible when the next handheld generation came around. A similar situation happened with the Pocket Sonar when the Game Boy Color launched.</p>
+	<p>In theory, however, the Campho Advance should work with the following Game Boy Advance models: AGB-001 (original GBA), AGS-001 (GBA SP), AGS-101 (GBA SP), OXY-001 (Game Boy Micro). According to official documentation, the Campho Advance is not compatible with the DOL-017 (Game Boy Player). It must be noted that the Campho Advance was developed and released before the DS launched, so Digital Act likely had no idea it would become incompatible when the next handheld generation came around. A similar situation happened with the Pocket Sonar when the Game Boy Color launched.</p>
 
 
 

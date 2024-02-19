@@ -91,7 +91,7 @@ A 32-bit version of warping is used for Graphics ROM offsets. In that case, the 
 6. Commands
 ***************************************************
 
-The Campho Advance can issue a small number of commands to control various bits of hardware outside memory management. Once again, all I/O registers use their Wait State 1 mirrors (0xA000000). Each command follows this general format:
+The Campho Advance can issue a number of commands to control various bits of hardware outside memory management. Once again, all I/O registers use their Wait State 1 mirrors (0xA000000). Each command follows this general format:
 
 ------------------------------------------------------------------------
 //All writes to ROM_DATA_2 are 16-bit
@@ -446,7 +446,7 @@ The Contact Name can be a mixture of katakana, Latin characters, and numbers. Th
 0xD0	| ョ	ァ	ィ	ッ	ン	ゥ	ェ	ォ	ﾞ	ﾟ
 ------------------------------------------------------------------------------------------------------------------------------------
 
-Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. All characters use the same transformation at the even digits used for the phone number. Characters are grouped into 16-bit pairs; the first character occupies the LSB and the next character occupies the MSB. That 16-bit value is then warped.
+Note that 0xDA is used as the SPACE character instead the ASCII value 0x20. Characters are grouped into 16-bit pairs; the first character occupies the LSB and the next character occupies the MSB. That 16-bit value is then warped.
 
 The contact's phone number uses the same encoding format as dialing phone numbers. See the next section (Dialing Phone Numbers) for more details.
 
