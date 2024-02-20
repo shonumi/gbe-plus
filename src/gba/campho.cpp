@@ -627,7 +627,7 @@ void AGB_MMU::campho_process_input_stream()
 			else if(stream_stat == CAMPHO_SET_MIC_VOLUME)
 			{
 				campho.mic_volume = campho_find_settings_val(hi_set);
-				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				u32 read_data = (campho_convert_settings_val(campho.mic_volume) << 16) | 0x4000;
 				campho_make_settings_stream(read_data);
 			}
 
@@ -643,7 +643,7 @@ void AGB_MMU::campho_process_input_stream()
 			else if(stream_stat == CAMPHO_SET_VIDEO_BRIGHTNESS)
 			{
 				campho.video_brightness = campho_find_settings_val(hi_set);
-				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				u32 read_data = (campho_convert_settings_val(campho.video_brightness) << 16) | 0x4000;
 				campho_make_settings_stream(read_data);
 				campho.update_local_camera = true;
 			}
@@ -652,7 +652,7 @@ void AGB_MMU::campho_process_input_stream()
 			else if(stream_stat == CAMPHO_SET_VIDEO_CONTRAST)
 			{
 				campho.video_contrast = campho_find_settings_val(hi_set);
-				u32 read_data = (campho_convert_settings_val(campho.speaker_volume) << 16) | 0x4000;
+				u32 read_data = (campho_convert_settings_val(campho.video_contrast) << 16) | 0x4000;
 				campho_make_settings_stream(read_data);
 				campho.update_local_camera = true;
 			}
