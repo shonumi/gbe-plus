@@ -70,6 +70,40 @@ void AGB_MMU::campho_reset()
 	{
 		campho_reset_network();
 	}
+
+	//Set default config data
+	//Sensible values (50%) for settings like camera brightness/contrast and volumes
+	//Data gets overwritten by a valid save file from MMU, if it exists
+	campho.config_data[0] = 0x31;
+	campho.config_data[1] = 0x08;
+	campho.config_data[2] = 0x03;
+	campho.config_data[3] = 0x00;
+
+	campho.config_data[4] = 0xFE;
+	campho.config_data[5] = 0x1F;
+	campho.config_data[6] = 0xFF;
+	campho.config_data[7] = 0xFF;
+
+
+	campho.config_data[8] = 0x06;
+	campho.config_data[9] = 0x40;
+
+
+	campho.config_data[10] = 0x06;
+	campho.config_data[11] = 0x40;
+
+
+	campho.config_data[12] = 0x06;
+	campho.config_data[13] = 0x40;
+
+
+	campho.config_data[14] = 0x06;
+	campho.config_data[15] = 0x40;
+
+	campho.speaker_volume = 50;
+	campho.mic_volume = 50;
+	campho.video_brightness = 50;
+	campho.video_contrast = 50;
 }
 
 /****** Writes data to Campho I/O ******/

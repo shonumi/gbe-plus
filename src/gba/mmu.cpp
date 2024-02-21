@@ -2425,9 +2425,6 @@ bool AGB_MMU::read_file(std::string filename)
 		return true;
 	}
 
-	//Separate handling for Campho save data
-	else if(config::cart_type == AGB_CAMPHO) { return true; }
-
 	//Try to auto-detect save-type, if any
 	else if(config::agb_save_type == AGB_AUTO_DETECT)
 	{
@@ -2819,7 +2816,6 @@ bool AGB_MMU::save_backup(std::string filename)
 			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
 			return false;
 		}
-
 
 		//Grab data from 0xE000000 to 0xE007FFF
 		for(u32 x = 0; x < 0x8000; x++)
