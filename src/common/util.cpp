@@ -790,6 +790,58 @@ std::string make_ascii_printable(std::string input)
 	return result;
 }
 
+/****** Gets current UTC time as a string ******/
+std::string get_utc_string()
+{
+	std::string result = "";
+
+	//Grab local time
+	time_t system_time = time(0);
+	tm* current_time = localtime(&system_time);
+
+	switch(current_time->tm_wday)
+	{
+		case 0: result += "Sun, "; break;
+		case 1: result += "Mon, "; break;
+		case 2: result += "Tue, "; break;
+		case 3: result += "Wed, "; break;
+		case 4: result += "Thu, "; break;
+		case 5: result += "Fri, "; break;
+		case 6: result += "Sat, "; break;
+	}
+
+	result += (to_str(current_time->tm_mday) + " ");
+
+	switch(current_time->tm_mon)
+	{
+		case 0: result += "Jan "; break;
+		case 1: result += "Feb "; break;
+		case 2: result += "Mar "; break;
+		case 3: result += "Apr "; break;
+		case 4: result += "May "; break;
+		case 5: result += "Jun "; break;
+		case 6: result += "Jul "; break;
+		case 7: result += "Aug "; break;
+		case 8: result += "Sep "; break;
+		case 9: result += "Oct "; break;
+		case 10: result += "Nov "; break;
+		case 11: result += "Dec "; break;
+	}
+
+	result += (to_str(current_time->tm_year + 1900) + " ");
+
+	if(current_time->tm_hour < 10) { result += ("0" + to_str(current_time->tm_hour) + "::"); }
+	else { result += (to_str(current_time->tm_hour) + "::"); }
+
+	if(current_time->tm_min < 10) { result += ("0" + to_str(current_time->tm_min) + "::"); }
+	else { result += (to_str(current_time->tm_min) + "::"); }
+
+	if(current_time->tm_sec < 10) { result += ("0" + to_str(current_time->tm_sec)); }
+	else { result += to_str(current_time->tm_sec); }
+
+	return result;
+}
+
 /****** Converts a string IP address to an integer value ******/
 bool ip_to_u32(std::string ip_addr, u32 &result)
 {
