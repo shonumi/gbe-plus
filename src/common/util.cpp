@@ -24,6 +24,25 @@ u32 poly32 = 0x04C11DB7;
 //CRC lookup table
 u32 crc32_table[256];
 
+//UTC format LUT strings
+std::string utc_day[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+std::string utc_num[60] =
+{
+	"00", "01", "02", "03", "04", "05", "06", "07", "08", "09",
+	"10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+	"20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+	"30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+	"40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+	"50", "51", "52", "53", "54", "55", "56", "57", "58", "59"
+};
+
+std::string utc_mon[12] =
+{
+	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
 /****** Saves an SDL Surface to a PNG file ******/
 bool save_png(SDL_Surface* source, std::string filename)
 {
@@ -797,47 +816,12 @@ std::string get_utc_string()
 
 	//Grab local time
 	time_t system_time = time(0);
-	tm* current_time = localtime(&system_time);
+	tm* current_time = gmtime(&system_time);
 
-	switch(current_time->tm_wday)
-	{
-		case 0: result += "Sun, "; break;
-		case 1: result += "Mon, "; break;
-		case 2: result += "Tue, "; break;
-		case 3: result += "Wed, "; break;
-		case 4: result += "Thu, "; break;
-		case 5: result += "Fri, "; break;
-		case 6: result += "Sat, "; break;
-	}
+	result = utc_day[current_time->tm_wday] + ", " + utc_num[current_time->tm_mday] + " " + utc_mon[current_time->tm_mon] + " " + to_str(current_time->tm_year + 1900) + " ";
+	result += (utc_num[current_time->tm_hour] + "::" + utc_num[current_time->tm_min] + "::" + utc_num[current_time->tm_sec % 60]);
 
-	result += (to_str(current_time->tm_mday) + " ");
-
-	switch(current_time->tm_mon)
-	{
-		case 0: result += "Jan "; break;
-		case 1: result += "Feb "; break;
-		case 2: result += "Mar "; break;
-		case 3: result += "Apr "; break;
-		case 4: result += "May "; break;
-		case 5: result += "Jun "; break;
-		case 6: result += "Jul "; break;
-		case 7: result += "Aug "; break;
-		case 8: result += "Sep "; break;
-		case 9: result += "Oct "; break;
-		case 10: result += "Nov "; break;
-		case 11: result += "Dec "; break;
-	}
-
-	result += (to_str(current_time->tm_year + 1900) + " ");
-
-	if(current_time->tm_hour < 10) { result += ("0" + to_str(current_time->tm_hour) + "::"); }
-	else { result += (to_str(current_time->tm_hour) + "::"); }
-
-	if(current_time->tm_min < 10) { result += ("0" + to_str(current_time->tm_min) + "::"); }
-	else { result += (to_str(current_time->tm_min) + "::"); }
-
-	if(current_time->tm_sec < 10) { result += ("0" + to_str(current_time->tm_sec)); }
-	else { result += to_str(current_time->tm_sec); }
+	std::cout<< result << "\n";
 
 	return result;
 }

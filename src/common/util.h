@@ -108,6 +108,10 @@ namespace util
 
 	extern u32 crc32_table[256];
 	extern u32 poly32;
+
+	extern std::string utc_day[7];
+	extern std::string utc_mon[12];
+	extern std::string utc_num[60];
 }
 
 #endif // GBE_UTIL 
