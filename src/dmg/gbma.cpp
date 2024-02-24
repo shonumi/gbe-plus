@@ -793,7 +793,7 @@ void DMG_SIO::mobile_adapter_process_pop()
 		//Email Header - Date
 		case 2:
 		case 0x12:
-			pop_response = "Date: Wed, 25 Jul 2018 12:00:00 -0600\r\n";
+			pop_response = "Date: " + util::get_utc_string() + "\r\n";
 			mobile_adapter.transfer_state = (mobile_adapter.transfer_state & 0x10) ? 0x13 : 0x3;
 			response_id = 0x95;
 			break;
@@ -964,6 +964,8 @@ void DMG_SIO::mobile_adapter_process_http()
 							needs_auth = true;
 							mobile_adapter.auth_list[x] = 0x01;
 						}
+
+						http_header += ("Date: " + util::get_utc_string() + "\r\n");
 
 						break;
 					}
