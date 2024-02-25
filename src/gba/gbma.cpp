@@ -889,6 +889,8 @@ void AGB_SIO::mobile_adapter_process_http()
 							mobile_adapter.auth_list[x] = 0x01;
 						}
 
+						http_header += ("Date: " + util::get_utc_string() + "\r\n");
+
 						break;
 					}
 				}
