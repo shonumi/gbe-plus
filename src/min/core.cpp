@@ -344,6 +344,7 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		if(core_mmu.ir_stat.network_id != config::netplay_id)
 		{
 			config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+			core_mmu.ir_stat.try_connection = true;
 		}
 
 		else
@@ -528,6 +529,7 @@ void MIN_core::handle_hotkey(int input, bool pressed)
 		if(core_mmu.ir_stat.network_id >= 10) { core_mmu.ir_stat.network_id = 0; }
 		
 		core_mmu.ir_stat.sync_balance = 4;
+		core_mmu.ir_stat.try_connection = true;
 
 		//OSD
 		if(core_mmu.ir_stat.network_id != config::netplay_id)

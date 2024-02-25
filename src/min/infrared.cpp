@@ -20,6 +20,7 @@ bool MIN_MMU::init_ir()
 	ir_stat.fade = 0;
 	ir_stat.sync = false;
 	ir_stat.send_signal = false;
+	ir_stat.try_connection = false;
 	ir_stat.sync_counter = 0;
 	ir_stat.sync_clock = 0;
 	ir_stat.sync_timeout = 0;
@@ -193,11 +194,12 @@ void MIN_MMU::process_network_communication()
 				SDLNet_TCP_AddSocket(tcp_sockets[id], server[id].remote_socket);
 				server[id].connected = true;
 				server[id].remote_init = true;
+				ir_stat.try_connection = true;
 			}
 		}
 
 		//Try to establish an outgoing connection to the server
-		if(!sender[id].connected)
+		if(!sender[id].connected && ir_stat.try_connection)
 		{
 			//Open a connection to listen on host's port
 			if(sender[id].host_socket = SDLNet_TCP_Open(&sender[id].host_ip))

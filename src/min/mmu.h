@@ -136,6 +136,7 @@ class MIN_MMU
 		bool sync;
 		bool init;
 		bool send_signal;
+		bool try_connection;
 
 		u32 sync_counter;
 		u32 sync_clock;
