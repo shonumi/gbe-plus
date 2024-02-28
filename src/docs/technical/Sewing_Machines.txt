@@ -34,6 +34,8 @@ Jaguar JN-2000
 * Comes with an embroidery arm, the EM-2000.
 * Comes in 1 color (red).
 
+All machines are compatible with the single prong version YC-485 foot controller.
+
 
 ***************************************************
 3. Compatible Software
