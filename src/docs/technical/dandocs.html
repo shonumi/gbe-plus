@@ -159,6 +159,7 @@
 			<p class="list_item"><a href="#magb">Mobile Adapter GB</a></p>
 
 			<p class="list_head"><strong>Game and Server Documentation</strong></p>
+			<p class="list_item"><a href="#exm">EX Monopoly</a></p>
 			<p class="list_item"><a href="#gbw">Game Boy Wars 3</a></p>
 			<p class="list_item"><a href="#hkh">Hello Kitty no Happy House</a></p>
 			<p class="list_item"><a href="#mka">Mario Kart Advance</a></p>
@@ -186,7 +187,7 @@
 	<p class="list_item">mid-kid - Mobile Adapter GB documentation</p>
 	<p class="list_item">pfero - Mobile Adapter GB documentation</p>
 	<p class="list_item">Robert Abel (Tauwasser) - Net de Get translation help</p>
-	<p class="list_item">Winter1760 - Mario Kart Advance documentation</p>
+	<p class="list_item">Winter1760 - EX Monopoly and Mario Kart Advance documentation</p>
 	
 
 	<!-- Barcode Boy -->
@@ -6639,6 +6640,134 @@ Command 0x28		DNS Query
 	<p>If any compatible software attempts to read or write configuration data outside the allotted 256 bytes via commands 0x19 and 0x1A, the entire I/O operation is cancelled. No data is written even if the initial offset is within the 256 bytes. No data is returned either, as both commands respond with Error Status packets.</p>
 
 
+
+
+	<!-- EX Monopoly -->
+	<a name="exm"></a>
+	<p class="gray_title">EX Monopoly</p>
+	<p class="list_item"><a href="#exm_gen">General Information</a></p>
+	<p class="list_item"><a href="#exm_ser">Server Structure</a></p>
+	<p class="list_item"><a href="#exm_inf">information.cgb</a></p>
+	<p class="list_item"><a href="#exm_que">query_T.cgb, query_M.cgb</a></p>
+	<p class="list_item"><a href="#exm_reg">0.regist.cgb</a></p>
+	<p class="list_item"><a href="#exm_tmp">10.temporary.cgb</a></p>
+	<p class="list_item"><a href="#exm_str">String Format</a></p>
+
+	<a name="exm_gen"></a>
+	<p class="gray_title">[EX Monopoly] : General Information</p>
+
+	<p>EX Monopoly is a Game Boy Advance game published by Takara and released on July 13, 2001. Using the Mobile Adapter, players were able to download news as well as participate in the Mobile Cup, a monthly competition in which players would play three COM games and upload the sum of their scores.</p>
+
+	<a name="exm_ser"></a>
+	<p class="gray_title">[EX Monopoly] : Server Structure</p>
+
+	<p>EX Monopoly is currently known to access the following URLs:</p>
+
+	<ul>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;download?name=&#47;A7&#47;AGB-AMOJ&#47;information.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;ranking?name=&#47;A7&#47;AGB-AMOJ&#47;query_T.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;ranking?name=&#47;A7&#47;AGB-AMOJ&#47;query_M.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;upload?name=&#47;A7&#47;AGB-AMOJ&#47;0.regist.cgb</li>
+		<li class="list_item">http:&#47;&#47;gameboy.datacenter.ne.jp&#47;cgb&#47;ranking?name=&#47;A7&#47;AGB-AMOJ&#47;10.temporary.cgb</li>
+	</ul>
+
+	<a name="exm_inf"></a>
+	<p class="gray_title">[EX Monopoly] : information.cgb</p>
+
+	<p>This file should be exactly 2,560 (0xA00) bytes in size. If not, the rest will be filled in with whatever was last downloaded. This is then divided into 64 lines, and each line is divided into 20 pairs of bytes. The last pair of each line must begin with 0xFE, except the last line, which must be 0xFF. Otherwise, the file is marked as corrupt. Additionally, any line where all but the last pair begin with 0xA3 is marked as empty. If all lines in the file are empty, the file is marked as corrupt. If the file is not corrupt, the game scans each pair of bytes and does the following:</p>
+
+	<ul>
+		<li class="list_item">If the first byte is in the range 0x00-0xF0 (inclusive), the pair is written as a tile and the cursor moves one tile to the right.</li>
+		<li class="list_item">If the first byte is in the range 0xF1-0xFD (inclusive), nothing happens.</li>
+		<li class="list_item">If the first byte is 0xFE, the cursor moves to the next line's leftmost tile.</li>
+		<li class="list_item">If the first byte is 0xFF, the game stops reading the file immediately.</li>
+	</ul>
+
+	<p>These tiles are then drawn to the main scrolling text window.</p>
+
+	<a name="exm_que"></a>
+	<p class="gray_title">[EX Monopoly] : query_T.cgb, query_M.cgb</p>
+
+	<p>These two files have the same format, but query_T.cgb is given a &#34;today&#34; value of 00 and gives data for all time while query_M.cgb is given a &#34;today&#34; value corresponding to the current or previous month and gives data only for that month. Both files are retreived via a POST request in the format &#34;myname=<80 hex digits>&today=<2 hex digits>&#34;, and have the following format:</p>
+
+<pre>----------------------------------
+File format
+----------------------------------
+0x00				::  High byte of ranking count (N). Should always be zero.
+0x01				::  Low byte of ranking count (N). Should be 10 or less.
+0x02 - ...			::  Ranking entries.
+0x02 + 56*N			::  Two bytes. If both are 0x00, the player's ranking is not present.
+0x04 + 56*N			::  Player's ranking entry, optional.
+
+----------------------------------
+Ranking entries - 56 bytes each
+----------------------------------
+0x00 - 0x03			::  Rank number in big endian.
+0x04 - 0x2B			::  &#34;myname&#34; data, see below.
+0x2C - 0x33			::  &#34;myscore&#34; data, see below.
+0x34				::  Player's gender: 0x00 = male, 0x01 = female.
+0x35				::  Player's age.
+0x36				::  Player's state/prefecture.
+0x37				::  &#34;today&#34; value: high 4 bits are a year number (mod 16), low 4 bits are a month number.
+
+----------------------------------
+myname - 40 bytes
+----------------------------------
+0x00 - 0x03			::  Player's name, right-padded with 0xFF.
+0x04 - 0x23			::  Player's email, right-padded with 0x00.
+0x24				::  &#34;today&#34; value, see above.
+0x25 - 0x27			::  Always 0x00, but not checked on download.
+
+----------------------------------
+myscore - 8 bytes
+----------------------------------
+0x00 - 0x03			::  Total score. Always divisible by 5, and never more than 60.
+0x04 - 0x07			::  Total cash in dollars.</pre>
+
+	<a name="exm_reg"></a>
+	<p class="gray_title">[EX Monopoly] : 0.regist.cgb</p>
+
+	<p>When the player uploads their total score, the game sends two POST requests to this file in the same format: myname, myscore, gender, age, state, today. These values are sent as raw bytes. The difference between the two requests is that the first has both of its &#34;today&#34; values set to 00, while the second has both values correct. The server MUST NOT send a response body (i.e. file data), as the game will not close its connections and will fail to request 10.temporary.cgb.</p>
+
+	<a name="exm_tmp"></a>
+	<p class="gray_title">[EX Monopoly] : 10.temporary.cgb</p>
+
+	<p>After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format &#34;myscore=<8 hex digits>&#34;. The server responds in the following format:</p>
+
+<pre>0x00 - 0x01			::  If both are 0x00, no rank number is present.
+0x02 - 0x05			::  Rank number in big endian, optional.</pre>
+
+	<p>If the rank number is greater than 10, the player will be told that they are unranked.</p>
+
+	<a name="exm_str"></a>
+	<p class="gray_title">[EX Monopoly] : String Format</p>
+
+	<p>Characters 0xF1-0xFD (inclusive) are ignored by most text processing code, including the code used for all downloaded files. Character 0xFE is a line break, and character 0xFF terminates a string. Characters 0x200-0x25E (inclusive), which can only be used in information.cgb, correspond to ASCII 0x20-0x7E (inclusive), except that character 0x23C (ASCII 0x5C) is a yen symbol (¥).</p>
+
+<pre>	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
+0x00	あ	い	う	え	お	か	き	く	け	こ	さ	し	す	せ	そ	た
+0x10	ち	つ	て	と	な	に	ぬ	ね	の	は	ひ	ふ	へ	ほ	ま	み
+0x20	む	め	も	や	ゆ	よ	ら	り	る	れ	ろ	わ	を	ん	ゃ	ゅ
+0x30	ょ	。	、	が	ぎ	ぐ	げ	ご	ざ	じ	ず	ぜ	ぞ	だ	ぢ	づ
+0x40	で	ど	ば	び	ぶ	べ	ぼ	ぱ	ぴ	ぷ	ぺ	ぽ	ア	イ	ウ	エ
+0x50	オ	カ	キ	ク	ケ	コ	サ	シ	ス	セ	ソ	タ	チ	ツ	テ	ト
+0x60	ナ	ニ	ヌ	ネ	ノ	ハ	ヒ	フ	ヘ	ホ	マ	ミ	ム	メ	モ	ヤ
+0x70	ユ	ヨ	ラ	リ	ル	レ	ロ	ワ	ヲ	ン	ャ	ュ	ョ	ー	！	ガ
+0x80	ギ	グ	ゲ	ゴ	ザ	ジ	ズ	ゼ	ゾ	ダ	ヂ	ヅ	デ	ド	バ	ビ
+0x90	ブ	ベ	ボ	パ	ピ	プ	ペ	ポ	＄	０	１	２	３	４	５	６
+0xA0	７	８	９	　	ァ	ィ	ゥ	ェ	ォ	ッ	？	ヴ	っ	家	軒	抵
+0xB0	当	価	格	建	設	水	道	費	抖	鉄	会	社	電	力	地	中
+0xC0	海	公	井	通	ぁ	ぃ	ぅ	ぇ	ぉ	゛	゜	枚	倍	Ａ	Ｂ	Ｃ
+0xD0	Ｄ	Ｅ	Ｆ	Ｇ	Ｈ	Ｉ	Ｊ	Ｋ	Ｌ	Ｍ	Ｎ	Ｏ	Ｐ	Ｑ	Ｒ	Ｓ
+0xE0	Ｔ	Ｕ	Ｖ	Ｗ	Ｘ	Ｙ	Ｚ	％	：	⋯	♪	♥︎	～	男	女	位
+0xF0	才	入	口	交	渉</pre>
+
+
+
+
+
+
+
 	<!-- Game Boy Wars 3 -->
 	<a name="gbw"></a>
 	<p class="gray_title">Game Boy Wars 3</p>
@@ -6911,6 +7040,12 @@ Unit IDs
 [Price for Merc Frigate]</pre>
 
 	<p>This file specifies that no service charge should apply, as the filename is prefixed with &#34;0&#34;.</p>
+
+
+
+
+
+
 
 
 	<!-- Hello Kitty no Happy House -->
