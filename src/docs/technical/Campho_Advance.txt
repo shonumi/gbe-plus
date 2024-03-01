@@ -282,6 +282,7 @@ ROM_STAT = 0xA00A
 [ROM_DATA_1] = 0x0000
 
 ROM_CNT = 0xA00A
+DATA_INDEX = 0
 
 //Grab pixel data at ROM_DATA_1
 WHILE FRAME_TRANSFER_SIZE NOT EQUAL TO ZERO
@@ -289,8 +290,9 @@ WHILE FRAME_TRANSFER_SIZE NOT EQUAL TO ZERO
 
 	//Reformat (unwarp) data and store in WRAM (above 64KB used to execute Program ROM)
 	DATA_VAL = ((DATA LSL 3) OR (INPUT_16 LSR 13))
-	[0x2013000 + INDEX] = DATA_VAL
+	[0x2013000 + DATA_INDEX] = DATA_VAL
 
+	DATA_INDEX = DATA_INDEX + 1
 	FRAME_TRANSFER_SIZE = FRAME_TRANSFER_SIZE - 1
 ------------------------------------------------------------------------
 
