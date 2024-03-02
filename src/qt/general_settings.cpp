@@ -2200,7 +2200,7 @@ void gen_settings::set_ogl()
 	else
 	{
 		ogl_frag_shader->setEnabled(false);
-		ogl_frag_shader->setEnabled(false);
+		ogl_vert_shader->setEnabled(false);
 	}
 }
 
