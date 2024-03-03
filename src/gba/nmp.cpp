@@ -169,7 +169,7 @@ void AGB_MMU::access_nmp_io()
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
 	if(play_yan.access_param)
 	{
-		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
 
 		u16 stat_data = 0;
@@ -206,6 +206,11 @@ void AGB_MMU::access_nmp_io()
 				memory_map[REG_IF+1] |= 0x20;
 				play_yan.nmp_valid_command = false;
 			}
+
+			//Increment internal ticks
+			//Value here is 6 ticks, a rough average of how often a real NMP updates at ~60Hz
+			play_yan.nmp_ticks += 6;
+			stat_data = play_yan.nmp_ticks;
 		}
 
 		//I/O Busy Flag

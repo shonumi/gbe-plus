@@ -301,6 +301,7 @@ class AGB_MMU
 		//Nintendo MP3 data
 		u8 nmp_status_data[32];
 		u16 nmp_boot_data[2];
+		u16 nmp_ticks;
 		u32 nmp_data_index;
 		u32 nmp_cmd_status;
 		u32 nmp_init_stage;
