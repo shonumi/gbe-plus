@@ -16,7 +16,7 @@
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -114,7 +114,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -138,6 +138,23 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4011;
 			play_yan.nmp_valid_command = true;
 
+			break;
+
+		//Change directory
+		case 0x20:
+			play_yan.nmp_cmd_status = 0x4020;
+			play_yan.nmp_valid_command = true;
+			play_yan.current_dir = "";
+
+			//Grab directory
+			for(u32 x = 2; x < play_yan.command_stream.size(); x++)
+			{
+				u8 chr = play_yan.command_stream[x];
+				if(!chr) { break; }
+
+				play_yan.current_dir += chr;
+			}
+				
 			break;
 
 		//Generate Sound (for menus) - No IRQ generated
