@@ -78,6 +78,7 @@ class AGB_MMU
 		PLAY_YAN_STATUS,
 		PLAY_YAN_INIT,
 		PLAY_YAN_BOOT_SEQUENCE,
+		PLAY_YAN_GET_SD_DATA,
 	};
 
 	//Play-Yan command enumerations

@@ -96,8 +96,20 @@ u8 AGB_MMU::read_nmp(u32 address)
 		case PY_NMP_DATA_OUT:
 		case PY_NMP_DATA_OUT+1:
 
+			//Return SD card data
+			if(play_yan.op_state == PLAY_YAN_GET_SD_DATA)
+			{
+				if(play_yan.nmp_data_index < play_yan.card_data.size())
+				{
+					result = play_yan.card_data[play_yan.nmp_data_index++];
+				}
+			}
+
 			//Some kind of status data read after each Game Pak IRQ
-			if(play_yan.nmp_data_index < 16) { result = play_yan.nmp_status_data[play_yan.nmp_data_index++]; }
+			else if(play_yan.nmp_data_index < 16)
+			{
+				result = play_yan.nmp_status_data[play_yan.nmp_data_index++];
+			}
 
 			break;
 	}
@@ -190,6 +202,7 @@ void AGB_MMU::access_nmp_io()
 			else if(play_yan.nmp_cmd_status)
 			{
 				stat_data = play_yan.nmp_cmd_status;
+				play_yan.op_state = PLAY_YAN_STATUS;
 			}
 		}
 
@@ -217,11 +230,20 @@ void AGB_MMU::access_nmp_io()
 		else if(play_yan.access_param == 0x110)
 		{
 			//1 = I/O Busy, 0 = I/O Ready. For now, we are never busy
+			play_yan.op_state = PLAY_YAN_WAIT;
 		}
 
 		play_yan.nmp_status_data[0] = (stat_data >> 8);
 		play_yan.nmp_status_data[1] = (stat_data & 0xFF);
 		play_yan.nmp_data_index = 0;
 		play_yan.access_param = 0;
+	}
+
+	//Access SD card data
+	else
+	{
+		play_yan.card_data.clear();
+		play_yan.op_state = PLAY_YAN_GET_SD_DATA;
+		play_yan.nmp_data_index = 0;
 	}
 }
