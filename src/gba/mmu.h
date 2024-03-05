@@ -306,6 +306,7 @@ class AGB_MMU
 		u32 nmp_data_index;
 		u32 nmp_cmd_status;
 		u32 nmp_init_stage;
+		u32 nmp_entry_count;
 		bool nmp_valid_command;
 
 		u32 irq_data[8];
@@ -329,6 +330,7 @@ class AGB_MMU
 
 		std::vector<std::string> music_files;
 		std::vector<std::string> video_files;
+		std::vector<std::string> folders;
 
 		std::vector<u32> video_fps;
 

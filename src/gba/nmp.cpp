@@ -126,17 +126,43 @@ void AGB_MMU::process_nmp_cmd()
 
 	switch(play_yan.cmd)
 	{
-		//Undocumented command
+		//Start list of files and folders
 		case 0x10:
 			play_yan.nmp_cmd_status = 0x4010;
 			play_yan.nmp_valid_command = true;
 
+			play_yan.nmp_entry_count = 0;
+			play_yan.music_files.clear();
+			play_yan.folders.clear();
+
+			//Grab all files, then folders
+			util::get_files_in_dir(play_yan.current_dir, ".mp3", play_yan.music_files, false, false);
+			util::get_folders_in_dir(play_yan.current_dir, play_yan.folders);
+
+			//Stop list if done
+			if(play_yan.nmp_entry_count == (play_yan.music_files.size() + play_yan.folders.size()))
+			{
+				play_yan.nmp_status_data[2] = 0;
+				play_yan.nmp_status_data[3] = 1;	
+			}
+
+			play_yan.nmp_entry_count++;
+
 			break;
 
-		//Undocumented command
+		//Continue list of files and folders
 		case 0x11:
 			play_yan.nmp_cmd_status = 0x4011;
 			play_yan.nmp_valid_command = true;
+
+			//Stop list if done
+			if(play_yan.nmp_entry_count == (play_yan.music_files.size() + play_yan.folders.size()))
+			{
+				play_yan.nmp_status_data[2] = 0;
+				play_yan.nmp_status_data[3] = 1;
+			}
+
+			play_yan.nmp_entry_count++;
 
 			break;
 
@@ -144,7 +170,7 @@ void AGB_MMU::process_nmp_cmd()
 		case 0x20:
 			play_yan.nmp_cmd_status = 0x4020;
 			play_yan.nmp_valid_command = true;
-			play_yan.current_dir = "";
+			play_yan.current_dir = play_yan.base_dir;
 
 			//Grab directory
 			for(u32 x = 2; x < play_yan.command_stream.size(); x++)
@@ -252,6 +278,8 @@ void AGB_MMU::access_nmp_io()
 
 		play_yan.nmp_status_data[0] = (stat_data >> 8);
 		play_yan.nmp_status_data[1] = (stat_data & 0xFF);
+		play_yan.nmp_status_data[2] = 0;
+		play_yan.nmp_status_data[3] = 0;
 		play_yan.nmp_data_index = 0;
 		play_yan.access_param = 0;
 	}

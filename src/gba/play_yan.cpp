@@ -173,6 +173,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_cmd_status = 0;
 	play_yan.nmp_init_stage = 0;
 	play_yan.nmp_ticks = 0;
+	play_yan.nmp_entry_count = 0;
 	play_yan.nmp_valid_command = false;
 }
 
