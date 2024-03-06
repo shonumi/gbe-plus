@@ -20,6 +20,7 @@ soft_screen::soft_screen(QWidget *parent) : QWidget(parent) { }
 void soft_screen::paintEvent(QPaintEvent* event)
 {
 	QPainter painter(this);
+	painter.setPen(Qt::black);
 	painter.setBrush(Qt::black);
 	painter.drawRect(0, 0, width(), height());
 
@@ -124,6 +125,7 @@ void hard_screen::paintGL()
 	if(qt_gui::screen == NULL)
 	{
 		QPainter painter(this);
+		painter.setPen(Qt::black);
 		painter.setBrush(Qt::black);
 		painter.drawRect(0, 0, width(), height());
 	}
