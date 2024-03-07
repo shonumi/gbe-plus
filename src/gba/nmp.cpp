@@ -173,15 +173,23 @@ void AGB_MMU::process_nmp_cmd()
 		case 0x20:
 			play_yan.nmp_cmd_status = 0x4020;
 			play_yan.nmp_valid_command = true;
-			play_yan.current_dir = play_yan.base_dir;
 
-			//Grab directory
-			for(u32 x = 2; x < play_yan.command_stream.size(); x++)
 			{
-				u8 chr = play_yan.command_stream[x];
-				if(!chr) { break; }
+				std::string new_dir = "";
 
-				play_yan.current_dir += chr;
+				//Grab directory
+				for(u32 x = 3; x < play_yan.command_stream.size(); x += 2)
+				{
+					u8 chr = play_yan.command_stream[x];
+					if(!chr) { break; }
+
+					new_dir += chr;
+				}
+
+				if(!new_dir.empty())
+				{
+					play_yan.current_dir += ("/" + new_dir);
+				}
 			}
 				
 			break;
