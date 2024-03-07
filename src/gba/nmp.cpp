@@ -131,6 +131,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4010;
 			play_yan.nmp_valid_command = true;
 
+			play_yan.nmp_status_data[2] = 0;
+			play_yan.nmp_status_data[3] = 0;
+
 			play_yan.nmp_entry_count = 0;
 			play_yan.music_files.clear();
 			play_yan.folders.clear();
@@ -140,7 +143,7 @@ void AGB_MMU::process_nmp_cmd()
 			util::get_folders_in_dir(play_yan.current_dir, play_yan.folders);
 
 			//Stop list if done
-			if(play_yan.nmp_entry_count == (play_yan.music_files.size() + play_yan.folders.size()))
+			if(play_yan.nmp_entry_count >= (play_yan.music_files.size() + play_yan.folders.size()))
 			{
 				play_yan.nmp_status_data[2] = 0;
 				play_yan.nmp_status_data[3] = 1;	
@@ -156,7 +159,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_valid_command = true;
 
 			//Stop list if done
-			if(play_yan.nmp_entry_count == (play_yan.music_files.size() + play_yan.folders.size()))
+			if(play_yan.nmp_entry_count >= (play_yan.music_files.size() + play_yan.folders.size()))
 			{
 				play_yan.nmp_status_data[2] = 0;
 				play_yan.nmp_status_data[3] = 1;
@@ -278,8 +281,6 @@ void AGB_MMU::access_nmp_io()
 
 		play_yan.nmp_status_data[0] = (stat_data >> 8);
 		play_yan.nmp_status_data[1] = (stat_data & 0xFF);
-		play_yan.nmp_status_data[2] = 0;
-		play_yan.nmp_status_data[3] = 0;
 		play_yan.nmp_data_index = 0;
 		play_yan.access_param = 0;
 	}
@@ -290,5 +291,50 @@ void AGB_MMU::access_nmp_io()
 		play_yan.card_data.clear();
 		play_yan.op_state = PLAY_YAN_GET_SD_DATA;
 		play_yan.nmp_data_index = 0;
+
+		switch(play_yan.cmd)
+		{
+			//File and folder list
+			case 0x10:
+			case 0x11:
+				play_yan.card_data.resize(528, 0x00);
+
+				if(play_yan.nmp_entry_count)
+				{
+					std::string list_entry = "";
+					bool is_folder = false;
+					u32 file_limit = play_yan.music_files.size();
+					u32 real_entry = play_yan.nmp_entry_count - 1;
+					
+					if(real_entry < file_limit)
+					{
+						list_entry = play_yan.music_files[real_entry];
+					}
+
+					else
+					{
+						real_entry -= file_limit;
+						list_entry = play_yan.folders[real_entry];
+						is_folder = true;
+					}
+
+					u32 str_len = (list_entry.length() > 255) ? 255 : list_entry.length();
+
+					for(u32 x = 0; x < str_len; x++)
+					{
+						u8 chr = list_entry[x];
+						play_yan.card_data[x * 2] = 0x00;
+						play_yan.card_data[(x * 2) + 1] = chr;
+					}
+
+					//Set file/folder flag expected by NMP. 0x01 = Folder, 0x02 = File
+					play_yan.card_data[524] = (is_folder) ? 0x01 : 0x02;
+					play_yan.card_data[525] = (is_folder) ? 0x01 : 0x02;
+					play_yan.card_data[526] = (is_folder) ? 0x01 : 0x02;
+					play_yan.card_data[527] = (is_folder) ? 0x01 : 0x02;
+				}
+
+				break;	
+		}
 	}
 }
