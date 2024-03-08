@@ -186,7 +186,22 @@ void AGB_MMU::process_nmp_cmd()
 					new_dir += chr;
 				}
 
-				if(!new_dir.empty())
+				//Move one directory up
+				if(new_dir == "..")
+				{
+					u8 chr = play_yan.current_dir.back();
+
+					while(chr != 0x2F)
+					{
+						play_yan.current_dir.pop_back();
+						chr = play_yan.current_dir.back();
+					}
+
+					if(chr == 0x2F) { play_yan.current_dir.pop_back(); }
+				}
+
+				//Jump down into new directory
+				else if(!new_dir.empty())
 				{
 					play_yan.current_dir += ("/" + new_dir);
 				}
