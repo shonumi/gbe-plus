@@ -209,6 +209,49 @@ void AGB_MMU::process_nmp_cmd()
 				
 			break;
 
+		//Get ID3 Tags
+		case 0x40:
+			play_yan.nmp_cmd_status = 0x4040;
+			play_yan.nmp_valid_command = true;
+
+			//Get music file
+			play_yan.current_music_file = "";
+
+			for(u32 x = 3; x < play_yan.command_stream.size(); x += 2)
+			{
+				u8 chr = play_yan.command_stream[x];
+				if(!chr) { break; }
+
+				play_yan.current_music_file += chr;
+			}
+
+			break;
+
+		//Play Music File
+		case 0x50:
+			play_yan.nmp_cmd_status = 0x4050;
+			play_yan.nmp_valid_command = true;
+
+			//Get music file
+			play_yan.current_music_file = "";
+
+			for(u32 x = 3; x < play_yan.command_stream.size(); x += 2)
+			{
+				u8 chr = play_yan.command_stream[x];
+				if(!chr) { break; }
+
+				play_yan.current_music_file += chr;
+			}
+
+			break;
+
+		//Stop Music Playback
+		case 0x51:
+			play_yan.nmp_cmd_status = 0x4051;
+			play_yan.nmp_valid_command = true;
+
+			break;
+
 		//Generate Sound (for menus) - No IRQ generated
 		case 0x200:
 			break;
@@ -314,6 +357,8 @@ void AGB_MMU::access_nmp_io()
 		play_yan.card_data.clear();
 		play_yan.op_state = PLAY_YAN_GET_SD_DATA;
 		play_yan.nmp_data_index = 0;
+
+		std::cout<<"DAT -> 0x" << play_yan.cmd << "\n";
 
 		switch(play_yan.cmd)
 		{
