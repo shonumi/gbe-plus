@@ -175,6 +175,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_ticks = 0;
 	play_yan.nmp_entry_count = 0;
 	play_yan.nmp_valid_command = false;
+	play_yan.nmp_title = "";
+	play_yan.nmp_artist = "";
 }
 
 /****** Writes to Play-Yan I/O ******/

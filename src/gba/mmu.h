@@ -308,6 +308,8 @@ class AGB_MMU
 		u32 nmp_init_stage;
 		u32 nmp_entry_count;
 		bool nmp_valid_command;
+		std::string nmp_title;
+		std::string nmp_artist;
 
 		u32 irq_data[8];
 		bool irq_data_in_use;

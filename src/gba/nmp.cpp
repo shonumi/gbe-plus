@@ -16,7 +16,7 @@
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -114,7 +114,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -225,6 +225,12 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.current_music_file += chr;
 			}
 
+			//This command returns an arbitrary 16-bit value in status data
+			//This indicates the 16-bit access index ID3 data can be read from
+			//Here, GBE+ forces 0x1111 to keep things simple
+			play_yan.nmp_status_data[6] = 0x11;
+			play_yan.nmp_status_data[7] = 0x11;
+
 			break;
 
 		//Play Music File
@@ -291,7 +297,7 @@ void AGB_MMU::access_nmp_io()
 	play_yan.firmware_addr = 0;
 
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
-	if(play_yan.access_param)
+	if((play_yan.access_param) && (play_yan.access_param != 0x1111))
 	{
 		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
@@ -402,7 +408,39 @@ void AGB_MMU::access_nmp_io()
 					play_yan.card_data[527] = (is_folder) ? 0x01 : 0x02;
 				}
 
-				break;	
+				break;
+
+			//ID3 Data
+			case 0x40:
+				play_yan.nmp_status_data[6] = 0x00;
+				play_yan.nmp_status_data[7] = 0x00;
+				play_yan.card_data.resize(272, 0x00);
+
+				{
+					u32 id3_pos = 4;
+
+					u32 str_len = (play_yan.nmp_title.length() > 66) ? 66 : play_yan.nmp_title.length();
+
+					for(u32 x = 0; x < str_len; x++)
+					{
+						u8 chr = play_yan.nmp_title[x];
+						play_yan.card_data[id3_pos++] = 0x00;
+						play_yan.card_data[id3_pos++] = chr;
+					}
+
+					id3_pos = 136;
+
+					str_len = (play_yan.nmp_artist.length() > 68) ? 68 : play_yan.nmp_artist.length();
+
+					for(u32 x = 0; x < str_len; x++)
+					{
+						u8 chr = play_yan.nmp_artist[x];
+						play_yan.card_data[id3_pos++] = 0x00;
+						play_yan.card_data[id3_pos++] = chr;
+					}
+				}
+
+				break;
 		}
 	}
 }
