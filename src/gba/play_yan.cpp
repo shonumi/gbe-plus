@@ -1373,20 +1373,30 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 		}
 	}
 
-	//Write song title and artist to SD card data
-	u32 t_len = (title.length() > 0x40) ? 0x40 : title.length();
-	u32 a_len = (artist.length() > 0x46) ? 0x46 : artist.length();
-
-	for(u32 x = 0; x < t_len; x++)
+	//Save song title and artist data for later for NMP
+	if(play_yan.type == NINTENDO_MP3)
 	{
-		u8 data = title[x];
-		play_yan.card_data[0x04 + x] = data;
+		play_yan.nmp_title = title;
+		play_yan.nmp_artist = artist;
 	}
 
-	for(u32 x = 0; x < a_len; x++)
+	//Write song title and artist to SD card data - Play-Yan and Play-Yan Micro only
+	else
 	{
-		u8 data = artist[x];
-		play_yan.card_data[0x45 + x] = data;
+		u32 t_len = (title.length() > 0x40) ? 0x40 : title.length();
+		u32 a_len = (artist.length() > 0x46) ? 0x46 : artist.length();
+
+		for(u32 x = 0; x < t_len; x++)
+		{
+			u8 data = title[x];
+			play_yan.card_data[0x04 + x] = data;
+		}
+
+		for(u32 x = 0; x < a_len; x++)
+		{
+			u8 data = artist[x];
+			play_yan.card_data[0x45 + x] = data;
+		}
 	}
 } 
 

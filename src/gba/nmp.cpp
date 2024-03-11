@@ -16,7 +16,7 @@
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -114,7 +114,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -230,6 +230,9 @@ void AGB_MMU::process_nmp_cmd()
 			//Here, GBE+ forces 0x1111 to keep things simple
 			play_yan.nmp_status_data[6] = 0x11;
 			play_yan.nmp_status_data[7] = 0x11;
+
+			play_yan_get_id3_data(play_yan.current_dir + "/" + play_yan.current_music_file);
+			std::cout<<"GET -> " << (play_yan.current_dir + "/" + play_yan.current_music_file) << "\n";
 
 			break;
 
