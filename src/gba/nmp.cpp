@@ -225,14 +225,15 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.current_music_file += chr;
 			}
 
-			//This command returns an arbitrary 16-bit value in status data
+			//This first time around, this command returns an arbitrary 16-bit value in status data
 			//This indicates the 16-bit access index ID3 data can be read from
-			//Here, GBE+ forces 0x1111 to keep things simple
-			play_yan.nmp_status_data[6] = 0x11;
-			play_yan.nmp_status_data[7] = 0x11;
+			//Here, GBE+ forces 0x0101, since the NMP uses that for subsequent ID3 reads anyway
+			play_yan.nmp_status_data[6] = 0x1;
+			play_yan.nmp_status_data[7] = 0x1;
 
 			play_yan_get_id3_data(play_yan.current_dir + "/" + play_yan.current_music_file);
-			std::cout<<"GET -> " << (play_yan.current_dir + "/" + play_yan.current_music_file) << "\n";
+			play_yan.nmp_title = util::make_ascii_printable(play_yan.nmp_title);
+			play_yan.nmp_artist = util::make_ascii_printable(play_yan.nmp_artist);
 
 			break;
 
@@ -240,6 +241,8 @@ void AGB_MMU::process_nmp_cmd()
 		case 0x50:
 			play_yan.nmp_cmd_status = 0x4050;
 			play_yan.nmp_valid_command = true;
+
+			for(u32 x = 2; x < 16; x++) { play_yan.nmp_status_data[x] = 0x1; }
 
 			//Get music file
 			play_yan.current_music_file = "";
@@ -300,7 +303,7 @@ void AGB_MMU::access_nmp_io()
 	play_yan.firmware_addr = 0;
 
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
-	if((play_yan.access_param) && (play_yan.access_param != 0x1111))
+	if((play_yan.access_param) && (play_yan.access_param != 0x101))
 	{
 		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
@@ -366,8 +369,6 @@ void AGB_MMU::access_nmp_io()
 		play_yan.card_data.clear();
 		play_yan.op_state = PLAY_YAN_GET_SD_DATA;
 		play_yan.nmp_data_index = 0;
-
-		std::cout<<"DAT -> 0x" << play_yan.cmd << "\n";
 
 		switch(play_yan.cmd)
 		{
