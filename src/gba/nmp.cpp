@@ -264,6 +264,15 @@ void AGB_MMU::process_nmp_cmd()
 
 			break;
 
+		//Adjust Volume - No IRQ generated
+		case 0x80:
+			if(play_yan.command_stream.size() >= 4)
+			{
+				play_yan.volume = play_yan.command_stream[3];
+			}
+
+			break;
+
 		//Generate Sound (for menus) - No IRQ generated
 		case 0x200:
 			break;
