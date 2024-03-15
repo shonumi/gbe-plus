@@ -138,10 +138,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.micro[1][0] = 0x40003001;
 	play_yan.micro[2][0] = 0x40003003;
 
-	//Set 16-bit data for Nintendo MP3 Player status checking for boot?
-	play_yan.nmp_boot_data[0] = 0x8001;
-	play_yan.nmp_boot_data[1] = 0x8600;
-
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.music_length = 0;
@@ -171,10 +167,10 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.nmp_data_index = 0;
 	play_yan.nmp_cmd_status = 0;
-	play_yan.nmp_init_stage = 0;
 	play_yan.nmp_ticks = 0;
 	play_yan.nmp_entry_count = 0;
 	play_yan.nmp_valid_command = false;
+	play_yan.nmp_manual_irq = false;
 	play_yan.nmp_title = "";
 	play_yan.nmp_artist = "";
 }

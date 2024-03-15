@@ -301,13 +301,12 @@ class AGB_MMU
 
 		//Nintendo MP3 data
 		u8 nmp_status_data[16];
-		u16 nmp_boot_data[2];
 		u16 nmp_ticks;
 		u32 nmp_data_index;
 		u32 nmp_cmd_status;
-		u32 nmp_init_stage;
 		u32 nmp_entry_count;
 		bool nmp_valid_command;
+		bool nmp_manual_irq;
 		std::string nmp_title;
 		std::string nmp_artist;
 
