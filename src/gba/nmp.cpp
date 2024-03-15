@@ -16,7 +16,7 @@
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -114,7 +114,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -123,6 +123,8 @@ u8 AGB_MMU::read_nmp(u32 address)
 void AGB_MMU::process_nmp_cmd()
 {
 	std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
+
+	for(u32 x = 0; x < 16; x++) { play_yan.nmp_status_data[x] = 0; }
 
 	switch(play_yan.cmd)
 	{
@@ -314,7 +316,7 @@ void AGB_MMU::access_nmp_io()
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
 	if((play_yan.access_param) && (play_yan.access_param != 0x101))
 	{
-		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
 
 		u16 stat_data = 0;
@@ -425,8 +427,6 @@ void AGB_MMU::access_nmp_io()
 
 			//ID3 Data
 			case 0x40:
-				play_yan.nmp_status_data[6] = 0x00;
-				play_yan.nmp_status_data[7] = 0x00;
 				play_yan.card_data.resize(272, 0x00);
 
 				{

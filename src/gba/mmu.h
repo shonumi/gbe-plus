@@ -300,7 +300,7 @@ class AGB_MMU
 		u32 micro[3][8];
 
 		//Nintendo MP3 data
-		u8 nmp_status_data[32];
+		u8 nmp_status_data[16];
 		u16 nmp_boot_data[2];
 		u16 nmp_ticks;
 		u32 nmp_data_index;

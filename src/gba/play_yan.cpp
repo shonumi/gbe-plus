@@ -51,7 +51,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.pause_media = false;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
-	for(u32 x = 0; x < 32; x++) { play_yan.nmp_status_data[x] = 0; }
+	for(u32 x = 0; x < 16; x++) { play_yan.nmp_status_data[x] = 0; }
 	play_yan.cmd = 0;
 
 	for(u32 x = 0; x < 4; x++)
