@@ -138,6 +138,10 @@ void AGB_MMU::play_yan_reset()
 	play_yan.micro[1][0] = 0x40003001;
 	play_yan.micro[2][0] = 0x40003003;
 
+	//Set 16-bit data for Nintendo MP3 Player status checking for boot?
+	play_yan.nmp_boot_data[0] = 0x8001;
+	play_yan.nmp_boot_data[1] = 0x8600;
+
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
 	play_yan.music_length = 0;
@@ -154,6 +158,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_index = 0;
 
 	play_yan.use_bass_boost = false;
+	play_yan.use_headphones = false;
 	play_yan.capture_command_stream = false;
 
 	play_yan.type = PLAY_YAN_OG;
@@ -169,6 +174,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_cmd_status = 0;
 	play_yan.nmp_ticks = 0;
 	play_yan.nmp_entry_count = 0;
+	play_yan.nmp_manual_cmd = 0;
+	play_yan.nmp_init_stage = 0;
 	play_yan.nmp_valid_command = false;
 	play_yan.nmp_manual_irq = false;
 	play_yan.nmp_title = "";
@@ -935,7 +942,18 @@ void AGB_MMU::process_play_yan_irq()
 
 	if(play_yan.type == NINTENDO_MP3)
 	{
+		play_yan.cmd = play_yan.nmp_manual_cmd;
+		play_yan.nmp_manual_cmd = 0;
+
+		play_yan.nmp_status_data[0] = (play_yan.cmd >> 8);
+		play_yan.nmp_status_data[1] = (play_yan.cmd & 0xFF);
+		play_yan.nmp_data_index = 0;
+		play_yan.access_param = 0;
+
 		memory_map[REG_IF+1] |= 0x20;
+
+		if(play_yan.cmd) { process_nmp_cmd(); }
+
 		return;
 	}
 
