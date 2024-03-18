@@ -16,7 +16,7 @@
 /****** Writes to Nintendo MP3 Player I/O ******/
 void AGB_MMU::write_nmp(u32 address, u8 value)
 {
-	std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"PLAY-YAN WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	switch(address)
 	{
@@ -114,7 +114,7 @@ u8 AGB_MMU::read_nmp(u32 address)
 			break;
 	}
 
-	std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"PLAY-YAN READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -330,17 +330,29 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.nmp_manual_cmd = 0x8100;
 				play_yan.irq_delay = 60;
 
-				//Audio buffer size (max 0x480)
-				play_yan.nmp_status_data[2] = 0x04;
-				play_yan.nmp_status_data[3] = 0x80;
+				//Prioritize audio stream updates
+				if(play_yan.update_audio_stream)
+				{
+					//Audio buffer size (max 0x480)
+					play_yan.nmp_status_data[2] = 0x04;
+					play_yan.nmp_status_data[3] = 0x80;
 
-				//SD Card access ID - Seems arbitrary, so forced to 0x0202 here
-				play_yan.nmp_status_data[4] = 0x02;
-				play_yan.nmp_status_data[5] = 0x02;
+					//SD Card access ID - Seems arbitrary, so forced to 0x0202 here
+					play_yan.nmp_status_data[4] = 0x02;
+					play_yan.nmp_status_data[5] = 0x02;
+				}
 
-				//Unknown data
-				play_yan.nmp_status_data[6] = 0x00;
-				play_yan.nmp_status_data[7] = 0x00;
+				else if(play_yan.update_trackbar_timestamp)
+				{
+					//Trackbar position - 0 to 99
+					play_yan.nmp_status_data[8] = 0x00;
+
+					//Song timestamp in seconds
+					//Treated here as a 24-bit MSB value, with bytes 15, 12, and 13 (in that order)
+					play_yan.nmp_status_data[15] = 0x00;
+					play_yan.nmp_status_data[12] = 0x00;
+					play_yan.nmp_status_data[13] = 0x00;
+				}
 			}
 
 			break;

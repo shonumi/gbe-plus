@@ -350,6 +350,8 @@ class AGB_MMU
 		float video_current_fps;
 		float video_frame_count;
 		bool update_video_frame;
+		bool update_audio_stream;
+		bool update_trackbar_timestamp;
 
 		u32 tracker_progress;
 		u32 tracker_update_size;
