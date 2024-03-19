@@ -17,7 +17,7 @@ Following in the footsteps of the original Play-Yan and Play-Yan Micro, the Nint
 - Features a normal-sized SD card reader.
 - Can handle card capacities up to 2GB, depending on the manufacturer.
 - Not compatible with SDHC, SDXC, or SDUC cards.
-- Used hardware decoding. Not an Alpha Mosaic VC01 like previous Play-Yan models.
+- Uses hardware decoding. Not an Alpha Mosaic VC01 like previous Play-Yan models.
 - Uploads firmware on boot, and can optionally update with the correct files on an SD card.
 - Features a slightly larger than normal cartridge shell.
 - Has a 3.5mm audio jack to output sound and bypass the GBA's speakers.
@@ -41,14 +41,14 @@ NMP_DATA_OUT		| 0xE006000	| Output data from the cartridge.
 NMP_PARAMETER		| 0xE008000	| Selects data indices and commands.
 ----------------------------------------------------------------------------------------------------------------------
 
-All registers are 16-bit and MSB first. As such, care must be taken when reading/writing with hardware that is LSB-based (such as the GBA's ARM7 CPU). Additionally, due to the serial nature of the registers, the lower value must always be read/written first. The Nintendo MP3 Player's software, resorts to accessing these registers one byte at a time (e.g. 0xE000000 first, then 0xE000001) to resolve both issues.
+All registers are 16-bit and MSB first. As such, care must be taken when reading/writing with hardware that is LSB-based (such as the GBA's ARM7 CPU). Additionally, due to the serial nature of the registers, the lower value must always be read/written first. The NMP's software, resorts to accessing these registers one byte at a time (e.g. 0xE000000 first, then 0xE000001) to resolve both issues.
 
 
 ***************************************************
 4. Accessing Firmware
 ***************************************************
 
-Like the original Play-Yan and Play-Yan Micro, the Nintendo MP3 player loads default firmware from the cartridge's ROM onto special hardware inside the device. This ensures a baseline, working version of the firmware necessary to decode MP3s is always present, especially in case a firmware upgrade goes awry. To write firmware, the software first sets an index, presumably representing a location in internal memory where the firmware resides. Afterwards, it starts writing values. The index itself is expressed in terms of 16-bit units, so the absolute memory location is twice the value of the index.
+Like the original Play-Yan and Play-Yan Micro, the NMP loads default firmware from the cartridge's ROM onto special hardware inside the device. This ensures a baseline, working version of the firmware necessary to decode MP3s is always present, especially in case a firmware upgrade goes awry. To write firmware, the software first sets an index, presumably representing a location in internal memory where the firmware resides. Afterwards, it starts writing values. The index itself is expressed in terms of 16-bit units, so the absolute memory location is twice the value of the index.
 
 The following process is used to access firmware:
 
@@ -70,7 +70,7 @@ From there, data can be read or written by from either NMP_DATA_IN or NMP_DATA_O
 
 Although the Nintendo MP3 Player has the ability to update its firmware just like its Play-Yan predecessors, it's unclear if this was actually ever done for this version. The cartridge specifically looks for a file named "meteor.fup", but it does not appear any such file was ever offered to users by Nintendo.
 
-After the firmware is completely loaded from the Nintendo MP3 Player's ROM, a single Game Pak IRQ is automatically generated, which begins the boot process, very similar to how the Play-Yan models operate.
+After the firmware is completely loaded from the NMP's ROM, a single Game Pak IRQ is automatically generated, which begins the boot process, very similar to how the Play-Yan models operate.
 
 
 ***************************************************
@@ -98,24 +98,39 @@ A list of known indices and their functions follows:
 ------------------------------------------------------------------------
 Index	| Description
 ------------------------------------------------------------------------
-0x00FF	| Data Flush?
-0x0100	| Validate Game Pak IRQ Data
-0x010F	| Send Command / Stall For IRQ
+0x0000	| Access SD Card Data
+0x00FF	| Data Flush
+0x0100	| Get Game Pak IRQ Status Data
+0x0101	| Access ID3 Data
+0x010F	| Send Command / Get Ticks
 0x0110	| Check Cartridge I/O Busy Flag
+0x--0-	| Audio Buffer 1
+0x--8-	| Audio Buffer 2
 ------------------------------------------------------------------------
 
-Index 0x00FF - Data Flush?
+Index 0x0000 : Access SD Card Data
+This index is accessed after issuing a command that expects to receive data from the SD card. That data is available at NMP_DATA_OUT.
+
+Index 0x00FF : Data Flush
 This index typically accessed after commands are issued. It seems like it's used to flush input data. After accessing this index, 16-bits are written to NMP_DATA_IN, with the value being 0x0000
 
-Index 0x0100 - Validate Game Pak IRQ Data
-This index is accessed immediately following a Game Pak IRQ. The Nintendo MP3 Player software uses this to check and make sure valid data was returned by the cartridge. It's essentially used to peek at the first 16 bytes returned from NMP_DATA_OUT. The first 16-bits indicates whether or not there was a response to a command. Non-zero data means the cartridge is attempted to send back data, otherwise, the Game Pak IRQ is ignored. The Nintendo MP3 Player generally accesses this index twice in a row. The first time peeks at the first 8 bytes of a command response, and if that's valid, the second access reads the full 16 bytes.
+Index 0x0100 : Get Game Pak IRQ Status Data
+This index is accessed immediately following a Game Pak IRQ. The NMP's software reads 16 bytes of status data from NMP_DATA_OUT related to the recent IRQ. This status data contains the Command ID associated with the IRQ as well as any additional parameters for the command. These parameters are used to update various things such as the music trackbar, music timestamp, fast forward/rewind, speed, volume, etc. Typically, the NMP's software will read the first 8 bytes of status data to determine if it's valid, then proceed to read the entire 16 bytes.
 
-Index 0x010F - Send Command / Stall For IRQ
-This index has two uses when writing to NMP_DATA_OUT and when reading from NMP_DATA_IN. When writing, it is used to send a command. A series of 16-bit values are then written to NMP_DATA_OUT. When reading, this access acts as a means to stall while waiting for a Game Pak IRQ after issuing a command. A single 16-bit value is read from NMP_DATA_OUT, however, this value is discarded by the Nintendo MP3 Player's software, which waits until a Game Pak IRQ actually occurs before reading any real data from NMP_DATA_OUT.
+Index 0x0101 : Access ID3 Data
+This index is access after issuing the 0x0040 command. Data for ID3 tags is available at NMP_DATA_OUT.
 
-Index 0x0110 - Check Cartridge I/O Busy Flag
+Index 0x010F : Send Command / Get Ticks
+This index has two uses when writing to NMP_DATA_OUT and when reading from NMP_DATA_IN. When writing, it is used to send a command. A series of 16-bit values are then written to NMP_DATA_OUT. When reading, this access gets the current internal "ticks" from the NMP. A single 16-bit value is read from NMP_DATA_OUT, which is used as a measurement for time-keeping. For the most part, the NMP's software wants to ensure that the hardware is actually running, i.e. the 16-bit ticks values should increase periodically. The software reads it once per-frame and times out several actions if the ticks haven't advanced for a full second (i.e. during the initial boot phase, it will completely reset everything and try re-uploading firmware).
+
+Index 0x0110 : Check Cartridge I/O Busy Flag
 This index is accessed immediately following the last access to 0x0100. It's used to get the cartridge's I/O busy status. After accessing this index, a single 16-bit value from NMP_DATA_OUT is read. Any non-zero values indicate that the cartridge is still busy, presumbly with data from a previous Game Pak IRQ. This index can be accessed indefinitely until NMP_DATA_OUT returns zero, at which point additional commands can be issued.
 
+Index 0x--0- : Audio Buffer 1
+This index is access after issuing the 0x0050 command and the NMP generates internal Game Pak IRQs with a Command ID that reads 0x8100. The status data for those internal IRQs will have 16-bit values that determine the exact index the NMP will assign for its audio buffers. This value appears arbitrary, so the index may not have a fixed position. The data is available at NMP_DATA_OUT and represents 8-bit samples compatible with the GBA's DMA sound channels. The buffer is split in half, with the first portion requiring access to this index.
+
+Index 0x--8- : Audio Buffer 2
+This index is much the same as Audio Buffer 1. Accessing this will pull up the second portion of the audio buffer, which contains 8-bit samples. The only thing different about this index is its location. When the NMP generates internal Game Pak IRQs with 0x8100 as the Command ID, the 16-bit index representing Audio Buffer 1 is OR'ed with the value 0x0080 to get the index of Audio Buffer 2.  
 
 ***************************************************
 6. Commands
@@ -139,19 +154,40 @@ NMP_CONTROL_HI = 0x04
 At a minimum, a command must write its ID and an additional 16-bits of parameter data. Some commands, such as 0x10, use zeroes for their parameter data, and do not seem to require a flush via the 0xFF index. For commands that require more bytes for parameters, that data is simply written accordingly to NMP_DATA_IN. Writing 0x0404 to NMP_CONTROL appears to signal to the cartridge that command input is finished. A list of all known commands and details about them are listed below:
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
-Command	ID				| Parameters
+Command	ID				| Parameters				| SD Card Data
 ----------------------------------------------------------------------------------------------------------------------------------------------
-0x0010 - Unknown Command		|
-0x0011 - Unknown Command		|
-0x0200 - Play Sound Effect		|
-0x0300 - Check For Firmware File	| Firmware Upgrade Filename
-0x0301 - Read Firmware File?		|
-0x0303 - Close Firmware File?		|
+0x0010 - Begin File/Folder List		|					| 1 File/Folder Entry
+0x0011 - Continue File/Folder List	|					| 1 File/Folder Entry
+0x0020 - Change Directory		| Directory Name			|
+0x0030 - Unknown Command		|					|
+0x0040 - Grab ID3 Data			| Music Filename			| ID3 Tags For Title and Artist
+0x0050 - Play Music File		| Music Filename			|
+0x0051 - Stop Music Playback		|					|
+0x0052 - Pause Music Playback		|					|
+0x0053 - Resume Music Playback		|					|
+0x0060 - Seek Forwards/Backwards	|					|
+0x0070 - Unknown Command		|					|
+0x0080 - Adjust Volume			| New Volume				|
+0x0200 - Play Sound Effect		|					|
+0x0300 - Check For Firmware File	| Firmware Upgrade Filename		|
+0x0301 - Read Firmware File		|					|
+0x0303 - Close Firmware File		|					|
+0x0500 - Enter Sleep Mode		|					|
+0x0501 - Exit Sleep Mode		|					|
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
+Sometimes the NMP's hardware will generate Game Pak IRQs on its own. While not exactly commands, these IRQs produce data that can be read in much the same way. That is to say, they'll have a Command ID, Status Data, and SD Card Data if applicable.
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+Command	ID				| Parameters				| SD Card Data
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x8001 - Initialize NMP Hardware	|					|
+0x8600 - Headphone Status		| Headphone Plugged-In Flag		|
+0x8100 - Update Audio			| Audio Buffer / Trackbar / Timestamp	| Audio Samples
+----------------------------------------------------------------------------------------------------------------------------------------------
 
 -----------------------------------------------------------------------
-Command 0x0010 - Unknown Command
+Command 0x0010 - Begin File/Folder List
 -----------------------------------------------------------------------
 
 Unknown command. Possibly filesystem related.
@@ -161,7 +197,7 @@ Unknown command. Possibly filesystem related.
 
 
 -----------------------------------------------------------------------
-Command 0x0011 - Unknown Command
+Command 0x0011 - Continue File/Folder List
 -----------------------------------------------------------------------
 
 Unknown command. Possibly filesystem related.
