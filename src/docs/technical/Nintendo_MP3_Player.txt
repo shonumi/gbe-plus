@@ -276,6 +276,142 @@ This command continues reading the names of every file and folder in the current
 
 
 -----------------------------------------------------------------------
+Command 0x0020 - Change Directory
+-----------------------------------------------------------------------
+Parameters :
+
+Byte 0x0000 - 0x0209	New Directory		ASCII String
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4020
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+Changes the current directory that the NMP will use to look for folder or music files. It accepts an ASCII string for the new directory. To go backwards one directory, the string ".." is used.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0040 - Grab ID3 Data
+-----------------------------------------------------------------------
+Parameters :
+
+Byte 0x0000 - 0x0209	Music Filename		ASCII String
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4040
+-----------------------------------------------------------------------
+SD Card Data:
+
+Byte 0x0000 - 0x0087	Song Title		ASCII String
+Byte 0x0088 - 0x010F	Song Artist		ASCII String
+-----------------------------------------------------------------------
+
+Requests the ID3 data for a given MP3 file. It will only return the song's Title and Artist fields. Each field is allotted a total of 68 characters. The NMP's software calls this command before actually playing a file.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0050 - Play Music File
+-----------------------------------------------------------------------
+Parameters :
+
+Byte 0x0000 - 0x0209	Music Filename		ASCII String
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4050
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+Begins playback of the specified audio file. This command itself does not deal with audio data, rather, it instructs the hardware to start generating samples. After issuing this command, the NMP will periodically generate additional Game Pak IRQs that have the 0x8100 Command ID and return either audio sample data or updates to the timestamp and trackbar progress.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0051 - Stop Music Playback
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4051
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+This command halts all music playback and ends all Game Pak IRQs for audio samples or timestamp and trackbar progress. The NMP software returns control of the menu to player so they can navigate the current directory for folders or music files.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0052 - Pause Music Playback
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4052
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+This command temporarily pauses music playback. Game Pak IRQs for audio samples or timestamp and trackbar progress are put on hold until another command is issued to resume playback.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0053 - Resume Music Playback
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4053
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+This command resumes music playback after it has been temporarily put on hold. Game Pak IRQs for audio samples or timestamp and trackbar progress will continue after sending this command.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x0080 - Adjust Volume
+-----------------------------------------------------------------------
+Parameters :
+
+Byte 0x0000 - 0x0001	New Volume		0x0000 - 0x002E
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4080
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+This command adjusts the volume of music playback. The new volume is passed as a parameter, which ranges from 0x00 to 0x2E. Note that this command only affects the volume when using headphones in the cartridge's 3.5mm jack (not the GBA's). It will not change the volume when using any of the GBA for audio output. Users are expected to manually adjust the volume dial/slider on the handheld. A Game Pak IRQ is generated when inserting or removing headphones, which alerts the software on the current headphone status.
+
+
+
+
+-----------------------------------------------------------------------
 Command 0x0200 - Play Sound Effect
 -----------------------------------------------------------------------
 Parameters : N/A
