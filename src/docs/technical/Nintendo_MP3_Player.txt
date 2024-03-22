@@ -191,7 +191,7 @@ Command	ID				| Parameters				| SD Card Data
 0x0011 - Continue File/Folder List	|					| 1 File/Folder Entry
 0x0020 - Change Directory		| Directory Name			|
 0x0030 - Unknown Command		|					|
-0x0040 - Grab ID3 Data			| Music Filename			| ID3 Tags For Title and Artist
+0x0040 - Grab ID3 Data			| Music Filename, Access Index		| ID3 Tags For Title and Artist
 0x0050 - Play Music File		| Music Filename			|
 0x0051 - Stop Music Playback		|					|
 0x0052 - Pause Music Playback		|					|
@@ -305,6 +305,7 @@ Byte 0x0000 - 0x0209	Music Filename		ASCII String
 Status Data :
 
 Byte 0x0000 - 0x0001	Command ID		0x4040
+Byte 0x0006 - 0x0007	Access Index		0x0101
 -----------------------------------------------------------------------
 SD Card Data:
 
@@ -313,6 +314,8 @@ Byte 0x0088 - 0x010F	Song Artist		ASCII String
 -----------------------------------------------------------------------
 
 Requests the ID3 data for a given MP3 file. It will only return the song's Title and Artist fields. Each field is allotted a total of 68 characters. The NMP's software calls this command before actually playing a file.
+
+This command returns a 16-bit Index in Status Data that must first be accessed before reading the actual data through the SD Card interface. It seems as though the first time this command is called, the software assumes Access Index can be any arbitrary value, however, subsequent commands to grab ID3 data expect the value to be 0x0101.
 
 
 
@@ -470,6 +473,8 @@ Byte 0x0000 - Size	File Contents
 
 This command appears to read the firmware file if it exists. The File Opened Flag determines whether or not the file was successfully opened. If that is the case, the contents of the file are available to read via the SD Card interface. The File Size determines how many bytes should be read from the SD Card. Note that while the File Size can be read as a 32-bit value, the NMP software forcibly masks it to 16-bits.
 
+It appears that if the contents of the firmware update file do not match what the NMP's software expects, it aborts actually trying to load that data into firmware. Although no real firmware update file for the NMP exists, the cartridge's ROM suggests it had a specific header, similar to the firmware updates for the original Play-Yan.
+
 
 
 
@@ -490,6 +495,78 @@ This command appears to close the firmware file if it was previously opened.
 
 
 
+
+-----------------------------------------------------------------------
+Command 0x8001 - Initialize NMP Hardware
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x8001
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+After firmware copied from ROM and written to the NMP on boot, the cartridge generates a Game Pak IRQ with this Command ID. The software will wait indefinitely for this IRQ to fire. It will also periodically timeout and attempt to re-upload firmware again. This IRQ signals that the firmware was successful in loading and running on the NMP. As such, it is the very first Game Pak IRQ used after the GBA is turned on.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x8600 - Headphone Status
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x8600
+Byte 0x0002 - 0x0003	Headphone Flag		0x00 = No Headphones, 0x01 = Headphones plugged-in
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------
+
+Whenever headphones are inserted or removed from the NMP's 3.5mm jack, a Game Pak IRQ is generated. Additionally, immediately after the NMP hardware has been initialized, the cartridge generates a Game Pak IRQ with this Command ID (ensuring that headphones are detected after booting). The IRQ reports the status of whether headphones are plugged-in/removed, using a single byte in Status Data as a flag. Note that this IRQ is only generated for headphones inside the cartridge itself and is completely unrelated to the GBA's or DS' 3.5mm jack.
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x8100 - Update Audio
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x8100
+Byte 0x0002 - 0x0003	Audio Buffer Size	0x0000 - 0x0480
+Byte 0x0004 - 0x0005	Access Index
+Byte 0x0008		Trackbar Position	0x00 - 0x63
+Byte 0x000C - 0x000F	Song Timestamp
+-----------------------------------------------------------------------
+SD Card Data: (The below numbers are an example, assuming Audio Buffer Size = 0x480)
+
+Byte 0x0000 - 0x023F 	Audio Buffer 1
+Byte 0x0000 - 0x023F	Audio Buffer 2
+-----------------------------------------------------------------------
+
+After issuing either the 0x50 or 0x200 commands, the NMP hardware will begin generating Game Pak IRQs that return audio samples via the SD Card interface. These IRQs return a lot of Status Data that indicates what is being updated.
+
+The first is a 16-bit value that dictates the Audio Buffer Size in bytes. Its maximum value is 0x0480, however, it may be smaller. Audio Buffer Size should *always* be a multiple of 16.  The second is a 16-bit value that indicates the Index that needs to be accessed before any audio samples can be read. Unlike the 0x0040 command used to grab ID3 data, Access Index here is completely arbitrary and determined by the hardware, i.e. it may not always have a fixed value.
+
+Trackbar Position represents current playback position as a percentage. 0% is at the very beginning of a song, 50% is at the exact middle of a song, and 99% is at the very end of a song. Going further actually pushes the trackbar indicator offscreen. As such, this value only accepts an 8-bit value with a range of 0 to 99.
+
+Song Timestamp is the current playback position is seconds. Although it should technically work as 32-bit value, it actually seems to work best as a 24-bit MSB value, using bytes 0x0F, 0x0C, and 0xD in that order. Whereas these bytes add multiple powers of 2 (65536, 256, and 1) to the timestamp, bytes 0x0E adds 1216 seconds to the timestamp.
+
+If the Access Index is zero, that means the cartridge is updating the Trackbar Position and Song Timestamp. In this case, no audio samples are returned. Otherwise, the specified Index is accessed and data is read through the SD Card interface. The data is split into 2 separate buffers, Audio Buffer 1 and Audio Buffer 2. Each buffer contains half of sound samples. It should be noted that while Audio Buffer 1 uses the Index from Status Data, the Index for Audio Buffer 2 is determined as such:
+
+ACCESS_INDEX_2 = ACCESS_INDEX_1 + (AUDIO_BUFFER_SIZE / 4)
+
+2 separate reads from the SD Card interface are required to read all audio data as a result of this process. Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.
+
+
 ***************************************************
 7. Firmware Update
 ***************************************************
@@ -498,4 +575,4 @@ The NMP apparently has the ability to update its built-in firmware. After loadin
 
 One interesting detail is that the maximum file size for firmware was supposed to be 65,536 bytes. This is significantly lower than the only known firmware update given for original Play-Yan, which came in around 554KB. The firmware for the NMP was likely far less complicated, perhaps as a result of the hardware lacking any video decoding and focusing exclusively on audio processing.
 
- 
+The firmware update file has to follow some sort of format to be considered valid. The NMP software checks for the presence of the string "Nintendo MP3 Player firmware update program" at the very start of the file's data, much like the original Play-Yan expects of its firmware updates.
