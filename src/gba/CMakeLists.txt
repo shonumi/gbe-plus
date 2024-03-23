@@ -40,16 +40,16 @@ set(HEADERS
 
 add_library(gba STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(gba ${SDL2_LIBRARY}) 
+target_link_libraries(gba SDL2::SDL2)
 
 if (LINK_CABLE)
-    target_link_libraries(gba ${SDL2NET_LIBRARY})
+	target_link_libraries(gba SDL2_net::SDL2_net)
 endif()
 
 if (USE_OGL)
-    target_link_libraries(gba ${OPENGL_gl_LIBRARY})
+	target_link_libraries(gba OpenGL::GL)
 endif()
 
 if (WIN32)
-    target_link_libraries(gba ${GLEW_LIBRARY})
+	target_link_libraries(gba GLEW::GLEW)
 endif()
