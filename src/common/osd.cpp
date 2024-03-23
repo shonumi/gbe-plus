@@ -25,7 +25,6 @@ bool load_osd_font()
 	if(!file.is_open())
 	{
 		std::cout<<"GBE::Could not open font file " << font_file << ". Check file path or permissions. \n";
-		config::use_osd = false;
 		return false; 
 	}
 
@@ -70,6 +69,7 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 {
 	//Abort OSD drawing if 1) OSD disabled, 2) message size is zero, 3) given buffer is less than 20 8x8 tiles, 4) X offset is >= 20
 	if(!config::use_osd) { return; }
+	if(config::osd_font.empty()) { return; }
 	if(osd_text.size() == 0) { return; }
 	if(osd_surface.size() < 1280) { return; }
 	if(x_offset > ((config::sys_width / 8) - 1)) { return; }
@@ -155,6 +155,7 @@ void draw_osd_msg(std::string osd_text, u32* osd_surface, u8 x_offset, u8 y_offs
 {
 	//Abort OSD drawing if 1) OSD disabled, 2) message size is zero, 3) given buffer is less than 20 8x8 tiles, 4) X offset is >= 20
 	if(!config::use_osd) { return; }
+	if(config::osd_font.empty()) { return; }
 	if(osd_text.size() == 0) { return; }
 	if(osd_surface_size < 1280) { return; }
 	if(x_offset > ((config::sys_width / 8) - 1)) { return; }
@@ -240,6 +241,7 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 {
 	//Abort OSD drawing if 1) OSD disabled, 2) message size is zero, 3) given buffer is less than 20 8x8 tiles, 4) X offset is >= 20
 	if(!config::use_osd) { return; }
+	if(config::osd_font.empty()) { return; }
 	if(osd_text.size() == 0) { return; }
 	if(osd_surface.size() < 1280) { return; }
 	if(x_offset > ((width / 8) - 1)) { return; }
