@@ -170,7 +170,7 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	hw_screen->installEventFilter(this);
 
 	QVBoxLayout* layout = new QVBoxLayout;
-	layout->setContentsMargins(0, 0, 0, -1);
+	layout->setContentsMargins(0, 0, 0, 0);
 	layout->addWidget(sw_screen);
 	layout->addWidget(hw_screen);
 	layout->setMenuBar(menu_bar);
@@ -989,14 +989,7 @@ void main_menu::boot_game()
 /****** Updates the main window ******/
 void main_menu::paintEvent(QPaintEvent* event)
 {
-	if(qt_gui::screen == NULL)
-	{
-		QPainter painter(this);
-		painter.setBrush(Qt::black);
-		painter.drawRect(0, 0, width(), height());
-	}
-
-	else
+	if(qt_gui::screen != NULL)
 	{
 		//Check for resize
 		if(settings->resize_screen)
