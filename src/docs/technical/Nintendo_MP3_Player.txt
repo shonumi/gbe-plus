@@ -74,7 +74,7 @@ After the firmware is completely loaded from the NMP's ROM, a single Game Pak IR
 
 
 ***************************************************
-5. Indices
+5. Index Overview
 ***************************************************
 
 While most indices appear to be used for accessing firmware, some have other purposes. These are accessed in a similar manner to firmware. Here, however, the value representing INPUT_PARAMATER is always 0x0000:
@@ -104,15 +104,15 @@ Index	| Description
 0x0101	| Access ID3 Data
 0x010F	| Send Command / Get Ticks
 0x0110	| Check Cartridge I/O Busy Flag
-0x--0-	| Audio Buffer 1
-0x--8-	| Audio Buffer 2
+0x----	| Audio Buffer 1
+0x----	| Audio Buffer 2
 ------------------------------------------------------------------------
 
 Index 0x0000 : Access SD Card Data
 This index is accessed after issuing a command that expects to receive data from the SD card. That data is available at NMP_DATA_OUT.
 
 Index 0x00FF : Data Flush
-This index typically accessed after commands are issued. It seems like it's used to flush input data. After accessing this index, 16-bits are written to NMP_DATA_IN, with the value being 0x0000
+This index typically accessed after commands are issued. It seems like it's used to flush input data. After accessing this index, 16-bits are written to NMP_DATA_IN, with the value being 0x0000.
 
 Index 0x0100 : Get Game Pak IRQ Status Data
 This index is accessed immediately following a Game Pak IRQ. The NMP's software reads 16 bytes of status data from NMP_DATA_OUT related to the recent IRQ. This status data contains the Command ID associated with the IRQ as well as any additional parameters for the command. These parameters are used to update various things such as the music trackbar, music timestamp, fast forward/rewind, speed, volume, etc. Typically, the NMP's software will read the first 8 bytes of status data to determine if it's valid, then proceed to read the entire 16 bytes.
@@ -126,11 +126,11 @@ This index has two uses when writing to NMP_DATA_OUT and when reading from NMP_D
 Index 0x0110 : Check Cartridge I/O Busy Flag
 This index is accessed immediately following the last access to 0x0100. It's used to get the cartridge's I/O busy status. After accessing this index, a single 16-bit value from NMP_DATA_OUT is read. Any non-zero values indicate that the cartridge is still busy, presumbly with data from a previous Game Pak IRQ. This index can be accessed indefinitely until NMP_DATA_OUT returns zero, at which point additional commands can be issued.
 
-Index 0x--0- : Audio Buffer 1
+Index 0x---- : Audio Buffer 1
 This index is access after issuing the 0x0050 command and the NMP generates internal Game Pak IRQs with a Command ID that reads 0x8100. The status data for those internal IRQs will have 16-bit values that determine the exact index the NMP will assign for its audio buffers. This value appears arbitrary, so the index may not have a fixed position. The data is available at NMP_DATA_OUT and represents 8-bit samples compatible with the GBA's DMA sound channels. The buffer is split in half, with the first portion requiring access to this index.
 
-Index 0x--8- : Audio Buffer 2
-This index is much the same as Audio Buffer 1. Accessing this will pull up the second portion of the audio buffer, which contains 8-bit samples. The only thing different about this index is its location. When the NMP generates internal Game Pak IRQs with 0x8100 as the Command ID, the 16-bit index representing Audio Buffer 1 is OR'ed with the value 0x0080 to get the index of Audio Buffer 2.  
+Index 0x---- : Audio Buffer 2
+This index is much the same as Audio Buffer 1. Accessing this will pull up the second portion of the audio buffer, which contains 8-bit samples. The only thing different about this index is its location. When the NMP generates internal Game Pak IRQs with 0x8100 as the Command ID, the 16-bit index representing Audio Buffer 1 is incremented by the number of audio samples divided by 4 to get the index of Audio Buffer 2.  
 
 
 ***************************************************
@@ -568,7 +568,7 @@ ACCESS_INDEX_2 = ACCESS_INDEX_1 + (AUDIO_BUFFER_SIZE / 4)
 
 
 ***************************************************
-7. Firmware Update
+8. Firmware Update
 ***************************************************
 
 The NMP apparently has the ability to update its built-in firmware. After loading the default firmware from ROM, it will search for an update file called "meteor.fup". This functionality is similar to the original Play-Yan that expanded its features (such as MP4 support). Strangely enough, it seems no such firmware update file was ever published by Nintendo. The NMP manual makes no mention of this functionality either. Currently, it remains unknown what sort of upgrades any new firmware might have brought or why Nintendo decided to leave upgrades as a future option. At any rate, it is completely unused at this time.
