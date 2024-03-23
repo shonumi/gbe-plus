@@ -330,16 +330,20 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.nmp_manual_cmd = 0x8100;
 				play_yan.irq_delay = 60;
 
+				play_yan.update_audio_stream = true;
+
 				//Prioritize audio stream updates
 				if(play_yan.update_audio_stream)
 				{
-					//Audio buffer size (max 0x480)
-					play_yan.nmp_status_data[2] = 0x04;
-					play_yan.nmp_status_data[3] = 0x80;
+					//Audio buffer size (max 0x480), *MUST* be a multiple of 16!
+					play_yan.nmp_status_data[2] = (play_yan.audio_buffer_size >> 8);
+					play_yan.nmp_status_data[3] = (play_yan.audio_buffer_size & 0xFF);
 
 					//SD Card access ID - Seems arbitrary, so forced to 0x0202 here
 					play_yan.nmp_status_data[4] = 0x02;
 					play_yan.nmp_status_data[5] = 0x02;
+
+					play_yan.nmp_audio_index = 0x202 + (play_yan.audio_buffer_size / 4);
 				}
 
 				else if(play_yan.update_trackbar_timestamp)
@@ -383,7 +387,7 @@ void AGB_MMU::access_nmp_io()
 	play_yan.firmware_addr = 0;
 
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
-	if((play_yan.access_param) && (play_yan.access_param != 0x101) && (play_yan.access_param != 0x202) && (play_yan.access_param != 0x282))
+	if((play_yan.access_param) && (play_yan.access_param != 0x101) && (play_yan.access_param != 0x202) && (play_yan.access_param != play_yan.nmp_audio_index))
 	{
 		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
@@ -486,10 +490,7 @@ void AGB_MMU::access_nmp_io()
 					}
 
 					//Set file/folder flag expected by NMP. 0x01 = Folder, 0x02 = File
-					play_yan.card_data[524] = (is_folder) ? 0x01 : 0x02;
 					play_yan.card_data[525] = (is_folder) ? 0x01 : 0x02;
-					play_yan.card_data[526] = (is_folder) ? 0x01 : 0x02;
-					play_yan.card_data[527] = (is_folder) ? 0x01 : 0x02;
 				}
 
 				break;

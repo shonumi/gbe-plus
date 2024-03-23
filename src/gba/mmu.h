@@ -302,6 +302,7 @@ class AGB_MMU
 		//Nintendo MP3 data
 		u8 nmp_status_data[16];
 		u16 nmp_boot_data[2];
+		u16 nmp_audio_index;
 		u32 nmp_init_stage;
 		u16 nmp_ticks;
 		u16 nmp_manual_cmd;
@@ -347,6 +348,7 @@ class AGB_MMU
 		u32 music_length;
 		u32 video_progress;
 		u32 video_length;
+		u32 audio_buffer_size;
 		float video_current_fps;
 		float video_frame_count;
 		bool update_video_frame;

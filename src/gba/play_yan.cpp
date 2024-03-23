@@ -150,6 +150,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_length = 0;
 	play_yan.video_current_fps = 0;
 	play_yan.video_frame_count = 0;
+	play_yan.audio_buffer_size = 0;
 	play_yan.update_video_frame = false;
 	play_yan.update_audio_stream = false;
 	play_yan.update_trackbar_timestamp = false;
@@ -178,6 +179,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_entry_count = 0;
 	play_yan.nmp_manual_cmd = 0;
 	play_yan.nmp_init_stage = 0;
+	play_yan.nmp_audio_index = 0;
 	play_yan.nmp_valid_command = false;
 	play_yan.nmp_manual_irq = false;
 	play_yan.nmp_title = "";
