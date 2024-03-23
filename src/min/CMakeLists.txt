@@ -25,16 +25,16 @@ set(HEADERS
 
 add_library(min STATIC ${SRCS} ${HEADERS})
 
-target_link_libraries(min common ${SDL2_LIBRARY})
+target_link_libraries(min common SDL2::SDL2)
 
 if (LINK_CABLE)
-    target_link_libraries(min ${SDL2NET_LIBRARY})
+	target_link_libraries(min SDL2_net::SDL2_net)
 endif()
 
 if (USE_OGL)
-    target_link_libraries(min ${OPENGL_gl_LIBRARY})
+	target_link_libraries(min OpenGL::GL)
 endif()
 
 if (WIN32)
-    target_link_libraries(min ${GLEW_LIBRARY})
+	target_link_libraries(min GLEW::GLEW)
 endif() 
