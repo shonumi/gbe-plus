@@ -111,6 +111,26 @@ u8 AGB_MMU::read_nmp(u32 address)
 				result = play_yan.nmp_status_data[play_yan.nmp_data_index++];
 			}
 
+			//Manually trigger secondary 0x8100 IRQs - 1st = Process Audio Samples, 2nd = Update Timestamp 
+			if(play_yan.nmp_manual_irq)
+			{
+				play_yan.nmp_read_count++;
+				u32 limit = (play_yan.audio_buffer_size / 4);
+
+				if(play_yan.nmp_read_count == limit)
+				{
+					play_yan.nmp_read_count = 0;
+					play_yan.nmp_manual_irq = false;
+					play_yan.update_audio_stream = false;
+					play_yan.update_trackbar_timestamp = true;
+
+					play_yan.nmp_manual_cmd = 0x8100;
+					play_yan.irq_delay = 0;
+					process_play_yan_irq();
+					play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+				}
+			}
+
 			break;
 	}
 
@@ -247,6 +267,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4050;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+			play_yan.update_audio_stream = true;
 
 			//Get music file
 			play_yan.current_music_file = "";
@@ -271,6 +292,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4051;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
+			
+			play_yan.update_audio_stream = false;
+			play_yan.update_trackbar_timestamp = false;
 
 			play_yan.nmp_manual_cmd = 0;
 			play_yan.irq_delay = 0;
@@ -328,9 +352,9 @@ void AGB_MMU::process_nmp_cmd()
 			if(play_yan.is_music_playing)
 			{
 				play_yan.nmp_manual_cmd = 0x8100;
-				play_yan.irq_delay = 60;
+				play_yan.irq_delay = 1;
 
-				play_yan.update_audio_stream = true;
+				play_yan.audio_buffer_size = 32;
 
 				//Prioritize audio stream updates
 				if(play_yan.update_audio_stream)
@@ -356,6 +380,9 @@ void AGB_MMU::process_nmp_cmd()
 					play_yan.nmp_status_data[15] = 0x00;
 					play_yan.nmp_status_data[12] = 0x00;
 					play_yan.nmp_status_data[13] = 0x00;
+
+					play_yan.update_audio_stream = true;
+					play_yan.update_trackbar_timestamp = false;
 				}
 			}
 
@@ -389,7 +416,7 @@ void AGB_MMU::access_nmp_io()
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
 	if((play_yan.access_param) && (play_yan.access_param != 0x101) && (play_yan.access_param != 0x202) && (play_yan.access_param != play_yan.nmp_audio_index))
 	{
-		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
 
 		u16 stat_data = 0;
@@ -527,6 +554,13 @@ void AGB_MMU::access_nmp_io()
 
 			//Music Data
 			case 0x8100:
+				//Manually trigger another 0x8100 to update timestamp separately from audio buffer
+				if((play_yan.access_param == play_yan.nmp_audio_index) && (play_yan.update_trackbar_timestamp))
+				{
+					play_yan.nmp_manual_irq = true;
+					play_yan.nmp_read_count = 0;
+				}
+
 				break;
 		}
 	}

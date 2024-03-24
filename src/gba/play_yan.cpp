@@ -177,6 +177,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_cmd_status = 0;
 	play_yan.nmp_ticks = 0;
 	play_yan.nmp_entry_count = 0;
+	play_yan.nmp_read_count = 0;
 	play_yan.nmp_manual_cmd = 0;
 	play_yan.nmp_init_stage = 0;
 	play_yan.nmp_audio_index = 0;
@@ -953,6 +954,7 @@ void AGB_MMU::process_play_yan_irq()
 		play_yan.nmp_status_data[1] = (play_yan.cmd & 0xFF);
 		play_yan.nmp_data_index = 0;
 		play_yan.access_param = 0;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		memory_map[REG_IF+1] |= 0x20;
 
