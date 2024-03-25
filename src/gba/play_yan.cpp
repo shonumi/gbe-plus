@@ -151,6 +151,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_current_fps = 0;
 	play_yan.video_frame_count = 0;
 	play_yan.audio_buffer_size = 0;
+	play_yan.audio_frame_count = 0;
 	play_yan.update_video_frame = false;
 	play_yan.update_audio_stream = false;
 	play_yan.update_trackbar_timestamp = false;

@@ -350,6 +350,7 @@ class AGB_MMU
 		u32 video_progress;
 		u32 video_length;
 		u32 audio_buffer_size;
+		u32 audio_frame_count;
 		float video_current_fps;
 		float video_frame_count;
 		bool update_video_frame;

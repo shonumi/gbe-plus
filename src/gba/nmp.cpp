@@ -292,6 +292,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4051;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
+
+			play_yan.audio_frame_count = 0;
+			play_yan.tracker_update_size = 0;
 			
 			play_yan.update_audio_stream = false;
 			play_yan.update_trackbar_timestamp = false;
@@ -368,6 +371,14 @@ void AGB_MMU::process_nmp_cmd()
 					play_yan.nmp_status_data[5] = 0x02;
 
 					play_yan.nmp_audio_index = 0x202 + (play_yan.audio_buffer_size / 4);
+					play_yan.audio_frame_count++;
+
+					if(play_yan.audio_frame_count == 60)
+					{
+						play_yan.audio_frame_count = 0;
+						play_yan.update_trackbar_timestamp = true;
+						play_yan.tracker_update_size++;
+					}
 				}
 
 				else if(play_yan.update_trackbar_timestamp)
@@ -377,9 +388,9 @@ void AGB_MMU::process_nmp_cmd()
 
 					//Song timestamp in seconds
 					//Treated here as a 24-bit MSB value, with bytes 15, 12, and 13 (in that order)
-					play_yan.nmp_status_data[15] = 0x00;
-					play_yan.nmp_status_data[12] = 0x00;
-					play_yan.nmp_status_data[13] = 0x00;
+					play_yan.nmp_status_data[15] = (play_yan.tracker_update_size >> 16) & 0xFF;
+					play_yan.nmp_status_data[12] = (play_yan.tracker_update_size >> 8) & 0xFF;
+					play_yan.nmp_status_data[13] = (play_yan.tracker_update_size & 0xFF);
 
 					play_yan.update_audio_stream = true;
 					play_yan.update_trackbar_timestamp = false;
