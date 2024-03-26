@@ -1554,7 +1554,11 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	if(song_samples % (u32)apu_stat->ext_audio.frequency) { song_seconds += 1; }
 	
 	play_yan.music_length = song_seconds;
-	play_yan.tracker_update_size = (0x6400 / play_yan.music_length);
+
+	if(play_yan.type != NINTENDO_MP3)
+	{
+		play_yan.tracker_update_size = (0x6400 / play_yan.music_length);
+	}
 
 	std::cout<<"MMU::Play-Yan loaded audio file: " << filename << "\n";
 

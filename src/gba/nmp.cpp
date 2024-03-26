@@ -280,6 +280,8 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.current_music_file += chr;
 			}
 
+			play_yan_load_audio(play_yan.current_dir + "/" + play_yan.current_music_file);
+
 			//Trigger additional IRQs for processing music
 			play_yan.nmp_manual_cmd = 0x8100;
 			play_yan.irq_delay = 10;
@@ -427,7 +429,7 @@ void AGB_MMU::access_nmp_io()
 	//Determine which kinds of data to access (e.g. cart status, hardware busy flag, command stuff, etc)
 	if((play_yan.access_param) && (play_yan.access_param != 0x101) && (play_yan.access_param != 0x202) && (play_yan.access_param != play_yan.nmp_audio_index))
 	{
-		std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
+		//std::cout<<"ACCESS -> 0x" << play_yan.access_param << "\n";
 		play_yan.firmware_addr = (play_yan.access_param << 1);
 
 		u16 stat_data = 0;
