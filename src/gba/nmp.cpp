@@ -386,7 +386,15 @@ void AGB_MMU::process_nmp_cmd()
 				else if(play_yan.update_trackbar_timestamp)
 				{
 					//Trackbar position - 0 to 99
-					play_yan.nmp_status_data[8] = 0x00;
+
+					if(play_yan.music_length)
+					{
+						float progress = play_yan.tracker_update_size;
+						progress /= play_yan.music_length;
+						progress *= 100.0;
+
+						play_yan.nmp_status_data[8] = u8(progress);
+					}
 
 					//Song timestamp in seconds
 					//Treated here as a 24-bit MSB value, with bytes 15, 12, and 13 (in that order)
