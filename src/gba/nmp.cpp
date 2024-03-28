@@ -387,13 +387,19 @@ void AGB_MMU::process_nmp_cmd()
 				{
 					//Trackbar position - 0 to 99
 
-					if(play_yan.music_length)
+					if(play_yan.music_length - 1)
 					{
 						float progress = play_yan.tracker_update_size;
-						progress /= play_yan.music_length;
+						progress /= play_yan.music_length - 1;
 						progress *= 100.0;
 
 						play_yan.nmp_status_data[8] = u8(progress);
+
+						if(progress >= 100)
+						{
+							play_yan.nmp_manual_cmd = 0x51;
+							play_yan.irq_delay = 1;
+						}
 					}
 
 					//Song timestamp in seconds
