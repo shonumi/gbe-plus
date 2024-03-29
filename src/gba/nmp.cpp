@@ -341,6 +341,20 @@ void AGB_MMU::process_nmp_cmd()
 			
 			break;
 
+		//Sleep Start
+		case 0x500:
+			play_yan.nmp_cmd_status = 0x8500;
+			play_yan.nmp_valid_command = true;
+
+			break;
+
+		//Sleep End
+		case 0x501:
+			play_yan.nmp_cmd_status = 0x8501;
+			play_yan.nmp_valid_command = true;
+
+			break;
+
 		//Init NMP Hardware
 		case 0x8001:
 			play_yan.nmp_cmd_status = 0x8001;
