@@ -306,6 +306,29 @@ void AGB_MMU::process_nmp_cmd()
 
 			break;
 
+		//Pause Music Playback
+		case 0x52:
+			play_yan.nmp_cmd_status = 0x4052;
+			play_yan.nmp_valid_command = true;
+			play_yan.is_music_playing = false;
+
+			play_yan.nmp_manual_cmd = 0;
+			play_yan.irq_delay = 0;
+
+			break;
+
+		//Resume Music Playback
+		case 0x53:
+			play_yan.nmp_cmd_status = 0x4053;
+			play_yan.nmp_valid_command = true;
+			play_yan.is_music_playing = true;
+
+			play_yan.nmp_manual_cmd = 0x8100;
+			play_yan.irq_delay = 1;
+			play_yan.irq_count = 0;
+
+			break;
+
 		//Adjust Volume - No IRQ generated
 		case 0x80:
 			if(play_yan.command_stream.size() >= 4)
