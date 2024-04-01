@@ -24,5 +24,5 @@ if (USE_OGL)
 endif()
 
 if (WIN32)
-	target_link_libraries(common GLEW::GLEW})
+	target_link_libraries(common GLEW::GLEW)
 endif()
