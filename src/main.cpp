@@ -19,7 +19,7 @@
 
 int main(int argc, char* args[])
 {
-	std::cout<<"GBE+ 1.7 [SDL]\n";
+	std::cout<<"GBE+ 1.8 [SDL]\n";
 
 	core_emu* gbe_plus = NULL;
 

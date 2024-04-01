@@ -1256,7 +1256,7 @@ void DMG_core::start_netplay()
 	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
 	else { std::cout<<"SIO::Netplay connection established\n"; }
 
-	#end if
+	#endif
 }
 
 /****** Stops netplay connection ******/

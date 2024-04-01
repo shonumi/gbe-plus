@@ -1342,6 +1342,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gba_bios_layout->addWidget(gba_bios_button);
 	gba_bios_set->setLayout(gba_bios_layout);
 
+	//Path settings - MIN BIOS
+	QWidget* min_bios_set = new QWidget(paths);
+	min_bios_label = new QLabel("MIN BIOS :  ");
+	QPushButton* min_bios_button = new QPushButton("Browse");
+	min_bios = new QLineEdit(paths);
+
+	QHBoxLayout* min_bios_layout = new QHBoxLayout;
+	min_bios_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	min_bios_layout->addWidget(min_bios_label);
+	min_bios_layout->addWidget(min_bios);
+	min_bios_layout->addWidget(min_bios_button);
+	min_bios_set->setLayout(min_bios_layout);
+
 	//Path settings - System Firmware
 	QWidget* nds_firmware_set = new QWidget(paths);
 	nds_firmware_label = new QLabel("NDS Firmware :  ");
@@ -1399,6 +1412,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_layout->addWidget(dmg_bios_set);
 	paths_layout->addWidget(gbc_bios_set);
 	paths_layout->addWidget(gba_bios_set);
+	paths_layout->addWidget(min_bios_set);
 	paths_layout->addWidget(nds_firmware_set);
 	paths_layout->addWidget(screenshot_set);
 	paths_layout->addWidget(game_saves_set);
@@ -1469,6 +1483,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dmg_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gbc_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(gba_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
+	connect(min_bios_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(nds_firmware_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(screenshot_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
 	connect(game_saves_button, SIGNAL(clicked()), paths_mapper, SLOT(map()));
@@ -1478,11 +1493,12 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	paths_mapper->setMapping(dmg_bios_button, 0);
 	paths_mapper->setMapping(gbc_bios_button, 1);
 	paths_mapper->setMapping(gba_bios_button, 2);
-	paths_mapper->setMapping(nds_firmware_button, 3);
-	paths_mapper->setMapping(screenshot_button, 4);
-	paths_mapper->setMapping(game_saves_button, 5);
-	paths_mapper->setMapping(cheats_path_button, 6);
-	paths_mapper->setMapping(vc_path_button, 7);
+	paths_mapper->setMapping(min_bios_button, 3);
+	paths_mapper->setMapping(nds_firmware_button, 4);
+	paths_mapper->setMapping(screenshot_button, 5);
+	paths_mapper->setMapping(game_saves_button, 6);
+	paths_mapper->setMapping(cheats_path_button, 7);
+	paths_mapper->setMapping(vc_path_button, 8);
 	connect(paths_mapper, SIGNAL(mapped(int)), this, SLOT(set_paths(int)));
 
 	QSignalMapper* button_config = new QSignalMapper(this);
@@ -1960,11 +1976,12 @@ void gen_settings::set_ini_options()
 	QString path_1(QString::fromStdString(config::dmg_bios_path));
 	QString path_2(QString::fromStdString(config::gbc_bios_path));
 	QString path_3(QString::fromStdString(config::agb_bios_path));
-	QString path_4(QString::fromStdString(config::nds_firmware_path));
-	QString path_5(QString::fromStdString(config::ss_path));
-	QString path_6(QString::fromStdString(config::save_path));
-	QString path_7(QString::fromStdString(config::cheats_path));
-	QString path_8(QString::fromStdString(config::vc_file));
+	QString path_4(QString::fromStdString(config::min_bios_path));
+	QString path_5(QString::fromStdString(config::nds_firmware_path));
+	QString path_6(QString::fromStdString(config::ss_path));
+	QString path_7(QString::fromStdString(config::save_path));
+	QString path_8(QString::fromStdString(config::cheats_path));
+	QString path_9(QString::fromStdString(config::vc_file));
 
 	//Rumble
 	if(config::use_haptics) { rumble_on->setChecked(true); }
@@ -2041,11 +2058,12 @@ void gen_settings::set_ini_options()
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
 	gba_bios->setText(path_3);
-	nds_firmware->setText(path_4);
-	screenshot->setText(path_5);
-	game_saves->setText(path_6);
-	cheats_path->setText(path_7);
-	vc_path->setText(path_8);
+	min_bios->setText(path_4);
+	nds_firmware->setText(path_5);
+	screenshot->setText(path_6);
+	game_saves->setText(path_7);
+	cheats_path->setText(path_8);
+	vc_path->setText(path_9);
 }
 
 /****** Toggles whether to use the Boot ROM or BIOS ******/
@@ -2434,21 +2452,26 @@ void gen_settings::set_paths(int index)
 			break;
 
 		case 3:
+			config::min_bios_path = path.toStdString();
+			min_bios->setText(path);
+			break;
+
+		case 4:
 			config::nds_firmware_path = path.toStdString();
 			nds_firmware->setText(path);
 			break;
 
-		case 4:
+		case 5:
 			config::ss_path = path.toStdString();
 			screenshot->setText(path);
 			break;
 
-		case 5:
+		case 6:
 			config::save_path = path.toStdString();
 			game_saves->setText(path);
 			break;
 
-		case 6:
+		case 7:
 			config::cheats_path = path.toStdString();
 			cheats_path->setText(path);
 
@@ -2458,7 +2481,7 @@ void gen_settings::set_paths(int index)
 
 			break;
 
-		case 7:
+		case 8:
 			config::vc_file = path.toStdString();
 			vc_path->setText(path);
 			break;
@@ -3266,6 +3289,7 @@ void gen_settings::paintEvent(QPaintEvent* event)
 {
 	gbc_bios_label->setMinimumWidth(dmg_bios_label->width());
 	gba_bios_label->setMinimumWidth(dmg_bios_label->width());
+	min_bios_label->setMinimumWidth(dmg_bios_label->width());
 	nds_firmware_label->setMinimumWidth(dmg_bios_label->width());
 	screenshot_label->setMinimumWidth(dmg_bios_label->width());
 	game_saves_label->setMinimumWidth(dmg_bios_label->width());
