@@ -1210,6 +1210,8 @@ void DMG_core::start_netplay()
 	//Do nothing if netplay is not enabled
 	if(!config::use_netplay) { return; }
 
+	#ifdef GBE_NETPLAY
+
 	//Wait 10 seconds before timing out
 	u32 time_out = 0;
 
@@ -1253,6 +1255,8 @@ void DMG_core::start_netplay()
 
 	if(!core_cpu.controllers.serial_io.sio_stat.connected) { std::cout<<"SIO::No netplay connection established\n"; }
 	else { std::cout<<"SIO::Netplay connection established\n"; }
+
+	#end if
 }
 
 /****** Stops netplay connection ******/

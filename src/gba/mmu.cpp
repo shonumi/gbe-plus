@@ -25,6 +25,8 @@ AGB_MMU::~AGB_MMU()
 	save_backup(config::save_file);
 	memory_map.clear();
 
+	#ifdef GBE_NETPLAY
+
 	//Shutdown Campho networking
 	if(campho.ringer.connected)
 	{
@@ -35,6 +37,8 @@ AGB_MMU::~AGB_MMU()
 	}
 	
 	campho_close_network();
+
+	#endif
 	
 	std::cout<<"MMU::Shutdown\n"; 
 }
