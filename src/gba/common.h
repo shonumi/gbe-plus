@@ -233,4 +233,8 @@ const u32 CAM_ROM_CNT_B = 0xA014000;
 /* Glucoboy IO */
 const u32 GLUCO_CNT = 0xE000000;
 
+/* Agatsuma TV Tuner IO */
+const u32 TV_CNT_A = 0xE000000;
+const u32 TV_CNT_B = 0xE000001;
+
 #endif // GBA_COMMON

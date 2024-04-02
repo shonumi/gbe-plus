@@ -885,6 +885,9 @@ bool parse_cli_args()
 			//Use Glucoboy Cartridge
 			else if(config::cli_args[x] == "--agb-glucoboy") { config::cart_type = AGB_GLUCOBOY; }
 
+			//Use Agatsuma TV Tuner
+			else if(config::cli_args[x] == "--agb-tv-tuner") { config::cart_type = AGB_TV_TUNER; }
+
 			//Use Auto-Detect for GBA saves
 			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_AUTO_DETECT; }
 

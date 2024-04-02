@@ -66,6 +66,7 @@ enum special_cart_types
 	AGB_PLAY_YAN,
 	AGB_CAMPHO,
 	AGB_GLUCOBOY,
+	AGB_TV_TUNER,
 	NDS_IR_CART,
 };
 
