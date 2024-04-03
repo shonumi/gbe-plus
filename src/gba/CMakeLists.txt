@@ -21,6 +21,7 @@ set(SRCS
 	campho.cpp
 	glucoboy.cpp
 	nmp.cpp
+	tv_tuner.cpp
 	)
 
 set(HEADERS

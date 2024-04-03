@@ -263,6 +263,7 @@ u8 AGB_MMU::read_u8(u32 address)
 			if(current_save_type == SRAM) { address &= 0xF007FFF; }
 			else if(config::cart_type == AGB_PLAY_YAN) { return read_play_yan(address); }
 			else if(config::cart_type == AGB_GLUCOBOY) { return read_glucoboy(address); }
+			else if(config::cart_type == AGB_TV_TUNER) { return read_tv_tuner(address); }
 			break;
 
 		//Unused memory at 0x10000000 and above
@@ -657,6 +658,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if(current_save_type == SRAM) { address &= 0xF007FFF; }
 			else if(config::cart_type == AGB_PLAY_YAN) { write_play_yan(address, value); }
 			else if(config::cart_type == AGB_GLUCOBOY) { write_glucoboy(address, value); }
+			else if(config::cart_type == AGB_TV_TUNER) { write_tv_tuner(address, value); }
 			break;
 
 		//Unused memory at 0x10000000 and above

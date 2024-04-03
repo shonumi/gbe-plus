@@ -640,6 +640,9 @@ class AGB_MMU
 	void process_glucoboy_irq();
 	void process_glucoboy_index();
 
+	u8 read_tv_tuner(u32 address);
+	void write_tv_tuner(u32 address, u8 value);
+
 	//GPIO handling functions
 	void process_rtc();
 	void process_rumble();
