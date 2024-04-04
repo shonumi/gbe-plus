@@ -11,6 +11,17 @@
 #include "mmu.h"
 #include "common/util.h"
 
+/****** Resets ATVT data structure ******/
+void AGB_MMU::tv_tuner_reset()
+{
+	index = 0;
+	data = 0;
+	transfer_count = 0;
+
+	cnt_a = 0;
+	cnt_b = 0;
+}
+
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
@@ -23,6 +34,6 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 	u8 result = 0;
 
 	std::cout<<"TV TUNER READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
-
+	
 	return result;
 }

@@ -84,6 +84,9 @@ void AGB_MMU::reset()
 	//Reset Glucoboy data structure
 	glucoboy_reset();
 
+	//Reset TV Tuner data structure
+	tv_tuner_reset();
+
 	gpio.data = 0;
 	gpio.prev_data = 0;
 	gpio.direction = 0;

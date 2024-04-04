@@ -496,6 +496,17 @@ class AGB_MMU
 		u32 serial_number;
 	} glucoboy;
 
+	//Structure to handle the Agatsuma TV Tuner
+	struct tuner
+	{
+		u8 index;
+		u8 data;
+		u8 transfer_count;
+
+		u8 cnt_a;
+		u8 cnt_b;
+	} tv_tuner;
+
 	//Structure to handle GPIO reading and writing
 	struct gpio_controller
 	{
