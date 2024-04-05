@@ -14,18 +14,30 @@
 /****** Resets ATVT data structure ******/
 void AGB_MMU::tv_tuner_reset()
 {
-	index = 0;
-	data = 0;
-	transfer_count = 0;
+	tv_tuner.index = 0;
+	tv_tuner.data = 0;
+	tv_tuner.transfer_count = 0;
+	tv_tuner.state = TV_TUNER_NEXT_DATA;
 
-	cnt_a = 0;
-	cnt_b = 0;
+	tv_tuner.cnt_a = 0;
+	tv_tuner.cnt_b = 0;
 }
 
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
 	std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+
+	switch(address)
+	{
+		case TV_CNT_A:
+			tv_tuner.cnt_a = value;
+			break;
+
+		case TV_CNT_B:
+			tv_tuner.cnt_b = value;
+			break;	
+	}
 }
 
 /****** Reads from ATVT I/O ******/

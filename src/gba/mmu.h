@@ -132,6 +132,15 @@ class AGB_MMU
 		CAMPHO_SEND_AT_COMMAND = 0x9FF0,
 	};
 
+	//TV Tuner Operational States
+	enum tv_tuner_states
+	{
+		TV_TUNER_STOP_DATA,
+		TV_TUNER_START_DATA,
+		TV_TUNER_ACK_DATA,
+		TV_TUNER_NEXT_DATA,
+	};
+
 	backup_types current_save_type;
 
 	std::vector <u8> memory_map;
@@ -502,6 +511,7 @@ class AGB_MMU
 		u8 index;
 		u8 data;
 		u8 transfer_count;
+		tv_tuner_states state;
 
 		u8 cnt_a;
 		u8 cnt_b;
@@ -651,6 +661,7 @@ class AGB_MMU
 	void process_glucoboy_irq();
 	void process_glucoboy_index();
 
+	void tv_tuner_reset();
 	u8 read_tv_tuner(u32 address);
 	void write_tv_tuner(u32 address, u8 value);
 
