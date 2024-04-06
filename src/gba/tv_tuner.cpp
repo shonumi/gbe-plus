@@ -17,7 +17,8 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.index = 0;
 	tv_tuner.data = 0;
 	tv_tuner.transfer_count = 0;
-	tv_tuner.state = TV_TUNER_NEXT_DATA;
+	tv_tuner.state = TV_TUNER_STOP_DATA;
+	tv_tuner.data_stream.clear();
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
@@ -32,6 +33,50 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 	{
 		case TV_CNT_A:
 			tv_tuner.cnt_a = value;
+			tv_tuner.data_stream.push_back(value);
+			tv_tuner.transfer_count++;
+
+			//Reset transfer count
+			if((value & 0xF0) != 0xC0)
+			{
+				tv_tuner.transfer_count = 0;
+				tv_tuner.data_stream.clear();
+			}
+
+			//Start data transfer
+			else if((tv_tuner.state == TV_TUNER_STOP_DATA) && (tv_tuner.transfer_count == 3))
+			{
+				if((tv_tuner.data_stream[1] & 0xF3) == 0xC3)
+				{
+					std::cout<<"DATA START\n";
+
+					tv_tuner.state = TV_TUNER_START_DATA;
+					tv_tuner.data_stream.clear();
+					tv_tuner.transfer_count = 0;
+				}
+			}
+
+			//Grab 8-bit data from stream;
+			else if((tv_tuner.state == TV_TUNER_START_DATA) && (tv_tuner.transfer_count == 32))
+			{
+				tv_tuner.state == TV_TUNER_ACK_DATA;
+				tv_tuner.data = 0;
+				u8 mask = 0x80;
+
+				for(u32 x = 0; x < 8; x++)
+				{
+					if(tv_tuner.data_stream[(x * 4) + 1] & 0x01)
+					{
+						tv_tuner.data |= mask;
+					}
+
+					mask >>= 1;
+				}
+
+				std::cout<<"DATA -> 0x" << (u32)tv_tuner.data << "\n";
+				
+			}
+			
 			break;
 
 		case TV_CNT_B:

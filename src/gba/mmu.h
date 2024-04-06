@@ -512,6 +512,7 @@ class AGB_MMU
 		u8 data;
 		u8 transfer_count;
 		tv_tuner_states state;
+		std::vector<u8> data_stream;
 
 		u8 cnt_a;
 		u8 cnt_b;
