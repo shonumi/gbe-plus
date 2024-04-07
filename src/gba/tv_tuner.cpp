@@ -56,10 +56,27 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				}
 			}
 
-			//Grab 8-bit data from stream;
-			else if((tv_tuner.state == TV_TUNER_START_DATA) && (tv_tuner.transfer_count == 32))
+			//Stop data transfer
+			else if((tv_tuner.state == TV_TUNER_NEXT_DATA) && (tv_tuner.transfer_count == 3))
 			{
-				tv_tuner.state == TV_TUNER_ACK_DATA;
+				if((tv_tuner.data_stream[1] & 0xF3) == 0xC2)
+				{
+					std::cout<<"DATA STOP\n";
+
+					tv_tuner.state = TV_TUNER_STOP_DATA;
+					tv_tuner.data_stream.clear();
+					tv_tuner.transfer_count = 0;
+				}
+			}
+
+			//Grab 8-bit data from stream;
+			else if(((tv_tuner.state == TV_TUNER_START_DATA) || (tv_tuner.state == TV_TUNER_NEXT_DATA))
+			&& (tv_tuner.transfer_count == 32))
+			{
+				tv_tuner.state = TV_TUNER_ACK_DATA;
+				tv_tuner.data_stream.clear();
+				tv_tuner.transfer_count = 0;
+				
 				tv_tuner.data = 0;
 				u8 mask = 0x80;
 
@@ -74,7 +91,16 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				}
 
 				std::cout<<"DATA -> 0x" << (u32)tv_tuner.data << "\n";
-				
+			}
+
+			//Wait for acknowledgement
+			else if((tv_tuner.state == TV_TUNER_ACK_DATA) && (tv_tuner.transfer_count == 4))
+			{
+				std::cout<<"DATA ACK\n";
+
+				tv_tuner.state = TV_TUNER_NEXT_DATA;
+				tv_tuner.data_stream.clear();
+				tv_tuner.transfer_count = 0;
 			}
 			
 			break;
