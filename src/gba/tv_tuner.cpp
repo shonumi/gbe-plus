@@ -68,12 +68,29 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			{
 				if((tv_tuner.data_stream[1] & 0xF3) == start_mask)
 				{
-					std::cout<<"DATA START\n";
+					if(tv_tuner.data_stream[2] & 0x01)
+					{
+						tv_tuner.state = TV_TUNER_DELAY_DATA;
+					}
 
-					tv_tuner.state = TV_TUNER_START_DATA;
+					else
+					{
+						std::cout<<"DATA START\n";
+						tv_tuner.state = TV_TUNER_START_DATA;
+					}
+
 					tv_tuner.data_stream.clear();
 					tv_tuner.transfer_count = 0;
 				}
+			}
+
+			//Delayed start of data transfer
+			else if((tv_tuner.state == TV_TUNER_DELAY_DATA) && (tv_tuner.transfer_count == 2))
+			{
+				std::cout<<"DATA START (DELAY)\n";
+				tv_tuner.state = TV_TUNER_START_DATA;
+				tv_tuner.data_stream.clear();
+				tv_tuner.transfer_count = 0;
 			}
 
 			//Stop data transfer
