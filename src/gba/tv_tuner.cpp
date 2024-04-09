@@ -29,15 +29,35 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
 	std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
+	u8 reset_mask_a = 0xC0;
+	u8 reset_mask_b = 0x40;
+	u8 reset_mask;
+
+	u8 start_mask_a = 0xC3;
+	u8 start_mask_b = 0x43;
+	u8 start_mask;
+
+	u8 stop_mask_a = 0xC2;
+	u8 stop_mask_b = 0x42;
+	u8 stop_mask;
+
+	bool is_tv_a;
+
 	switch(address)
 	{
 		case TV_CNT_A:
+		case TV_CNT_B:
+			is_tv_a = (address == TV_CNT_A);
+			reset_mask = (is_tv_a) ? reset_mask_a : reset_mask_b;
+			start_mask = (is_tv_a) ? start_mask_a : start_mask_b;
+			stop_mask = (is_tv_a) ? stop_mask_a : stop_mask_b;
+
 			tv_tuner.cnt_a = value;
 			tv_tuner.data_stream.push_back(value);
 			tv_tuner.transfer_count++;
 
 			//Reset transfer count
-			if((value & 0xF0) != 0xC0)
+			if((value & 0xF0) != reset_mask)
 			{
 				tv_tuner.transfer_count = 0;
 				tv_tuner.data_stream.clear();
@@ -46,7 +66,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Start data transfer
 			else if((tv_tuner.state == TV_TUNER_STOP_DATA) && (tv_tuner.transfer_count == 3))
 			{
-				if((tv_tuner.data_stream[1] & 0xF3) == 0xC3)
+				if((tv_tuner.data_stream[1] & 0xF3) == start_mask)
 				{
 					std::cout<<"DATA START\n";
 
@@ -59,7 +79,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Stop data transfer
 			else if((tv_tuner.state == TV_TUNER_NEXT_DATA) && (tv_tuner.transfer_count == 3))
 			{
-				if((tv_tuner.data_stream[1] & 0xF3) == 0xC2)
+				if((tv_tuner.data_stream[1] & 0xF3) == stop_mask)
 				{
 					std::cout<<"DATA STOP\n";
 
@@ -104,10 +124,6 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			}
 			
 			break;
-
-		case TV_CNT_B:
-			tv_tuner.cnt_b = value;
-			break;	
 	}
 }
 
