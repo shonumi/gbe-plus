@@ -85,7 +85,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			}
 
 			//Delayed start of data transfer
-			else if((tv_tuner.state == TV_TUNER_DELAY_DATA) && (tv_tuner.transfer_count == 2))
+			else if((tv_tuner.state == TV_TUNER_DELAY_DATA) && (tv_tuner.transfer_count == 1))
 			{
 				std::cout<<"DATA START (DELAY)\n";
 				tv_tuner.state = TV_TUNER_START_DATA;
@@ -102,6 +102,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 					tv_tuner.data_stream.clear();
+					tv_tuner.cmd_stream.clear();
 					tv_tuner.transfer_count = 0;
 				}
 			}
@@ -127,7 +128,26 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 					mask >>= 1;
 				}
 
+				tv_tuner.cmd_stream.push_back(tv_tuner.data);
+
+				//Check for specific commands
+				process_tv_tuner_cmd();
+
 				std::cout<<"DATA -> 0x" << (u32)tv_tuner.data << "\n";
+			}
+
+			//Read data into stream
+			if(tv_tuner.state == TV_TUNER_READ_DATA)
+			{
+				//TODO - Output bits every 3 transfers
+
+				if(tv_tuner.transfer_count == 24)
+				{
+					tv_tuner.state = TV_TUNER_ACK_DATA;
+					tv_tuner.data_stream.clear();
+					tv_tuner.cmd_stream.clear();
+					tv_tuner.transfer_count = 0;
+				}
 			}
 
 			//Wait for acknowledgement
@@ -138,6 +158,9 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				tv_tuner.state = TV_TUNER_NEXT_DATA;
 				tv_tuner.data_stream.clear();
 				tv_tuner.transfer_count = 0;
+
+				//Check for specific commands
+				process_tv_tuner_cmd();
 			}
 			
 			break;
@@ -152,4 +175,21 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 	std::cout<<"TV TUNER READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 	
 	return result;
+}
+
+/****** Handles ATVT commands ******/
+void AGB_MMU::process_tv_tuner_cmd()
+{
+	//D8 command -> Writes INDEX : VALUE pairs
+	//if((tv_tuner.cmd_stream.size() == 3) && (tv_tuner.cmd_stream[0] == 0xD8) && (tv_tuner.state == TV_TUNER_ACK_DATA))
+	//{
+	//	std::cout<<"CMD 0xD8 -> 0x" << (u32)tv_tuner.cmd_stream[1] << " :: 0x" << (u32)tv_tuner.cmd_stream[2] << "\n";
+	//}
+
+	//D9 command -> Reads a single 8-bit value
+	if((tv_tuner.cmd_stream.size() == 1) && (tv_tuner.cmd_stream[0] == 0xD9) && (tv_tuner.state == TV_TUNER_NEXT_DATA))
+	{
+		std::cout<<"START READ\n";
+		tv_tuner.state = TV_TUNER_READ_DATA;
+	}
 }

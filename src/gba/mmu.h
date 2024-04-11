@@ -140,6 +140,7 @@ class AGB_MMU
 		TV_TUNER_DELAY_DATA,
 		TV_TUNER_ACK_DATA,
 		TV_TUNER_NEXT_DATA,
+		TV_TUNER_READ_DATA,
 	};
 
 	backup_types current_save_type;
@@ -514,6 +515,7 @@ class AGB_MMU
 		u8 transfer_count;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
+		std::vector<u8> cmd_stream;
 
 		u8 cnt_a;
 		u8 cnt_b;
@@ -666,6 +668,7 @@ class AGB_MMU
 	void tv_tuner_reset();
 	u8 read_tv_tuner(u32 address);
 	void write_tv_tuner(u32 address, u8 value);
+	void process_tv_tuner_cmd();
 
 	//GPIO handling functions
 	void process_rtc();
