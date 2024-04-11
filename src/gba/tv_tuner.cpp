@@ -19,6 +19,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.transfer_count = 0;
 	tv_tuner.state = TV_TUNER_STOP_DATA;
 	tv_tuner.data_stream.clear();
+	tv_tuner.read_request = false;
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
@@ -93,17 +94,34 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				tv_tuner.transfer_count = 0;
 			}
 
-			//Stop data transfer
-			else if((tv_tuner.state == TV_TUNER_NEXT_DATA) && (tv_tuner.transfer_count == 3))
+			//Stop data transfer - After Write Request
+			else if((tv_tuner.state == TV_TUNER_NEXT_DATA) && (tv_tuner.transfer_count == 3) && (!tv_tuner.read_request))
 			{
 				if((tv_tuner.data_stream[1] & 0xF3) == stop_mask)
 				{
-					std::cout<<"DATA STOP\n";
+					std::cout<<"DATA STOP - WRITE\n";
 
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 					tv_tuner.data_stream.clear();
 					tv_tuner.cmd_stream.clear();
 					tv_tuner.transfer_count = 0;
+					tv_tuner.read_request = false;
+				}
+			}
+
+			//Stop data transfer - After Read Request
+			else if((tv_tuner.state == TV_TUNER_NEXT_DATA) && (tv_tuner.transfer_count == 4) && (tv_tuner.read_request))
+			{
+				if(((tv_tuner.data_stream[0] & 0x03) == 0x01) && ((tv_tuner.data_stream[1] & 0x03) == 0x00)
+				&& ((tv_tuner.data_stream[2] & 0x03) == 0x02) && ((tv_tuner.data_stream[3] & 0x03) == 0x03))
+				{
+					std::cout<<"DATA STOP - READ\n";
+
+					tv_tuner.state = TV_TUNER_STOP_DATA;
+					tv_tuner.data_stream.clear();
+					tv_tuner.cmd_stream.clear();
+					tv_tuner.transfer_count = 0;
+					tv_tuner.read_request = false;
 				}
 			}
 
@@ -191,5 +209,6 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		std::cout<<"START READ\n";
 		tv_tuner.state = TV_TUNER_READ_DATA;
+		tv_tuner.read_request = true;
 	}
 }

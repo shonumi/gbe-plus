@@ -516,6 +516,7 @@ class AGB_MMU
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
 		std::vector<u8> cmd_stream;
+		bool read_request;
 
 		u8 cnt_a;
 		u8 cnt_b;
