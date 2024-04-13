@@ -20,6 +20,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.state = TV_TUNER_STOP_DATA;
 	tv_tuner.data_stream.clear();
 	tv_tuner.read_request = false;
+	tv_tuner.render_frame = false;
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
@@ -28,7 +29,7 @@ void AGB_MMU::tv_tuner_reset()
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
-	//std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	u8 reset_mask_a = 0xC0;
 	u8 reset_mask_b = 0x40;
@@ -161,6 +162,13 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 					tv_tuner.data_stream.clear();
 					tv_tuner.cmd_stream.clear();
 					tv_tuner.transfer_count = 0;
+
+					//Render frame
+					if(tv_tuner.render_frame)
+					{
+						tv_tuner.render_frame = false;
+						tv_tuner.cnt_a |= 0x40;
+					}
 				}
 			}
 
@@ -177,6 +185,15 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			}
 			
 			break;
+
+		case TV_CNT_C:
+			tv_tuner.cnt_a = value;
+			break;
+
+		case TV_CNT_D:
+			tv_tuner.cnt_b = value;
+			break;
+			
 	}
 }
 
@@ -230,10 +247,11 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		u8 param_1 = tv_tuner.cmd_stream[1];
 
-		//This seems to cause Bit 7 of TV_CNT_A to get set HIGH
+		//This seems to cause Bit 7 of TV_CNT_A to get set HIGH after reading a byte (via 0xD9)
+		//Appears to indicate that a video frame is ready for render
 		if(param_1 == 0x14)
 		{
-			tv_tuner.cnt_a |= 0x40;
+			tv_tuner.render_frame = true;
 		}
 
 		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";

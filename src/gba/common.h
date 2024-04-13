@@ -236,5 +236,7 @@ const u32 GLUCO_CNT = 0xE000000;
 /* Agatsuma TV Tuner IO */
 const u32 TV_CNT_A = 0xE000000;
 const u32 TV_CNT_B = 0xE000001;
+const u32 TV_CNT_C = 0xE000002;
+const u32 TV_CNT_D = 0xE000003;
 
 #endif // GBA_COMMON

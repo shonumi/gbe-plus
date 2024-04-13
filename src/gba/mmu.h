@@ -517,6 +517,7 @@ class AGB_MMU
 		std::vector<u8> data_stream;
 		std::vector<u8> cmd_stream;
 		bool read_request;
+		bool render_frame;
 
 		u8 cnt_a;
 		u8 cnt_b;
