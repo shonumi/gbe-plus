@@ -513,11 +513,14 @@ class AGB_MMU
 		u8 index;
 		u8 data;
 		u8 transfer_count;
+		u8 current_channel;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
 		std::vector<u8> cmd_stream;
+		std::vector<u8> video_stream;
+
 		bool read_request;
-		bool render_frame;
+		bool is_channel_on[62];
 
 		u8 cnt_a;
 		u8 cnt_b;
@@ -670,6 +673,7 @@ class AGB_MMU
 	void tv_tuner_reset();
 	u8 read_tv_tuner(u32 address);
 	void write_tv_tuner(u32 address, u8 value);
+	void tv_tuner_render_frame();
 	void process_tv_tuner_cmd();
 
 	//GPIO handling functions

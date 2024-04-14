@@ -17,10 +17,17 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.index = 0;
 	tv_tuner.data = 0;
 	tv_tuner.transfer_count = 0;
+	tv_tuner.current_channel = 2;
 	tv_tuner.state = TV_TUNER_STOP_DATA;
 	tv_tuner.data_stream.clear();
+	tv_tuner.cmd_stream.clear();
+	tv_tuner.video_stream.clear();
 	tv_tuner.read_request = false;
-	tv_tuner.render_frame = false;
+
+	for(u32 x = 0; x < 62; x++)
+	{
+		tv_tuner.is_channel_on[x] = false;
+	}
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
@@ -29,7 +36,7 @@ void AGB_MMU::tv_tuner_reset()
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
-	std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
+	//std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
 
 	u8 reset_mask_a = 0xC0;
 	u8 reset_mask_b = 0x40;
@@ -162,13 +169,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 					tv_tuner.data_stream.clear();
 					tv_tuner.cmd_stream.clear();
 					tv_tuner.transfer_count = 0;
-
-					//Render frame
-					if(tv_tuner.render_frame)
-					{
-						tv_tuner.render_frame = false;
-						tv_tuner.cnt_a |= 0x40;
-					}
+					tv_tuner.cnt_a |= 0x40;
 				}
 			}
 
@@ -192,8 +193,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 
 		case TV_CNT_D:
 			tv_tuner.cnt_b = value;
-			break;
-			
+			break;	
 	}
 }
 
@@ -212,8 +212,14 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 			result = tv_tuner.cnt_b;
 			break;
 	}
+
+	if((address >= 0xA800000) && (address < 0xA812C00))
+	{
+		u32 index = (address - 0xA800000);
+		result = tv_tuner.video_stream[index];
+	}
 	
-	std::cout<<"TV TUNER READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	//std::cout<<"TV TUNER READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
 
 	return result;
 }
@@ -221,18 +227,6 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 /****** Handles ATVT commands ******/
 void AGB_MMU::process_tv_tuner_cmd()
 {
-
-	/*
-	std::cout<<"\n";
-
-	for(u32 x = 0; x < tv_tuner.cmd_stream.size(); x++)
-	{
-		std::cout<<(u32)tv_tuner.cmd_stream[x] << "\n";
-	}
-
-	std::cout<<"\n";
-	*/
-
 	//D8 command -> Writes 16-bit values
 	if((tv_tuner.cmd_stream.size() == 3) && (tv_tuner.cmd_stream[0] == 0xD8) && (tv_tuner.state == TV_TUNER_STOP_DATA))
 	{
@@ -240,19 +234,18 @@ void AGB_MMU::process_tv_tuner_cmd()
 		u8 param_2 = tv_tuner.cmd_stream[2];
 
 		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
+
+		//Render video frame
+		if((param_1 == 0x0D) && (param_2 == 0x00))
+		{
+			tv_tuner_render_frame();
+		}
 	}
 
 	//D8 command -> Writes 8-bit values
 	else if((tv_tuner.cmd_stream.size() == 2) && (tv_tuner.cmd_stream[0] == 0xD8) && (tv_tuner.state == TV_TUNER_STOP_DATA))
 	{
 		u8 param_1 = tv_tuner.cmd_stream[1];
-
-		//This seems to cause Bit 7 of TV_CNT_A to get set HIGH after reading a byte (via 0xD9)
-		//Appears to indicate that a video frame is ready for render
-		if(param_1 == 0x14)
-		{
-			tv_tuner.render_frame = true;
-		}
 
 		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
 	}
@@ -264,5 +257,16 @@ void AGB_MMU::process_tv_tuner_cmd()
 		tv_tuner.read_request = true;
 
 		std::cout<<"CMD 0xD9\n";
+	}
+}
+
+/****** Renders video data for a frame for the AVTV ******/
+void AGB_MMU::tv_tuner_render_frame()
+{
+	tv_tuner.video_stream.clear();
+
+	for(u32 x = 0; x < 0x12C00; x++)
+	{
+		tv_tuner.video_stream.push_back(0x33);
 	}
 }
