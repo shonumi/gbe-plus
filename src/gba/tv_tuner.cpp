@@ -265,8 +265,22 @@ void AGB_MMU::tv_tuner_render_frame()
 {
 	tv_tuner.video_stream.clear();
 
-	for(u32 x = 0; x < 0x12C00; x++)
+	//Render static noise (grayscale) if channel has no signal
+	if(!tv_tuner.is_channel_on[tv_tuner.current_channel])
 	{
-		tv_tuner.video_stream.push_back(0x33);
+		srand(SDL_GetTicks());
+		u8 num = 0;
+		u16 color = 0;
+		u8 bit = 0;
+
+		for(u32 x = 0; x < 0x12C00; x += 2)
+		{
+			num = (rand() % 0x1F); 
+
+			u16 color = (num << 10) | (num << 5) | num;
+			
+			tv_tuner.video_stream.push_back(color & 0xFF);
+			tv_tuner.video_stream.push_back(color >> 8);
+		}
 	}
 }
