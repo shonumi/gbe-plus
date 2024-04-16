@@ -83,7 +83,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 
 					else
 					{
-						std::cout<<"START\n";
+						//std::cout<<"START\n";
 						tv_tuner.state = TV_TUNER_START_DATA;
 					}
 
@@ -95,7 +95,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Delayed start of data transfer
 			else if((tv_tuner.state == TV_TUNER_DELAY_DATA) && (tv_tuner.transfer_count == 1))
 			{
-				std::cout<<"START\n";
+				//std::cout<<"START\n";
 				tv_tuner.state = TV_TUNER_START_DATA;
 				tv_tuner.data_stream.clear();
 				tv_tuner.transfer_count = 0;
@@ -106,7 +106,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			{
 				if((tv_tuner.data_stream[1] & 0xF3) == stop_mask)
 				{
-					std::cout<<"STOP\n";
+					//std::cout<<"STOP\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 
 					//Check for specific commands
@@ -125,7 +125,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				if(((tv_tuner.data_stream[0] & 0x03) == 0x01) && ((tv_tuner.data_stream[1] & 0x03) == 0x00)
 				&& ((tv_tuner.data_stream[2] & 0x03) == 0x02) && ((tv_tuner.data_stream[3] & 0x03) == 0x03))
 				{
-					std::cout<<"STOP\n";
+					//std::cout<<"STOP\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 					tv_tuner.data_stream.clear();
 					tv_tuner.cmd_stream.clear();
@@ -176,7 +176,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Wait for acknowledgement
 			else if((tv_tuner.state == TV_TUNER_ACK_DATA) && (tv_tuner.transfer_count == 4))
 			{
-				std::cout<<"ACK\n";
+				//std::cout<<"ACK\n";
 				tv_tuner.state = TV_TUNER_NEXT_DATA;
 				tv_tuner.data_stream.clear();
 				tv_tuner.transfer_count = 0;
@@ -219,7 +219,10 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 		result = tv_tuner.video_stream[index];
 	}
 	
-	//std::cout<<"TV TUNER READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	else
+	{
+		//std::cout<<"TV TUNER READ -> 0x" << address << " :: 0x" << (u32)result << "\n";
+	}
 
 	return result;
 }
@@ -257,6 +260,19 @@ void AGB_MMU::process_tv_tuner_cmd()
 		tv_tuner.read_request = true;
 
 		std::cout<<"CMD 0xD9\n";
+	}
+
+	//C0 Command -> Reads a 16-bit value
+	else if((tv_tuner.cmd_stream.size() == 3) && (tv_tuner.cmd_stream[0] == 0xC0))
+	{
+		u8 param_1 = tv_tuner.cmd_stream[1];
+		u8 param_2 = tv_tuner.cmd_stream[2];
+
+		//Get 16-bit channel ID - Used to change channel
+		if(param_1 != 0x86)
+		{
+			u16 channel_id = ((param_1 << 8) | param_2);
+		}
 	}
 }
 
