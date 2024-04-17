@@ -514,6 +514,7 @@ class AGB_MMU
 		u8 data;
 		u8 transfer_count;
 		u8 current_channel;
+		u16 channel_id_list[62];
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
 		std::vector<u8> cmd_stream;

@@ -17,16 +17,28 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.index = 0;
 	tv_tuner.data = 0;
 	tv_tuner.transfer_count = 0;
-	tv_tuner.current_channel = 2;
+	tv_tuner.current_channel = 1;
 	tv_tuner.state = TV_TUNER_STOP_DATA;
 	tv_tuner.data_stream.clear();
 	tv_tuner.cmd_stream.clear();
 	tv_tuner.video_stream.clear();
 	tv_tuner.read_request = false;
 
+	u16 temp_channel_list[62] =
+	{
+		0x0890, 0x08F0, 0x0950, 0x0D90, 0x0DF0, 0x0E50, 0x0EB0, 0x0EF0, 0x0F50, 0x0FB0,
+		0x1010, 0x1070, 0x2050, 0x20B0, 0x2110, 0x2170, 0x21D0, 0x2230, 0x2290, 0x22F0,
+		0x2350, 0x23B0, 0x2410, 0x2470, 0x24D0, 0x2530, 0x2590, 0x25F0, 0x2650, 0x26B0,
+		0x2710, 0x2770, 0x27D0, 0x2830, 0x2890, 0x28F0, 0x2950, 0x29B0, 0x2A10, 0x2A70,
+		0x2AD0, 0x2B30, 0x2B90, 0x2BF0, 0x2C50, 0x2CB0, 0x2D10, 0x2D70, 0x2DD0, 0x2E30,
+		0x2E90, 0x2EF0, 0x2F50, 0x2FB0, 0x3010, 0x3070, 0x30D0, 0x3130, 0x3190, 0x31F0,
+		0x3250, 0x32B0
+	};
+
 	for(u32 x = 0; x < 62; x++)
 	{
 		tv_tuner.is_channel_on[x] = false;
+		tv_tuner.channel_id_list[x] = temp_channel_list[x];
 	}
 
 	tv_tuner.cnt_a = 0;
@@ -272,6 +284,17 @@ void AGB_MMU::process_tv_tuner_cmd()
 		if(param_1 != 0x86)
 		{
 			u16 channel_id = ((param_1 << 8) | param_2);
+
+			for(u32 x = 0; x < 62; x++)
+			{
+				if(channel_id == tv_tuner.channel_id_list[x])
+				{
+					tv_tuner.current_channel = x;
+					break;
+				}
+			}
+
+			std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
 		}
 	}
 }
