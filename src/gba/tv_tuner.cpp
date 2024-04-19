@@ -23,6 +23,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.cmd_stream.clear();
 	tv_tuner.video_stream.clear();
 	tv_tuner.read_request = false;
+	tv_tuner.is_av_input_on = false;
 
 	u16 temp_channel_list[62] =
 	{
@@ -48,36 +49,17 @@ void AGB_MMU::tv_tuner_reset()
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
-	//std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << "\n";
-
-	u8 reset_mask_a = 0xC0;
-	u8 reset_mask_b = 0x40;
-	u8 reset_mask;
-
-	u8 start_mask_a = 0xC3;
-	u8 start_mask_b = 0x43;
-	u8 start_mask;
-
-	u8 stop_mask_a = 0xC2;
-	u8 stop_mask_b = 0x42;
-	u8 stop_mask;
-
-	bool is_tv_a;
+	//std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << " :: " << (u32)tv_tuner.state <<"\n";
 
 	switch(address)
 	{
 		case TV_CNT_A:
 		case TV_CNT_B:
-			is_tv_a = (address == TV_CNT_A);
-			reset_mask = (is_tv_a) ? reset_mask_a : reset_mask_b;
-			start_mask = (is_tv_a) ? start_mask_a : start_mask_b;
-			stop_mask = (is_tv_a) ? stop_mask_a : stop_mask_b;
-
 			tv_tuner.data_stream.push_back(value);
 			tv_tuner.transfer_count++;
 
 			//Reset transfer count
-			if((value & 0xF0) != reset_mask)
+			if((value == 0x67) || (value == 0xE7))
 			{
 				tv_tuner.transfer_count = 0;
 				tv_tuner.data_stream.clear();
@@ -86,7 +68,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Start data transfer
 			else if((tv_tuner.state == TV_TUNER_STOP_DATA) && (tv_tuner.transfer_count == 3))
 			{
-				if((tv_tuner.data_stream[1] & 0xF3) == start_mask)
+				if((tv_tuner.data_stream[1] & 0x03) == 0x03)
 				{
 					if(tv_tuner.data_stream[2] & 0x01)
 					{
@@ -107,8 +89,12 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Delayed start of data transfer
 			else if((tv_tuner.state == TV_TUNER_DELAY_DATA) && (tv_tuner.transfer_count == 1))
 			{
-				//std::cout<<"START\n";
-				tv_tuner.state = TV_TUNER_START_DATA;
+				if((value & 0x1) == 0)
+				{
+					//std::cout<<"START\n";
+					tv_tuner.state = TV_TUNER_START_DATA;
+				}
+
 				tv_tuner.data_stream.clear();
 				tv_tuner.transfer_count = 0;
 			}
@@ -116,7 +102,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Stop data transfer - After Write Request
 			else if((tv_tuner.state == TV_TUNER_NEXT_DATA) && (tv_tuner.transfer_count == 3) && (!tv_tuner.read_request))
 			{
-				if((tv_tuner.data_stream[1] & 0xF3) == stop_mask)
+				if((tv_tuner.data_stream[1] & 0x03) == 0x02)
 				{
 					//std::cout<<"STOP\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
@@ -255,6 +241,15 @@ void AGB_MMU::process_tv_tuner_cmd()
 		{
 			tv_tuner_render_frame();
 		}
+
+		//Switch between TV channels and AV input
+		if(param_1 == 0x02)
+		{
+			tv_tuner.is_av_input_on = (param_2 == 0xE1) ? true : false;
+
+			if(tv_tuner.is_av_input_on) { std::cout<<"AV INPUT ON\n"; }
+			else { std::cout<<"TV INPUT ON\n"; }
+		}
 	}
 
 	//D8 command -> Writes 8-bit values
@@ -296,6 +291,19 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 			std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
 		}
+	}
+
+	//Unknown command
+	else if(tv_tuner.state == TV_TUNER_STOP_DATA)
+	{
+		std::cout<<"UNKOWN CMD -> ";
+		
+		for(u32 x = 0; x < tv_tuner.cmd_stream.size(); x++)
+		{
+			std::cout<<"0x" << (u32)tv_tuner.cmd_stream[x] << " :: ";
+		}
+
+		std::cout<<"\n";
 	}
 }
 

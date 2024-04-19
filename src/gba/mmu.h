@@ -522,6 +522,7 @@ class AGB_MMU
 
 		bool read_request;
 		bool is_channel_on[62];
+		bool is_av_input_on;
 
 		u8 cnt_a;
 		u8 cnt_b;
