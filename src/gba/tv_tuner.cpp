@@ -25,6 +25,10 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
 
+	tv_tuner.video_brightness = 0;
+	tv_tuner.video_contrast = 0;
+	tv_tuner.video_hue = 0;
+
 	u16 temp_channel_list[62] =
 	{
 		0x0890, 0x08F0, 0x0950, 0x0D90, 0x0DF0, 0x0E50, 0x0EB0, 0x0EF0, 0x0F50, 0x0FB0,
@@ -234,7 +238,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		u8 param_1 = tv_tuner.cmd_stream[1];
 		u8 param_2 = tv_tuner.cmd_stream[2];
 
-		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
+		//std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
 
 		//Render video frame
 		if((param_1 == 0x0D) && (param_2 == 0x00))
@@ -243,12 +247,20 @@ void AGB_MMU::process_tv_tuner_cmd()
 		}
 
 		//Switch between TV channels and AV input
-		if(param_1 == 0x02)
+		else if(param_1 == 0x02)
 		{
 			tv_tuner.is_av_input_on = (param_2 == 0xE1) ? true : false;
 
 			if(tv_tuner.is_av_input_on) { std::cout<<"AV INPUT ON\n"; }
 			else { std::cout<<"TV INPUT ON\n"; }
+		}
+
+		//Set video brightness level
+		else if(param_1 == 0x11)
+		{
+			tv_tuner.video_brightness = param_2;
+
+			std::cout<<"VIDEO BRIGHTNESS -> 0x" << (u32)param_2 << "\n";
 		}
 	}
 
@@ -257,7 +269,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		u8 param_1 = tv_tuner.cmd_stream[1];
 
-		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
+		//std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
 	}
 
 	//D9 command -> Reads a single 8-bit value
@@ -266,7 +278,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		tv_tuner.state = TV_TUNER_READ_DATA;
 		tv_tuner.read_request = true;
 
-		std::cout<<"CMD 0xD9\n";
+		//std::cout<<"CMD 0xD9\n";
 	}
 
 	//C0 Command -> Reads a 16-bit value
