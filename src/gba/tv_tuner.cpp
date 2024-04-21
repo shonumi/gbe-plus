@@ -255,6 +255,14 @@ void AGB_MMU::process_tv_tuner_cmd()
 			else { std::cout<<"TV INPUT ON\n"; }
 		}
 
+		//Set video contrast level
+		else if(param_1 == 0x10)
+		{
+			tv_tuner.video_contrast = param_2;
+
+			std::cout<<"VIDEO CONTRAST -> 0x" << (u32)param_2 << "\n";
+		}
+
 		//Set video brightness level
 		else if(param_1 == 0x11)
 		{
