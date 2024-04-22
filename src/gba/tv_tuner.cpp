@@ -270,6 +270,15 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 			std::cout<<"VIDEO BRIGHTNESS -> 0x" << (u32)param_2 << "\n";
 		}
+
+		//Set video hue level
+		else if(param_1 == 0x15)
+		{
+			tv_tuner.video_hue = param_2;
+
+			std::cout<<"VIDEO HUE -> 0x" << (u32)param_2 << "\n";
+		}
+
 	}
 
 	//D8 command -> Writes 8-bit values
