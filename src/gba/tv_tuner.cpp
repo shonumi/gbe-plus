@@ -18,6 +18,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.data = 0;
 	tv_tuner.transfer_count = 0;
 	tv_tuner.current_channel = 1;
+	tv_tuner.channel_freq = 91.25;
 	tv_tuner.state = TV_TUNER_STOP_DATA;
 	tv_tuner.data_stream.clear();
 	tv_tuner.cmd_stream.clear();
@@ -238,7 +239,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		u8 param_1 = tv_tuner.cmd_stream[1];
 		u8 param_2 = tv_tuner.cmd_stream[2];
 
-		//std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
+		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
 
 		//Render video frame
 		if((param_1 == 0x0D) && (param_2 == 0x00))
@@ -286,7 +287,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		u8 param_1 = tv_tuner.cmd_stream[1];
 
-		//std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
+		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
 	}
 
 	//D9 command -> Reads a single 8-bit value
@@ -295,7 +296,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		tv_tuner.state = TV_TUNER_READ_DATA;
 		tv_tuner.read_request = true;
 
-		//std::cout<<"CMD 0xD9\n";
+		std::cout<<"CMD 0xD9\n";
 	}
 
 	//C0 Command -> Reads a 16-bit value
@@ -307,18 +308,22 @@ void AGB_MMU::process_tv_tuner_cmd()
 		//Get 16-bit channel ID - Used to change channel
 		if(param_1 != 0x86)
 		{
-			u16 channel_id = ((param_1 << 8) | param_2);
+			u16 raw_freq = ((param_1 << 8) | param_2);
 
 			for(u32 x = 0; x < 62; x++)
 			{
-				if(channel_id == tv_tuner.channel_id_list[x])
+				if(raw_freq == tv_tuner.channel_id_list[x])
 				{
 					tv_tuner.current_channel = x;
+					std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
 					break;
 				}
 			}
 
-			std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
+			tv_tuner.channel_freq = (float(raw_freq - 0x890) * 0.0625) + 91.25;
+			std::cout<<"CHANNEL FREQUENCY -> " << tv_tuner.channel_freq << "\n";
+			std::cout<<"CHANNEL FREQUENCY RAW -> " << raw_freq << "\n\n";
+
 		}
 	}
 

@@ -518,6 +518,7 @@ class AGB_MMU
 		u8 video_contrast;
 		u8 video_hue;
 		u16 channel_id_list[62];
+		float channel_freq;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
 		std::vector<u8> cmd_stream;
