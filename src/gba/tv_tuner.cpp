@@ -47,6 +47,10 @@ void AGB_MMU::tv_tuner_reset()
 		tv_tuner.channel_id_list[x] = temp_channel_list[x];
 	}
 
+	tv_tuner.flash_cmd = 0;
+	tv_tuner.flash_cmd_status = 0;
+	tv_tuner.flash_index = 0;
+
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
 }
@@ -197,6 +201,40 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 		case TV_CNT_D:
 			tv_tuner.cnt_b = value;
 			break;	
+	}
+
+	//Handle Flash commands and data
+	if((address >= 0x8000000) && (address < 0x9000000))
+	{
+		switch(address)
+		{
+			case TV_FLASH_INIT:
+				tv_tuner.flash_cmd = value;
+				tv_tuner.flash_cmd_status = 0;
+				tv_tuner_process_flash_cmd();
+				break;
+
+			case TV_FLASH_CMD0:
+				if(value == 0xAA)
+				{
+					tv_tuner.flash_cmd_status = 1;
+				}
+				
+				else if(tv_tuner.flash_cmd_status == 2)
+				{
+					tv_tuner_process_flash_cmd();
+				}
+
+				break;
+
+			case TV_FLASH_CMD1:
+				if(value == 0x55)
+				{
+					tv_tuner.flash_cmd_status++;
+				}
+
+				break;
+		}
 	}
 }
 
@@ -365,3 +403,10 @@ void AGB_MMU::tv_tuner_render_frame()
 		}
 	}
 }
+
+/****** Handles Flash ROM commands for ATVT ******/
+void AGB_MMU::tv_tuner_process_flash_cmd()
+{
+	tv_tuner.flash_cmd_status = 0;
+}
+
