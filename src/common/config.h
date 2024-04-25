@@ -81,6 +81,7 @@ enum gba_save_types
 	AGB_DACS_FLASH,
 	AGB_JUKEBOX_CONFIG,
 	AGB_CAMPHO_CONFIG,
+	AGB_TV_TUNER_FLASH,
 };
 
 namespace config

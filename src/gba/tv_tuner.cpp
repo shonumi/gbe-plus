@@ -50,6 +50,8 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.flash_cmd = 0;
 	tv_tuner.flash_cmd_status = 0;
 	tv_tuner.flash_index = 0;
+	tv_tuner.flash_data.clear();
+	tv_tuner.flash_data.resize(0x100, 0x00);
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;

@@ -635,6 +635,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		case 0x8:
 			if(config::cart_type == AGB_AM3) { write_am3(address, value); }
 			else if(config::cart_type == AGB_CAMPHO) { write_campho(address, value); }
+			else if(config::cart_type == AGB_TV_TUNER) { write_tv_tuner(address, value); }
 			break;
 
 		//ROM Waitstate 1 (mirror of Waitstate 0)
@@ -2428,6 +2429,16 @@ bool AGB_MMU::read_file(std::string filename)
 		return true;
 	}
 
+	//For Agatsuma TV Tuner, force 256B Flash ROM
+	//Also forcibly set save type now
+	else if(config::cart_type == AGB_TV_TUNER)
+	{
+		config::agb_save_type = AGB_TV_TUNER_FLASH;
+		current_save_type = TV_TUNER_FLASH;
+		load_backup(backup_file);
+		return true;
+	}
+
 	//Play-Yan models do not have saves, force type to NONE now
 	else if(config::cart_type == AGB_PLAY_YAN)
 	{
@@ -2796,6 +2807,24 @@ bool AGB_MMU::load_backup(std::string filename)
 		campho.video_contrast = campho_find_settings_val((campho.config_data[15] << 8) | campho.config_data[14]);
 	}
 
+	//Load Agatsuma TV Tuner 256B Flash ROM
+	else if(current_save_type == TV_TUNER_FLASH)
+	{
+		//Sanity checks
+		if(file_size > 0x100)
+		{
+			file_size = 0x100;
+		}
+
+		if(tv_tuner.flash_data.size() < 0x100)
+		{
+			tv_tuner.flash_data.resize(0x100, 0x00);
+		}
+
+		//Read data from file
+		file.read(reinterpret_cast<char*> (&tv_tuner.flash_data[0]), file_size);
+	}
+
 	file.close();
 
 	std::cout<<"MMU::Loaded save data file " << filename <<  "\n";
@@ -2997,6 +3026,22 @@ bool AGB_MMU::save_backup(std::string filename)
 		file.write(reinterpret_cast<char*> (&campho.config_data[4]), 0x18);
 		file.write(reinterpret_cast<char*> (&campho.contact_data[0]), campho.contact_data.size());
 		file.close();
+
+		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
+	}
+
+	//Save Agatsuma TV Tuner 256B Flash ROM
+	else if(current_save_type == TV_TUNER_FLASH)
+	{
+		std::ofstream file(filename.c_str(), std::ios::binary);
+
+		if(!file.is_open()) 
+		{
+			std::cout<<"MMU::" << filename << " save data could not be written. Check file path or permissions. \n";
+			return false;
+		}
+
+		file.write(reinterpret_cast<char*> (&tv_tuner.flash_data[0]), tv_tuner.flash_data.size());
 
 		std::cout<<"MMU::Wrote save data " << filename <<  "\n";
 	}

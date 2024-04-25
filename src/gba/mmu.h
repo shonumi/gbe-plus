@@ -43,6 +43,7 @@ class AGB_MMU
 		DACS,
 		JUKEBOX_CONFIG,
 		CAMPHO_CONFIG,
+		TV_TUNER_FLASH,
 	};
 
 	//Cartridge GPIO-type enumerations
