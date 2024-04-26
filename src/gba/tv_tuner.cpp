@@ -51,7 +51,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.flash_cmd_status = 0;
 	tv_tuner.flash_index = 0;
 	tv_tuner.flash_data.clear();
-	tv_tuner.flash_data.resize(0x100, 0x00);
+	tv_tuner.flash_data.resize(0x100, 0xFF);
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
@@ -213,7 +213,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			case TV_FLASH_INIT:
 				tv_tuner.flash_cmd = value;
 				tv_tuner.flash_cmd_status = 0;
-				tv_tuner_process_flash_cmd();
+				tv_tuner.flash_cmd = 0;
 				break;
 
 			case TV_FLASH_CMD0:
@@ -224,7 +224,8 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				
 				else if(tv_tuner.flash_cmd_status == 2)
 				{
-					tv_tuner_process_flash_cmd();
+					tv_tuner.flash_cmd = value;
+					tv_tuner.flash_cmd_status = 0;
 				}
 
 				break;
@@ -236,6 +237,25 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				}
 
 				break;
+		}
+
+		//Flash data
+		if((address >= 0x8020000) && (address < 0x8020100))
+		{
+			//Write bytes to Flash ROM
+			if(tv_tuner.flash_cmd == 0xA0)
+			{
+				tv_tuner.flash_index = (address - 0x8020000);
+				tv_tuner.flash_data[tv_tuner.flash_index] = value;
+			}
+
+			//Erase command
+			else if((address == 0x8020000) && (tv_tuner.flash_cmd == 0x80) && (value == 0x30))
+			{
+				tv_tuner.flash_data.clear();
+				tv_tuner.flash_data.resize(0x100, 0xFF);
+				tv_tuner.flash_cmd_status = 0;
+			}
 		}
 	}
 }
@@ -405,10 +425,3 @@ void AGB_MMU::tv_tuner_render_frame()
 		}
 	}
 }
-
-/****** Handles Flash ROM commands for ATVT ******/
-void AGB_MMU::tv_tuner_process_flash_cmd()
-{
-	tv_tuner.flash_cmd_status = 0;
-}
-

@@ -687,7 +687,6 @@ class AGB_MMU
 	void write_tv_tuner(u32 address, u8 value);
 	void tv_tuner_render_frame();
 	void process_tv_tuner_cmd();
-	void tv_tuner_process_flash_cmd();
 
 	//GPIO handling functions
 	void process_rtc();
