@@ -527,7 +527,6 @@ class AGB_MMU
 
 		u8 flash_cmd;
 		u8 flash_cmd_status;
-		u8 flash_index;
 		std::vector<u8> flash_data;
 
 		bool read_request;

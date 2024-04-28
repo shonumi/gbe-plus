@@ -228,6 +228,7 @@ u8 AGB_MMU::read_u8(u32 address)
 		//ROM Waitstate 0
 		case 0x8:
 			if(config::cart_type == AGB_CAMPHO) { return read_campho(address); }
+			else if(config::cart_type == AGB_TV_TUNER) { return read_tv_tuner(address); }
 			break;
 
 		//ROM Waitstate 0

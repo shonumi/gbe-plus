@@ -49,7 +49,6 @@ void AGB_MMU::tv_tuner_reset()
 
 	tv_tuner.flash_cmd = 0;
 	tv_tuner.flash_cmd_status = 0;
-	tv_tuner.flash_index = 0;
 	tv_tuner.flash_data.clear();
 	tv_tuner.flash_data.resize(0x100, 0xFF);
 
@@ -245,8 +244,8 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Write bytes to Flash ROM
 			if(tv_tuner.flash_cmd == 0xA0)
 			{
-				tv_tuner.flash_index = (address - 0x8020000);
-				tv_tuner.flash_data[tv_tuner.flash_index] = value;
+				u32 index = (address - 0x8020000);
+				tv_tuner.flash_data[index] = value;
 			}
 
 			//Erase command
@@ -263,7 +262,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 /****** Reads from ATVT I/O ******/
 u8 AGB_MMU::read_tv_tuner(u32 address)
 {
-	u8 result = 0;
+	u8 result = memory_map[address];
 
 	switch(address)
 	{
@@ -276,10 +275,18 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 			break;
 	}
 
+	//Video data
 	if((address >= 0xA800000) && (address < 0xA812C00))
 	{
 		u32 index = (address - 0xA800000);
 		result = tv_tuner.video_stream[index];
+	}
+
+	//Flash data
+	else if((address >= 0x8020000) && (address < 0x8020100))
+	{
+		u32 index = (address - 0x8020000);
+		result = tv_tuner.flash_data[index];
 	}
 	
 	else
