@@ -87,7 +87,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 
 					else
 					{
-						//std::cout<<"START\n";
+						//std::cout<<"START 1\n";
 						tv_tuner.state = TV_TUNER_START_DATA;
 					}
 
@@ -101,7 +101,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			{
 				if((value & 0x1) == 0)
 				{
-					//std::cout<<"START\n";
+					//std::cout<<"START 2\n";
 					tv_tuner.state = TV_TUNER_START_DATA;
 				}
 
@@ -114,7 +114,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			{
 				if((tv_tuner.data_stream[1] & 0x03) == 0x02)
 				{
-					//std::cout<<"STOP\n";
+					//std::cout<<"STOP 1\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 
 					//Check for specific commands
@@ -133,7 +133,7 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				if(((tv_tuner.data_stream[0] & 0x03) == 0x01) && ((tv_tuner.data_stream[1] & 0x03) == 0x00)
 				&& ((tv_tuner.data_stream[2] & 0x03) == 0x02) && ((tv_tuner.data_stream[3] & 0x03) == 0x03))
 				{
-					//std::cout<<"STOP\n";
+					//std::cout<<"STOP 2\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 					tv_tuner.data_stream.clear();
 					tv_tuner.cmd_stream.clear();
@@ -366,6 +366,16 @@ void AGB_MMU::process_tv_tuner_cmd()
 		std::cout<<"CMD 0xD9\n";
 	}
 
+	//87 command -> Reads a single 8-bit value
+	//Appears to indicate if a channel is active. Used during the Channel Search feature
+	else if((tv_tuner.cmd_stream.size() == 1) && (tv_tuner.cmd_stream[0] == 0x87) && (tv_tuner.state == TV_TUNER_NEXT_DATA))
+	{
+		tv_tuner.state = TV_TUNER_READ_DATA;
+		tv_tuner.read_request = true;
+
+		std::cout<<"CMD 0x87\n";
+	}
+
 	//C0 Command -> Reads a 16-bit value
 	else if((tv_tuner.cmd_stream.size() == 3) && (tv_tuner.cmd_stream[0] == 0xC0))
 	{
@@ -390,8 +400,9 @@ void AGB_MMU::process_tv_tuner_cmd()
 			tv_tuner.channel_freq = (float(raw_freq - 0x890) * 0.0625) + 91.25;
 			std::cout<<"CHANNEL FREQUENCY -> " << tv_tuner.channel_freq << "\n";
 			std::cout<<"CHANNEL FREQUENCY RAW -> " << raw_freq << "\n\n";
-
 		}
+
+		else { std::cout<<"UKNOWN CMD -> 0x86 :: 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n"; }
 	}
 
 	//Unknown command
