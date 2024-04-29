@@ -535,6 +535,7 @@ class AGB_MMU
 
 		u8 cnt_a;
 		u8 cnt_b;
+		u8 read_data;
 	} tv_tuner;
 
 	//Structure to handle GPIO reading and writing

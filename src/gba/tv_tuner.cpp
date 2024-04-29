@@ -54,12 +54,13 @@ void AGB_MMU::tv_tuner_reset()
 
 	tv_tuner.cnt_a = 0;
 	tv_tuner.cnt_b = 0;
+	tv_tuner.read_data = 0;
 }
 
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
-	//std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << " :: " << (u32)tv_tuner.state <<"\n";
+	std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << " :: " << (u32)tv_tuner.state <<"\n";
 
 	switch(address)
 	{
@@ -267,11 +268,31 @@ u8 AGB_MMU::read_tv_tuner(u32 address)
 	switch(address)
 	{
 		case TV_CNT_A:
-			result = tv_tuner.cnt_a;
+			if(tv_tuner.read_request)
+			{
+				result = (tv_tuner.read_data & 0x80) ? 1 : 0;
+				tv_tuner.read_data <<= 1;
+			}
+
+			else
+			{
+				result = tv_tuner.cnt_a;
+			}
+
 			break;
 
 		case TV_CNT_B:
-			result = tv_tuner.cnt_b;
+			if(tv_tuner.read_request)
+			{
+				result = (tv_tuner.read_data & 0x80) ? 1 : 0;
+				tv_tuner.read_data <<= 1;
+			}
+
+			else
+			{
+				result = tv_tuner.cnt_b;
+			}
+
 			break;
 	}
 
@@ -362,6 +383,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		tv_tuner.state = TV_TUNER_READ_DATA;
 		tv_tuner.read_request = true;
+		tv_tuner.read_data = 0;
 
 		std::cout<<"CMD 0xD9\n";
 	}
@@ -372,6 +394,11 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		tv_tuner.state = TV_TUNER_READ_DATA;
 		tv_tuner.read_request = true;
+
+		if(tv_tuner.is_channel_on[tv_tuner.current_channel])
+		{
+			tv_tuner.read_data = 0xC0;
+		}
 
 		std::cout<<"CMD 0x87\n";
 	}
