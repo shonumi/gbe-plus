@@ -1,0 +1,122 @@
+Agatsuma TV Tuner Technical Documentation 0.1
+April 30th, 2024
+Shonumi aka D.S. Baxter
+
+
+***************************************************
+1. Introduction
+***************************************************
+
+The Agatsuma TV Tuner (ATVT) is a cartridge for the Game Boy Advance that allowed users to watch analog broadcast TV. It was released exclusively in Japan on April 29, 2006. Created by Agatsuma Entertainment Inc., it was the only officially licensed TV tuner for the GBA. It also allows for composite A/V input.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Comes in a very large, bulky, black cartridge (about the size of an original DS folded).
+- Has an adjustable antenna on the upper left side that extends and rotates.
+- Requires 6 AA batteries to work.
+- Features dual-speakers on the front to bypass the GBA's audio system.
+- Features a volume dial on the lower left side.
+- Has a composite A/V input port on the lower right side.
+- Has a 3.5mm headphone jack on the lower right side.
+- Has a port on the back side for an external antenna connection.
+- Comes with at least 256 bytes of flash memory to save configuration data.
+- Only compatible with analog broadcasts (NTSC-J).
+
+
+***************************************************
+3. I/O Registers
+***************************************************
+
+The ATVT has several memory-mapped registers that deal with TV operations as well as writing to its internal flash memory.
+
+-----------------------------------------------------------
+Address				| I/O Name
+-----------------------------------------------------------
+0x8000000			| TV_FLASH_INIT
+0x8000AAA			| TV_FLASH_CMD0
+0x8000554			| TV_FLASH_CMD1
+0x8020000 - 0x80200FF		| TV_FLASH_DATA
+0xA800000 - 0xA812BFF		| TV_FRAME_BUFFER
+0xE000000			| TV_CNT_A
+0xE000001			| TV_CNT_B
+0xE000002			| TV_CNT_C
+0xE000003			| TV_CNT_D
+-----------------------------------------------------------
+
+TV_FLASH_INIT deals specifically with two standard flash commands, 0x90 (Enter ID Mode) and 0xFF (Reset). All other flash commands have to write to TV_FLASH_CMD0 and TV_FLASH_CMD1. A small section of what is normally cartridge ROM is instead reserved for 256 bytes of flash memory.
+
+The ATVT provides video as full 240x160 frames, in the form of a 15bpp bitmap image. The frame buffer is available to read directly.
+
+4 separate control registers are used to issue TV-related commands. The bulk of the work falls on TV_CNT_A and TV_CNT_B. TV_CNT_C and TV_CNT_D have lesser roles; writing to these locations overwrites the values in their counterparts. That is to say, writing to TV_CNT_C overwrites TV_CNT_A, and writing to TV_CNT_D overwrites TV_CNT_B. This is often done to zero out and reset those registers (presumably without affecting something about their operations).
+
+
+***************************************************
+4. Data Transfer Protocol
+***************************************************
+
+In order to send commands or read data from commands, the CPU writes bytes serially to using TV_CNT_A or TV_CNT_B. The register used depends on which commands are being issued. Here, only Bit 0 and Bit 1 are used to clock the transfer and represent I/O data.
+
+-----------------------------------------------------------
+Bit 0	| I/O Data
+Bit 1	| Clock (0 = LOW, 1 = HIGH)
+-----------------------------------------------------------
+
+Depending on the command, TV_CNT_A must have Bits 2, 6, and 7 set HIGH (essentially OR'ed 0xC4), while TV_CNT_B must have Bit 6 set HIGH (essentially OR'ed by 0x40). The high-level protocol issuing commands protocol looks something like this:
+
+-----------------------------------------------------------
+START SIGNAL
+
+TRANSFER BYTE 
+ACKNOWLEDGE SIGNAL
+
+TRANSFER BYTE
+ACKNOWLEDGE SIGNAL
+
+...
+
+STOP SIGNAL
+-----------------------------------------------------------
+
+The Start Signal involves setting the clock HIGH twice, while sending 1 then 0 as data:
+
+-----------------------------------------------------------
+Start Signal
+-----------------------------------------------------------
+1) Set Clock High and set I/O Data to 1
+2) Set Clock High and set I/O Data to 0
+-----------------------------------------------------------
+
+The Start Signal always follows a Stop Signal, or is the first signal sent to the ATVT at all post-boot. After the Start Signal, individualy bytes can be transferred bit-by-bit. Bytes are sent MSB-first. Each bit requires 4 writes to TV_CNT_A or TV_CNT_B. The process is described below:
+
+-----------------------------------------------------------
+Transfer Bit
+-----------------------------------------------------------
+1) Set Clock LOW
+2) Set I/O Data to transfer bit
+3) Set Clock HIGH
+4) Set Clock LOW
+-----------------------------------------------------------
+
+After repeating those steps 8 times, a full byte has been transferred to the ATVT. Once the transfer is complete, an Acknowledgement Signal must be sent as well. This signal consists of 4 writes to TV_CNT_A or TV_CNT_B as such:
+
+-----------------------------------------------------------
+Acknowledgement Signal
+-----------------------------------------------------------
+1) Set Clock LOW and set I/O Data to 0
+2) Set I/O Data 1
+3) Set Clock HIGH
+4) Set Clock LOW and set I/O Data to 1
+-----------------------------------------------------------
+
+If there is more incoming data for a command, the process for transferring bytes begins immediately. However, if there is no more data, a Stop Signal must be sent:
+
+-----------------------------------------------------------
+Stop Signal
+-----------------------------------------------------------
+1) Set Clock LOW and set I/O Data to 0
+2) Set Clock HIGH
+3) Set Clock HIGH and set I/O Data to 1
+-----------------------------------------------------------
