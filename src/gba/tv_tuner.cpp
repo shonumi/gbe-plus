@@ -60,7 +60,7 @@ void AGB_MMU::tv_tuner_reset()
 /****** Writes to ATVT I/O ******/
 void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 {
-	std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << " :: " << (u32)tv_tuner.state <<"\n";
+	//std::cout<<"TV TUNER WRITE -> 0x" << address << " :: 0x" << (u32)value << " :: " << (u32)tv_tuner.state <<"\n";
 
 	switch(address)
 	{
@@ -424,7 +424,9 @@ void AGB_MMU::process_tv_tuner_cmd()
 				}
 			}
 
-			tv_tuner.channel_freq = (float(raw_freq - 0x890) * 0.0625) + 91.25;
+			//Calculate current frequency based on distance from lowest possible frequency
+			//Minumum = 55.25MHz, hex value 0x650
+			tv_tuner.channel_freq = (float(raw_freq - 0x650) * 0.0625) + 55.25;
 			std::cout<<"CHANNEL FREQUENCY -> " << tv_tuner.channel_freq << "\n";
 			std::cout<<"CHANNEL FREQUENCY RAW -> " << raw_freq << "\n\n";
 		}
