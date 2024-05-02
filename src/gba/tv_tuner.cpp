@@ -25,6 +25,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.video_stream.clear();
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
+	tv_tuner.is_av_connected = false;
 
 	tv_tuner.video_brightness = 0;
 	tv_tuner.video_contrast = 0;
@@ -453,8 +454,28 @@ void AGB_MMU::tv_tuner_render_frame()
 {
 	tv_tuner.video_stream.clear();
 
+	//Render composite A/V input, if connected
+	if(tv_tuner.is_av_input_on)
+	{
+		if(tv_tuner.is_av_connected)
+		{
+
+		}
+
+		else
+		{
+			tv_tuner.video_stream.resize(0x12C00, 0x00);
+		}
+	}
+
+	//Render TV channel video
+	else if(tv_tuner.is_channel_on[tv_tuner.current_channel])
+	{
+
+	}
+
 	//Render static noise (grayscale) if channel has no signal
-	if(!tv_tuner.is_channel_on[tv_tuner.current_channel])
+	else if(!tv_tuner.is_channel_on[tv_tuner.current_channel])
 	{
 		srand(SDL_GetTicks());
 		u8 num = 0;
