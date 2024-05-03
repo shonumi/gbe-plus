@@ -24,6 +24,8 @@ The Agatsuma TV Tuner (ATVT) is a cartridge for the Game Boy Advance that allowe
 - Has a port on the back side for an external antenna connection.
 - Comes with at least 256 bytes of flash memory to save configuration data.
 - Only compatible with analog broadcasts (NTSC-J).
+- Tunes into 62 channels
+- Capable of receiving signals from 55.25MHz to 801.25MHz
 
 
 ***************************************************
@@ -77,6 +79,9 @@ ACKNOWLEDGE SIGNAL
 
 ...
 
+READ BYTE (only used for some read commands)
+ACKNOWLEDGE SIGNAL (only used for read commands)
+
 STOP SIGNAL
 -----------------------------------------------------------
 
@@ -120,3 +125,90 @@ Stop Signal
 2) Set Clock HIGH
 3) Set Clock HIGH and set I/O Data to 1
 -----------------------------------------------------------
+
+Some commands return 8-bit data from the ATVT. After the last byte of the command has been transferred and acknowledged, this 8-bit data is read immediately (i.e., the read occurs before a Stop Signal). As with transferring bytes, reading bytes is done serially. The process for that is as follows:
+
+-----------------------------------------------------------
+Read Bit
+-----------------------------------------------------------
+1) Set Clock LOW and set I/O Data to 1
+2) Set Clock HIGH
+3) Read Bit 0 of TV_CNT_A or TV_CNT_B
+-----------------------------------------------------------
+
+This is done a total of 8 times until the byte is fully read out.
+
+
+***************************************************
+5. Commands
+***************************************************
+
+By writing certain bytes to the ATVT (using the protocol described above) the CPU can send several commands to the device. Typically the last two bytes of a command are 8-bit or 16-bit parameters. In the case of read commands, there are no parameters used. A list of known commands is shown in the table below along with whether the command uses TV_CNT_A or TV_CNT_B:
+
+-----------------------------------------------------------
+Command Name		| Command Pattern (in hexadecimal)
+-----------------------------------------------------------
+Read Channel Status	| 87
+Change Channel		| C0 xx xx
+Switch to AV Input Mode	| D8 02 E0
+Switch to TV Mode	| D8 02 E1
+Set Video Contrast	| D8 10 xx
+Set Video Brightness	| D8 11 xx
+Set Video Hue		| D8 15 xx
+Clear Video Frame	| D8 0D 80
+Render Video Frame	| D8 0D 00
+Read Something?		| D9
+-----------------------------------------------------------
+
+
+[[Command 87 - Read Channel Status]]
+
+This command returns an 8-bit value representing the status of the current channel's reception. If the ATVT detects a valid TV signal, it will return the value 0xC0. Any other value seems to indicate that no proper reception was found for that channel, at least on the frequency assigned for it.
+
+
+
+
+
+[[Command C0 - Change Channel]]
+
+This command changes the current channel. Its parameters form a 16-bit value that represents the channel's frequency in MHz. The lowest frequency possible is 55.25MHz and is representing by the hex value 0x0650. The highest possible frequency is 801.25MHz and is represented by the hex value 0x34F0. Essentially, increasing/decreasing the 16-bit value by 1 changes the frequency by 0.0625MHz. The Change Channel command is called when the user manually switches between saved channels, when scanning for available channels, and when manually tuning channels.
+
+
+
+
+
+[[Command D8 02 E0 - Switch to AV Input Mode]]
+
+This command is used to switch video input from TV signals to composite A/V input whenever the user presses the Select button.
+
+
+
+
+
+[[Command D8 02 E1 - Switch to TV Mode]]
+
+This command is used to switch video input from composite A/V input to TV signals whenever the user presses the Select button.
+
+
+
+
+
+[[Command D8 10 - Set Video Contrast]]
+
+This command sets the contrast of all video output. It accepts a single signed 8-bit value (2's complement), where the lowest value (-128) represents the minimum contrast and the highest value (127) represents the maximum contrast.
+
+
+
+
+
+[[Command D8 11 - Set Video Brightness]]
+
+This command sets the brightness of all video output. It accepts a single signed 8-bit value (2's complement), where the lowest value (-128) represents the minimum brightness and the highest value (127) represents the maximum brightness.
+
+
+
+
+
+[[Command D8 15 - Set Video Hue]]
+
+This command sets the hue of all video output. It accepts a single signed 8-bit value (2's complement), where the lowest value (-128) represents the minimum hue and the highest value (127) represents the maximum hue.
