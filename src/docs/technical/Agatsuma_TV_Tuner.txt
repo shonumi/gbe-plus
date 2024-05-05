@@ -211,4 +211,78 @@ This command sets the brightness of all video output. It accepts a single signed
 
 [[Command D8 15 - Set Video Hue]]
 
-This command sets the hue of all video output. It accepts a single signed 8-bit value (2's complement), where the lowest value (-128) represents the minimum hue and the highest value (127) represents the maximum hue.
+This command sets the hue of all video output. It accepts a single signed 8-bit value (2's complement), where the lowest value (-128) represents the minimum hue and the highest value (127) represents the maximum hue. Although this feature is labeled as hue by the ATVT itself, functionally it manipulates the saturation, with lower values skewing video more towards grayscale, but never completely so.
+
+
+
+
+
+[[Command D8 0D 80 - Clear Video Frame]]
+
+This command appears to clear the internal video frame, or at least prepare the hardware to render the next video frame.
+
+
+
+
+
+[[Command D8 0D 00 - Render Video Frame]]
+
+This command renders any video frame from TV signals or the A/V input source. After issuing this command, 15bpp image data is available to read at the address range 0xA800000 - 0xA812BFF.
+
+
+
+
+
+[[Command D9 - Read Something?]]
+
+This command appears to read the result of several unidentified commands. Its purpose and function are currently unknown.
+
+
+***************************************************
+6. Flash Memory
+***************************************************
+
+The ATVT uses a very small amount of flash memory to store data such as brightness, contrast, and hue preferences, as well as a list of favorited channels and their frequencies. Below is a chart of known flash commands used by the ATVT
+
+-----------------------------------------------------------
+0x80, 0x30	| Erase Sector
+0x90		| Enter ID Mode
+0xA0		| Write 16-bit Value
+0xF0		| Terminate Command (force end of write)
+0xFF		| Reset
+-----------------------------------------------------------
+
+To issue either the Enter ID Mode or Reset commands, the CPU writes directly to TV_FLASH_INIT. Although the ATVT supports grabbing the manufacturer ID, this value isn't used by the device, and the software doesn't bother even reading it. The other 2 flash commands, Erase Sector and Write Data work as follows:
+
+-----------------------------------------------------------
+Erase Sector
+-----------------------------------------------------------
+1) Write 0xAA to TV_FLASH_CMD0
+2) Write 0x55 to TV_FLASH_CMD1
+3) Write 0x80 to TV_FLASH_CMD0
+
+4) Write 0xAA to TV_FLASH_CMD0
+5) Write 0x55 to TV_FLASH_CMD1
+6) Write 0x30 to TV_FLASH_DATA
+-----------------------------------------------------------
+
+Typically for a sector erase command, the sector number would be part of the address when writing 0x30 (e.g. flash memory working on 4KB sector would do use a format like 0x802-000 for the ATVT). However, since only a very small and limited amount of flash memory is available on the ATVT, the software is hardcoded to use only the first sector, thus it always defaults to 0x8020000. After erasing a sector, Terminate Command is called to make sure the write is finished. That command is executed by simply writing 0xF0 to TV_FLASH_CMD0.
+
+-----------------------------------------------------------
+Write 16-bit Value
+-----------------------------------------------------------
+1) Write 0xAA to TV_FLASH_CMD0
+2) Write 0x55 to TV_FLASH_CMD1
+3) Write 0xA0 to TV_FLASH_CMD0
+4) Write MSB to TV_FLASH_DATA + INDEX
+5) Write LSB to TV_FLASH_DATA + INDEX + 1
+-----------------------------------------------------------
+
+It should be noted that all I/O for the ATVT's flash memory is 16-bit, however, most registers only expect 8-bit values. Writing data is the only known area where all 16-bits are used. Like most flash memory, simply reading directly from the address range assigned to flash will pull its data. No special commands are necessary to read TV_FLASH_DATA.
+
+
+***************************************************
+7. Audio
+***************************************************
+
+Audio output appears to be handled by the ATVT itself. Given the complexities of trying to convert live over-the-air audio to GBA compatible samples, as well as the quality of the GBA audio system, Agatsuma likely chose to bypass that all and have the ATVT directly handle audio. It may have been a technologically simpler approach too. At any rate, there doesn't seem to be any audio handling code in the ATVT's ROM at all either.
