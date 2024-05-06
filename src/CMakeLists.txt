@@ -24,6 +24,10 @@ if (LINK_CABLE)
 	target_link_libraries(gbe_plus SDL2_net::SDL2_net)
 endif()
 
+if (IMAGE_FORMATS)
+	target_link_libraries(gbe_plus SDL2_image::SDL2_image)
+endif()
+
 if (USE_OGL)
 	target_link_libraries(gbe_plus OpenGL::GL)
 endif()

@@ -20,6 +20,13 @@ if (LINK_CABLE)
 	add_definitions(-DGBE_NETPLAY)
 endif()
 
+option(IMAGE_FORMATS "Enable image formats for screenshots and movies (requires SDL2_image)" OFF)
+
+if (IMAGE_FORMATS)
+	find_package(SDL2_image REQUIRED)
+	add_definitions(-DGBE_IMAGE_FORMATS)
+endif()
+
 option(ADVANCED_DEBUG "Enable advanced debugging features (may affect performance)" OFF)
 
 if (ADVANCED_DEBUG)
