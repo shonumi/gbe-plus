@@ -24,8 +24,8 @@ The Agatsuma TV Tuner (ATVT) is a cartridge for the Game Boy Advance that allowe
 - Has a port on the back side for an external antenna connection.
 - Comes with at least 256 bytes of flash memory to save configuration data.
 - Only compatible with analog broadcasts (NTSC-J).
-- Tunes into 62 channels
-- Capable of receiving signals from 55.25MHz to 801.25MHz
+- Tunes into 62 channels.
+- Capable of receiving signals from 55.25MHz to 801.25MHz.
 
 
 ***************************************************
@@ -242,7 +242,7 @@ This command appears to read the result of several unidentified commands. Its pu
 6. Flash Memory
 ***************************************************
 
-The ATVT uses a very small amount of flash memory to store data such as brightness, contrast, and hue preferences, as well as a list of favorited channels and their frequencies. Below is a chart of known flash commands used by the ATVT
+The ATVT uses a very small amount of flash memory to store data such as brightness, contrast, and hue preferences, as well as a list of favorited channels and their frequencies. Below is a chart of known flash commands used by the ATVT:
 
 -----------------------------------------------------------
 0x80, 0x30	| Erase Sector

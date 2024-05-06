@@ -145,6 +145,7 @@
 			<p class="list_item"><a href="#glu">Glucoboy</a></p>
 			<p class="list_item"><a href="#cam">Campho Advance</a></p>
 			<p class="list_item"><a href="#nmp">Nintendo MP3 Player</a></p>
+			<p class="list_item"><a href="#atv">Agatsuma TV Tuner</a></p>
 
 			<p class="list_head"><strong>NDS</strong></p>
 			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
@@ -6234,6 +6235,263 @@ Byte 0x0000 - 0x023F	Audio Buffer 2
 	<p>One interesting detail is that the maximum file size for firmware was supposed to be 65,536 bytes. This is significantly lower than the only known firmware update given for original Play-Yan, which came in around 554KB. The firmware for the NMP was likely far less complicated, perhaps as a result of the hardware lacking any video decoding and focusing exclusively on audio processing.</p>
 
 	<p>The firmware update file has to follow some sort of format to be considered valid. The NMP software checks for the presence of the string &#34;Nintendo MP3 Player firmware update program&#34; at the very start of the file&#39;s data, much like the original Play-Yan expects of its firmware updates.</p>
+
+
+
+
+
+
+
+
+
+
+
+	<!-- Agatsuma TV Tuner -->
+	<a name="atv"></a>
+	<p class="gray_title">Agatsuma TV Tuner</p>
+	<p class="list_item"><a href="#atv_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#atv_reg">I/O Registers</a></p>
+	<p class="list_item"><a href="#atv_dat">Data Transfer Protocol</a></p>
+	<p class="list_item"><a href="#atv_cmd">Commands</a></p>
+	<p class="list_item"><a href="#atv_fla">Flash Memory</a></p>
+	<p class="list_item"><a href="#atv_aud">Audio</a></p>
+
+	<a name="atv_gen"></a>
+	<p class="gray_title">[Agatsuma TV Tuner] : General Hardware Information</p>
+
+	<p>The Agatsuma TV Tuner (ATVT) is a cartridge for the Game Boy Advance that allowed users to watch analog broadcast TV. It was released exclusively in Japan on April 29, 2006. Created by Agatsuma Entertainment Inc., it was the only officially licensed TV tuner for the GBA. It also allows for composite A/V input.</p>
+
+	<ul>
+		<li class="list_item">Comes in a very large, bulky, black cartridge (about the size of an original DS folded).</li>
+		<li class="list_item">Has an adjustable antenna on the upper left side that extends and rotates.</li>
+		<li class="list_item">Requires 6 AA batteries to work.</li>
+		<li class="list_item">Features dual-speakers on the front to bypass the GBA&#39;s audio system.</li>
+		<li class="list_item">Features a volume dial on the lower left side.</li>
+		<li class="list_item">Has a composite A/V input port on the lower right side.</li>
+		<li class="list_item">Has a 3.5mm headphone jack on the lower right side.</li>
+		<li class="list_item">Has a port on the back side for an external antenna connection.</li>
+		<li class="list_item">Comes with at least 256 bytes of flash memory to save configuration data.</li>
+		<li class="list_item">Only compatible with analog broadcasts (NTSC-J).</li>
+		<li class="list_item">Tunes into 62 channels.</li>
+		<li class="list_item">Capable of receiving signals from 55.25MHz to 801.25MHz.</li>
+	</ul>
+
+	<a name="atv_reg"></a>
+	<p class="gray_title">[Agatsuma TV Tuner] : I/O Registers</p>
+
+	<p>The ATVT has several memory-mapped registers that deal with TV operations as well as writing to its internal flash memory.</p>
+
+<pre>-----------------------------------------------------------
+Address				| I/O Name
+-----------------------------------------------------------
+0x8000000			| TV_FLASH_INIT
+0x8000AAA			| TV_FLASH_CMD0
+0x8000554			| TV_FLASH_CMD1
+0x8020000 - 0x80200FF		| TV_FLASH_DATA
+0xA800000 - 0xA812BFF		| TV_FRAME_BUFFER
+0xE000000			| TV_CNT_A
+0xE000001			| TV_CNT_B
+0xE000002			| TV_CNT_C
+0xE000003			| TV_CNT_D
+-----------------------------------------------------------</pre>
+
+	<p>TV_FLASH_INIT deals specifically with two standard flash commands, 0x90 (Enter ID Mode) and 0xFF (Reset). All other flash commands have to write to TV_FLASH_CMD0 and TV_FLASH_CMD1. A small section of what is normally cartridge ROM is instead reserved for 256 bytes of flash memory.</p>
+
+	<p>The ATVT provides video as full 240x160 frames, in the form of a 15bpp bitmap image. The frame buffer is available to read directly.</p>
+
+	<p>4 separate control registers are used to issue TV-related commands. The bulk of the work falls on TV_CNT_A and TV_CNT_B. TV_CNT_C and TV_CNT_D have lesser roles; writing to these locations overwrites the values in their counterparts. That is to say, writing to TV_CNT_C overwrites TV_CNT_A, and writing to TV_CNT_D overwrites TV_CNT_B. This is often done to zero out and reset those registers (presumably without affecting something about their operations).</p>
+
+	<a name="atv_dat"></a>
+	<p class="gray_title">[Agatsuma TV Tuner] : Data Transfer Protocol</p>
+
+	<p>In order to send commands or read data from commands, the CPU writes bytes serially to using TV_CNT_A or TV_CNT_B. The register used depends on which commands are being issued. Here, only Bit 0 and Bit 1 are used to clock the transfer and represent I/O data.</p>
+
+<pre>-----------------------------------------------------------
+Bit 0	| I/O Data
+Bit 1	| Clock (0 = LOW, 1 = HIGH)
+-----------------------------------------------------------</pre>
+
+	<p>Depending on the command, TV_CNT_A must have Bits 2, 6, and 7 set HIGH (essentially OR&#39;ed 0xC4), while TV_CNT_B must have Bit 6 set HIGH (essentially OR&#39;ed by 0x40). The high-level protocol issuing commands protocol looks something like this:</p>
+
+<pre>-----------------------------------------------------------
+START SIGNAL
+
+TRANSFER BYTE 
+ACKNOWLEDGE SIGNAL
+
+TRANSFER BYTE
+ACKNOWLEDGE SIGNAL
+
+...
+
+READ BYTE (only used for some read commands)
+ACKNOWLEDGE SIGNAL (only used for read commands)
+
+STOP SIGNAL
+-----------------------------------------------------------</pre>
+
+	<p>The Start Signal involves setting the clock HIGH twice, while sending 1 then 0 as data:</p>
+
+<pre>-----------------------------------------------------------
+Start Signal
+-----------------------------------------------------------
+1) Set Clock High and set I/O Data to 1
+2) Set Clock High and set I/O Data to 0
+-----------------------------------------------------------</pre>
+
+	<p>The Start Signal always follows a Stop Signal, or is the first signal sent to the ATVT at all post-boot. After the Start Signal, individualy bytes can be transferred bit-by-bit. Bytes are sent MSB-first. Each bit requires 4 writes to TV_CNT_A or TV_CNT_B. The process is described below:</p>
+
+<pre>-----------------------------------------------------------
+Transfer Bit
+-----------------------------------------------------------
+1) Set Clock LOW
+2) Set I/O Data to transfer bit
+3) Set Clock HIGH
+4) Set Clock LOW
+-----------------------------------------------------------</pre>
+
+	<p>After repeating those steps 8 times, a full byte has been transferred to the ATVT. Once the transfer is complete, an Acknowledgement Signal must be sent as well. This signal consists of 4 writes to TV_CNT_A or TV_CNT_B as such:</p>
+
+<pre>-----------------------------------------------------------
+Acknowledgement Signal
+-----------------------------------------------------------
+1) Set Clock LOW and set I/O Data to 0
+2) Set I/O Data 1
+3) Set Clock HIGH
+4) Set Clock LOW and set I/O Data to 1
+-----------------------------------------------------------</pre>
+
+	<p>If there is more incoming data for a command, the process for transferring bytes begins immediately. However, if there is no more data, a Stop Signal must be sent:</p>
+
+<pre>-----------------------------------------------------------
+Stop Signal
+-----------------------------------------------------------
+1) Set Clock LOW and set I/O Data to 0
+2) Set Clock HIGH
+3) Set Clock HIGH and set I/O Data to 1
+-----------------------------------------------------------</pre>
+
+	<p>Some commands return 8-bit data from the ATVT. After the last byte of the command has been transferred and acknowledged, this 8-bit data is read immediately (i.e., the read occurs before a Stop Signal). As with transferring bytes, reading bytes is done serially. The process for that is as follows:</p>
+
+<pre>-----------------------------------------------------------
+Read Bit
+-----------------------------------------------------------
+1) Set Clock LOW and set I/O Data to 1
+2) Set Clock HIGH
+3) Read Bit 0 of TV_CNT_A or TV_CNT_B
+-----------------------------------------------------------</pre>
+
+	<p>This is done a total of 8 times until the byte is fully read out.</p>
+
+	<a name="atv_cmd"></a>
+	<p class="gray_title">[Agatsuma TV Tuner] : Commands</p>
+
+	<p>By writing certain bytes to the ATVT (using the protocol described above) the CPU can send several commands to the device. Typically the last two bytes of a command are 8-bit or 16-bit parameters. In the case of read commands, there are no parameters used. A list of known commands is shown in the table below along with whether the command uses TV_CNT_A or TV_CNT_B:</p>
+
+<pre>-----------------------------------------------------------
+Command Name		| Command Pattern (in hexadecimal)
+-----------------------------------------------------------
+Read Channel Status	| 87
+Change Channel		| C0 xx xx
+Switch to AV Input Mode	| D8 02 E0
+Switch to TV Mode	| D8 02 E1
+Set Video Contrast	| D8 10 xx
+Set Video Brightness	| D8 11 xx
+Set Video Hue		| D8 15 xx
+Clear Video Frame	| D8 0D 80
+Render Video Frame	| D8 0D 00
+Read Something?		| D9
+-----------------------------------------------------------</pre>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 87 - Read Channel Status</strong></p>
+	<p class="list_item">This command returns an 8-bit value representing the status of the current channel&#39;s reception. If the ATVT detects a valid TV signal, it will return the value 0xC0. Any other value seems to indicate that no proper reception was found for that channel, at least on the frequency assigned for it.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command C0 - Change Channel</strong></p>
+	<p class="list_item">This command changes the current channel. Its parameters form a 16-bit value that represents the channel&#39;s frequency in MHz. The lowest frequency possible is 55.25MHz and is representing by the hex value 0x0650. The highest possible frequency is 801.25MHz and is represented by the hex value 0x34F0. Essentially, increasing/decreasing the 16-bit value by 1 changes the frequency by 0.0625MHz. The Change Channel command is called when the user manually switches between saved channels, when scanning for available channels, and when manually tuning channels.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 02 E0 - Switch to AV Input Mode</strong></p>
+	<p class="list_item">This command is used to switch video input from TV signals to composite A/V input whenever the user presses the Select button.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 02 E1 - Switch to TV Mode</strong></p>
+	<p class="list_item">This command is used to switch video input from composite A/V input to TV signals whenever the user presses the Select button.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 10 - Set Video Contrast</strong></p>
+	<p class="list_item">This command sets the contrast of all video output. It accepts a single signed 8-bit value (2&#39;s complement), where the lowest value (-128) represents the minimum contrast and the highest value (127) represents the maximum contrast.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 11 - Set Video Brightness</strong></p>
+	<p class="list_item">This command sets the brightness of all video output. It accepts a single signed 8-bit value (2&#39;s complement), where the lowest value (-128) represents the minimum brightness and the highest value (127) represents the maximum brightness.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 15 - Set Video Hue</strong></p>
+	<p class="list_item">This command sets the hue of all video output. It accepts a single signed 8-bit value (2&#39;s complement), where the lowest value (-128) represents the minimum hue and the highest value (127) represents the maximum hue. Although this feature is labeled as hue by the ATVT itself, functionally it manipulates the saturation, with lower values skewing video more towards grayscale, but never completely so.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 0D 80 - Clear Video Frame</strong></p>
+	<p class="list_item">This command appears to clear the internal video frame, or at least prepare the hardware to render the next video frame.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 0D 00 - Render Video Frame</strong></p>
+	<p class="list_item">This command renders any video frame from TV signals or the A/V input source. After issuing this command, 15bpp image data is available to read at the address range 0xA800000 - 0xA812BFF.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D9 - Read Something?</strong></p>
+	<p class="list_item">This command appears to read the result of several unidentified commands. Its purpose and function are currently unknown.</p>
+
+	<a name="atv_fla"></a>
+	<p class="gray_title">[Agatsuma TV Tuner] : Flash Memory</p>
+
+	<p>The ATVT uses a very small amount of flash memory to store data such as brightness, contrast, and hue preferences, as well as a list of favorited channels and their frequencies. Below is a chart of known flash commands used by the ATVT:</p>
+
+<pre>-----------------------------------------------------------
+0x80, 0x30	| Erase Sector
+0x90		| Enter ID Mode
+0xA0		| Write 16-bit Value
+0xF0		| Terminate Command (force end of write)
+0xFF		| Reset
+-----------------------------------------------------------</pre>
+
+	<p>To issue either the Enter ID Mode or Reset commands, the CPU writes directly to TV_FLASH_INIT. Although the ATVT supports grabbing the manufacturer ID, this value isn&#39;t used by the device, and the software doesn&#39;t bother even reading it. The other 2 flash commands, Erase Sector and Write Data work as follows:</p>
+
+<pre>-----------------------------------------------------------
+Erase Sector
+-----------------------------------------------------------
+1) Write 0xAA to TV_FLASH_CMD0
+2) Write 0x55 to TV_FLASH_CMD1
+3) Write 0x80 to TV_FLASH_CMD0
+
+4) Write 0xAA to TV_FLASH_CMD0
+5) Write 0x55 to TV_FLASH_CMD1
+6) Write 0x30 to TV_FLASH_DATA
+-----------------------------------------------------------</pre>
+
+	<p>Typically for a sector erase command, the sector number would be part of the address when writing 0x30 (e.g. flash memory working on 4KB sector would do use a format like 0x802-000 for the ATVT). However, since only a very small and limited amount of flash memory is available on the ATVT, the software is hardcoded to use only the first sector, thus it always defaults to 0x8020000. After erasing a sector, Terminate Command is called to make sure the write is finished. That command is executed by simply writing 0xF0 to TV_FLASH_CMD0.</p>
+
+<pre>-----------------------------------------------------------
+Write 16-bit Value
+-----------------------------------------------------------
+1) Write 0xAA to TV_FLASH_CMD0
+2) Write 0x55 to TV_FLASH_CMD1
+3) Write 0xA0 to TV_FLASH_CMD0
+4) Write MSB to TV_FLASH_DATA + INDEX
+5) Write LSB to TV_FLASH_DATA + INDEX + 1
+-----------------------------------------------------------</pre>
+
+	<p>It should be noted that all I/O for the ATVT&#39;s flash memory is 16-bit, however, most registers only expect 8-bit values. Writing data is the only known area where all 16-bits are used. Like most flash memory, simply reading directly from the address range assigned to flash will pull its data. No special commands are necessary to read TV_FLASH_DATA.</p>
+
+	<a name="atv_aud"></a>
+	<p class="gray_title">[Agatsuma TV Tuner] : Audio</p>
+	
+	<p>Audio output appears to be handled by the ATVT itself. Given the complexities of trying to convert live over-the-air audio to GBA compatible samples, as well as the quality of the GBA audio system, Agatsuma likely chose to bypass that all and have the ATVT directly handle audio. It may have been a technologically simpler approach too. At any rate, there doesn&#39;t seem to be any audio handling code in the ATVT&#39;s ROM at all either.</p>
+
+
+
+
 
 
 
