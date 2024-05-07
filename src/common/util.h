@@ -47,8 +47,6 @@ namespace util
 		u32 color;
 	};
 
-	bool save_png(SDL_Surface* source, std::string filename);
-
 	u8 rgb_min(u32 color);
 	u8 rgb_max(u32 color);
 
