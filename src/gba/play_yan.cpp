@@ -10,6 +10,10 @@
 // Manages IRQs and firmware reads/writes
 // Nintendo MP3 Player handled separately (see nmp.cpp)
 
+#ifdef GBE_IMAGE_FORMATS
+#include <SDL2/SDL_image.h>
+#endif
+
 #include "mmu.h"
 #include "common/util.h"
 
@@ -28,6 +32,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.firmware_addr = 0;
 	play_yan.firmware_status = 0x10;
 	play_yan.firmware_addr_count = 0;
+
+	play_yan.video_bytes.clear();
 
 	play_yan.status = 0x80;
 	play_yan.op_state = PLAY_YAN_NOP;
@@ -524,6 +530,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				//TODO - Use external conversion program and grab video length. For demo purposes, default to 10 seconds
 				u32 vid_len = 10;
 
+				std::string test = "./heyo.sh";
+				vid_len = system(test.c_str());
+				std::cout<<"VID LEN -> 0x" << vid_len << "\n";
 				play_yan.video_check_data[3][3] = (vid_len * 1000);
 			}
 
@@ -556,28 +565,29 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				play_yan_load_audio(play_yan.current_music_file);
 			}
 
-			else
-			{
-				play_yan.video_length = (11 * 0x20 * 30);
-				play_yan.video_current_fps = 1.0;
-			}
 
-			/*
 			//Search for internal ID associated with video file
 			else
 			{
 				for(u32 x = 0; x < play_yan.video_files.size(); x++)
 				{
-					if(temp_str == play_yan.video_files[x])
+					std::string cmp_1 = util::get_filename_from_path(play_yan.video_files[x]);
+					std::string cmp_2 = util::get_filename_from_path(temp_str);
+
+					if(cmp_1 == cmp_2)
 					{
-						play_yan.video_file_index = x;
-						play_yan.video_length = ((play_yan.video_times[x] + 1) * 0x20 * 30);
-						play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
+						play_yan_convert_video(play_yan.video_files[x]);
+
+						//play_yan.video_file_index = x;
+						//play_yan.video_length = ((play_yan.video_times[x] + 1) * 0x20 * 30);
+						//play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
+
+
+						
 						break;
 					}
 				}
 			}
-			*/
 		}
 	}	
 }
@@ -1564,3 +1574,215 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 
 	return true;
 }
+
+/****** Loads a video file and then converts it to .WAV and raw MJPEG for playback ******/
+bool AGB_MMU::play_yan_convert_video(std::string filename)
+{
+	#ifdef GBE_IMAGE_FORMATS
+
+	//Abort now if no audio conversion command is specified
+	if(config::audio_conversion_cmd.empty())
+	{
+		std::cout<<"MMU::No audio conversion command specified. Cannot convert file " << filename << "\n";
+		return false;
+	}
+
+	//Abort now if no video conversion command is specified
+	if(config::video_conversion_cmd.empty())
+	{
+		std::cout<<"MMU::No video conversion command specified. Cannot convert file " << filename << "\n";
+		return false;
+	}
+
+	//Process audio first
+	//Clear previous buffer if necessary
+	SDL_FreeWAV(apu_stat->ext_audio.buffer);
+	apu_stat->ext_audio.buffer = NULL;
+
+	SDL_AudioSpec file_spec;
+
+	std::string out_file = config::temp_media_file + ".wav";
+	std::string sys_cmd = config::audio_conversion_cmd;
+
+	//Delete any existing temporary media file in case audio conversion command complains
+	std::remove(out_file.c_str());
+
+	//Replace %in and %out with proper parameters
+	std::string search_str = "%in";
+	std::size_t pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 3);
+		sys_cmd = start + filename + end;
+	}
+
+	search_str = "%out";
+	pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 4);
+		sys_cmd = start + out_file + end;
+	}
+		
+	//Check for a command processor on system and run audio conversion command
+	if(system(NULL))
+	{
+		std::cout<<"MMU::Extracting audio from file " << filename << "\n";
+		system(sys_cmd.c_str());
+		std::cout<<"MMU::Extraction complete\n";
+	}
+
+	else
+	{
+		std::cout<<"Extraction of audio from file " << filename << " failed \n";
+		return false;
+	}
+
+	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+	{
+		std::cout<<"MMU::Play-Yan could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
+		return false;
+	}
+
+	//Check format, must be S16 audio, LSB
+	if(file_spec.format != AUDIO_S16)
+	{
+		std::cout<<"MMU::Play-Yan loaded file, but format is not Signed 16-bit LSB audio\n";
+		return false;
+	}
+
+	//Check number of channels, max is 2
+	if(file_spec.channels > 2)
+	{
+		std::cout<<"MMU::Play-Yan loaded file, but audio uses more than 2 channels\n";
+		return false;
+	}
+
+	apu_stat->ext_audio.frequency = file_spec.freq;
+	apu_stat->ext_audio.channels = file_spec.channels;
+
+	//Process video next
+	out_file = config::temp_media_file + ".mjpg";
+	sys_cmd = config::video_conversion_cmd;
+
+	//Delete any existing temporary media file in case audio conversion command complains
+	std::remove(out_file.c_str());
+
+	//Replace %in and %out with proper parameters
+	search_str = "%in";
+	pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 3);
+		sys_cmd = start + filename + end;
+	}
+
+	search_str = "%out";
+	pos = sys_cmd.find(search_str);
+
+	if(pos != std::string::npos)
+	{
+		std::string start = sys_cmd.substr(0, pos);
+		std::string end = sys_cmd.substr(pos + 4);
+		sys_cmd = start + out_file + end;
+	}
+		
+	//Check for a command processor on system and run audio conversion command
+	if(system(NULL))
+	{
+		std::cout<<"MMU::Extracting video from file " << filename << "\n";
+		system(sys_cmd.c_str());
+		std::cout<<"MMU::Extraction complete\n";
+	}
+
+	else
+	{
+		std::cout<<"Extraction of video from file " << filename << " failed \n";
+		return false;
+	}
+
+	//Read MJPEG fileGrab a list of all JPEG frames from the video file
+	std::ifstream vid_file(out_file.c_str(), std::ios::binary);
+	play_yan.video_bytes.clear();
+	std::vector<u32> mjpeg_frame_ptrs;
+
+	if(!vid_file.is_open()) 
+	{
+		std::cout<<"MMU::" << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	vid_file.seekg(0, vid_file.end);
+	u32 vid_file_size = vid_file.tellg();
+	vid_file.seekg(0, vid_file.beg);
+	play_yan.video_bytes.resize(vid_file_size);
+
+	vid_file.read(reinterpret_cast<char*> (&play_yan.video_bytes[0]), vid_file_size);
+	vid_file.close();
+
+	for(u32 x = 0; x < play_yan.video_bytes.size() - 1; x++)
+	{
+		//Look for Start of Image marker (0xFF 0xD8) and use that as a pointer to a given frame
+		if((play_yan.video_bytes[x] == 0xFF) && (play_yan.video_bytes[x + 1] == 0xD8))
+		{
+			mjpeg_frame_ptrs.push_back(x);
+		}
+	}
+
+	u32 run_time = mjpeg_frame_ptrs.size() / 30;
+
+	std::cout<<"MMU::Video is " << std::dec << mjpeg_frame_ptrs.size() << " frames long\n";
+	std::cout<<"MMU::Calculated Run Time @ 30FPS -> " << (run_time / 60) << " :: " << (run_time % 60) << std::hex << "\n";
+
+	//Save thumbnail from middle of video file
+	if(mjpeg_frame_ptrs.size() >= 2)
+	{
+		u32 mid = mjpeg_frame_ptrs.size() / 2;
+		u32 start = mjpeg_frame_ptrs[mid];
+		u32 end = mjpeg_frame_ptrs[mid + 1];
+		std::vector<u8> new_thumb;
+	
+		for(u32 x = start; x < end; x++)
+		{
+			new_thumb.push_back(play_yan.video_bytes[x]);
+		}
+
+		std::string saved_thumb = util::get_filename_no_ext(filename) + ".bmp";
+
+		SDL_RWops* io_ops = SDL_AllocRW();
+		io_ops = SDL_RWFromMem(new_thumb.data(), new_thumb.size());
+
+		SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
+		SDL_Surface* final_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 60, 40, 32, 0, 0, 0, 0);
+
+		//Scale down image
+		SDL_Rect dest_rect;
+		dest_rect.w = 60;
+		dest_rect.h = 40;
+		dest_rect.x = 0;
+		dest_rect.y = 0;
+		SDL_BlitScaled(temp_surface, NULL, final_surface, &dest_rect);
+		
+		SDL_SaveBMP(final_surface, saved_thumb.c_str());
+
+		SDL_FreeSurface(final_surface);
+		SDL_FreeSurface(temp_surface);
+		SDL_FreeRW(io_ops);
+	}
+
+	//Set video length and FPS
+	//FPS *must* be forced to 30FPS when converting a video, just to make things simpler
+	play_yan.video_length = ((run_time + 1) * 0x20 * 30);
+	play_yan.video_current_fps = 2.0;
+
+	#endif
+
+	return true;
+}
+

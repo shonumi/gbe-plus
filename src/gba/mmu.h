@@ -354,6 +354,7 @@ class AGB_MMU
 
 		std::vector<u8> video_thumbnail;
 		std::vector<u8> video_data;
+		std::vector<u8> video_bytes;
 		u16 thumbnail_addr;
 		u16 thumbnail_index;
 		u32 video_data_addr; 
@@ -648,6 +649,7 @@ class AGB_MMU
 	void play_yan_set_ini_file();
 	void play_yan_wake();
 	bool play_yan_load_audio(std::string filename);
+	bool play_yan_convert_video(std::string filename);
 
 	void write_nmp(u32 address, u8 value);
 	u8 read_nmp(u32 address);
