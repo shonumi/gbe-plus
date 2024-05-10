@@ -271,9 +271,6 @@ namespace config
 	//Audio conversion command
 	std::string audio_conversion_cmd = "";
 
-	//Video conversion command
-	std::string video_conversion_cmd = "";
-
 	//Remove vocals command
 	std::string remove_vocals_cmd = "";
 
@@ -1880,9 +1877,6 @@ bool parse_ini_file()
 		//Audio Conversion Command
 		parse_ini_str(ini_item, "#audio_conversion_command", config::audio_conversion_cmd, ini_opts, x);
 
-		//Video Conversion Command
-		parse_ini_str(ini_item, "#video_conversion_command", config::video_conversion_cmd, ini_opts, x);
-
 		//Remove Vocals Command
 		parse_ini_str(ini_item, "#remove_vocals_command", config::remove_vocals_cmd, ini_opts, x);
 
@@ -2756,15 +2750,6 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#audio_conversion_command" + val + "]";
 		}
 
-		//Video Conversion Command
-		else if(ini_item == "#video_conversion_command")
-		{
-			line_pos = output_count[x];
-
-			std::string val = (config::video_conversion_cmd == "") ? "" : (":'" + config::video_conversion_cmd + "'");
-			output_lines[line_pos] = "[#video_conversion_command" + val + "]";
-		}
-
 		//Remove Vocals Command
 		else if(ini_item == "#remove_vocals_command")
 		{
@@ -3107,7 +3092,6 @@ bool generate_ini_file()
 	ini_contents += "[#mw_data]\n\n";
 	ini_contents += "[#jukebox_total_time]\n\n";
 	ini_contents += "[#audio_conversion_command]\n\n";
-	ini_contents += "[#video_conversion_command]\n\n";
 	ini_contents += "[#remove_vocals_command]\n\n";
 	ini_contents += "[#glucoboy_daily_grps]\n";
 	ini_contents += "[#glucoboy_bonus_grps]\n";

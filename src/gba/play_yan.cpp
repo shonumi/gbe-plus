@@ -34,6 +34,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.firmware_addr_count = 0;
 
 	play_yan.video_bytes.clear();
+	play_yan.video_frames.clear();
 
 	play_yan.status = 0x80;
 	play_yan.op_state = PLAY_YAN_NOP;
@@ -158,6 +159,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_frame_count = 0;
 	play_yan.audio_buffer_size = 0;
 	play_yan.audio_frame_count = 0;
+	play_yan.current_frame = 0;
 	play_yan.update_video_frame = false;
 	play_yan.update_audio_stream = false;
 	play_yan.update_trackbar_timestamp = false;
@@ -350,6 +352,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					play_yan.video_progress += 0x20;
 					play_yan.video_frame_count += 1.0;
+					play_yan.current_frame++;
 					if(play_yan.irq_repeat) { play_yan.irq_repeat--; }
 				}
 
@@ -358,6 +361,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					play_yan.video_progress -= 0x80;
 					if(play_yan.video_progress >= 0xF0000000) { play_yan.video_progress = 0; }
+
+					play_yan.current_frame -= 4;
+					if(play_yan.current_frame < 0) { play_yan.current_frame = 0; }
 
 					play_yan.video_frame_count -= 4.0;
 					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
@@ -432,6 +438,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					play_yan.video_progress += 0x20;
 					play_yan.video_frame_count += 1.0;
+					play_yan.current_frame++;
 					if(play_yan.irq_repeat) { play_yan.irq_repeat--; }
 				}
 
@@ -440,6 +447,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				{
 					play_yan.video_progress -= 0x80;
 					if(play_yan.video_progress >= 0xF0000000) { play_yan.video_progress = 0; }
+
+					play_yan.current_frame -= 4;
+					if(play_yan.current_frame < 0) { play_yan.current_frame = 0; }
 
 					play_yan.video_frame_count -= 4.0;
 					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
@@ -529,10 +539,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				//Reset video length in ms
 				//TODO - Use external conversion program and grab video length. For demo purposes, default to 10 seconds
 				u32 vid_len = 10;
-
-				std::string test = "./heyo.sh";
-				vid_len = system(test.c_str());
-				std::cout<<"VID LEN -> 0x" << vid_len << "\n";
 				play_yan.video_check_data[3][3] = (vid_len * 1000);
 			}
 
@@ -576,14 +582,15 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 					if(cmp_1 == cmp_2)
 					{
-						play_yan_convert_video(play_yan.video_files[x]);
+						//Attempt to load video, otherwise setup dummy data
+						//Dummy = blank violet screen, 10 seconds
+						if(!play_yan_load_video(play_yan.video_files[x]))
+						{
+							play_yan.video_length = (11 * 0x20 * 30);
+							play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
+							play_yan.video_data.resize(0x12C00, 0x3C);
+						}
 
-						//play_yan.video_file_index = x;
-						//play_yan.video_length = ((play_yan.video_times[x] + 1) * 0x20 * 30);
-						//play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
-
-
-						
 						break;
 					}
 				}
@@ -814,6 +821,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.video_progress = 0;
 		play_yan.video_play_data[1][6] = play_yan.video_progress;
 		play_yan.video_frame_count = 0;
+		play_yan.current_frame = 0;
 		play_yan.is_video_playing = true;
 
 		play_yan.tracker_progress = 0;
@@ -836,6 +844,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
 		play_yan.video_frame_count = 0;
+		play_yan.current_frame = 0;
 		play_yan.is_video_playing = false;
 	}
 
@@ -983,12 +992,6 @@ void AGB_MMU::process_play_yan_irq()
 
 	if(play_yan.op_state == PLAY_YAN_WAIT) { return; }
 
-	//Process Play-Yan states
-	//1 = SD card check, 2 = Enter/exit music menu, 3 = Enter/exit video menu,
-	//5 = Process video thumbnails, 6 = Play music, 7 = Continue playing music
-	//8 = Stop music, 9 = Play video, 10 = Stop video
-	//TODO - Use an enum instead of magic numbers!
-
 	//Trigger Game Pak IRQ
 	memory_map[REG_IF+1] |= 0x20;
 
@@ -1073,11 +1076,12 @@ void AGB_MMU::process_play_yan_irq()
 
 				//Update video frame counter and grab new video frame if necessary
 				play_yan.video_frame_count += 1.0;
+				play_yan.current_frame++;
 
 				if(play_yan.video_frame_count >= play_yan.video_current_fps)
 				{
 					play_yan.video_frame_count -= play_yan.video_current_fps;
-					//TODO - Grab new frame data
+					play_yan_grab_frame_data(play_yan.current_frame);
 				}
 
 				//Stop video when length is complete
@@ -1151,6 +1155,8 @@ bool AGB_MMU::read_play_yan_thumbnail(std::string filename)
 			play_yan.video_thumbnail.push_back((raw_pixel >> 8) & 0xFF);
 		}
 	}
+
+	SDL_FreeSurface(source);
 
 	return true;
 }
@@ -1575,142 +1581,14 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	return true;
 }
 
-/****** Loads a video file and then converts it to .WAV and raw MJPEG for playback ******/
-bool AGB_MMU::play_yan_convert_video(std::string filename)
+/****** Loads video that's already been converted - MJPEG video, 16-bit PCM-LE ******/
+bool AGB_MMU::play_yan_load_video(std::string filename)
 {
 	#ifdef GBE_IMAGE_FORMATS
 
-	//Abort now if no audio conversion command is specified
-	if(config::audio_conversion_cmd.empty())
-	{
-		std::cout<<"MMU::No audio conversion command specified. Cannot convert file " << filename << "\n";
-		return false;
-	}
-
-	//Abort now if no video conversion command is specified
-	if(config::video_conversion_cmd.empty())
-	{
-		std::cout<<"MMU::No video conversion command specified. Cannot convert file " << filename << "\n";
-		return false;
-	}
-
-	//Process audio first
-	//Clear previous buffer if necessary
-	SDL_FreeWAV(apu_stat->ext_audio.buffer);
-	apu_stat->ext_audio.buffer = NULL;
-
-	SDL_AudioSpec file_spec;
-
-	std::string out_file = config::temp_media_file + ".wav";
-	std::string sys_cmd = config::audio_conversion_cmd;
-
-	//Delete any existing temporary media file in case audio conversion command complains
-	std::remove(out_file.c_str());
-
-	//Replace %in and %out with proper parameters
-	std::string search_str = "%in";
-	std::size_t pos = sys_cmd.find(search_str);
-
-	if(pos != std::string::npos)
-	{
-		std::string start = sys_cmd.substr(0, pos);
-		std::string end = sys_cmd.substr(pos + 3);
-		sys_cmd = start + filename + end;
-	}
-
-	search_str = "%out";
-	pos = sys_cmd.find(search_str);
-
-	if(pos != std::string::npos)
-	{
-		std::string start = sys_cmd.substr(0, pos);
-		std::string end = sys_cmd.substr(pos + 4);
-		sys_cmd = start + out_file + end;
-	}
-		
-	//Check for a command processor on system and run audio conversion command
-	if(system(NULL))
-	{
-		std::cout<<"MMU::Extracting audio from file " << filename << "\n";
-		system(sys_cmd.c_str());
-		std::cout<<"MMU::Extraction complete\n";
-	}
-
-	else
-	{
-		std::cout<<"Extraction of audio from file " << filename << " failed \n";
-		return false;
-	}
-
-	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
-	{
-		std::cout<<"MMU::Play-Yan could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
-		return false;
-	}
-
-	//Check format, must be S16 audio, LSB
-	if(file_spec.format != AUDIO_S16)
-	{
-		std::cout<<"MMU::Play-Yan loaded file, but format is not Signed 16-bit LSB audio\n";
-		return false;
-	}
-
-	//Check number of channels, max is 2
-	if(file_spec.channels > 2)
-	{
-		std::cout<<"MMU::Play-Yan loaded file, but audio uses more than 2 channels\n";
-		return false;
-	}
-
-	apu_stat->ext_audio.frequency = file_spec.freq;
-	apu_stat->ext_audio.channels = file_spec.channels;
-
-	//Process video next
-	out_file = config::temp_media_file + ".mjpg";
-	sys_cmd = config::video_conversion_cmd;
-
-	//Delete any existing temporary media file in case audio conversion command complains
-	std::remove(out_file.c_str());
-
-	//Replace %in and %out with proper parameters
-	search_str = "%in";
-	pos = sys_cmd.find(search_str);
-
-	if(pos != std::string::npos)
-	{
-		std::string start = sys_cmd.substr(0, pos);
-		std::string end = sys_cmd.substr(pos + 3);
-		sys_cmd = start + filename + end;
-	}
-
-	search_str = "%out";
-	pos = sys_cmd.find(search_str);
-
-	if(pos != std::string::npos)
-	{
-		std::string start = sys_cmd.substr(0, pos);
-		std::string end = sys_cmd.substr(pos + 4);
-		sys_cmd = start + out_file + end;
-	}
-		
-	//Check for a command processor on system and run audio conversion command
-	if(system(NULL))
-	{
-		std::cout<<"MMU::Extracting video from file " << filename << "\n";
-		system(sys_cmd.c_str());
-		std::cout<<"MMU::Extraction complete\n";
-	}
-
-	else
-	{
-		std::cout<<"Extraction of video from file " << filename << " failed \n";
-		return false;
-	}
-
-	//Read MJPEG fileGrab a list of all JPEG frames from the video file
-	std::ifstream vid_file(out_file.c_str(), std::ios::binary);
-	play_yan.video_bytes.clear();
-	std::vector<u32> mjpeg_frame_ptrs;
+	std::vector<u8> vid_info;
+	std::vector<u8> tmp_info;
+	std::ifstream vid_file(filename.c_str(), std::ios::binary);
 
 	if(!vid_file.is_open()) 
 	{
@@ -1721,68 +1599,187 @@ bool AGB_MMU::play_yan_convert_video(std::string filename)
 	vid_file.seekg(0, vid_file.end);
 	u32 vid_file_size = vid_file.tellg();
 	vid_file.seekg(0, vid_file.beg);
-	play_yan.video_bytes.resize(vid_file_size);
+	vid_info.resize(vid_file_size);
 
-	vid_file.read(reinterpret_cast<char*> (&play_yan.video_bytes[0]), vid_file_size);
+	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
 	vid_file.close();
 
-	for(u32 x = 0; x < play_yan.video_bytes.size() - 1; x++)
+	u32 index = 0;
+
+	//Search for movi and idx1 FOURCC as start and endpoints of usable data
+	bool found_movi = false;
+
+	for(u32 x = 0; x < (vid_file_size - 4); x++)
 	{
-		//Look for Start of Image marker (0xFF 0xD8) and use that as a pointer to a given frame
-		if((play_yan.video_bytes[x] == 0xFF) && (play_yan.video_bytes[x + 1] == 0xD8))
+		if((vid_info[x] == 0x6D) && (vid_info[x + 1] == 0x6F)
+		&& (vid_info[x + 2] == 0x76) && (vid_info[x + 3] == 0x69))
 		{
-			mjpeg_frame_ptrs.push_back(x);
+			index = x;
+			found_movi = true;
+		}
+	} 
+
+	if(!found_movi)
+	{
+		std::cout<<"MMU::No movi FOURCC found in " << filename << ". Check if file is valid AVI video.\n";
+		return false;
+	}
+
+	for(u32 x = index; x < vid_file_size; x++)
+	{
+		if(x < (vid_file_size - 4))
+		{
+
+			if((vid_info[x] == 0x69) && (vid_info[x + 1] == 0x64)
+			&& (vid_info[x + 2] == 0x78) && (vid_info[x + 3] == 0x31))
+			{
+				break;
+			}
+		}
+
+		tmp_info.push_back(vid_info[x]);
+	}
+
+	//Search and parse each 00dc FOURCC
+	play_yan.video_bytes.clear();
+	play_yan.video_frames.clear();
+
+	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
+	{
+		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x30)
+		&& (tmp_info[x + 2] == 0x64) && (tmp_info[x + 3] == 0x63))
+		{
+			play_yan.video_frames.push_back(play_yan.video_bytes.size());
+
+			x += 4;
+			u32 len = (tmp_info[x + 3] << 24) | (tmp_info[x + 2] << 16) | (tmp_info[x + 1] << 8) | tmp_info[x];
+
+			x += 4;
+			for(u32 y = 0; y < len; y++)
+			{
+				play_yan.video_bytes.push_back(tmp_info[x + y]);
+			}
+
+			x += (len - 1);
 		}
 	}
 
-	u32 run_time = mjpeg_frame_ptrs.size() / 30;
-
-	std::cout<<"MMU::Video is " << std::dec << mjpeg_frame_ptrs.size() << " frames long\n";
-	std::cout<<"MMU::Calculated Run Time @ 30FPS -> " << (run_time / 60) << " :: " << (run_time % 60) << std::hex << "\n";
-
-	//Save thumbnail from middle of video file
-	if(mjpeg_frame_ptrs.size() >= 2)
+	if(play_yan.video_frames.empty())
 	{
-		u32 mid = mjpeg_frame_ptrs.size() / 2;
-		u32 start = mjpeg_frame_ptrs[mid];
-		u32 end = mjpeg_frame_ptrs[mid + 1];
+		std::cout<<"MMU::No video data found in " << filename << ". Check if file is valid AVI video.\n";
+		return false;
+	}
+
+	u32 run_time = play_yan.video_frames.size() / 30;
+	play_yan.video_length = ((run_time + 1) * 0x20 * 30);
+	play_yan.video_current_fps = 2.0;
+
+	std::cout<<"MMU::Loaded video file: " << filename << "\n";
+	std::cout<<"MMU::Run Time: -> " << std::dec << (run_time / 60) << " : " << (run_time % 60) << std::hex << "\n";
+
+	//Check for thumbnail. If none exists, make one for the user
+	std::string thumb_file = util::get_filename_no_ext(filename) + ".bmp";
+	SDL_Surface* thumb_pixels = SDL_LoadBMP(thumb_file.c_str());
+	SDL_RWops* io_ops = SDL_AllocRW();
+
+	if(thumb_pixels == NULL)
+	{
 		std::vector<u8> new_thumb;
-	
+		u32 mid = (play_yan.video_frames.size() / 2);
+		u32 start = 0;
+		u32 end = 0;
+		
+		if(play_yan.video_frames.size() >= 2)
+		{
+			start = play_yan.video_frames[mid];
+			end = play_yan.video_frames[mid + 1];
+		}
+
+		else
+		{
+			end = play_yan.video_bytes.size();
+		}
+
 		for(u32 x = start; x < end; x++)
 		{
 			new_thumb.push_back(play_yan.video_bytes[x]);
 		}
 
-		std::string saved_thumb = util::get_filename_no_ext(filename) + ".bmp";
-
-		SDL_RWops* io_ops = SDL_AllocRW();
 		io_ops = SDL_RWFromMem(new_thumb.data(), new_thumb.size());
-
 		SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
 		SDL_Surface* final_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 60, 40, 32, 0, 0, 0, 0);
 
-		//Scale down image
 		SDL_Rect dest_rect;
 		dest_rect.w = 60;
 		dest_rect.h = 40;
 		dest_rect.x = 0;
 		dest_rect.y = 0;
 		SDL_BlitScaled(temp_surface, NULL, final_surface, &dest_rect);
-		
-		SDL_SaveBMP(final_surface, saved_thumb.c_str());
+		SDL_SaveBMP(final_surface, thumb_file.c_str());
 
 		SDL_FreeSurface(final_surface);
 		SDL_FreeSurface(temp_surface);
-		SDL_FreeRW(io_ops);
 	}
 
-	//Set video length and FPS
-	//FPS *must* be forced to 30FPS when converting a video, just to make things simpler
-	play_yan.video_length = ((run_time + 1) * 0x20 * 30);
-	play_yan.video_current_fps = 2.0;
-
-	#endif
+	SDL_FreeSurface(thumb_pixels);
+	SDL_FreeRW(io_ops);
 
 	return true;
+	
+	#endif
+
+	return false;
 }
 
+/****** Grabs the data for a specific frame ******/
+void AGB_MMU::play_yan_grab_frame_data(u32 frame)
+{
+	#ifdef GBE_IMAGE_FORMATS
+
+	//Abort if invalid frame is being pulled from video
+	if(frame >= play_yan.video_frames.size()) { return; }
+
+	u32 start = play_yan.video_frames[frame];
+	u32 end = 0;
+
+	//Check to see if this is the last frame
+	//In that case, set end to be last byte of video data
+	if((frame + 1) == play_yan.video_frames.size()) { end = play_yan.video_bytes.size(); }
+	else { end = play_yan.video_frames[frame + 1]; }
+
+	std::vector<u8> new_frame;
+
+	for(u32 x = start; x < end; x++)
+	{
+		new_frame.push_back(play_yan.video_bytes[x]);
+	}
+	
+	//Decode JPG data from memory into SDL_Surface
+	SDL_RWops* io_ops = SDL_AllocRW();
+	io_ops = SDL_RWFromMem(new_frame.data(), new_frame.size());
+
+	SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
+
+	//Copy and convert data into video frame buffer used by Play-Yan
+	play_yan.video_data.clear();
+	play_yan.video_data.resize(0x12C00, 0x00);
+
+	u32 w = 240;
+	u32 h = temp_surface->h;
+
+	if(h > 160) { h = 160; }
+
+	u8* pixel_data = (u8*)temp_surface->pixels;
+
+	for(int index = 0, a = 0, b = 0; a < (w * h); a++, b+=3)
+	{
+		u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
+		play_yan.video_data[index++] = (raw_pixel & 0xFF);
+		play_yan.video_data[index++] = ((raw_pixel >> 8) & 0xFF);
+	}
+
+	SDL_FreeSurface(temp_surface);
+	SDL_FreeRW(io_ops);
+
+	#endif
+}

@@ -1212,6 +1212,8 @@ void AGB_MMU::process_campho()
 			campho_set_local_video_data();
 			campho.update_local_camera = false;
 			campho.camera_mode |= 0x01;
+
+			SDL_FreeSurface(source);
 		}
 
 		//Flag a remote video frame as ready to draw

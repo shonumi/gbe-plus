@@ -239,7 +239,6 @@ namespace config
 	extern std::string temp_media_file;
 	extern std::string temp_karaoke_file;
 	extern std::string audio_conversion_cmd;
-	extern std::string video_conversion_cmd;
 	extern std::string remove_vocals_cmd;
 
 	extern u32 glucoboy_daily_grps;
