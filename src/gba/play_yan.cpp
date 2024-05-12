@@ -724,7 +724,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 				result = play_yan.video_data[v_addr];
 
 				//Update Play-Yan video data address if necessary
-				if(offset == 0x1FE)
+				if(offset == 0x1FF)
 				{
 					play_yan.video_data_addr += 0x200;
 					
@@ -1760,22 +1760,30 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 
 	SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
 
-	//Copy and convert data into video frame buffer used by Play-Yan
-	play_yan.video_data.clear();
-	play_yan.video_data.resize(0x12C00, 0x00);
-
-	u32 w = 240;
-	u32 h = temp_surface->h;
-
-	if(h > 160) { h = 160; }
-
-	u8* pixel_data = (u8*)temp_surface->pixels;
-
-	for(int index = 0, a = 0, b = 0; a < (w * h); a++, b+=3)
+	if(temp_surface != NULL)
 	{
-		u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
-		play_yan.video_data[index++] = (raw_pixel & 0xFF);
-		play_yan.video_data[index++] = ((raw_pixel >> 8) & 0xFF);
+		//Copy and convert data into video frame buffer used by Play-Yan
+		play_yan.video_data.clear();
+		play_yan.video_data.resize(0x12C00, 0x00);
+
+		u32 w = 240;
+		u32 h = temp_surface->h;
+
+		if(h > 160) { h = 160; }
+
+		u8* pixel_data = (u8*)temp_surface->pixels;
+
+		for(int index = 0, a = 0, b = 0; a < (w * h); a++, b+=3)
+		{
+			u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
+			play_yan.video_data[index++] = (raw_pixel & 0xFF);
+			play_yan.video_data[index++] = ((raw_pixel >> 8) & 0xFF);
+		}
+	}
+
+	else
+	{
+		std::cout<<"MMU::Warning - Could not decode video frame #" << std::dec << frame << std::hex << "\n";
 	}
 
 	SDL_FreeSurface(temp_surface);
