@@ -653,6 +653,7 @@ class AGB_MMU
 	bool play_yan_load_audio(std::string filename);
 	bool play_yan_load_video(std::string filename);
 	void play_yan_grab_frame_data(u32 frame);
+	void play_yan_check_video_header(std::string filename);
 
 	void write_nmp(u32 address, u8 value);
 	u8 read_nmp(u32 address);

@@ -526,6 +526,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if(play_yan.cmd == PLAY_YAN_GET_THUMBNAIL)
 			{
 				//Look up .bmp thumbnail, same name as video file, different extension
+				std::string old_filename = temp_str;
 				temp_str = util::get_filename_no_ext(temp_str) + ".bmp";
 
 				//Convert backslash to forward slash
@@ -534,12 +535,15 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					if(temp_str[x] == 0x5C) { temp_str[x] = 0x2F; }
 				}
 
+				for(u32 x = 0; x < old_filename.length(); x++)
+				{
+					if(old_filename[x] == 0x5C) { old_filename[x] = 0x2F; }
+				}
+
 				read_play_yan_thumbnail(temp_str);
 
 				//Reset video length in ms
-				//TODO - Use external conversion program and grab video length. For demo purposes, default to 10 seconds
-				u32 vid_len = 10;
-				play_yan.video_check_data[3][3] = (vid_len * 1000);
+				play_yan_check_video_header(old_filename);
 			}
 
 			//Grab ID3 data for a song
@@ -1019,7 +1023,7 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_data_ptr = play_yan.video_play_data[0];
 			play_yan.irq_count = 1;
 			play_yan.irq_len = 2;
-			play_yan.irq_repeat = (play_yan.video_length / 0x20);
+			play_yan.irq_repeat = play_yan.video_frames.size();
 		}
 
 		//Repeat music IRQs as necessary
@@ -1070,13 +1074,13 @@ void AGB_MMU::process_play_yan_irq()
 			{
 				play_yan.irq_repeat--;
 
-				//Update video progress via IRQ data
-				play_yan.video_progress += 0x20;
-				play_yan.video_play_data[1][6] = play_yan.video_progress;
-
 				//Update video frame counter and grab new video frame if necessary
 				play_yan.video_frame_count += 1.0;
 				play_yan.current_frame++;
+
+				//Update video progress via IRQ data
+				play_yan.video_progress = (play_yan.current_frame * 33.3333);
+				play_yan.video_play_data[1][6] = play_yan.video_progress;
 
 				if(play_yan.video_frame_count >= play_yan.video_current_fps)
 				{
@@ -1671,8 +1675,8 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	}
 
 	u32 run_time = play_yan.video_frames.size() / 30;
-	play_yan.video_length = ((run_time + 1) * 0x20 * 30);
-	play_yan.video_current_fps = 2.0;
+	play_yan.video_length = play_yan.video_frames.size() * 33.3333;
+	play_yan.video_current_fps = 1.0;
 
 	std::cout<<"MMU::Loaded video file: " << filename << "\n";
 	std::cout<<"MMU::Run Time: -> " << std::dec << (run_time / 60) << " : " << (run_time % 60) << std::hex << "\n";
@@ -1788,6 +1792,48 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 
 	SDL_FreeSurface(temp_surface);
 	SDL_FreeRW(io_ops);
+
+	#endif
+}
+
+/****** Verifies AVI header for videos ******/
+void AGB_MMU::play_yan_check_video_header(std::string filename)
+{
+	//Set default video length of 10 seconds
+	play_yan.video_check_data[3][3] = 10000;
+
+	#ifdef GBE_IMAGE_FORMATS
+
+	std::vector<u8> header;
+	std::ifstream vid_file(filename.c_str(), std::ios::binary);
+
+	if(!vid_file.is_open()) 
+	{
+		std::cout<<"MMU::Warning 1 - Could not read file header for " << filename << "\n";
+		return;
+	}
+
+	//Only read the 1st 256 bytes of the file to find the info GBE+ needs
+	vid_file.seekg(0, vid_file.end);
+	u32 vid_file_size = vid_file.tellg();
+	vid_file.seekg(0, vid_file.beg);
+
+	if(vid_file_size < 0x100)
+	{
+		std::cout<<"MMU::Warning 2 - Could not read file header for " << filename << "\n";
+		return;
+	}
+
+	header.resize(0x100, 0x00);
+	vid_file.read(reinterpret_cast<char*> (&header[0]), 0x100);
+	vid_file.close();
+
+	//Grab the number of frames and determine run-time
+	u32 frame_count = (header[0x33] << 24) | (header[0x32] << 16) | (header[0x31] << 8) | (header[0x30]);
+	play_yan.video_check_data[3][3] = (frame_count * 33.3333);
+
+	std::cout<<"FRAME COUNT -> 0x" << frame_count << "\n";
+	std::cout<<"HEY -> 0x" << play_yan.video_check_data[3][3] << "\n";
 
 	#endif
 }
