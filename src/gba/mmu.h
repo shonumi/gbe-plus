@@ -294,7 +294,6 @@ class AGB_MMU
 		u32 irq_count;
 		u32 irq_delay;
 		u32 irq_repeat;
-		u32 irq_repeat_id;
 		u32 delay_reload;
 
 		//Play-Yan (Micro) IRQ data

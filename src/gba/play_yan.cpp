@@ -44,7 +44,6 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.irq_count = 0;
 	play_yan.irq_repeat = 0;
-	play_yan.irq_repeat_id = 0;
 	play_yan.irq_delay = 0;
 	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
@@ -347,29 +346,51 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Video position seeking
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
 			{
+				u16 factor = (control_cmd2 & 0x8000) ? (0x10000 - control_cmd2) : control_cmd2;
+
 				//Advance trackbar and timestamp
-				if(control_cmd2 == 0x01)
+				if(control_cmd2 <= 0x03)
 				{
-					play_yan.video_progress += 0x20;
-					play_yan.video_frame_count += 1.0;
-					play_yan.current_frame++;
-					if(play_yan.irq_repeat) { play_yan.irq_repeat--; }
+					play_yan.video_frame_count += (4.0 * factor);
+					play_yan.current_frame += (4 * factor);
+					play_yan.irq_repeat -= (4 * factor);
+
+					if(play_yan.video_frame_count >= 30.0)
+					{
+						play_yan.video_frame_count -= 30.0;
+					}
+
+					if(play_yan.irq_repeat < 0)
+					{
+						play_yan.irq_repeat = 1;
+					}
+
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);					
 				}
 
 				//Rewind trackbar and timestamp
 				else
 				{
-					play_yan.video_progress -= 0x80;
-					if(play_yan.video_progress >= 0xF0000000) { play_yan.video_progress = 0; }
+					play_yan.video_frame_count -= (8.0 * factor);
+					play_yan.current_frame -= (8 * factor);
+					play_yan.irq_repeat += (8 * factor);
 
-					play_yan.current_frame -= 4;
-					if(play_yan.current_frame < 0) { play_yan.current_frame = 0; }
+					if(play_yan.video_frame_count < 0)
+					{
+						play_yan.video_frame_count += 30.0;
+					}
 
-					play_yan.video_frame_count -= 4.0;
-					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
+					if(play_yan.current_frame > play_yan.video_frames.size())
+					{
+						play_yan.current_frame = 0;
+					}
 
-					play_yan.irq_repeat += 4;
-					if(play_yan.irq_repeat > (play_yan.video_length / 0x20)) { play_yan.irq_repeat = (play_yan.video_length / 0x20); }
+					if(play_yan.irq_repeat > play_yan.video_frames.size())
+					{
+						play_yan.irq_repeat = play_yan.video_frames.size();
+					}
+
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);
 				}
 
 				play_yan.video_play_data[1][6] = play_yan.video_progress;
@@ -433,29 +454,51 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Video position seeking
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
 			{
+				u16 factor = (control_cmd2 & 0x8000) ? (0x10000 - control_cmd2) : control_cmd2;
+
 				//Advance trackbar and timestamp
-				if(control_cmd2 == 0x01)
+				if(control_cmd2 <= 0x03)
 				{
-					play_yan.video_progress += 0x20;
-					play_yan.video_frame_count += 1.0;
-					play_yan.current_frame++;
-					if(play_yan.irq_repeat) { play_yan.irq_repeat--; }
+					play_yan.video_frame_count += (4.0 * factor);
+					play_yan.current_frame += (4 * factor);
+					play_yan.irq_repeat -= (4 * factor);
+
+					if(play_yan.video_frame_count >= 30.0)
+					{
+						play_yan.video_frame_count -= 30.0;
+					}
+
+					if(play_yan.irq_repeat < 0)
+					{
+						play_yan.irq_repeat = 1;
+					}
+
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);					
 				}
 
 				//Rewind trackbar and timestamp
 				else
 				{
-					play_yan.video_progress -= 0x80;
-					if(play_yan.video_progress >= 0xF0000000) { play_yan.video_progress = 0; }
+					play_yan.video_frame_count -= (8.0 * factor);
+					play_yan.current_frame -= (8 * factor);
+					play_yan.irq_repeat += (8 * factor);
 
-					play_yan.current_frame -= 4;
-					if(play_yan.current_frame < 0) { play_yan.current_frame = 0; }
+					if(play_yan.video_frame_count < 0)
+					{
+						play_yan.video_frame_count += 30.0;
+					}
 
-					play_yan.video_frame_count -= 4.0;
-					if(play_yan.video_frame_count < 0) { play_yan.video_frame_count = 0; }
+					if(play_yan.current_frame > play_yan.video_frames.size())
+					{
+						play_yan.current_frame = 0;
+					}
 
-					play_yan.irq_repeat += 4;
-					if(play_yan.irq_repeat > (play_yan.video_length / 0x20)) { play_yan.irq_repeat = (play_yan.video_length / 0x20); }
+					if(play_yan.irq_repeat > play_yan.video_frames.size())
+					{
+						play_yan.irq_repeat = play_yan.video_frames.size();
+					}
+
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);
 				}
 
 				play_yan.video_play_data[1][6] = play_yan.video_progress;
@@ -1831,9 +1874,6 @@ void AGB_MMU::play_yan_check_video_header(std::string filename)
 	//Grab the number of frames and determine run-time
 	u32 frame_count = (header[0x33] << 24) | (header[0x32] << 16) | (header[0x31] << 8) | (header[0x30]);
 	play_yan.video_check_data[3][3] = (frame_count * 33.3333);
-
-	std::cout<<"FRAME COUNT -> 0x" << frame_count << "\n";
-	std::cout<<"HEY -> 0x" << play_yan.video_check_data[3][3] << "\n";
 
 	#endif
 }
