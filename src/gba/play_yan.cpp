@@ -1816,11 +1816,12 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 		u32 w = 240;
 		u32 h = temp_surface->h;
 
+		start = ((h - 160) / 2) * (w * 3);
 		if(h > 160) { h = 160; }
 
 		u8* pixel_data = (u8*)temp_surface->pixels;
 
-		for(int index = 0, a = 0, b = 0; a < (w * h); a++, b+=3)
+		for(u32 index = 0, a = 0, b = start; a < (w * h); a++, b+=3)
 		{
 			u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
 			play_yan.video_data[index++] = (raw_pixel & 0xFF);
