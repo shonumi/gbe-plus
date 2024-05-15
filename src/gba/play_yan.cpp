@@ -633,8 +633,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						//Dummy = blank violet screen, 10 seconds
 						if(!play_yan_load_video(play_yan.video_files[x]))
 						{
-							play_yan.video_length = (11 * 0x20 * 30);
-							play_yan.video_current_fps = 30.0 / play_yan.video_fps[x];
+							play_yan.video_length = (10 * 33.3333 * 30);
+							play_yan.video_current_fps = 1.0;
 							play_yan.video_data.resize(0x12C00, 0x3C);
 						}
 
@@ -1639,6 +1639,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 
 	if(!vid_file.is_open()) 
 	{
+		play_yan.video_frames.resize(10000, 0xFFFFFFFF);
 		std::cout<<"MMU::" << filename << " could not be opened. Check file path or permissions. \n";
 		return false;
 	}
@@ -1668,6 +1669,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 
 	if(!found_movi)
 	{
+		play_yan.video_frames.resize(10000, 0xFFFFFFFF);
 		std::cout<<"MMU::No movi FOURCC found in " << filename << ". Check if file is valid AVI video.\n";
 		return false;
 	}
@@ -1713,6 +1715,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 
 	if(play_yan.video_frames.empty())
 	{
+		play_yan.video_frames.resize(10000, 0xFFFFFFFF);
 		std::cout<<"MMU::No video data found in " << filename << ". Check if file is valid AVI video.\n";
 		return false;
 	}
@@ -1786,6 +1789,9 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 	//Abort if invalid frame is being pulled from video
 	if(frame >= play_yan.video_frames.size()) { return; }
 
+	//Abort if dummy frames are present
+	if(play_yan.video_frames[0] == 0xFFFFFFFF) { return; }
+
 	u32 start = play_yan.video_frames[frame];
 	u32 end = 0;
 
@@ -1853,7 +1859,7 @@ void AGB_MMU::play_yan_check_video_header(std::string filename)
 
 	if(!vid_file.is_open()) 
 	{
-		std::cout<<"MMU::Warning 1 - Could not read file header for " << filename << "\n";
+		std::cout<<"MMU::Warning - Could not read file header for " << filename << "\n";
 		return;
 	}
 
@@ -1864,13 +1870,22 @@ void AGB_MMU::play_yan_check_video_header(std::string filename)
 
 	if(vid_file_size < 0x100)
 	{
-		std::cout<<"MMU::Warning 2 - Could not read file header for " << filename << "\n";
+		std::cout<<"MMU::Warning - Could not read file header for " << filename << "\n";
 		return;
 	}
 
 	header.resize(0x100, 0x00);
 	vid_file.read(reinterpret_cast<char*> (&header[0]), 0x100);
 	vid_file.close();
+
+	//Validate AVI header
+	u32 id = (header[0x0B] << 24) | (header[0x0A] << 16) | (header[0x09] << 8) | (header[0x08]);
+
+	if(id != 0x20495641)
+	{
+		std::cout<<"MMU::Warning - No valid AVI header for " << filename << "\n";
+		return;
+	}
 
 	//Grab the number of frames and determine run-time
 	u32 frame_count = (header[0x33] << 24) | (header[0x32] << 16) | (header[0x31] << 8) | (header[0x30]);
