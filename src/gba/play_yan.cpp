@@ -1778,6 +1778,8 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	
 	#endif
 
+	play_yan.video_frames.resize(10000, 0xFFFFFFFF);
+
 	return false;
 }
 
