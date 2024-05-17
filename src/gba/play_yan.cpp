@@ -1634,6 +1634,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	#ifdef GBE_IMAGE_FORMATS
 
 	std::vector<u8> vid_info;
+	std::vector<u8> mus_info;
 	std::vector<u8> tmp_info;
 	std::ifstream vid_file(filename.c_str(), std::ios::binary);
 
@@ -1689,7 +1690,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 		tmp_info.push_back(vid_info[x]);
 	}
 
-	//Search and parse each 00dc FOURCC
+	//Search and parse each 00dc FOURCC - Video Frames
 	play_yan.video_bytes.clear();
 	play_yan.video_frames.clear();
 
@@ -1718,6 +1719,25 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 		play_yan.video_frames.resize(10000, 0xFFFFFFFF);
 		std::cout<<"MMU::No video data found in " << filename << ". Check if file is valid AVI video.\n";
 		return false;
+	}
+
+	//Search and parse each 01wb FOURCC - Audio Data
+	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
+	{
+		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x31)
+		&& (tmp_info[x + 2] == 0x77) && (tmp_info[x + 3] == 0x62))
+		{
+			x += 4;
+			u32 len = (tmp_info[x + 3] << 24) | (tmp_info[x + 2] << 16) | (tmp_info[x + 1] << 8) | tmp_info[x];
+
+			x += 4;
+			for(u32 y = 0; y < len; y++)
+			{
+				mus_info.push_back(tmp_info[x + y]);
+			}
+
+			x += (len - 1);
+		}
 	}
 
 	u32 run_time = play_yan.video_frames.size() / 30;
