@@ -385,6 +385,9 @@ class AGB_MMU
 		bool use_bass_boost;
 		bool use_headphones;
 
+		u8 audio_channels;
+		u32 audio_sample_rate;
+
 		play_yan_types type;
 	} play_yan;
 
@@ -653,6 +656,7 @@ class AGB_MMU
 	bool play_yan_load_video(std::string filename);
 	void play_yan_grab_frame_data(u32 frame);
 	void play_yan_check_video_header(std::string filename);
+	void play_yan_check_audio_from_video(std::vector <u8> &data);
 
 	void write_nmp(u32 address, u8 value);
 	u8 read_nmp(u32 address);

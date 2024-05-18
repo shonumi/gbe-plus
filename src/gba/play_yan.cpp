@@ -181,6 +181,9 @@ void AGB_MMU::play_yan_reset()
 	play_yan.current_music_file = "";
 	play_yan.current_video_file = "";
 
+	play_yan.audio_channels = 1;
+	play_yan.audio_sample_rate = 22050;
+
 	play_yan.nmp_data_index = 0;
 	play_yan.nmp_cmd_status = 0;
 	play_yan.nmp_ticks = 0;
@@ -1653,6 +1656,9 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
 	vid_file.close();
 
+	//Verify audio data format separately
+	play_yan_check_audio_from_video(vid_info);
+
 	u32 index = 0;
 
 	//Search for movi and idx1 FOURCC as start and endpoints of usable data
@@ -1801,6 +1807,56 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	play_yan.video_frames.resize(10000, 0xFFFFFFFF);
 
 	return false;
+}
+
+/****** Verifies audio data (if any) from a video file ******/
+void AGB_MMU::play_yan_check_audio_from_video(std::vector <u8> &data)
+{
+	u32 i = 0;
+	play_yan.audio_channels = 0;
+	play_yan.audio_sample_rate = 0;
+
+	//Search for auds FOURCC as start of usable data
+	bool found_auds = false;
+
+	for(u32 x = i; x < (data.size() - 4); x++)
+	{
+		if((data[x] == 0x61) && (data[x + 1] == 0x75)
+		&& (data[x + 2] == 0x64) && (data[x + 3] == 0x73))
+		{
+			i = x + 4;
+			found_auds = true;
+		}
+	}
+
+	if(!found_auds) { return; }
+
+	//Search for strf FOURCC as start of usable data
+	bool found_strf = false;
+
+	for(u32 x = i; x < (data.size() - 4); x++)
+	{
+		if((data[x] == 0x73) && (data[x + 1] == 0x74)
+		&& (data[x + 2] == 0x72) && (data[x + 3] == 0x66))
+		{
+			i = x + 4;
+			found_strf = true;
+		}
+	}
+
+	if(!found_strf) { return; }
+
+	//Make sure there is enough data to read - strf size (4) + strf data (16)
+	if((i + 20) < data.size())
+	{
+		u8 audio_type = data[i + 4];
+
+		//Verify audio type is PCM
+		if(audio_type != 0x01) { return; }
+
+		play_yan.audio_channels = data[i + 6];
+		play_yan.audio_sample_rate = (data[i + 11] << 24) | (data[i + 10] << 16) | (data[i + 9] << 8) | data[i + 8];	
+	}
 }
 
 /****** Grabs the data for a specific frame ******/
