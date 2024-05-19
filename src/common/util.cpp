@@ -958,4 +958,81 @@ u32 bswap(u32 input)
 	return result;
 }
 
+/****** Builds a .WAV header for PCM-16 audio files ******/
+void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u32 data_size)
+{
+	header.clear();
+
+	//Build WAV header - Chunk ID - "RIFF" in ASCII
+	header.push_back(0x52);
+	header.push_back(0x49);
+	header.push_back(0x46);
+	header.push_back(0x46);
+
+	//Chunk Size - PCM data + 32
+	header.push_back((data_size + 32) & 0xFF);
+	header.push_back(((data_size + 32) >> 8) & 0xFF);
+	header.push_back(((data_size + 32) >> 16) & 0xFF);
+	header.push_back(((data_size + 32) >> 24) & 0xFF);
+
+	//Wave ID - "WAVE" in ASCII
+	header.push_back(0x57);
+	header.push_back(0x41);
+	header.push_back(0x56);
+	header.push_back(0x45);
+
+	//Chunk ID - "fmt " in ASCII
+	header.push_back(0x66);
+	header.push_back(0x6D);
+	header.push_back(0x74);
+	header.push_back(0x20);
+
+	//Chunk Size - 16
+	header.push_back(0x10);
+	header.push_back(0x00);
+	header.push_back(0x00);
+	header.push_back(0x00);
+
+	//Format Code - 1
+	header.push_back(0x01);
+	header.push_back(0x00);
+
+	//Number of Channels - 1
+	header.push_back(channels & 0xFF);
+	header.push_back((channels >> 8) & 0xFF);
+
+	//Sampling Rate
+	header.push_back(sample_rate & 0xFF);
+	header.push_back((sample_rate >> 8) & 0xFF);
+	header.push_back((sample_rate >> 16) & 0xFF);
+	header.push_back((sample_rate >> 24) & 0xFF);
+
+	//Data Rate
+	sample_rate *= (2 * channels);
+	header.push_back(sample_rate & 0xFF);
+	header.push_back((sample_rate >> 8) & 0xFF);
+	header.push_back((sample_rate >> 16) & 0xFF);
+	header.push_back((sample_rate >> 24) & 0xFF);
+	
+	//Block Align - 2
+	header.push_back(0x02);
+	header.push_back(0x00);
+
+	//Bits per sample - 16
+	header.push_back(0x10);
+	header.push_back(0x00);
+
+	//Chunk ID - "data" in ASCII
+	header.push_back(0x64);
+	header.push_back(0x61);
+	header.push_back(0x74);
+	header.push_back(0x61);
+
+	//Chunk Size
+	header.push_back(data_size & 0xFF);
+	header.push_back((data_size >> 8) & 0xFF);
+	header.push_back((data_size >> 16) & 0xFF);
+	header.push_back((data_size >> 24) & 0xFF);
+}
+
 } //Namespace
