@@ -638,6 +638,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						{
 							play_yan.video_length = (10 * 33.3333 * 30);
 							play_yan.video_current_fps = 1.0;
+							play_yan.video_data.clear();
 							play_yan.video_data.resize(0x12C00, 0x3C);
 						}
 
@@ -1636,6 +1637,10 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 {
 	#ifdef GBE_IMAGE_FORMATS
 
+	//Clear video data now - Prevents leftover video data from accidentally repeating
+	play_yan.video_bytes.clear();
+	play_yan.video_frames.clear();
+
 	std::vector<u8> vid_info;
 	std::vector<u8> mus_info;
 	std::vector<u8> tmp_info;
@@ -1697,9 +1702,6 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	}
 
 	//Search and parse each 00dc FOURCC - Video Frames
-	play_yan.video_bytes.clear();
-	play_yan.video_frames.clear();
-
 	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
 	{
 		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x30)
