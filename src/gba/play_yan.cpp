@@ -1727,25 +1727,6 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 		return false;
 	}
 
-	//Search and parse each 01wb FOURCC - Audio Data
-	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
-	{
-		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x31)
-		&& (tmp_info[x + 2] == 0x77) && (tmp_info[x + 3] == 0x62))
-		{
-			x += 4;
-			u32 len = (tmp_info[x + 3] << 24) | (tmp_info[x + 2] << 16) | (tmp_info[x + 1] << 8) | tmp_info[x];
-
-			x += 4;
-			for(u32 y = 0; y < len; y++)
-			{
-				mus_info.push_back(tmp_info[x + y]);
-			}
-
-			x += (len - 1);
-		}
-	}
-
 	u32 run_time = play_yan.video_frames.size() / 30;
 	play_yan.video_length = play_yan.video_frames.size() * 33.3333;
 	play_yan.video_current_fps = 1.0;
@@ -1799,6 +1780,54 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 
 	SDL_FreeSurface(thumb_pixels);
 	SDL_FreeRW(io_ops);
+
+	//Search and parse each 01wb FOURCC - Audio Data
+	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
+	{
+		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x31)
+		&& (tmp_info[x + 2] == 0x77) && (tmp_info[x + 3] == 0x62))
+		{
+			x += 4;
+			u32 len = (tmp_info[x + 3] << 24) | (tmp_info[x + 2] << 16) | (tmp_info[x + 1] << 8) | tmp_info[x];
+
+			x += 4;
+			for(u32 y = 0; y < len; y++)
+			{
+				mus_info.push_back(tmp_info[x + y]);
+			}
+
+			x += (len - 1);
+		}
+	}
+
+	//Create .WAV file in memory, then have SDL load it for external audio
+	if(play_yan.audio_sample_rate && play_yan.audio_channels)
+	{
+		std::vector<u8> mus_header;
+		util::build_wav_header(mus_header, play_yan.audio_sample_rate, play_yan.audio_channels, mus_info.size());
+
+		std::vector<u8> mus_file = mus_header;
+		mus_file.insert(mus_file.end(), mus_info.begin(), mus_info.end());
+
+		io_ops = SDL_AllocRW();
+		io_ops = SDL_RWFromMem(mus_file.data(), mus_file.size());
+
+		if(io_ops != NULL)
+		{
+			//Clear previous buffer if necessary
+			SDL_FreeWAV(apu_stat->ext_audio.buffer);
+			apu_stat->ext_audio.buffer = NULL;
+
+			SDL_AudioSpec file_spec;
+
+			if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+			{
+				std::cout<<"MMU::Play-Yan could not load audio from video : " << SDL_GetError() << "\n";
+			}
+		}
+
+		SDL_FreeRW(io_ops);
+	}
 
 	return true;
 	
