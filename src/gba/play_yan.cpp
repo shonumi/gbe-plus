@@ -181,8 +181,8 @@ void AGB_MMU::play_yan_reset()
 	play_yan.current_music_file = "";
 	play_yan.current_video_file = "";
 
-	play_yan.audio_channels = 1;
-	play_yan.audio_sample_rate = 22050;
+	play_yan.audio_channels = 0;
+	play_yan.audio_sample_rate = 0;
 
 	play_yan.nmp_data_index = 0;
 	play_yan.nmp_cmd_status = 0;
@@ -400,7 +400,11 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Adjust Play-Yan volume settings
-			if(play_yan.cmd == PLAY_YAN_SET_VOLUME) { play_yan.volume = control_cmd2; }
+			if(play_yan.cmd == PLAY_YAN_SET_VOLUME)
+			{
+				play_yan.volume = control_cmd2;
+				apu_stat->ext_audio.volume = (play_yan.volume / 56.0) * 63.0;
+			}
 
 			//Adjust Play-Yan bass boost settings
 			else if(play_yan.cmd == PLAY_YAN_SET_BASS_BOOST) { play_yan.bass_boost = control_cmd2; }
@@ -508,7 +512,11 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Adjust Play-Yan volume settings
-			if(play_yan.cmd == PLAY_YAN_SET_VOLUME) { play_yan.volume = control_cmd2; }
+			if(play_yan.cmd == PLAY_YAN_SET_VOLUME)
+			{
+				play_yan.volume = control_cmd2;
+				apu_stat->ext_audio.volume = (play_yan.volume / 56.0) * 63.0;
+			}
 
 			//Adjust Play-Yan bass boost settings
 			else if(play_yan.cmd == PLAY_YAN_SET_BASS_BOOST) { play_yan.bass_boost = control_cmd2; }
@@ -1135,6 +1143,16 @@ void AGB_MMU::process_play_yan_irq()
 					play_yan_grab_frame_data(play_yan.current_frame);
 				}
 
+				//Start external audio output
+				if(!apu_stat->ext_audio.playing && play_yan.audio_sample_rate && play_yan.audio_channels)
+				{
+					apu_stat->ext_audio.channels = play_yan.audio_channels;
+					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
+					apu_stat->ext_audio.sample_pos = 0;
+					apu_stat->ext_audio.playing = true;
+					apu_stat->ext_audio.output_path = 1;
+				}
+
 				//Stop video when length is complete
 				if(play_yan.video_progress >= play_yan.video_length)
 				{
@@ -1148,6 +1166,7 @@ void AGB_MMU::process_play_yan_irq()
 					play_yan.video_data_addr = 0;
 					play_yan.video_progress = 0;
 					play_yan.is_video_playing = false;
+					apu_stat->ext_audio.playing = false;
 				}
 			}
 		}
