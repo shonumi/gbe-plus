@@ -905,6 +905,10 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.video_frame_count = 0;
 		play_yan.current_frame = 0;
 		play_yan.is_video_playing = false;
+		apu_stat->ext_audio.playing = false;
+
+		play_yan.audio_channels = 0;
+		play_yan.audio_sample_rate = 0;
 	}
 
 	//Trigger Game Pak IRQ for playing music
@@ -939,6 +943,10 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
 		play_yan.is_music_playing = false;
+		apu_stat->ext_audio.playing = false;
+
+		play_yan.audio_channels = 0;
+		play_yan.audio_sample_rate = 0;
 	}
 
 	//Pause Media Playback
@@ -1567,8 +1575,14 @@ void AGB_MMU::play_yan_wake()
 /****** Loads audio (.MP3) file and then converts it to .WAV for playback ******/
 bool AGB_MMU::play_yan_load_audio(std::string filename)
 {
+	play_yan.music_length = 0;
+	play_yan.tracker_update_size = 0;
 	play_yan.audio_sample_rate = 0;
 	play_yan.audio_channels = 0;
+
+	//Clear previous buffer if necessary
+	SDL_FreeWAV(apu_stat->ext_audio.buffer);
+	apu_stat->ext_audio.buffer = NULL;
 
 	//Abort now if no audio conversion command is specified
 	if(config::audio_conversion_cmd.empty())
@@ -1576,10 +1590,6 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 		std::cout<<"MMU::No audio conversion command specified. Cannot convert file " << filename << "\n";
 		return false;
 	}
-
-	//Clear previous buffer if necessary
-	SDL_FreeWAV(apu_stat->ext_audio.buffer);
-	apu_stat->ext_audio.buffer = NULL;
 
 	SDL_AudioSpec file_spec;
 
