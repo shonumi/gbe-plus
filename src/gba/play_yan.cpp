@@ -1101,6 +1101,17 @@ void AGB_MMU::process_play_yan_irq()
 				//Update music progress via IRQ data
 				play_yan.music_play_data[2][6]++;
 
+				//Start external audio output
+				if(!apu_stat->ext_audio.playing && play_yan.audio_sample_rate && play_yan.audio_channels)
+				{
+					apu_stat->ext_audio.channels = play_yan.audio_channels;
+					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
+					apu_stat->ext_audio.sample_pos = 0;
+					apu_stat->ext_audio.playing = true;
+					apu_stat->ext_audio.output_path = 1;
+				}
+
+				//Stop when length is complete
 				if(play_yan.music_play_data[2][6] > play_yan.music_length)
 				{
 					play_yan.op_state = PLAY_YAN_PROCESS_CMD;
@@ -1111,6 +1122,7 @@ void AGB_MMU::process_play_yan_irq()
 					play_yan.irq_len = 2;
 					play_yan.irq_repeat = 0;
 					play_yan.is_music_playing = false;
+					apu_stat->ext_audio.playing = false;
 				}
 			}
 		}
@@ -1555,6 +1567,9 @@ void AGB_MMU::play_yan_wake()
 /****** Loads audio (.MP3) file and then converts it to .WAV for playback ******/
 bool AGB_MMU::play_yan_load_audio(std::string filename)
 {
+	play_yan.audio_sample_rate = 0;
+	play_yan.audio_channels = 0;
+
 	//Abort now if no audio conversion command is specified
 	if(config::audio_conversion_cmd.empty())
 	{
@@ -1632,6 +1647,9 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	apu_stat->ext_audio.frequency = file_spec.freq;
 	apu_stat->ext_audio.channels = file_spec.channels;
 
+	play_yan.audio_channels = apu_stat->ext_audio.channels;
+	play_yan.audio_sample_rate = apu_stat->ext_audio.frequency;
+
 	//Determine song length in seconds by the amount of samples
 	u32 song_samples = apu_stat->ext_audio.length / 2;
 	if(file_spec.channels == 2) { song_samples /= 2; }
@@ -1655,6 +1673,9 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 bool AGB_MMU::play_yan_load_video(std::string filename)
 {
 	#ifdef GBE_IMAGE_FORMATS
+
+	play_yan.audio_channels = 0;
+	play_yan.audio_sample_rate = 0;
 
 	//Clear video data now - Prevents leftover video data from accidentally repeating
 	play_yan.video_bytes.clear();
@@ -1863,8 +1884,6 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 void AGB_MMU::play_yan_check_audio_from_video(std::vector <u8> &data)
 {
 	u32 i = 0;
-	play_yan.audio_channels = 0;
-	play_yan.audio_sample_rate = 0;
 
 	//Search for auds FOURCC as start of usable data
 	bool found_auds = false;
