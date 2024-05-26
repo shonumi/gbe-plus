@@ -436,6 +436,20 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		}
 	}
 
+	//Switch between headphones on/off for Jukebox and Play-Yan
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
+	{
+		if(config::cart_type == AGB_PLAY_YAN)
+		{
+			core_mmu.play_yan.use_headphones = !core_mmu.play_yan.use_headphones;
+
+			if(core_mmu.play_yan.use_headphones) { config::osd_message = "HEADPHONES ON"; }
+			else { config::osd_message = "HEADPHONES OFF"; }
+
+			config::osd_count = 180;
+		}
+	}
+
 	//Pause and wait for netplay connection on F5
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F5))
 	{
@@ -627,6 +641,20 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 		{
 			config::request_resize = true;
 			config::resize_mode = 0;
+		}
+	}
+
+	//Switch between headphones on/off for Jukebox and Play-Yan
+	else if((event.type == SDLK_F4) && (pressed))
+	{
+		if(config::cart_type == AGB_PLAY_YAN)
+		{
+			core_mmu.play_yan.use_headphones = !core_mmu.play_yan.use_headphones;
+
+			if(core_mmu.play_yan.use_headphones) { config::osd_message = "HEADPHONES ON"; }
+			else { config::osd_message = "HEADPHONES OFF"; }
+
+			config::osd_count = 180;
 		}
 	}
 }
