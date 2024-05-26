@@ -953,12 +953,18 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_PAUSE)
 	{
 		play_yan.pause_media = true;
+		apu_stat->ext_audio.playing = false;
 	}
 
 	//Resume Media Playback
 	else if(play_yan.cmd == PLAY_YAN_RESUME)
 	{
 		play_yan.pause_media = false;
+
+		if(play_yan.audio_channels && play_yan.audio_sample_rate)
+		{
+			apu_stat->ext_audio.playing = true;
+		}
 	}
 
 	//Trigger Game Pak IRQ for cartridge status
