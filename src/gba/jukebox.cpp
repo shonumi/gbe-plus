@@ -308,7 +308,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.progress = 1;
 
 						//Set audio output to GBA speaker or headphones via configuration index
-						apu_stat->ext_audio.output_path = (jukebox.config & 0x200) ? 0 : 1;
+						apu_stat->ext_audio.use_headphones = (jukebox.config & 0x200) ? 0 : 1;
 						apu_stat->ext_audio.sample_pos = 0;
 
 						//Set/Reset volume depending on the audio category

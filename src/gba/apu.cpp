@@ -132,7 +132,6 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.frequency = 0;
 	apu_stat.ext_audio.length = 0;
 	apu_stat.ext_audio.sample_pos = 0;
-	apu_stat.ext_audio.output_path = 0;
 	apu_stat.ext_audio.channels = 0;
 	apu_stat.ext_audio.volume = 0;
 	apu_stat.ext_audio.id = 0;
@@ -140,6 +139,7 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.current_set = 0;
 	apu_stat.ext_audio.buffer = NULL;
 	apu_stat.ext_audio.playing = false;
+	apu_stat.ext_audio.use_headphones = false;
 
 	apu_stat.ext_audio.karaoke_buffer = NULL;
 	apu_stat.ext_audio.karaoke_length = 0;
@@ -590,7 +590,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	if(apu_link->apu_stat.ext_audio.playing)
 	{
 		//Generate raw samples (high quality)
-		if(apu_link->apu_stat.ext_audio.output_path)
+		if(apu_link->apu_stat.ext_audio.use_headphones)
 		{
 			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], length);
 		}

@@ -457,7 +457,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x8600;
 			play_yan.nmp_valid_command = true;
 
-			if(play_yan.use_headphones)
+			if(apu_stat->ext_audio.use_headphones)
 			{
 				play_yan.nmp_status_data[2] = 0;
 				play_yan.nmp_status_data[3] = 1;

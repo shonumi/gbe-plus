@@ -441,9 +441,9 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	{
 		if(config::cart_type == AGB_PLAY_YAN)
 		{
-			core_mmu.play_yan.use_headphones = !core_mmu.play_yan.use_headphones;
+			core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
 
-			if(core_mmu.play_yan.use_headphones) { config::osd_message = "HEADPHONES ON"; }
+			if(core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { config::osd_message = "HEADPHONES ON"; }
 			else { config::osd_message = "HEADPHONES OFF"; }
 
 			config::osd_count = 180;
@@ -649,9 +649,9 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 	{
 		if(config::cart_type == AGB_PLAY_YAN)
 		{
-			core_mmu.play_yan.use_headphones = !core_mmu.play_yan.use_headphones;
+			core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
 
-			if(core_mmu.play_yan.use_headphones) { config::osd_message = "HEADPHONES ON"; }
+			if(core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { config::osd_message = "HEADPHONES ON"; }
 			else { config::osd_message = "HEADPHONES OFF"; }
 
 			config::osd_count = 180;

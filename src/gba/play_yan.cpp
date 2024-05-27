@@ -169,7 +169,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_index = 0;
 
 	play_yan.use_bass_boost = false;
-	play_yan.use_headphones = false;
 	play_yan.capture_command_stream = false;
 
 	play_yan.type = PLAY_YAN_OG;
@@ -1122,7 +1121,6 @@ void AGB_MMU::process_play_yan_irq()
 					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
 					apu_stat->ext_audio.sample_pos = 0;
 					apu_stat->ext_audio.playing = true;
-					apu_stat->ext_audio.output_path = 1;
 				}
 
 				//Stop when length is complete
@@ -1176,7 +1174,6 @@ void AGB_MMU::process_play_yan_irq()
 					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
 					apu_stat->ext_audio.sample_pos = 0;
 					apu_stat->ext_audio.playing = true;
-					apu_stat->ext_audio.output_path = 1;
 				}
 
 				//Stop video when length is complete
