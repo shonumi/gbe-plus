@@ -334,6 +334,7 @@ void AGB_MMU::process_nmp_cmd()
 			if(play_yan.command_stream.size() >= 4)
 			{
 				play_yan.volume = play_yan.command_stream[3];
+				apu_stat->ext_audio.volume = (play_yan.volume / 46.0) * 63.0;
 			}
 
 			break;
@@ -447,6 +448,15 @@ void AGB_MMU::process_nmp_cmd()
 
 					play_yan.update_audio_stream = true;
 					play_yan.update_trackbar_timestamp = false;
+				}
+
+				//Start external audio output
+				if(!apu_stat->ext_audio.playing && play_yan.audio_sample_rate && play_yan.audio_channels)
+				{
+					apu_stat->ext_audio.channels = play_yan.audio_channels;
+					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
+					apu_stat->ext_audio.sample_pos = 0;
+					apu_stat->ext_audio.playing = true;
 				}
 			}
 
