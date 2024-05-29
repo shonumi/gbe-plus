@@ -294,6 +294,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4051;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
+			apu_stat->ext_audio.playing = false;
 
 			play_yan.audio_frame_count = 0;
 			play_yan.tracker_update_size = 0;
@@ -311,6 +312,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4052;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
+			apu_stat->ext_audio.playing = false;
 
 			play_yan.nmp_manual_cmd = 0;
 			play_yan.irq_delay = 0;
@@ -322,6 +324,11 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4053;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+
+			if(play_yan.audio_sample_rate && play_yan.audio_channels)
+			{
+				apu_stat->ext_audio.playing = true;
+			}
 
 			play_yan.nmp_manual_cmd = 0x8100;
 			play_yan.irq_delay = 1;
