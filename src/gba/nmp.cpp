@@ -280,7 +280,11 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.current_music_file += chr;
 			}
 
-			play_yan_load_audio(play_yan.current_dir + "/" + play_yan.current_music_file);
+			if(!play_yan_load_audio(play_yan.current_dir + "/" + play_yan.current_music_file))
+			{
+				//If no audio could be loaded, use dummy length for song
+				play_yan.music_length = 2;
+			}
 
 			//Trigger additional IRQs for processing music
 			play_yan.nmp_manual_cmd = 0x8100;
