@@ -345,6 +345,18 @@ void AGB_MMU::process_nmp_cmd()
 				apu_stat->ext_audio.playing = true;
 			}
 
+			if(apu_stat->ext_audio.use_headphones)
+			{
+				play_yan.update_audio_stream = false;
+				play_yan.update_trackbar_timestamp = true;
+			}
+			
+			else
+			{
+				play_yan.update_audio_stream = true;
+				play_yan.update_trackbar_timestamp = false;
+			}
+
 			play_yan.nmp_manual_cmd = 0x8100;
 			play_yan.irq_delay = 1;
 			play_yan.irq_count = 0;
