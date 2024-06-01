@@ -267,7 +267,18 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4050;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
-			play_yan.update_audio_stream = true;
+
+			if(apu_stat->ext_audio.use_headphones)
+			{
+				play_yan.update_audio_stream = false;
+				play_yan.update_trackbar_timestamp = true;
+			}
+			
+			else
+			{
+				play_yan.update_audio_stream = true;
+				play_yan.update_trackbar_timestamp = false;
+			}
 
 			//Get music file
 			play_yan.current_music_file = "";
@@ -411,7 +422,7 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.audio_buffer_size = 32;
 
 				//Prioritize audio stream updates
-				if(play_yan.update_audio_stream)
+				if(play_yan.update_audio_stream && !apu_stat->ext_audio.use_headphones)
 				{
 					//Audio buffer size (max 0x480), *MUST* be a multiple of 16!
 					play_yan.nmp_status_data[2] = (play_yan.audio_buffer_size >> 8);
@@ -457,8 +468,17 @@ void AGB_MMU::process_nmp_cmd()
 					play_yan.nmp_status_data[12] = (play_yan.tracker_update_size >> 8) & 0xFF;
 					play_yan.nmp_status_data[13] = (play_yan.tracker_update_size & 0xFF);
 
-					play_yan.update_audio_stream = true;
-					play_yan.update_trackbar_timestamp = false;
+					if(apu_stat->ext_audio.use_headphones)
+					{
+						play_yan.irq_delay = 60;
+						play_yan.tracker_update_size++;
+					}
+
+					else
+					{
+						play_yan.update_audio_stream = true;
+						play_yan.update_trackbar_timestamp = false;
+					}
 				}
 
 				//Start external audio output
