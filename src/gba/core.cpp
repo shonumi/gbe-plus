@@ -449,9 +449,13 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			//Manually trigger IRQ for NMP
 			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
 			{
+				if(core_cpu.controllers.audio.apu_stat.ext_audio.playing)
+				{
+					core_mmu.play_yan.irq_count = core_mmu.play_yan.irq_delay;
+				}
+
 				core_mmu.play_yan.nmp_manual_cmd = 0x8600;
 				core_mmu.play_yan.irq_delay = 1;
-				core_mmu.play_yan.irq_count = 0;
 			}
 
 			config::osd_count = 180;

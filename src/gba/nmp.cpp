@@ -514,6 +514,22 @@ void AGB_MMU::process_nmp_cmd()
 			{
 				play_yan.nmp_status_data[2] = 0;
 				play_yan.nmp_status_data[3] = 1;
+
+				play_yan.update_audio_stream = false;
+				play_yan.update_trackbar_timestamp = true;
+			}
+
+			else
+			{
+				play_yan.update_audio_stream = true;
+				play_yan.update_trackbar_timestamp = false;
+			}
+
+			if(apu_stat->ext_audio.playing)
+			{
+				play_yan.nmp_manual_cmd = 0x8100;
+				play_yan.irq_delay = play_yan.irq_count;
+				play_yan.irq_count = 0;
 			}
 
 			break;
