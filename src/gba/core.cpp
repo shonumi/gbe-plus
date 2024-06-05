@@ -449,13 +449,11 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			//Manually trigger IRQ for NMP
 			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
 			{
-				if(core_cpu.controllers.audio.apu_stat.ext_audio.playing)
-				{
-					core_mmu.play_yan.irq_count = core_mmu.play_yan.irq_delay;
-				}
-
 				core_mmu.play_yan.nmp_manual_cmd = 0x8600;
+				core_mmu.play_yan.nmp_manual_irq = false;
 				core_mmu.play_yan.irq_delay = 1;
+				core_mmu.play_yan.update_audio_stream = false;
+				core_mmu.play_yan.update_trackbar_timestamp = false;
 			}
 
 			config::osd_count = 180;
@@ -670,8 +668,10 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
 			{
 				core_mmu.play_yan.nmp_manual_cmd = 0x8600;
+				core_mmu.play_yan.nmp_manual_irq = false;
 				core_mmu.play_yan.irq_delay = 1;
-				core_mmu.play_yan.irq_count = 0;
+				core_mmu.play_yan.update_audio_stream = false;
+				core_mmu.play_yan.update_trackbar_timestamp = false;
 			}
 
 			config::osd_count = 180;

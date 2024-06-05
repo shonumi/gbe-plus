@@ -158,6 +158,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_frame_count = 0;
 	play_yan.audio_buffer_size = 0;
 	play_yan.audio_frame_count = 0;
+	play_yan.audio_sample_index = 0;
 	play_yan.current_frame = 0;
 	play_yan.update_video_frame = false;
 	play_yan.update_audio_stream = false;

@@ -364,6 +364,7 @@ class AGB_MMU
 		u32 video_length;
 		u32 audio_buffer_size;
 		u32 audio_frame_count;
+		u32 audio_sample_index;
 		s32 current_frame;
 		float video_current_fps;
 		float video_frame_count;
