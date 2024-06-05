@@ -384,8 +384,8 @@ Bytes 0x00 - 0x03	| 0x40000800
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80001000
 Bytes 0x0C - 0x0F	| Unknown
-Bytes 0x10 - 0x13	| Unknown
-Bytes 0x14 - 0x17	| Track Bar Position
+Bytes 0x10 - 0x13	| Audio Buffer Size
+Bytes 0x14 - 0x17	| Trackbar Position
 Bytes 0x18 - 0x1B	| Play Time in Seconds 
 -----------------------------------------------------------------------
 
@@ -394,6 +394,11 @@ After the 0x800 command is issued, a Game Pak IRQ is generated when the Play-Yan
 The Track Bar Position indicates how far along the visual slider has moved across the screen for the duration of the song. It seems to work on a scale of 0x0000 to 0x6400. To move the track bar accurately, this value should increment by (0x6400 / Song Length in Seconds) on average every second. When fast-forwarding or rewinding, this value changes accordingly.
 
 The Play Time in Seconds represents the amount of time elapsed while playing the current song. Unlike the Current Video Position for the Play Video command, here the number of seconds passed is directly returned. That is to say, a value of 0x1E represents a time of 00:00:30 (30 seconds), value of 0x3C represents a time of 00:01:00 (1 minute, e.g. 60 seconds), and a value of 0xFF represents a time of 00:04:16 (4 minutes, 16 seconds, e.g. 256 seconds). Again, fast-forwarding or rewinding will change the result returned by the Play-Yan.
+
+There are 2 distinct types of Game Pak IRQs generated continuously when playing an audio file. The first updates audio samples that the GBA can read from a buffer and push out to its own speakers. The second updates the trackbar exclusively. The Play-Yan's audio processing hardware will alert the CPU when it has converted samples from an MP3 file into samples compatible with the GBA's DMA channels. Those samples can read from SD Card data. The maximum amount of samples the Play-Yan can buffer is 0x480 bytes.
+
+For updating audio samples, only the bytes 0x10 through 0x13 need be non-zero. If those bytes are zero, then the Play-Yan software will interpret the IRQ data as representing an update to the trackbar, in which case bytes 0x14 through 0x1B should hold values appropiate for the current playback time. Do note that when headphones are plugged in, the Play-Yan only generates Game Pak IRQs that update the trackbar position. In this case, the Play-Yan's hardware handles pushing out audio samples, therefore an audio buffer is not needed.
+
 
 *The second IRQ constantly fires for the duration of the music.
 
@@ -421,7 +426,7 @@ Command 0x2000 - Play Sound Effect - 1 IRQ
 Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
-Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA's speakers as output. 
+Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The default sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA's speakers as output. Samples for the sound effect are embedded within firmware, so the sound itself can be changed. 
 
 
 

@@ -4652,6 +4652,10 @@ Bytes 0x18 - 0x1B	| Play Time in Seconds
 
 	<p>The Play Time in Seconds represents the amount of time elapsed while playing the current song. Unlike the Current Video Position for the Play Video command, here the number of seconds passed is directly returned. That is to say, a value of 0x1E represents a time of 00:00:30 (30 seconds), value of 0x3C represents a time of 00:01:00 (1 minute, e.g. 60 seconds), and a value of 0xFF represents a time of 00:04:16 (4 minutes, 16 seconds, e.g. 256 seconds). Again, fast-forwarding or rewinding will change the result returned by the Play-Yan.</p>
 
+	<p>There are 2 distinct types of Game Pak IRQs generated continuously when playing an audio file. The first updates audio samples that the GBA can read from a buffer and push out to its own speakers. The second updates the trackbar exclusively. The Play-Yan&#39;s audio processing hardware will alert the CPU when it has converted samples from an MP3 file into samples compatible with the GBA&#39;s DMA channels. Those samples can read from SD Card data. The maximum amount of samples the Play-Yan can buffer is 0x480 bytes.</p>
+
+	<p>For updating audio samples, only the bytes 0x10 through 0x13 need be non-zero. If those bytes are zero, then the Play-Yan software will interpret the IRQ data as representing an update to the trackbar, in which case bytes 0x14 through 0x1B should hold values appropiate for the current playback time. Do note that when headphones are plugged in, the Play-Yan only generates Game Pak IRQs that update the trackbar position. In this case, the Play-Yan&#39;s hardware handles pushing out audio samples, therefore an audio buffer is not needed.</p>
+
 	<p>*The second IRQ constantly fires for the duration of the music.</p>
 	<p class="spc"></p>
 
@@ -4672,7 +4676,7 @@ Command 0x2000 - Play Sound Effect - 1 IRQ
 Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</pre>
 
-	<p>Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA&#39;s speakers as output. </p>
+	<p>Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The default sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA&#39;s speakers as output. Samples for the sound effect are embedded within firmware, so the sound itself can be changed. </p>
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
@@ -5691,7 +5695,7 @@ ROM_CNT = 0x4015
 	<a name="cam_cfg"></a>
 	<p class="gray_title">[Campho Advance] : System Compatibility</p>
 
-	<p>The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. The likely culprit is the novel way the Campho Advance streams ROM data, which conflicts with the DS firmware as it tries to read Slot-2 when turning on the system. Ultimately, the entire process on the DS differs significantly from the normal GBA BIOS startup routine, which the Campho Advance was heavily tailored around</p>
+	<p>The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. The likely culprit is the novel way the Campho Advance streams ROM data, which conflicts with the DS firmware as it tries to read Slot-2 when turning on the system. Ultimately, the entire process on the DS differs significantly from the normal GBA BIOS startup routine, which the Campho Advance was heavily tailored around.</p>
 
 	<p>In theory, however, the Campho Advance should work with the following Game Boy Advance models: AGB-001 (original GBA), AGS-001 (GBA SP), AGS-101 (GBA SP), OXY-001 (Game Boy Micro). According to official documentation, the Campho Advance is not compatible with the DOL-017 (Game Boy Player). It must be noted that the Campho Advance was developed and released before the DS launched, so Digital Act likely had no idea it would become incompatible when the next handheld generation came around. A similar situation happened with the Pocket Sonar when the Game Boy Color launched.</p>
 
@@ -6226,6 +6230,8 @@ Byte 0x0000 - 0x023F	Audio Buffer 2
 <pre>ACCESS_INDEX_2 = ACCESS_INDEX_1 + (AUDIO_BUFFER_SIZE / 4)</pre>
 
 	<p>2 separate reads from the SD Card interface are required to read all audio data as a result of this process. Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.</p>
+
+	<p>When headphones are plugged into the NMP, the cartridge only generates Game Pak IRQs that update the trackbar position. With headphones, audio data is processed by the NMP&#39;s own hardware and output separately from the GBA&#39;s sound system.</p>
 
 	<a name="nmp_upd"></a>
 	<p class="gray_title">[Nintendo MP3 Player] : Firmware Update</p>

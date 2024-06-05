@@ -566,6 +566,8 @@ ACCESS_INDEX_2 = ACCESS_INDEX_1 + (AUDIO_BUFFER_SIZE / 4)
 
 2 separate reads from the SD Card interface are required to read all audio data as a result of this process. Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.
 
+When headphones are plugged into the NMP, the cartridge only generates Game Pak IRQs that update the trackbar position. With headphones, audio data is processed by the NMP's own hardware and output separately from the GBA's sound system.
+
 
 ***************************************************
 8. Firmware Update
