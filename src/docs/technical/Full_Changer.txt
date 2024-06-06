@@ -9,10 +9,10 @@ Shonumi aka D.S. Baxter
 
 Zok Zok Heroes was a GBC JRPG released on August 4, 2000, made by Media Factory when they still produced video games. It used a special accessory called the "Full Changer", a device that looks like a toy, but acts as an IR transmitter. It sent signals to the GBC once players moved it through the air to "draw" certain patterns. Once the GBC gets the IR light pulses, it allows players to transform into different "Bright Heroes" to do battle against evil bad guys. It never sold outside of Japan. After a specific point early in the game, it becomes impossible to progress further in emulators without cheat codes/hacks or by properly emulating the Full Changer. Below are brief technical notes about the Full Changer.
 
+
 ***************************************************
 2. General Cart+Hardware Information
 ***************************************************
-
 
 Zok Zok Heroes (CGB-BZHJ-JPN)
 MBC5 + Battery Saves
@@ -23,10 +23,10 @@ Full Changer uses one CR2032
 Full Changer contains 4 Hall effect sensors to detect movement
 Full Changer has a series of status lights and blinks/beeps when swung correctly
 
+
 ***************************************************
 3. Full Changer Operation
 ***************************************************
-
 
 1. Grab the Full Changer firmly, holding it by the strap
 
@@ -40,19 +40,20 @@ Full Changer has a series of status lights and blinks/beeps when swung correctly
 
 6. Put the bottom of the Full Changer on top of the GBC, making sure to cover the IR port. The Full Changer has a little plastic guide to make sure everything fits and faces the right direction.
 
+
 ***************************************************
 4. Full Changer-GBC Communication
 ***************************************************
 
-
 The Full Changer sends a total of 18 IR pulses (on then off periods) when transmitting data. The length of these pulses varies and determines what values the Full Changer is trying to send. Zok Zok Heroes runs in a couple of loops while the pulse takes place. Each iteration, it increments a counter to get an idea of the overall "delay" it takes for the IR light to turn on then turn off. That counter is then placed in WRAM as a single byte (anything greater than 0xFF causes a timeout) and verified later. In this way, Zok Zok Heroes can view data from the Full Changer as a series of bytes rather than light pulses. These 18 bytes do not have especially strict values, rather they are expected to fall within a certain range to indicate long or short pulses.
+
 
 ***************************************************
 5. Capturing IR Data From Full Changer
 ***************************************************
 
-
 Below is psuedo-code representing how Zok Zok Heroes grabs the 18 bytes:
+
 
 ==================================
 LABEL CHECK_ON_LOOP:
@@ -69,7 +70,7 @@ LABEL CHECK_ON_LOOP:
 	//Load A from 16-bit immediate address for RP register
 	A = [0xFF56]
 
-	//Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	//Wait for IR light to come on (Bit 1 of 0xFF56 goes to zero)
 	IF(A AND 0x1)
 	{
 		GOTO CHECK_ON_LOOP
@@ -85,7 +86,7 @@ LABEL CHECK_ON_LOOP:
 LABEL GRAB_IR_BYTES:
 ==================================
 
-	//Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
+	//Wait for IR light to go off (Bit 1 of 0xFF56 goes to one)
 	//Set an 8-bit CPU register to act as an IR pulse length counter, initialized to 0x00
 	PULSE_LENGTH = 0x00
 
@@ -122,7 +123,7 @@ FUNCTION WAIT_FOR_OFF:
 		//Load A from 16-bit immediate address for RP register
 		A = [0xFF56]
 
-		//Wait for IR light to come on (Bit 1 of 0xFF46 goes to one)
+		//Wait for IR light to come on (Bit 1 of 0xFF56 goes to one)
 		IF((A AND 0x1) == 0x00)
 		{
 			GOTO WAIT_FOR_OFF
@@ -145,7 +146,7 @@ FUNCTION WAIT_FOR_ON:
 		//Load A from 16-bit immediate address for RP register
 		A = [0xFF56]
 
-		//Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+		//Wait for IR light to come on (Bit 1 of 0xFF56 goes to zero)
 		IF(A AND 0x1)
 		{
 			GOTO WAIT_FOR_ON
@@ -155,10 +156,10 @@ FUNCTION WAIT_FOR_ON:
 
 Once all 18 bytes have been stored in WRAM, it's possible to read them and save them using a ROM hack. Alternatively, homebrew software can use code with the same timing to accurately capture IR data from the Full Changer.
 
+
 ***************************************************
 6. Emulating The Full Changer
 ***************************************************
-
 
 The Full Changer can be successfully emulated by setting Bit 1 of RP register (located at 0xFF56) to 0 or 1 at the appropiate times. To do so requires accurate timing and knowing the amount of cycles it takes to generate the delays represented by those 18 bytes in WRAM. When activating the Full Changer, GBE+ always fires the 1st "ON" IR signal at a specific time to get consistent timings:
 
@@ -198,7 +199,6 @@ The current database GBE+ uses recreates ON/OFF pulses that generally run for th
 7. Cosmic Characters
 ***************************************************
 
-
 There are a total of 70 "Cosmic Characters" available in Zok Zok Heroes, and by extension, there are 70 unique transformations. This Cosmic Character is simply an 8-bit ID generated from the ON and OFF pulses from the Full Changer. Using the delays stored in the 18 WRAM bytes, the game software uses the following logic to determine an ID.
 
 The first pulse is checked to ensure that it has a delay greater than 0x20, signaling a long pulse, otherwise processing for the Cosmic Character does not continue. Afterwards, the next 16 pulses are examined to build two separate 8-bit values. These values are constructed LSB. A short pulse (any value from 0x00 to 0x13) translates into a "0", and a long pulse (any value from 0x14 to 0x20) translates into a "1". The 1st 8-bit value built from these pulses is used for a checksum of a sort, and the 2nd 8-bit value is complemented to form an ID. IDs range from 0x01 to 0x46 and correspond to the 70 Cosmic Characters. Note that while the 18th IR pulse is required by the software, it isn't used for the ID or checksum.
@@ -215,76 +215,76 @@ Pulse Byte 1 = 0xFF - (~Cosmic Character ID)
 Pulse Byte 2 Calculation (using an arbitrary ID of one's choosing):
 Pulse Byte 2 = ~Cosmic Character ID
 
---------------------------------------------------------------------------------------------
-ID	| Japanese Name		| Translated Name		| Cosmic Character Movements
---------------------------------------------------------------------------------------------
-01 (あ)	| アルカリパワード		| Alkaline Powered		| Up, Down, Up
-02 (い)	| イン ウォーター 		| In Water			| Right, Left, Right
-03 (う)	| ウルトランナー		| Ultra Runner			| Down, Up, Down
-04 (え)	| エアロ パワー 		| Aero Power			| Left, Right, Left
-05 (お)	| オチャッパ		| Ochaapa			| Down+Left, Right, Left
-06 (か)	| カイザーエッジ		| Kaizer Edge			| Up, Right, Down
-07 (き)	| キングバッター		| King Batter			| Right, Down, Left
-08 (く)	| クラッシッカー		| Crash Car			| Down, Left, Up
-09 (け)	| ケイタイがー		| Cellphone Tiger		| Left, Up, Right
-10 (こ)	| コップエース		| Cup Ace			| Down+Left, Up, Right
-11 (さ)	| サカナード		| Sakanard			| Up, Left, Down
-12 (し)	| シンデルター		| Thin Delta			| Right, Up, Left
-13 (す)	| スケボーライダー		| Skateboard Rider		| Down, Right, Up
-14 (せ)	| セロリスター		| Celery Star			| Left, Down, Right
-15 (そ)	| ソウジキラー		| Cleaning Killer		| Down+Left, Short Down, Right
-16 (た)	| タコアキッド		| Takoyaki Kid			| Short Up, Right, Short Up
-17 (ち)	| チンコーマン		| Chinkoman			| Short Right, Down, Short Right
-18 (つ)	| ツカイステイター		| Tsukai Stater			| Short Down, Left, Short Down
-19 (て)	| テッパンガー		| Teppangar			| Short Left, Up, Short Left
-20 (と)	| トンガラリン		| Tongararin			| Short Down+Left, Up, Short Left
-21 (な)	| ナガシマン		| Nagashiman			| Short Up, Right, Left
-22 (に)	| ニンジャーノン		| Ninja				| Short Right, Down, Up
-23 (ぬ)	| ぬいぬいちゃん		| Plushy-chan			| Short Down, Left, Right
-24 (ね)	| ネジレイザー		| Screw Razor			| Short Left, Up, Down
-25 (の)	| ノーベルブレイン		| Nobel Brain			| Short Down+Left, Up, Down
-26 (は)	| ハードハンマー		| Hard Hammer			| Short Up, Left, Short Up
-27 (ひ)	| ヒートマン		| Heat Man			| Short Right, Up, Short Right
-28 (ふ)	| フレイムグルメ		| Flame Gourmet			| Short Down, Right, Short Down
-29 (へ)	| ヘラクレスアーミー	| Hercules Army			| Short Left, Down, Short Left
-30 (ほ)	| ホットカード		| Hot Card			| Short Down+Left, Short Down, Short Left
-31 (ま)	| マッスルさん		| Mr. Muscle			| Short Up, Left, Right
-32 (み)	| ミストウォーター		| Mist Water			| Short Right, Up, Down
-33 (む)	| ムシムシマン		| Mushimushi Man			| Short Down, Right, Left
-34 (め)	| メガーテン		| Megaaten			| Short Left, Down, Up
-35 (も)	| モビルロボX		| Mobile Robot X		| Down+Left, Down, Up
-36 (や)	| ヤキバード		| Yaki Bird			| Up, Down, Left
-37 (ゆ)	| ユートロン		| Utron				| Down, Up, Right
-38 (よ)	| ヨーヨーマスク		| Yo-Yo Mask			| Down+Left, Right, Down
-39 (ら)	| ラジアルロード		| Radial Road			| Up, Down, Right
-40 (り)	| リモコンマン		| Remote-Control Man		| Right, Left, Down
-41 (る)	| ルビーフック		| Ruby Hook			| Down, Up, Left
-42 (れ)	| レトロサウンダー		| Retro Sounder			| Left, Right, Up
-43 (ろ)	| ロケットやろう		| Rocket				| Down+Left, Right, Short Up
-44 (わ)	| ワイルドソード		| Wild Sword			| Up, Down, Up+Left
-45 (が)	| ガッツラゴー		| Guts Lago			| Up, Down+Right, Short Left
-46 (ぎ)	| ギーニウン		| Giniun				| Right, Down+Left, Short Up
-47 (ぐ)	| グレートファイヤー	| Great Fire			| Down, Up+Left, Short Right
-48 (げ)	| ゲーマルク		| Gamemark			| Left, Up+Right, Short Down
-49 (ご)	| ゴウリキラー		| Gorilla Killa			| Down+Left, Up+Right, Short Down
-50 (ざ)	| ザ・クライマー		| The Climber			| Up, Down+Right, Short Right
-51 (じ)	| Gシャーク		| G Shark			| Right, Up+Left, Short Down
-52 (ず)	| ズームレーザー		| Zoom Laser			| Down, Up+Right, Short Left
-53 (ぜ)	| ゼンマイン		| Zenmai				| Left, Down+right, Short Up
-54 (ぞ)	| ゾウシャワー		| Elephant Shower		| Short Down+Left, Short Down+Right, Short Up
-55 (だ)	| ダイヤモール		| Diamond Mall			| Up, Down+Right, Up
-56 (ぢ)	| ヂグロニャン		| Digronyan			| Right, Down+Left, Right
-57 (づ)	| ヅィザーワン		| Ziza One			| Down, Up+Left, Down
-58 (で)	| デンジャレッド		| Danger Red			| Left, Up+Right, Left
-59 (ど)	| ドハツテン		| Dohatsuten			| Down+Left, Up+Right, Left 
-60 (ば)	| バルバルーン		| Balloon			| Up, Down+Left, Up
-61 (び)	| ビデオージャ		| Videoja			| Right, Up+Left, Right
-62 (ぶ)	| ブーブーウー		| Boo Boo			| Down, Up+Right, Down
-63 (べ)	| ベルトジャイン		| Belt Jain			| Left, Down+Right, Left
-64 (ぼ)	| ボートロン		| Boat Ron			| Short Down+Left, Down+Right, Left
-65 (ぱ)	| パーフェクトサン		| Perfect Sun			| Up, Down+Left, Up+Left
-66 (ぴ)	| ピンスポーン		| Pinspawn			| Right, Up+Left, Up+Right
-67 (ぷ)	| プレスアーム		| Press Arm			| Down, Up+Right, Down+Right
-68 (ぺ)	| ペガサスボーイ		| Pegasus Boy			| Left, Down+Right, Down+Left
-69 (ぽ)	| ポップサンダー		| Pop Thunder			| Short Down+Left, Short Down+Right, Short Down+Left
-70 (ん)	| ンジャメナス		| Ndjamenas			| Right, Down+Left, Down+Right
+------------------------------------------------------------------------------------------------------------
+ID	| Cosmic Character Movements (S* = Short Move)	| Translated Name	| (Character) Japanese Name
+------------------------------------------------------------------------------------------------------------
+01 	| Up, Down, Up					| Alkaline Powered	| (あ) アルカリパワード
+02 	| Right, Left, Right				| In Water 		| (い) イン ウォーター
+03 	| Down, Up, Down				| Ultra Runner		| (う) ウルトランナー
+04 	| Left, Right, Left 				| Aero Power		| (え) エアロ パワー
+05 	| Down+Left, Right, Left			| Ochaapa		| (お) オチャッパ
+06 	| Up, Right, Down				| Kaizer Edge		| (か) カイザーエッジ
+07 	| Right, Down, Left				| King Batter		| (き) キングバッター
+08 	| Down, Left, Up				| Crash Car		| (く) クラッシッカー
+09 	| Left, Up, Right				| Cellphone Tiger	| (け) ケイタイがー
+10 	| Down+Left, Up, Right				| Cup Ace		| (こ) コップエース
+11 	| Up, Left, Down				| Sakanard		| (さ) サカナード
+12 	| Right, Up, Left				| Thin Delta		| (し) シンデルター
+13 	| Down, Right, Up				| Skateboard Rider	| (す) スケボーライダー
+14 	| Left, Down, Right				| Celery Star		| (せ) セロリスター
+15 	| Down+Left, S* Down, Right			| Cleaning Killer	| (そ) ソウジキラー
+16 	| S* Up, Right, S* Up				| Takoyaki Kid		| (た) タコアキッド
+17 	| S* Right, Down, S* Right			| Chinkoman		| (ち) チンコーマン
+18 	| S* Down, Left, S* Down			| Tsukai Stater		| (つ) ツカイステイター
+19 	| S* Left, Up, S* Left				| Teppangar		| (て) テッパンガー
+20 	| S* Down+Left, Up, S* Left			| Tongararin		| (と) トンガラリン
+21 	| S* Up, Right, Left				| Nagashiman		| (な) ナガシマン
+22 	| S* Right, Down, Up				| Ninja			| (に) ニンジャーノン
+23 	| S* Down, Left, Right				| Plushy-chan		| (ぬ) ぬいぬいちゃん
+24 	| S* Left, Up, Down				| Screw Razor		| (ね) ネジレイザー
+25 	| S* Down+Left, Up, Down			| Nobel Brain		| (の) ノーベルブレイン
+26 	| S* Up, Left, S* Up				| Hard Hammer		| (は) ハードハンマー
+27 	| S* Right, Up, S* Right			| Heat Man		| (ひ) ヒートマン
+28 	| S* Down, Right, S* Down			| Flame Gourmet		| (ふ) フレイムグルメ
+29 	| S* Left, Down, S* Left			| Hercules Army		| (へ) ヘラクレスアーミー
+30 	| S* Down+Left, S* Down, S* Left		| Hot Card		| (ほ) ホットカード
+31 	| S* Up, Left, Right				| Mr. Muscle		| (ま) マッスルさん
+32 	| S* Right, Up, Down				| Mist Water		| (み) ミストウォーター
+33 	| S* Down, Right, Left				| Mushimushi Man	| (む) ムシムシマン
+34 	| S* Left, Down, Up				| Megaaten		| (め) メガーテン
+35 	| Down+Left, Down, Up				| Mobile Robot X	| (も) モビルロボX
+36 	| Up, Down, Left				| Yaki Bird		| (や) ヤキバード	 
+37 	| Down, Up, Right				| Utron			| (ゆ) ユートロン
+38 	| Down+Left, Right, Down			| Yo-Yo Mask		| (よ) ヨーヨーマスク
+39 	| Up, Down, Right				| Radial Road		| (ら) ラジアルロード
+40 	| Right, Left, Down				| Remote-Control Man	| (り) リモコンマン
+41 	| Down, Up, Left				| Ruby Hook		| (る) ルビーフック
+42 	| Left, Right, Up				| Retro Sounder		| (れ) レトロサウンダー
+43 	| Down+Left, Right, S* Up			| Rocket Bastard	| (ろ) ロケットやろう 
+44 	| Up, Down, Up+Left				| Wild Sword		| (わ) ワイルドソード
+45 	| Up, Down+Right, S* Left			| Guts Lago		| (が) ガッツラゴー
+46 	| Right, Down+Left, S* Up			| Giniun		| (ぎ) ギーニウン
+47 	| Down, Up+Left, S* Right			| Great Fire		| (ぐ) グレートファイヤー
+48 	| Left, Up+Right, S* Down			| Gamemark		| (げ) ゲーマルク
+49 	| Down+Left, Up+Right, S* Down			| Gorilla Killa		| (ご) ゴウリキラー
+50 	| Up, Down+Right, S* Right			| The Climber		| (ざ) ザ・クライマー
+51 	| Right, Up+Left, S* Down			| G Shark		| (じ) Gシャーク
+52 	| Down, Up+Right, S* Left			| Zoom Laser		| (ず) ズームレーザー
+53 	| Left, Down+right, S* Up			| Zenmai		| (ぜ) ゼンマイン
+54 	| S* Down+Left, S* Down+Right, S* Up		| Elephant Shower	| (ぞ) ゾウシャワー
+55 	| Up, Down+Right, Up				| Diamond Mall		| (だ) ダイヤモール
+56 	| Right, Down+Left, Right			| Digronyan		| (ぢ) ヂグロニャン
+57 	| Down, Up+Left, Down				| Ziza One		| (づ) ヅィザーワン
+58 	| Left, Up+Right, Left				| Danger Red		| (で) デンジャレッド
+59 	| Down+Left, Up+Right, Left			| Dohatsuten		| (ど) ドハツテン
+60 	| Up, Down+Left, Up				| Balloon		| (ば) バルバルーン
+61 	| Right, Up+Left, Right				| Videoja		| (び) ビデオージャ
+62 	| Down, Up+Right, Down				| Boo Boo		| (ぶ) ブーブーウー
+63 	| Left, Down+Right, Left			| Belt Jain		| (べ) ベルトジャイン
+64 	| S* Down+Left, Down+Right, Left		| Boat Ron		| (ぼ) ボートロン
+65 	| Up, Down+Left, Up+Left			| Perfect Sun		| (ぱ) パーフェクトサン
+66 	| Right, Up+Left, Up+Right			| Pinspawn		| (ぴ) ピンスポーン
+67 	| Down, Up+Right, Down+Right			| Press Arm		| (ぷ) プレスアーム
+68 	| Left, Down+Right, Down+Left			| Pegasus Boy		| (ぺ) ペガサスボーイ
+69 	| S* Down+Left, S* Down+Right, S* Down+Left	| Pop Thunder		| (ぽ) ポップサンダー
+70 	| Right, Down+Left, Down+Right			| Ndjamenas		| (ん) ンジャメナス

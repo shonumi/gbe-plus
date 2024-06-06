@@ -779,7 +779,7 @@ LABEL CHECK_ON_LOOP:
 	&#47;&#47;Load A from 16-bit immediate address for RP register
 	A = [0xFF56]
 
-	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF56 goes to zero)
 	IF(A AND 0x1)
 	{
 		GOTO CHECK_ON_LOOP
@@ -795,7 +795,7 @@ LABEL CHECK_ON_LOOP:
 LABEL GRAB_IR_BYTES:
 ==================================
 
-	&#47;&#47;Wait for IR light to go off (Bit 1 of 0xFF46 goes to one)
+	&#47;&#47;Wait for IR light to go off (Bit 1 of 0xFF56 goes to one)
 	&#47;&#47;Set an 8-bit CPU register to act as an IR pulse length counter, initialized to 0x00
 	PULSE_LENGTH = 0x00
 
@@ -831,7 +831,7 @@ FUNCTION WAIT_FOR_OFF:
 	&#47;&#47;Load A from 16-bit immediate address for RP register
 	A = [0xFF56]
 
-	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to one)
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF56 goes to one)
 	IF((A AND 0x1) == 0x00)
 	{
 		GOTO WAIT_FOR_OFF
@@ -853,7 +853,7 @@ FUNCTION WAIT_FOR_ON:
 	&#47;&#47;Load A from 16-bit immediate address for RP register
 	A = [0xFF56]
 
-	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF46 goes to zero)
+	&#47;&#47;Wait for IR light to come on (Bit 1 of 0xFF56 goes to zero)
 	IF(A AND 0x1)
 	{
 		GOTO WAIT_FOR_ON
