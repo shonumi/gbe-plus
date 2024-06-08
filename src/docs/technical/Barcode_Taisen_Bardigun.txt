@@ -2,11 +2,9 @@ Barcode Taisen Bardigun Technical Documentation 0.3
 May 27th, 2017
 Shonumi aka D.S. Baxter
 
-
 ***************************************************
 1. Introduction
 ***************************************************
-
 
 Barcode Taisen Bardigun is an obscure/rare Japanese Game Boy game released December 11, 1998, made by TAM. It doesn't seem like a very interesting or noteworthy game in and of itself (yet another monster breeding/raising/fighting/collecting game). However, this game featured exclusive hardware, a card reader that scanned various barcodes. It predates the Nintendo e-Reader by a number of years. Additionally, when I first bought this game off of e-Bay, there was virtually no information about it. This game literally was a black hole in terms of data: no FAQs anywhere, scarcely any mention on Wikipedia or any other wikis, a few screenshots, and maybe one decent YouTube video (made in 2017 no less). It's like no one knew what the game was about; nearly all the Google search results were for downloads for the ROM, and the rest were for a cheat code.
 
@@ -17,23 +15,21 @@ The game and card reader hardware are now almost 20 years old, so I figured it's
 2. General Cart + Hardware Information
 ***************************************************
 
+- Barcode Taisen Bardigun (DMG-ABEJ-JPN) and (DMG-ABEJ-JPN-1)
+- MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)
+- Compatible with DMG, SGB, and GBC systems
+- Japanese-text only (hiragana/katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)
+- Supports Link Cable for multiplayer
 
-Barcode Taisen Bardigun (DMG-ABEJ-JPN) and (DMG-ABEJ-JPN-1)
-MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)
-Compatible with DMG, SGB, and GBC systems
-Japanese-text only (hiragana/katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)
-Supports Link Cable for multiplayer
-
-Comes with 1 card-reader powered by 3 AAA batteries
-Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)
-Some cards come as cut-outs from a cardboard sheet
-Reader connects to DMG/GBC serial port for communication (technically could work with SGB2 on a Super Famicom, that'd be crazy to see)
+- Comes with 1 card-reader powered by 3 AAA batteries
+- Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)
+- Some cards come as cut-outs from a cardboard sheet
+- Reader connects to DMG/GBC serial port for communication (technically could work with SGB2 on a Super Famicom, that'd be crazy to see)
 
 
 ***************************************************
-3. Card Reader-GBC communication
+3. Card Reader to GBC Communication
 ***************************************************
-
 
 Game Boy will initialize a transfer with an internal clock; much like every other Serial I/O device (GB Printer, GB Mobile Adapter), Game Boy sends initial data, then the reader responds. Transfer rate is 1KB/s, the slowest speed, so there is no difference between DMG and GBC transfers. To begin, the Game Boy constantly sends 0xFF to the reader. The game logic times out after a few seconds if no proper response is established.
 
@@ -55,7 +51,6 @@ Nitty-gritty bits
 ***************************************************
 4. Barcode Format
 ***************************************************
-
 
 Because the incoming barcode data is not consistent byte-for-byte, the patterns are what matters most. To illustrate this idea, below are two sets of data extracted after scanning a card (using a hacked version of Barcode Taisen Bardigun and saving all SIO communications to Cart RAM).
 
@@ -97,7 +92,6 @@ The physical barcode format on the actual cards is EAN-13.
 5. Card Dumping
 ***************************************************
 
-
 With the above guideline, it should be possible to dump the cards by scanning them, then creating a binary file containing barcodes as alternating bitstreams of 0s and 1s. With this method, no homebrew techniques are needed, and only an image file is necessary to actually preserve the card.
 
 The second method involves using a hacked version of the Barcode Taisen Bardigun ROM on a flashcart to save incoming Serial I/O data as a card is scanned. The binary can be pulled from a save file. Both binary files could be used an input to feed back to an emulator.
@@ -106,7 +100,6 @@ The second method involves using a hacked version of the Barcode Taisen Bardigun
 ***************************************************
 6. ROM Revision
 ***************************************************
-
 
 Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The later version polishes many rough edges found in the first release (e.g. including a text box when barcode scanning fails). Currently, both games appear to be largely the same besides these UI and UX enhancements. Barcode scanning is exactly the same in each.
 
@@ -118,32 +111,15 @@ Barcode Taisen Bardigun has two known ROMs, DMG-ABEJ-JPN and DMG-ABEJ-JPN-1. The
 Below is a chart with barcodes verified to work with the game. Each barcode will produce a single Bardigun when scanning to hatch an egg. The barcode can also be used to give Bardigun unique attacks when scanned before a battle begins. The names of each are listed in kana as well as Romanji or English when translatable.
 
 ------------------------------------------------------------------------------------------------
-Bardigun Name	| Attack Name		| Barcode
+Barcode		| Bardigun :: Attack Name (English)	| Bardigun :: Attack Name (Japanese)
 ------------------------------------------------------------------------------------------------
-Chakanan"	| "High Hearing"	| 4580245316402
-チャカナン	| ハイヒーリング		|
-------------------------------------------------------------------------------------------------
-"Chibisshii"	| "Sword"		| 4900287167419
-チビッシー	| ソード			|
-------------------------------------------------------------------------------------------------
-"Chibisshii"	| "Eye Beam"		| 4901330547479
-チビッシー	| めからベーム		|
-------------------------------------------------------------------------------------------------
-"Chip"		| "Lullaby"		| 4983164730678
-チップ		| こもりうた		|
-------------------------------------------------------------------------------------------------
-"Noise"		| "Ikikaeeru"		| 4900753335663
-ノイヅー		| イキカエール 		|
-------------------------------------------------------------------------------------------------
-"Nyaari"	| "Kaenhoushaki"	| 4900363432103
-ニャーリー	| かえんほうしゃき		|
-------------------------------------------------------------------------------------------------
-"Ralph"		| "Ikikaeeru"		| 4900758340136
-ラルフ		| イキカエール 		|
-------------------------------------------------------------------------------------------------
-"Takora"	| "Fire Bolt"		| 4902370501445
-タコラ 		| ファイアーボルト		|
-------------------------------------------------------------------------------------------------
-"Tamappi"	| "Nandemonaooru"	| 4900269429252
-タマッピ		| ナンデモナオール 		|
+4580245316402	| Chakanan :: High Hearing		| チャカナン :: ハイヒーリング
+4900287167419	| Chibisshii :: Sword			| チビッシー :: ソード
+4901330547479	| Chibisshii :: Eye Beam		| チビッシー :: めからベーム
+4983164730678	| Chip :: Lullaby			| チップ :: こもりうた
+4900753335663	| Noise :: Ikikaeeru			| ノイヅー :: イキカエール
+4900363432103	| Nyaari :: Kaenhoushaki		| ニャーリー :: かえんほうしゃき
+4900758340136	| Ralph :: Ikikaeeru			| ラルフ :: イキカエール
+4902370501445	| Takora :: Fire Bolt			| タコラ :: ファイアーボルト
+4900269429252	| Tamappi :: Nandemonaooru		| タマッピ :: ナンデモナオール
 ------------------------------------------------------------------------------------------------
