@@ -2,24 +2,23 @@ Barcode Boy Technical Documentation 0.5
 July 4th, 2017
 Shonumi aka D.S. Baxter
 
-
 ***************************************************
 1. Introduction
 ***************************************************
 
-
 Appearing around 1992, the Barcode Boy is the earliest form of card-scanning on Nintendo's Game Boy line of handhelds, predating both the e-Reader and the Bardigun Taisen Reader by a number of years. Only a limited set of games made by Namcot were compatible (or rather absolutely required) the Barcode Boy. All of the games and the Barcode Boy itself were only released in Japan. Not much has been written about any of the games, like Battle Space or Monster Maker, and even less has been documented about the Barcode Boy hardware, the scanning process, and the barcodes. Again, here it is 2017, and there are such little efforts to preserve and record exotic portable gaming hardware. This small technical file aims to archive all the information I found through reverse engineering, hopefully serving as a guide for other emu-devs and providing details for gaming historians that would otherwise be lost to time. Here we go then.
+
 
 ***************************************************
 2. General Hardware Information
 ***************************************************
 
+- Barcode Boy is a rather bulky add-on that snaps on top of the original DMG (the gray "brick")
+- Barcode Boy requires 2 AA batteries (with a DMG-01, that brings the total to 6 AA necessary to play any Barcode Boy game)
+- Barcode Boy games are always labeled with a "B.B." logo with a little card.
+- Includes a very, very short Link Cable
+- Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always "ON" when switched on, thus draining batteries even while not scanning
 
-Barcode Boy is a rather bulky add-on that snaps on top of the original DMG (the gray "brick")
-Barcode Boy requires 2 AA batteries (with a DMG-01, that brings the total to 6 AA necessary to play any Barcode Boy game)
-Barcode Boy games are always labeled with a "B.B." logo with a little card.
-Includes a very, very short Link Cable
-Unlike the Barcode Taisen Bardigun reader, the Barcode Boy has no button. It is always "ON" when switched on, thus draining batteries even while not scanning
 
 ***************************************************
 3. Barcode Boy Games
@@ -35,10 +34,10 @@ Only 5 Barcode Boy games are known to exist:
 
 Barcode Boy titles come in two types: those that absolutely require the Barcode Boy for any gameplay at all (専用カートリッジ) and those that merely support the Barcode Boy as an accessory for additional content (対応カートリッジ). These games are differentiated with red and blue "B.B." logos respectively. Only Battle Space and Monster Maker: Barcode Saga fall into the first group.
 
+
 ***************************************************
 4. Barcode Boy-DMG Communication
 ***************************************************
-
 
 Each game will first try to detect if the Barcode Boy is plugged in and turned on. The Game Boy will send the bytes [0x10, 0x07, 0x10, 0x07] as part of a handshake. A properly functioning Barcode Boy will return the bytes [0xFF, 0xFF, 0x10, 0x07]. Barcode Boy games will still successfully detect the Barcode Boy scanner even if the first two bytes in the reply to the handshake aren't 0xFF, probably to simplify the game code. As a result, the first two bytes of the handshake are useless and ignored, but the last two bytes *MUST* be [0x10, 0x07]. If the Barcode Boy is plugged in but not turned on, it responds with 0x00 for the entire handshake, and the game produces an error message.
 
@@ -84,68 +83,68 @@ Once the Barcode Boy sends the handshake [0x10, 0x07] back to the Game Boy, the 
 
 It should be noted that the barcode data itself is encapsulated by ASCII control codes, where 0x02 represents the Start of Text (STX) and 0x03 represents the End of Text (ETX).
 
+
 ***************************************************
 5. Barcode Format
 ***************************************************
-
 
 The two strings are the actual barcode data in numerical form. The barcode format itself is EAN-13, and a few games use JAN-13 specifically. Older JAN-13 barcodes start off with the flag code 49. Interestingly enough, the newer JAN-13 flag code is 45 and was introduced in 1992, the same year the Barcode Boy was released. Probably due to timing or convenience, the JAN-13 barcodes on the cards stuck to the older flag code. Some Barcode Boy barcodes are technically "coupons/vouchers" types, as they use the flag code 99 instead of 45 or 49. Family Jockey 2 and Famista 3 don't use JAN-13 specifically; instead they use random EAN-13 barcodes with varying flag codes.
 
 Using scans of the barcode @ 600 DPI, the smallest bar width is approximately 7 pixels (give or take). With that information, it's possible to recreate the EAN-13 number with a sufficient image and barcode scanning software. It should be noted that the Barcode Boy appears to do away with the center guard, however, it maintains left and right guards.
 
+
 ***************************************************
 6. Card Dumping + Emulation
 ***************************************************
-
 
 Amazingly simple in comparison to something like Barcode Taisen Bardigun, chiefly because such a small amount of bytes need to be sent to the Game Boy. Basically, all you need to do is convert the barcode to EAN-13. Anything capable of reading standard barcodes found on most products should be sufficient to grab the numerical form of each card.
 
 As far as emulation goes, simply convert the EAN-13 ASCII string to hex and transmit it accordingly.
 
+
 ***************************************************
 7. Barcode Errors
 ***************************************************
 
-
 Interestingly enough, a vast majority of the barcodes for Family Jockey 2 are completely incorrect. Only 3 out of the 8 barcodes actually generate horses with the stats listed on the cards. Barcodes A1, B1, and A4 work fine; the rest give stats that do not match up with the card's. Some, such as A2, even generate horses that are totally unfit for competition (A2 produces stats with 2s and 0s, and the max is supposed to be 9 in each category). It's not clear if this was a programming glitch or a mistake Namcot made when printing the cards, or some combination of the two. All other Barcode Boy games came packaged with cards that have no issues whatsoever.
+
 
 ***************************************************
 8. Barcodes
 ***************************************************
 
-
 Below are the full 13 digit barcodes for all known Barcode Boy cards along with any names, other identifying information found on the card, or important notes.
 
 Battle Space
 
-	* バーサーカー		(Berserker)
+	* Berserker		バーサーカー
 	* 4907981000301
 
-	* バルキリー 		(Valkyrie)
+	* Valkyrie		バルキリー
 	* 4908052808369
 
-	* グリズリー 		(Grizzly Bear)
+	* Grizzly Bear		グリズリー
 	* 4916911302309
 
-	* マホウセンシ		(Magic Soldier aka Rune Knight)
+	* Magic Soldier		マホウセンシ
 	* 4902776809367
 
-	* ナイト			(Knight)
+	* Knight		ナイト
 	* 4905672306367
 
-	* レイス			(Wraith)
+	* Wraith		レイス
 	* 4912713004366
 
-	* シャーマン		(Shaman)
+	* Shaman		シャーマン
 	* 4913508504399
 
-	* シーフ 			(Thief)
+	* Thief			シーフ
 	* 4918156001351
 
-	* ソーサラー		(Sorcerer)
+	* Sorcerer		ソーサラー
 	* 4911826551347
 
-	* ウォリアー		(Warrior)
+	* Warrior		ウォリアー
 	* 4909062206350
 
 Family Jockey 2
@@ -176,54 +175,53 @@ Family Jockey 2
 
 Famista 3
 
-	* ホームランバッター	(Home-Run Batter)
+	* Home-Run Batter	ホームランバッター
 	* 8357933639923
 
-	* 高打者バッター		(Senior Batter)
+	* Senior Batter		高打者バッター
 	* 7814374127798
 
-	* 駿打者バッター		(Swift Batter)
+	* Swift Batter		駿打者バッター
 	* 9880692151263
 
-	* ピッチャー		(Pitcher)
+	* Pitcher		ピッチャー
 	* 1414213562177
 
 Kattobi Road
 
-	* フォワールド		(Truck)
+	* Truck			フォワールド
 	* 4902105002063
 
-	* ガウディ		(Sedan)
+	* Sedan			ガウディ
 	* 4901121110004
 
-	* ナイト 2000		(Racecar)
+	* Racecar		ナイト 2000
 	* 4903301160625
 
-	* ミイラターボ		(Japanese Street Car)
+	* Japanese Street Car	ミイラターボ
 	* 4902888119101
 
-	* リイスラックス		(4x4 Jeep)
+	* 4x4 Jeep		リイスラックス
 	* 4901780161157
 
-	* ロクタスヨンート		(F1-style racecar)
-	* 4987084410924
+	* F1-style racecar	ロクタスヨンート
 
 Monster Maker: Barcode Saga
 
-	* 弓使いロリエーン		(Archer Lorian)
+	* Archer Lorian		弓使いロリエーン
 	* 9998017308336
 
-	* 弓使いエリサイス		(Archer Elysice)
+	* Archer Elysice	弓使いエリサイス
 	* 9447410810323
 
-	* 騎士ローラン		(Knight Lauren)
+	* Knight Lauren		騎士ローラン
 	* 9052091324955
 
-	* 竜騎士ハーグン		(Dragon Knight Haagun)
+	* Dragon Knight Haagun	竜騎士ハーグン
 	* 9322158686716
 
-	* 戦士ディアーネ		(Warrior Diane)
+	* Warrior Diane		戦士ディアーネ
 	* 9752412234900
 
-	* 戦士タムローン		(Warrior Tamron)
+	* Warrior Tamron	戦士タムローン
 	* 9362462085911
