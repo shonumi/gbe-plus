@@ -4548,12 +4548,12 @@ Bytes 0x0008 - 0x67FF	| File/Folder metadata
 	<p>The format for each 268-byte metadata entry for files/folders is as follows:</p>
 
 <pre>-----------------------------------------------------------------------
-Bytes 0x0000 - 0x00FF	| Name (ASCII or some other encoding for kana)
+Bytes 0x0000 - 0x00FF	| Name (ASCII or UTF-8 for kana and kanji)
 Bytes 0x0100 - 0x0107	| Some kinda hash or checksum
 Bytes 0x0108 - 0x010B	| Entry Type
 -----------------------------------------------------------------------</pre>
 
-	<p>The name of the file/folder should be null-terminated, otherwise the Play-Yan will consider the entry invalid.</p>
+	<p>The name of the file/folder should be null-terminated, otherwise the Play-Yan will consider the entry invalid. The string encoding can be plain ASCII for Latin script, or UTF-8 when using Japanese characters.</p>
 
 	<p>The Entry Type describes what kind of item was found within the filesystem. If Bit 0 is set, the Play-Yan will register the item as a Video File. If Bit 1 is set, the Play-Yan will register the item as a Music File. If neither Bit 0 nor Bit 1 is set, the Play-Yan will register the item as a Folder. This behavior is only applicable when reading Music Files, however. When reading Video Files, all videos present on the SD card are returned and folders are ignored. That is to say, the Get Filesystem Information automatically acts recursively for Video Files. When used for Music Files, it acts exclusively on the current directory.</p>
 
