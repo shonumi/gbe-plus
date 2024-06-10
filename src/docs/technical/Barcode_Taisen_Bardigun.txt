@@ -15,16 +15,16 @@ The game and card reader hardware are now almost 20 years old, so I figured it's
 2. General Cart + Hardware Information
 ***************************************************
 
-- Barcode Taisen Bardigun (DMG-ABEJ-JPN) and (DMG-ABEJ-JPN-1)
-- MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)
-- Compatible with DMG, SGB, and GBC systems
-- Japanese-text only (hiragana/katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)
-- Supports Link Cable for multiplayer
+* Barcode Taisen Bardigun (DMG-ABEJ-JPN) and (DMG-ABEJ-JPN-1)
+* MBC3 + RTC + Battery Saves (Same as Pokemon Gold and Silver)
+* Compatible with DMG, SGB, and GBC systems
+* Japanese-text only (hiragana/katakana only, a bit of a blessing given 8x8 fonts are not the best for kanji)
+* Supports Link Cable for multiplayer
 
-- Comes with 1 card-reader powered by 3 AAA batteries
-- Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)
-- Some cards come as cut-outs from a cardboard sheet
-- Reader connects to DMG/GBC serial port for communication (technically could work with SGB2 on a Super Famicom, that'd be crazy to see)
+* Comes with 1 card-reader powered by 3 AAA batteries
+* Comes with 5 cards bundled (only 3 have barcodes, the other 2 are just collectables?)
+* Some cards come as cut-outs from a cardboard sheet
+* Reader connects to DMG/GBC serial port for communication (technically could work with SGB2 on a Super Famicom, that'd be crazy to see)
 
 
 ***************************************************
