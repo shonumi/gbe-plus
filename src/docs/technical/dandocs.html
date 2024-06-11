@@ -4338,7 +4338,7 @@ PY_FIRM_STAT		| (R/W)	| 0xB000012	| 16-bit	| Play-Yan Firmware Status Register.
 
 	<p>PY_DATA_ADDR determines the address used for data operations for Play-Yan related data. It is used in conjunction with the I/O regions listed below as well as PY_DATA_MODE. Depending on the value of PY_DATA_ADDR, different contexts are used to retrieve data from these regions, e.g. it distinguishes between writing commands for the Play-Yan to execute or writing firmware data. The address is actually 32-bits. The Play-Yan must write to PY_DATA_ADDR twice, with the lower 16-bit first, and the upper 16-bit second.</p>
 
-	<p>PY_DATA_MODE determines what kind of data read or write the Play-Yan will perform. Used in conjection with the IO regions listed below as well as PY_DATA_ADDR.</p>
+	<p>PY_DATA_MODE determines what kind of data read or write the Play-Yan will perform. Used in conjection with the I/O regions listed below as well as PY_DATA_ADDR.</p>
 
 	<p>PY_DATA_PARAM appears to be a parameter passed along to the Play-Yan that affects data access. Currently unknown exactly how it functions.</p>
 
@@ -4600,7 +4600,7 @@ Bytes 0x0004 - 0x0044	| Song Title
 Bytes 0x0045 - 0x008B	| Artist Name
 -----------------------------------------------------------------------</pre>
 
-	<p>Each entry (for title and artist name) is a null-terminated string encoded as ASCII or some other encoding for kana.</p>
+	<p>Each entry (for title and artist name) is a null-terminated string encoded as ASCII for Latin script or Shift-JIS for kana and kanji. While the Play-Yan supports parsing ID3v2 tags, it does not support several text encodings. Unicode strings are not recognized for this command. As such, the text encoding flag for a tag inside the actual MP3 should be 0x00 (for ISO-8859-1). Additionally, while this implies it should technically support extended ASCII characters, the Play-Yan does not have the font to render them.</p>
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
