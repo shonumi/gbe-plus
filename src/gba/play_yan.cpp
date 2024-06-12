@@ -1460,7 +1460,13 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 			{
 				x += 4;
 
-				if((x + 4) < file_size)
+				//Check tag encoding type - Play-Yan and Play-Yan Micro only support 0x00 flag
+				u8 encoding_type = mp3_data[x + 6];
+				bool is_valid_encoding = true;
+
+				if((encoding_type != 0x00) && (play_yan.type != NINTENDO_MP3)) { is_valid_encoding = false; std::cout<<"FALSE ENCODE\n";}
+
+				if(((x + 4) < file_size) && (is_valid_encoding))
 				{
 					u32 title_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
 					x += 7;
@@ -1485,7 +1491,13 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 			{
 				x += 4;
 
-				if((x + 4) < file_size)
+				//Check tag encoding type - Play-Yan and Play-Yan Micro only support 0x00 flag
+				u8 encoding_type = mp3_data[x + 6];
+				bool is_valid_encoding = true;
+
+				if((encoding_type != 0x00) && (play_yan.type != NINTENDO_MP3)) { is_valid_encoding = false; }
+
+				if(((x + 4) < file_size) && (is_valid_encoding))
 				{
 					u32 artist_len = (mp3_data[x] << 24) | (mp3_data[x + 1] << 16) | (mp3_data[x + 2] << 8) | mp3_data[x + 3];
 					x += 7;
