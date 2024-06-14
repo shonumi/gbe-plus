@@ -1271,15 +1271,15 @@ void AGB_MMU::play_yan_set_music_file()
 	std::vector<std::string> dir_listing;
 
 	//Grab files, then folders, in current directory and add them to SD card data
-	util::get_files_in_dir(play_yan.current_dir, ".mp3", dir_listing, false, true);
-	u32 file_count = dir_listing.size();
 	util::get_folders_in_dir(play_yan.current_dir, dir_listing);
+	u32 folder_count = dir_listing.size();
+	util::get_files_in_dir(play_yan.current_dir, ".mp3", dir_listing, false, true);
 
 	//Write filenames and folder names to SD card data
 	for(u32 x = 0; x < dir_listing.size(); x++)
 	{
 		//Set filetype meta data for Play-Yan
-		if(x < file_count)
+		if(x >= folder_count)
 		{
 			play_yan.card_data[4 + ((x + 1) * entry_size)] = 2;
 		}
@@ -1366,15 +1366,15 @@ void AGB_MMU::play_yan_set_folder()
 	std::vector<std::string> dir_listing;
 
 	//Grab files, then folders, in current directory and add them to SD card data
-	util::get_files_in_dir(play_yan.current_dir, "", dir_listing, false, false);
-	u32 file_count = dir_listing.size();
 	util::get_folders_in_dir(play_yan.current_dir, dir_listing);
+	u32 folder_count = dir_listing.size();
+	util::get_files_in_dir(play_yan.current_dir, "", dir_listing, false, false);
 
 	//Write filenames and folder names to SD card data
 	for(u32 x = 0; x < dir_listing.size(); x++)
 	{
 		//Set filetype meta data for Play-Yan
-		if(x < file_count)
+		if(x >= folder_count)
 		{
 			play_yan.card_data[4 + ((x + 1) * entry_size)] = 2;
 		}
@@ -1464,7 +1464,7 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 				u8 encoding_type = mp3_data[x + 6];
 				bool is_valid_encoding = true;
 
-				if((encoding_type != 0x00) && (play_yan.type != NINTENDO_MP3)) { is_valid_encoding = false; std::cout<<"FALSE ENCODE\n";}
+				if((encoding_type != 0x00) && (play_yan.type != NINTENDO_MP3)) { is_valid_encoding = false; }
 
 				if(((x + 4) < file_size) && (is_valid_encoding))
 				{
