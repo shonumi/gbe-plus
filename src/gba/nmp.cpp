@@ -171,9 +171,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.music_files.clear();
 			play_yan.folders.clear();
 
-			//Grab all files, then folders
-			util::get_files_in_dir(play_yan.current_dir, ".mp3", play_yan.music_files, false, false);
+			//Grab all folder, then files
 			util::get_folders_in_dir(play_yan.current_dir, play_yan.folders);
+			util::get_files_in_dir(play_yan.current_dir, ".mp3", play_yan.music_files, false, false);
 
 			//Stop list if done
 			if(play_yan.nmp_entry_count >= (play_yan.music_files.size() + play_yan.folders.size()))
@@ -627,19 +627,19 @@ void AGB_MMU::access_nmp_io()
 				{
 					std::string list_entry = "";
 					bool is_folder = false;
-					u32 file_limit = play_yan.music_files.size();
+					u32 folder_limit = play_yan.folders.size();
 					u32 real_entry = play_yan.nmp_entry_count - 1;
 					
-					if(real_entry < file_limit)
+					if(real_entry < folder_limit)
 					{
-						list_entry = play_yan.music_files[real_entry];
+						list_entry = play_yan.folders[real_entry];
+						is_folder = true;
 					}
 
 					else
 					{
-						real_entry -= file_limit;
-						list_entry = play_yan.folders[real_entry];
-						is_folder = true;
+						real_entry -= folder_limit;
+						list_entry = play_yan.music_files[real_entry];
 					}
 
 					u32 str_len = (list_entry.length() > 255) ? 255 : list_entry.length();
@@ -650,6 +650,8 @@ void AGB_MMU::access_nmp_io()
 						play_yan.card_data[x * 2] = 0x00;
 						play_yan.card_data[(x * 2) + 1] = chr;
 					}
+
+					std::cout<<"LIST ENTRY -> " << list_entry << "\n";
 
 					//Set file/folder flag expected by NMP. 0x01 = Folder, 0x02 = File
 					play_yan.card_data[525] = (is_folder) ? 0x01 : 0x02;
