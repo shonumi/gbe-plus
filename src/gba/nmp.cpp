@@ -216,7 +216,8 @@ void AGB_MMU::process_nmp_cmd()
 					u8 chr = play_yan.command_stream[x];
 					if(!chr) { break; }
 
-					new_dir += chr;
+					if((x == 3) && ((chr == 0x01) || (chr == 0x02))) { continue; }
+					else { new_dir += chr; }
 				}
 
 				//Move one directory up
@@ -644,14 +645,25 @@ void AGB_MMU::access_nmp_io()
 
 					u32 str_len = (list_entry.length() > 255) ? 255 : list_entry.length();
 
+					//Sort folders first. Use lower unprintable non-zero character as first character
+					if(is_folder)
+					{
+						play_yan.card_data[0] = 0x00;
+						play_yan.card_data[1] = 0x01;
+					}
+
+					else
+					{
+						play_yan.card_data[0] = 0x00;
+						play_yan.card_data[1] = 0x02;
+					}
+
 					for(u32 x = 0; x < str_len; x++)
 					{
 						u8 chr = list_entry[x];
-						play_yan.card_data[x * 2] = 0x00;
-						play_yan.card_data[(x * 2) + 1] = chr;
+						play_yan.card_data[(x * 2) + 2] = 0x00;
+						play_yan.card_data[(x * 2) + 3] = chr;
 					}
-
-					std::cout<<"LIST ENTRY -> " << list_entry << "\n";
 
 					//Set file/folder flag expected by NMP. 0x01 = Folder, 0x02 = File
 					play_yan.card_data[525] = (is_folder) ? 0x01 : 0x02;
