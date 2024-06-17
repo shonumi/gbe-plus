@@ -256,7 +256,8 @@ void AGB_MMU::process_nmp_cmd()
 				u8 chr = play_yan.command_stream[x];
 				if(!chr) { break; }
 
-				play_yan.current_music_file += chr;
+				if((x == 3) && ((chr == 0x01) || (chr == 0x02))) { continue; }
+				else { play_yan.current_music_file += chr; }
 			}
 
 			//This first time around, this command returns an arbitrary 16-bit value in status data
@@ -297,7 +298,8 @@ void AGB_MMU::process_nmp_cmd()
 				u8 chr = play_yan.command_stream[x];
 				if(!chr) { break; }
 
-				play_yan.current_music_file += chr;
+				if((x == 3) && ((chr == 0x01) || (chr == 0x02))) { continue; }
+				else { play_yan.current_music_file += chr; }
 			}
 
 			if(!play_yan_load_audio(play_yan.current_dir + "/" + play_yan.current_music_file))
