@@ -121,20 +121,26 @@ u8 AGB_MMU::read_nmp(u32 address)
 					play_yan.nmp_read_count = 0;
 					play_yan.nmp_manual_cmd = 0x8100;
 					play_yan.nmp_manual_irq = false;
-					play_yan.irq_delay = 1;
+
 					play_yan.audio_frame_count++;
 
-					if(play_yan.audio_frame_count == 60)
+					if((play_yan.audio_frame_count % 7) == 0)
 					{
-						play_yan.update_audio_stream = false;
-						play_yan.update_trackbar_timestamp = true;
-						play_yan.audio_frame_count = 0;
+						play_yan.irq_delay = 3;
 					}
 
 					else
 					{
-						play_yan.update_audio_stream = true;
-						play_yan.update_trackbar_timestamp = false;
+						play_yan.irq_delay = 2;
+					}
+
+					if(play_yan.audio_frame_count == 28)
+					{
+						play_yan.update_audio_stream = false;
+						play_yan.update_trackbar_timestamp = true;
+						play_yan.irq_delay = 0;
+						play_yan.nmp_manual_irq = true;
+						process_play_yan_irq();
 					}
 				}
 			}
@@ -443,7 +449,6 @@ void AGB_MMU::process_nmp_cmd()
 			{
 				play_yan.nmp_manual_cmd = 0x8100;
 				play_yan.irq_delay = 1;
-
 				play_yan.audio_buffer_size = 0x480;
 
 				//Prioritize audio stream updates
@@ -462,11 +467,18 @@ void AGB_MMU::process_nmp_cmd()
 
 				else if(play_yan.update_trackbar_timestamp)
 				{
-					//Trackbar position - 0 to 99
 
+					play_yan.update_audio_stream = true;
+					play_yan.update_trackbar_timestamp = false;
+					play_yan.irq_delay = 2;
+					play_yan.audio_frame_count = 0;
+					play_yan.nmp_manual_irq = false;
+
+					//Trackbar position - 0 to 99
 					if(play_yan.music_length - 1)
 					{
 						float progress = play_yan.tracker_update_size++;
+
 						progress /= play_yan.music_length - 1;
 						progress *= 100.0;
 
@@ -490,12 +502,6 @@ void AGB_MMU::process_nmp_cmd()
 					{
 						play_yan.irq_delay = 60;
 						play_yan.nmp_manual_irq = false;
-					}
-
-					else
-					{
-						play_yan.update_audio_stream = true;
-						play_yan.update_trackbar_timestamp = false;
 					}
 				}
 
@@ -718,7 +724,7 @@ void AGB_MMU::access_nmp_io()
 						
 						for(u32 x = 2; x < play_yan.card_data.size(); x++)
 						{
-						
+
 						}
 					}
 				}
