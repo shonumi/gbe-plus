@@ -119,29 +119,9 @@ u8 AGB_MMU::read_nmp(u32 address)
 				if(play_yan.nmp_read_count == play_yan.audio_buffer_size)
 				{
 					play_yan.nmp_read_count = 0;
-					play_yan.nmp_manual_cmd = 0x8100;
-					play_yan.nmp_manual_irq = false;
-
 					play_yan.audio_frame_count++;
-
-					if((play_yan.audio_frame_count % 7) == 0)
-					{
-						play_yan.irq_delay = 3;
-					}
-
-					else
-					{
-						play_yan.irq_delay = 2;
-					}
-
-					if(play_yan.audio_frame_count == 28)
-					{
-						play_yan.update_audio_stream = false;
-						play_yan.update_trackbar_timestamp = true;
-						play_yan.irq_delay = 0;
-						play_yan.nmp_manual_irq = true;
-						process_play_yan_irq();
-					}
+					play_yan.nmp_manual_cmd = 0x8100;
+					play_yan.irq_delay = 1;
 				}
 			}
 
@@ -283,6 +263,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4050;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+			play_yan.audio_sample_index = 0;
 
 			if(apu_stat->ext_audio.use_headphones)
 			{
@@ -336,6 +317,7 @@ void AGB_MMU::process_nmp_cmd()
 
 			play_yan.nmp_manual_cmd = 0;
 			play_yan.irq_delay = 0;
+			play_yan.nmp_manual_irq = false;
 
 			break;
 
@@ -348,6 +330,7 @@ void AGB_MMU::process_nmp_cmd()
 
 			play_yan.nmp_manual_cmd = 0;
 			play_yan.irq_delay = 0;
+			play_yan.nmp_manual_irq = false;
 
 			break;
 
@@ -448,8 +431,7 @@ void AGB_MMU::process_nmp_cmd()
 			if(play_yan.is_music_playing)
 			{
 				play_yan.nmp_manual_cmd = 0x8100;
-				play_yan.irq_delay = 1;
-				play_yan.audio_buffer_size = 0x480;
+				play_yan.audio_buffer_size = 0x224;
 
 				//Prioritize audio stream updates
 				if(play_yan.update_audio_stream && !apu_stat->ext_audio.use_headphones)
@@ -470,9 +452,8 @@ void AGB_MMU::process_nmp_cmd()
 
 					play_yan.update_audio_stream = true;
 					play_yan.update_trackbar_timestamp = false;
-					play_yan.irq_delay = 2;
+					play_yan.irq_delay = 1;
 					play_yan.audio_frame_count = 0;
-					play_yan.nmp_manual_irq = false;
 
 					//Trackbar position - 0 to 99
 					if(play_yan.music_length - 1)
@@ -501,7 +482,8 @@ void AGB_MMU::process_nmp_cmd()
 					if(apu_stat->ext_audio.use_headphones)
 					{
 						play_yan.irq_delay = 60;
-						play_yan.nmp_manual_irq = false;
+						play_yan.update_audio_stream = false;
+						play_yan.update_trackbar_timestamp = true;
 					}
 				}
 
@@ -719,13 +701,35 @@ void AGB_MMU::access_nmp_io()
 
 					if(play_yan.audio_sample_rate)
 					{
-						double ratio = play_yan.audio_sample_rate / 16384.0;
+						double ratio = 44100 / 16384.0;
+						u8 sample = 0;
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
-						
+						u32 index = 0;
+						u32 left_channel_bound = (play_yan.audio_buffer_size / 2) + 2;				
+
 						for(u32 x = 2; x < play_yan.card_data.size(); x++)
 						{
+							index = (ratio * play_yan.audio_sample_index);
+							index *= play_yan.audio_channels;
 
+							//Left Channel
+							if(x < left_channel_bound)
+							{
+								s16 s1 = e_stream[index];
+								play_yan.card_data[x] = (s1 >> 8);
+								play_yan.audio_sample_index++;
+							}
 						}
+					}
+
+					if(play_yan.audio_frame_count == 60)
+					{
+						play_yan.update_audio_stream = false;
+						play_yan.update_trackbar_timestamp = true;
+						play_yan.irq_delay = 0;
+						play_yan.nmp_manual_irq = true;
+						process_play_yan_irq();
+						play_yan.nmp_manual_irq = false;
 					}
 				}
 
