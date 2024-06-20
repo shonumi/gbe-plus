@@ -702,10 +702,11 @@ void AGB_MMU::access_nmp_io()
 					if(play_yan.audio_sample_rate)
 					{
 						double ratio = 44100 / 16384.0;
-						u8 sample = 0;
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
+
+						s32 sample = 0;
 						u32 index = 0;
-						u32 left_channel_bound = (play_yan.audio_buffer_size / 2) + 2;				
+						u32 left_channel_bound = (play_yan.audio_buffer_size / 2) + 2;
 
 						for(u32 x = 2; x < play_yan.card_data.size(); x++)
 						{
@@ -715,8 +716,20 @@ void AGB_MMU::access_nmp_io()
 							//Left Channel
 							if(x < left_channel_bound)
 							{
-								s16 s1 = e_stream[index];
-								play_yan.card_data[x] = (s1 >> 8);
+								//Perform simple Flyod-Steinberg dithering
+								//Grab current sample and add 7/16 of error, quantize results, clip results 
+								sample = e_stream[index];
+								sample += ((play_yan.audio_dither_error >> 4) * 7);
+								sample >>= 8;
+
+								if(sample > 127) { sample = 127; }
+								else if(sample < -128) { sample = -128; }
+
+								//Calculate new error
+								play_yan.audio_dither_error = e_stream[index] & 0xFF;
+
+								//Output new samples
+								play_yan.card_data[x] = sample;
 								play_yan.audio_sample_index++;
 							}
 						}

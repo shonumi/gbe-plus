@@ -388,6 +388,7 @@ class AGB_MMU
 
 		u8 audio_channels;
 		u32 audio_sample_rate;
+		s16 audio_dither_error;
 
 		play_yan_types type;
 	} play_yan;
