@@ -705,33 +705,48 @@ void AGB_MMU::access_nmp_io()
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
 
 						s32 sample = 0;
+						s16 error = 0;
 						u32 index = 0;
+						u32 index_shift = 0;
 						u32 left_channel_bound = (play_yan.audio_buffer_size / 2) + 2;
+						u32 sample_count = 0;
+
+						bool is_left_channel = true;
 
 						for(u32 x = 2; x < play_yan.card_data.size(); x++)
 						{
+							//Process L/R channel audio
+							if(x == left_channel_bound)
+							{
+								index_shift = 1;
+								play_yan.audio_sample_index -= sample_count;
+								is_left_channel = false;
+							}
+
+							error = (is_left_channel) ? play_yan.l_audio_dither_error : play_yan.r_audio_dither_error;
+
 							index = (ratio * play_yan.audio_sample_index);
 							index *= play_yan.audio_channels;
 
-							//Left Channel
-							if(x < left_channel_bound)
-							{
-								//Perform simple Flyod-Steinberg dithering
-								//Grab current sample and add 7/16 of error, quantize results, clip results 
-								sample = e_stream[index];
-								sample += ((play_yan.audio_dither_error >> 4) * 7);
-								sample >>= 8;
+							//Perform simple Flyod-Steinberg dithering
+							//Grab current sample and add 7/16 of error, quantize results, clip results 
+							sample = e_stream[index + index_shift];
+							sample += ((error >> 4) * 7);
+							sample >>= 8;
 
-								if(sample > 127) { sample = 127; }
-								else if(sample < -128) { sample = -128; }
+							if(sample > 127) { sample = 127; }
+							else if(sample < -128) { sample = -128; }
 
-								//Calculate new error
-								play_yan.audio_dither_error = e_stream[index] & 0xFF;
+							//Calculate new error
+							error = e_stream[index + index_shift] & 0xFF;
 
-								//Output new samples
-								play_yan.card_data[x] = sample;
-								play_yan.audio_sample_index++;
-							}
+							if(is_left_channel) { play_yan.l_audio_dither_error = error; }
+							else { play_yan.r_audio_dither_error = error; }
+
+							//Output new samples
+							play_yan.card_data[x] = sample;
+							play_yan.audio_sample_index++;
+							sample_count++;
 						}
 					}
 

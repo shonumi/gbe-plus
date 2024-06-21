@@ -183,7 +183,8 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.audio_channels = 0;
 	play_yan.audio_sample_rate = 0;
-	play_yan.audio_dither_error = 0;
+	play_yan.l_audio_dither_error = 0;
+	play_yan.r_audio_dither_error = 0;
 
 	play_yan.nmp_data_index = 0;
 	play_yan.nmp_cmd_status = 0;
