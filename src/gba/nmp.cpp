@@ -263,7 +263,10 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x4050;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+
 			play_yan.audio_sample_index = 0;
+			play_yan.l_audio_dither_error = 0;
+			play_yan.r_audio_dither_error = 0;
 
 			if(apu_stat->ext_audio.use_headphones)
 			{
