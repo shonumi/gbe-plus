@@ -704,7 +704,7 @@ void AGB_MMU::access_nmp_io()
 
 					if(play_yan.audio_sample_rate)
 					{
-						double ratio = 44100 / 16384.0;
+						double ratio = play_yan.audio_sample_rate / 16384.0;
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
 
 						s32 sample = 0;
