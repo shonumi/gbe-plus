@@ -713,6 +713,7 @@ void AGB_MMU::access_nmp_io()
 						u32 index_shift = 0;
 						u32 left_channel_bound = (play_yan.audio_buffer_size / 2) + 2;
 						u32 sample_count = 0;
+						u8 offset = 0;
 
 						bool is_left_channel = true;
 
@@ -747,7 +748,8 @@ void AGB_MMU::access_nmp_io()
 							else { play_yan.r_audio_dither_error = error; }
 
 							//Output new samples
-							play_yan.card_data[x] = sample;
+							offset = (play_yan.audio_sample_index & 0x01) ? (x - 1) : (x + 1);
+							play_yan.card_data[offset] = (sample & 0xFF);
 							play_yan.audio_sample_index++;
 							sample_count++;
 						}
