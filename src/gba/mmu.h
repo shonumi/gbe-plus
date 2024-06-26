@@ -295,6 +295,7 @@ class AGB_MMU
 		u32 irq_delay;
 		u32 irq_repeat;
 		u32 delay_reload;
+		u32 cycles;
 
 		//Play-Yan (Micro) IRQ data
 		u32 sd_check_data[4][8];

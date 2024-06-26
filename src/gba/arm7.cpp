@@ -1504,6 +1504,20 @@ void ARM7::clock(u32 access_addr, bool first_access)
 			if(controllers.audio.apu_stat.psg_needs_fill) { controllers.audio.buffer_channels(); }
 			controllers.audio.apu_stat.psg_needs_fill = true;
 		}
+
+		if(mem->play_yan.is_music_playing)
+		{
+			mem->play_yan.cycles++;
+
+			if(mem->play_yan.cycles == 479232)
+			{
+				mem->play_yan.cycles = 0;
+				mem->play_yan.nmp_manual_cmd = 0x8100;
+				mem->play_yan.nmp_manual_irq = true;
+				mem->process_play_yan_irq();
+				mem->play_yan.nmp_manual_irq = false;
+			}
+		}
 	}
 }
 
@@ -1796,7 +1810,7 @@ void ARM7::clock_timers()
 						}
 
 						if((x == 0) && (controllers.audio.apu_stat.dma[1].timer == 0) && (mem->dma[2].destination_address == FIFO_B) && (mem->dma[2].started)) 
-						{ 
+						{
 							controllers.audio.apu_stat.dma[1].buffer[controllers.audio.apu_stat.dma[1].counter++] = mem->memory_map[mem->dma[2].start_address++];
 							controllers.audio.apu_stat.dma[1].length++;
 

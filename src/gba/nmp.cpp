@@ -111,20 +111,6 @@ u8 AGB_MMU::read_nmp(u32 address)
 				result = play_yan.nmp_status_data[play_yan.nmp_data_index++];
 			}
 
-			//Manually trigger secondary 0x8100 IRQs - 1st = Process Audio Samples, 2nd = Update Timestamp 
-			if(play_yan.nmp_manual_irq)
-			{
-				play_yan.nmp_read_count++;
-
-				if(play_yan.nmp_read_count == play_yan.audio_buffer_size)
-				{
-					play_yan.nmp_read_count = 0;
-					play_yan.audio_frame_count++;
-					play_yan.nmp_manual_cmd = 0x8100;
-					play_yan.irq_delay = 1;
-				}
-			}
-
 			break;
 	}
 
@@ -299,9 +285,10 @@ void AGB_MMU::process_nmp_cmd()
 			}
 
 			//Trigger additional IRQs for processing music
-			play_yan.nmp_manual_cmd = 0x8100;
-			play_yan.irq_delay = 10;
-			play_yan.irq_count = 0;
+			//play_yan.nmp_manual_cmd = 0x8100;
+			//play_yan.irq_delay = 10;
+			//play_yan.irq_count = 0;
+			play_yan.cycles = 0;
 
 			break;
 
@@ -434,7 +421,7 @@ void AGB_MMU::process_nmp_cmd()
 			if(play_yan.is_music_playing)
 			{
 				play_yan.nmp_manual_cmd = 0x8100;
-				play_yan.audio_buffer_size = 0x224;
+				play_yan.audio_buffer_size = 0x480;
 
 				//Prioritize audio stream updates
 				if(play_yan.update_audio_stream && !apu_stat->ext_audio.use_headphones)
@@ -700,33 +687,27 @@ void AGB_MMU::access_nmp_io()
 				if(play_yan.update_audio_stream)
 				{
 					play_yan.card_data.resize(play_yan.audio_buffer_size + 2, 0x00);
-					play_yan.nmp_manual_irq = true;
+					play_yan.nmp_data_index = 0;
+					play_yan.audio_frame_count++;
+					//play_yan.nmp_manual_irq = true;
 
 					if(play_yan.audio_sample_rate)
 					{
 						double ratio = play_yan.audio_sample_rate / 16384.0;
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
 
+						bool is_left_channel = (play_yan.audio_frame_count & 0x01) ? true : false;
+
 						s32 sample = 0;
 						s16 error = 0;
 						u32 index = 0;
-						u32 index_shift = 0;
-						u32 left_channel_bound = (play_yan.audio_buffer_size / 2) + 2;
+						u32 index_shift = (is_left_channel) ? 0 : 1;
 						u32 sample_count = 0;
-						u8 offset = 0;
+						u32 offset = 0;
+						u32 limit = (play_yan.audio_buffer_size / 2) + 2;
 
-						bool is_left_channel = true;
-
-						for(u32 x = 2; x < play_yan.card_data.size(); x++)
+						for(u32 x = 2; x < limit; x++)
 						{
-							//Process L/R channel audio
-							if(x == left_channel_bound)
-							{
-								index_shift = 1;
-								play_yan.audio_sample_index -= sample_count;
-								is_left_channel = false;
-							}
-
 							error = (is_left_channel) ? play_yan.l_audio_dither_error : play_yan.r_audio_dither_error;
 
 							index = (ratio * play_yan.audio_sample_index);
@@ -753,17 +734,19 @@ void AGB_MMU::access_nmp_io()
 							play_yan.audio_sample_index++;
 							sample_count++;
 						}
+
+						if(is_left_channel) { play_yan.audio_sample_index -= sample_count; }
 					}
 
-					if(play_yan.audio_frame_count == 60)
-					{
-						play_yan.update_audio_stream = false;
-						play_yan.update_trackbar_timestamp = true;
-						play_yan.irq_delay = 0;
-						play_yan.nmp_manual_irq = true;
-						process_play_yan_irq();
-						play_yan.nmp_manual_irq = false;
-					}
+					//if(play_yan.audio_frame_count == 60)
+					//{
+					//	play_yan.update_audio_stream = false;
+					//	play_yan.update_trackbar_timestamp = true;
+					//	play_yan.irq_delay = 0;
+					//	play_yan.nmp_manual_irq = true;
+					//	process_play_yan_irq();
+					//	play_yan.nmp_manual_irq = false;
+					//}
 				}
 
 				break;
