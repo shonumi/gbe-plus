@@ -293,6 +293,7 @@ class AGB_MMU
 
 		u32 irq_count;
 		u32 irq_delay;
+		u32 last_delay;
 		u32 irq_repeat;
 		u32 delay_reload;
 		u32 cycles;
@@ -321,7 +322,6 @@ class AGB_MMU
 		u32 nmp_data_index;
 		u32 nmp_cmd_status;
 		u32 nmp_entry_count;
-		u32 nmp_read_count;
 		bool nmp_valid_command;
 		bool nmp_manual_irq;
 		std::string nmp_title;

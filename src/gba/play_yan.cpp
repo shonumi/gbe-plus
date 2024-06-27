@@ -45,6 +45,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.irq_count = 0;
 	play_yan.irq_repeat = 0;
 	play_yan.irq_delay = 0;
+	play_yan.last_delay = 0;
 	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
 	play_yan.start_irqs = false;
@@ -190,7 +191,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_cmd_status = 0;
 	play_yan.nmp_ticks = 0;
 	play_yan.nmp_entry_count = 0;
-	play_yan.nmp_read_count = 0;
 	play_yan.nmp_manual_cmd = 0;
 	play_yan.nmp_init_stage = 0;
 	play_yan.nmp_audio_index = 0;

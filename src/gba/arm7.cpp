@@ -1505,7 +1505,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 			controllers.audio.apu_stat.psg_needs_fill = true;
 		}
 
-		if(mem->play_yan.is_music_playing)
+		if(mem->play_yan.is_music_playing && !controllers.audio.apu_stat.ext_audio.use_headphones)
 		{
 			mem->play_yan.cycles++;
 
