@@ -689,12 +689,17 @@ void AGB_MMU::access_nmp_io()
 					play_yan.nmp_data_index = 0;
 					play_yan.audio_frame_count++;
 
+					bool trigger_timestamp = false;
+
 					if(play_yan.audio_sample_rate)
 					{
 						double ratio = play_yan.audio_sample_rate / 16384.0;
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
 
 						bool is_left_channel = (play_yan.audio_frame_count & 0x01) ? true : false;
+
+						//Trigger timestamp update early when first playing song
+						if(!play_yan.audio_sample_index && !is_left_channel) { trigger_timestamp = true; }
 
 						s32 sample = 0;
 						s16 error = 0;
@@ -731,20 +736,26 @@ void AGB_MMU::access_nmp_io()
 							play_yan.card_data[offset] = (sample & 0xFF);
 							play_yan.audio_sample_index++;
 							sample_count++;
+
+							//Trigger timestamp update periodically, use samples to count seconds
+							if(((play_yan.audio_sample_index % 16384) == 0) && (!is_left_channel))
+							{
+								trigger_timestamp = true;
+							}
 						}
 
 						if(is_left_channel) { play_yan.audio_sample_index -= sample_count; }
 					}
 
-					//if(play_yan.audio_frame_count == 60)
-					//{
-					//	play_yan.update_audio_stream = false;
-					//	play_yan.update_trackbar_timestamp = true;
-					//	play_yan.irq_delay = 0;
-					//	play_yan.nmp_manual_irq = true;
-					//	process_play_yan_irq();
-					//	play_yan.nmp_manual_irq = false;
-					//}
+					if(trigger_timestamp)
+					{
+						play_yan.update_audio_stream = false;
+						play_yan.update_trackbar_timestamp = true;
+						play_yan.irq_delay = 0;
+						play_yan.nmp_manual_irq = true;
+						process_play_yan_irq();
+						play_yan.nmp_manual_irq = false;
+					}
 				}
 
 				break;
