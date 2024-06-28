@@ -442,6 +442,14 @@ void AGB_MMU::process_nmp_cmd()
 					play_yan.update_trackbar_timestamp = false;
 					play_yan.audio_frame_count = 0;
 
+					u32 current_sample_pos = (apu_stat->ext_audio.use_headphones) ? apu_stat->ext_audio.sample_pos : play_yan.audio_sample_index;
+					u32 current_sample_rate = (apu_stat->ext_audio.use_headphones) ? play_yan.audio_sample_rate : 16384;
+
+					if(current_sample_rate)
+					{
+						play_yan.tracker_update_size = (current_sample_pos / current_sample_rate);
+					}
+
 					//Trackbar position - 0 to 99
 					if(play_yan.music_length - 1)
 					{
@@ -465,8 +473,6 @@ void AGB_MMU::process_nmp_cmd()
 					play_yan.nmp_status_data[15] = (play_yan.tracker_update_size >> 16) & 0xFF;
 					play_yan.nmp_status_data[12] = (play_yan.tracker_update_size >> 8) & 0xFF;
 					play_yan.nmp_status_data[13] = (play_yan.tracker_update_size & 0xFF);
-
-					play_yan.tracker_update_size++;
 
 					if(apu_stat->ext_audio.use_headphones)
 					{
