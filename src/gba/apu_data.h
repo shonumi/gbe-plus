@@ -79,6 +79,7 @@ struct agb_apu_data
 		u32 frequency;
 		u32 length;
 		u32 sample_pos;
+		u32 last_pos;
 		u32 set_count;
 		u32 current_set;
 		u8* buffer;

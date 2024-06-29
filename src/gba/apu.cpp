@@ -132,6 +132,7 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.frequency = 0;
 	apu_stat.ext_audio.length = 0;
 	apu_stat.ext_audio.sample_pos = 0;
+	apu_stat.ext_audio.last_pos = 0;
 	apu_stat.ext_audio.channels = 0;
 	apu_stat.ext_audio.volume = 0;
 	apu_stat.ext_audio.id = 0;
@@ -457,6 +458,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	{
 		buffer_pos = last_pos + (sample_ratio * x);
 		u32 temp_pos = (apu_stat.ext_audio.channels == 1) ? buffer_pos : (buffer_pos * 2);
+		apu_stat.ext_audio.last_pos = temp_pos;
 
 		//Pull audio from buffer if possible
 		if((temp_pos << 1) < apu_stat.ext_audio.length)
