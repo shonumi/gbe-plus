@@ -500,6 +500,8 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = 0x8600;
 			play_yan.nmp_valid_command = true;
 
+			apu_stat->ext_audio.use_headphones = !apu_stat->ext_audio.use_headphones;
+
 			//Switch between headphone and GBA speaker output
 			if(apu_stat->ext_audio.use_headphones)
 			{
@@ -514,6 +516,13 @@ void AGB_MMU::process_nmp_cmd()
 					u32 index = apu_stat->ext_audio.last_pos / play_yan.audio_channels;
 
 					apu_stat->ext_audio.sample_pos = index;
+				}
+
+				//Force timestamp update after switching to headphones
+				if(apu_stat->ext_audio.playing)
+				{
+					play_yan.nmp_manual_cmd = 0x8100;
+					play_yan.irq_delay = 1;
 				}
 			}
 
@@ -530,13 +539,9 @@ void AGB_MMU::process_nmp_cmd()
 
 					play_yan.audio_sample_index = (index & ~0x01);
 				}
-			}
 
-			//Force timestamp update after switching to headphones
-			if(apu_stat->ext_audio.playing)
-			{
-				play_yan.nmp_manual_cmd = 0x8100;
-				play_yan.irq_delay = 1;
+				play_yan.nmp_manual_cmd = 0;
+				play_yan.irq_delay = 0;
 			}
 
 			break;
