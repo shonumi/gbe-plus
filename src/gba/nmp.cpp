@@ -253,7 +253,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.audio_sample_index = 0;
 			play_yan.l_audio_dither_error = 0;
 			play_yan.r_audio_dither_error = 0;
+			play_yan.tracker_update_size = 0;
 			apu_stat->ext_audio.last_pos = 0;
+			apu_stat->ext_audio.sample_pos = 0;
 
 			if(apu_stat->ext_audio.use_headphones)
 			{
