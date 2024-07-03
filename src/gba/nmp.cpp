@@ -747,10 +747,13 @@ void AGB_MMU::access_nmp_io()
 
 							index = (ratio * play_yan.audio_sample_index);
 							index *= play_yan.audio_channels;
+							index += index_shift;
+
+							if(index >= apu_stat->ext_audio.length) { index = (apu_stat->ext_audio.length - 1); }
 
 							//Perform simple Flyod-Steinberg dithering
 							//Grab current sample and add 7/16 of error, quantize results, clip results 
-							sample = e_stream[index + index_shift];
+							sample = e_stream[index];
 							sample += ((error >> 4) * 7);
 							sample >>= 8;
 
@@ -758,7 +761,7 @@ void AGB_MMU::access_nmp_io()
 							else if(sample < -128) { sample = -128; }
 
 							//Calculate new error
-							error = e_stream[index + index_shift] & 0xFF;
+							error = e_stream[index] & 0xFF;
 
 							if(is_left_channel) { play_yan.l_audio_dither_error = error; }
 							else { play_yan.r_audio_dither_error = error; }
