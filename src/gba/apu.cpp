@@ -460,14 +460,17 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 		u32 temp_pos = (apu_stat.ext_audio.channels == 1) ? buffer_pos : (buffer_pos * 2);
 		apu_stat.ext_audio.last_pos = temp_pos;
 
+		u32 sample_limit = (apu_stat.ext_audio.channels) ? (apu_stat.ext_audio.channels - 1) : 0;
+		sample_limit += temp_pos;
+
 		//Pull audio from buffer if possible
-		if((temp_pos << 1) < apu_stat.ext_audio.length)
+		if(sample_limit < apu_stat.ext_audio.length)
 		{
 			//Mono Audio
 			if(apu_stat.ext_audio.channels == 1)
 			{
 				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos << 1) < apu_stat.ext_audio.karaoke_length)) 
+				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (temp_pos < apu_stat.ext_audio.karaoke_length)) 
 				{
 					stream[x] = k_stream[temp_pos];
 
@@ -488,7 +491,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 			else
 			{
 				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos << 1) < apu_stat.ext_audio.karaoke_length)) 
+				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos + 1) < apu_stat.ext_audio.karaoke_length)) 
 				{
 					s32 out_sample = (k_stream[temp_pos] + k_stream[temp_pos + 1]) / 2;
 					stream[x] = out_sample;
