@@ -326,6 +326,8 @@ class AGB_MMU
 		bool nmp_manual_irq;
 		std::string nmp_title;
 		std::string nmp_artist;
+		u8 nmp_seek_pos;
+		u8 nmp_seek_dir;
 
 		u32 irq_data[8];
 		bool irq_data_in_use;

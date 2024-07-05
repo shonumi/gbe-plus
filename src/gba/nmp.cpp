@@ -257,6 +257,9 @@ void AGB_MMU::process_nmp_cmd()
 			apu_stat->ext_audio.last_pos = 0;
 			apu_stat->ext_audio.sample_pos = 0;
 
+			play_yan.nmp_seek_pos = 0;
+			play_yan.nmp_seek_dir = 0xFF;
+
 			if(apu_stat->ext_audio.use_headphones)
 			{
 				play_yan.update_audio_stream = false;
@@ -306,6 +309,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.update_audio_stream = false;
 			play_yan.update_trackbar_timestamp = false;
 
+			play_yan.nmp_seek_pos = 0;
+			play_yan.nmp_seek_dir = 0xFF;
+
 			play_yan.nmp_manual_cmd = 0;
 			play_yan.irq_delay = 0;
 			play_yan.last_delay = 0;
@@ -319,6 +325,9 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
 			apu_stat->ext_audio.playing = false;
+
+			play_yan.nmp_seek_pos = 0;
+			play_yan.nmp_seek_dir = 0xFF;
 
 			play_yan.last_delay = play_yan.irq_delay;
 			play_yan.nmp_manual_cmd = 0;
@@ -356,6 +365,45 @@ void AGB_MMU::process_nmp_cmd()
 
 			break;
 
+		//Seek Forwards/Backwards
+		case 0x60:
+			play_yan.nmp_cmd_status = 0x4060;
+			play_yan.nmp_valid_command = true;
+
+			if(play_yan.command_stream.size() >= 4)
+			{
+
+				//Wait until at least two inputs from this command are non-zero
+				if(play_yan.nmp_seek_dir == 0xFF)
+				{
+					u8 last_pos = play_yan.nmp_seek_pos;
+					play_yan.nmp_seek_pos = play_yan.command_stream[3];
+
+					if(last_pos && play_yan.nmp_seek_pos)
+					{
+						//Rewind = inputs decrements
+						if(play_yan.nmp_seek_pos < last_pos) { play_yan.nmp_seek_dir = 0; }
+
+						//Fast Forward = inputs increment
+						else { play_yan.nmp_seek_dir = 1; }
+					}
+				}
+
+				//Rewind playback position
+				else if(!play_yan.nmp_seek_dir)
+				{
+
+				}
+
+				//Fast forward playback position
+				else
+				{
+
+				}
+			}
+
+			break;
+
 		//Adjust Volume - No IRQ generated
 		case 0x80:
 			if(play_yan.command_stream.size() >= 4)
@@ -363,6 +411,10 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.volume = play_yan.command_stream[3];
 				apu_stat->ext_audio.volume = (play_yan.volume / 46.0) * 63.0;
 			}
+
+			//Reset seek data
+			play_yan.nmp_seek_pos = 0;
+			play_yan.nmp_seek_dir = 0xFF;
 
 			break;
 
