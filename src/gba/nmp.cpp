@@ -259,6 +259,7 @@ void AGB_MMU::process_nmp_cmd()
 
 			play_yan.nmp_seek_pos = 0;
 			play_yan.nmp_seek_dir = 0xFF;
+			play_yan.nmp_seek_count = 0;
 
 			if(apu_stat->ext_audio.use_headphones)
 			{
@@ -311,6 +312,7 @@ void AGB_MMU::process_nmp_cmd()
 
 			play_yan.nmp_seek_pos = 0;
 			play_yan.nmp_seek_dir = 0xFF;
+			play_yan.nmp_seek_count = 0;
 
 			play_yan.nmp_manual_cmd = 0;
 			play_yan.irq_delay = 0;
@@ -328,6 +330,7 @@ void AGB_MMU::process_nmp_cmd()
 
 			play_yan.nmp_seek_pos = 0;
 			play_yan.nmp_seek_dir = 0xFF;
+			play_yan.nmp_seek_count = 0;
 
 			play_yan.last_delay = play_yan.irq_delay;
 			play_yan.nmp_manual_cmd = 0;
@@ -372,6 +375,8 @@ void AGB_MMU::process_nmp_cmd()
 
 			if(play_yan.command_stream.size() >= 4)
 			{
+				play_yan.nmp_seek_count++;
+				s32 seek_shift = 2 + (play_yan.nmp_seek_count / 10); 
 
 				//Wait until at least two inputs from this command are non-zero
 				if(play_yan.nmp_seek_dir == 0xFF)
@@ -392,14 +397,37 @@ void AGB_MMU::process_nmp_cmd()
 				//Rewind playback position
 				else if(!play_yan.nmp_seek_dir)
 				{
+					if(apu_stat->ext_audio.use_headphones)
+					{
+						s32 new_pos = apu_stat->ext_audio.sample_pos - (play_yan.audio_sample_rate * seek_shift);
+						if(new_pos < 0) { new_pos = 0; }
 
+						apu_stat->ext_audio.sample_pos = new_pos;
+					}
+
+					else
+					{
+						s32 new_pos = play_yan.audio_sample_index - (16384 * seek_shift);
+						if(new_pos < 0) { new_pos = 0; }
+
+						play_yan.audio_sample_index = new_pos;
+					}
 				}
 
 				//Fast forward playback position
 				else
 				{
-
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos += (play_yan.audio_sample_rate * seek_shift); }
+					else { play_yan.audio_sample_index += (16384 * seek_shift); }
 				}
+
+				play_yan.nmp_manual_cmd = 0x8100;
+				play_yan.update_audio_stream = false;
+				play_yan.update_trackbar_timestamp = true;
+				play_yan.irq_delay = 0;
+				play_yan.nmp_manual_irq = true;
+				process_play_yan_irq();
+				play_yan.nmp_manual_irq = false;
 			}
 
 			break;
@@ -779,6 +807,7 @@ void AGB_MMU::access_nmp_io()
 					{
 						double ratio = play_yan.audio_sample_rate / 16384.0;
 						s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
+						u32 stream_size = apu_stat->ext_audio.length / 2;
 
 						bool is_left_channel = (play_yan.audio_frame_count & 0x01) ? true : false;
 
@@ -801,7 +830,7 @@ void AGB_MMU::access_nmp_io()
 							index *= play_yan.audio_channels;
 							index += index_shift;
 
-							if(index >= apu_stat->ext_audio.length) { index = (apu_stat->ext_audio.length - 1); }
+							if(index >= stream_size) { index = (stream_size - 1); }
 
 							//Perform simple Flyod-Steinberg dithering
 							//Grab current sample and add 7/16 of error, quantize results, clip results 

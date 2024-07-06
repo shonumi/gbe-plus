@@ -196,6 +196,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_audio_index = 0;
 	play_yan.nmp_seek_pos = 0;
 	play_yan.nmp_seek_dir = 0xFF;
+	play_yan.nmp_seek_count = 0;
 	play_yan.nmp_valid_command = false;
 	play_yan.nmp_manual_irq = false;
 	play_yan.nmp_title = "";
