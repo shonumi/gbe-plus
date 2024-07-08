@@ -252,6 +252,8 @@ The SD Card Data reads 528 bytes in all, with the first 524 being reserved for t
 
 
 
+
+
 -----------------------------------------------------------------------
 Command 0x0011 - Continue File/Folder List
 -----------------------------------------------------------------------
@@ -554,17 +556,25 @@ Byte 0x0000 - 0x023F	Audio Buffer 2
 
 After issuing either the 0x50 or 0x200 commands, the NMP hardware will begin generating Game Pak IRQs that return audio samples via the SD Card interface. These IRQs return a lot of Status Data that indicates what is being updated.
 
-The first is a 16-bit value that dictates the Audio Buffer Size in bytes. Its maximum value is 0x0480, however, it may be smaller. Audio Buffer Size should *always* be a multiple of 16.  The second is a 16-bit value that indicates the Index that needs to be accessed before any audio samples can be read. Unlike the 0x0040 command used to grab ID3 data, Access Index here is completely arbitrary and determined by the hardware, i.e. it may not always have a fixed value.
+The first is a 16-bit value that dictates the Audio Buffer Size in bytes. Its maximum value is 0x0480, and it should also be divisable by 4 (the NMP software forcibly masks it anyway). Typically, while playing a song, the NMP will constantly update audio with an Audio Buffer Size of 0x480, except for the very last samples of a song, which may not evenly be divisable by 0x480 and thus must use a smaller remainer as the size. The second piece of Status Data is a 16-bit value that indicates the Index that must be accessed before any audio samples are read. Unlike the 0x0040 command used to grab ID3 data, the Access Index here is completely arbitrary and determined by the hardware, i.e. it may not always have a fixed value.
 
 Trackbar Position represents current playback position as a percentage. 0% is at the very beginning of a song, 50% is at the exact middle of a song, and 99% is at the very end of a song. Going further actually pushes the trackbar indicator offscreen. As such, this value only accepts an 8-bit value with a range of 0 to 99.
 
 Song Timestamp is the current playback position is seconds. Although it should technically work as 32-bit value, it actually seems to work best as a 24-bit MSB value, using bytes 0x0F, 0x0C, and 0xD in that order. Whereas these bytes add multiple powers of 2 (65536, 256, and 1) to the timestamp, bytes 0x0E adds 1216 seconds to the timestamp.
 
-If the Access Index is zero, that means the cartridge is updating the Trackbar Position and Song Timestamp. In this case, no audio samples are returned. Otherwise, the specified Index is accessed and data is read through the SD Card interface. The data is split into 2 separate buffers, Audio Buffer 1 and Audio Buffer 2. Each buffer contains half of sound samples. It should be noted that while Audio Buffer 1 uses the Index from Status Data, the Index for Audio Buffer 2 is determined as such:
+If the Access Index is zero, that means the cartridge is updating the Trackbar Position and Song Timestamp. In this case, no audio samples are returned. Otherwise, the specified Index is accessed and data is read through the SD Card interface. The data is split into 2 separate buffers, a Left Audio Buffer and Right Audio Buffer. Each buffer is half the length of Audio Buffer Size. For example, when using 0x480 as the Audio Buffer size, the Left Audio Buffer and Right Audio Buffer will each have a length of 0x240 bytes.
 
-ACCESS_INDEX_2 = ACCESS_INDEX_1 + (AUDIO_BUFFER_SIZE / 4)
+Before reading any audio samples, the GBA's CPU must first access the correct index. Afterwards, the sample data becomes available through the SD Card interface. Essentially, the Access Index returned as Status Data represents a virtual address that describes where to grab samples from the NMP. Each address in the Access Index is equal to 16-bits of sample data (a pair of 8-bit samples accessed as a single unit). The first half of this virtual address space is dedicated to the Left Audio Buffer, while the latter half is dedicated to the Right Audio Buffer. For example, if the Audio Buffer Size is 0x480, and the NMP sets the Access Index to 0x200, then the Left Audio Buffer starts at Access Index 0x200, and the Right Audio Buffer starts at Access Index 0x320. Refer to the chart below for more details:
 
-2 separate reads from the SD Card interface are required to read all audio data as a result of this process. Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.
+-----------------------------------------------------------------------------------------------------------------------
+Index 0x200       | Index 0x201       |  ... ... ... ...   | Index 0x320       | Index 0x321	   |   ... ... ... ...   
+-----------------------------------------------------------------------------------------------------------------------
+L Samples 000-001 | L Samples 002-003 | L Samples 003-575  | R Samples 000-001 | R Samples 002-003 | R Samples 003-575
+-----------------------------------------------------------------------------------------------------------------------
+
+Once the index for either the Left or Right Audio Buffer is accessed, sample data for the entire channel's buffer can be read from the SD Card interface continually until the buffer is full. When switching between channels, however, a new index must be accessed.
+
+Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.
 
 When headphones are plugged into the NMP, the cartridge only generates Game Pak IRQs that update the trackbar position. With headphones, audio data is processed by the NMP's own hardware and output separately from the GBA's sound system.
 
