@@ -5808,8 +5808,8 @@ Index	| Description
 0x0101	| Access ID3 Data
 0x010F	| Send Command / Get Ticks
 0x0110	| Check Cartridge I/O Busy Flag
-0x----	| Audio Buffer 1
-0x----	| Audio Buffer 2
+0x----	| Left Audio Buffer
+0x----	| Right Audio Buffer
 ------------------------------------------------------------------------</pre>
 
 	<p class="spc"></p>
@@ -5837,12 +5837,12 @@ Index	| Description
 	<p class="list_item">This index is accessed immediately following the last access to 0x0100. It&#39;s used to get the cartridge&#39;s I/O busy status. After accessing this index, a single 16-bit value from NMP_DATA_OUT is read. Any non-zero values indicate that the cartridge is still busy, presumbly with data from a previous Game Pak IRQ. This index can be accessed indefinitely until NMP_DATA_OUT returns zero, at which point additional commands can be issued.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x---- : Audio Buffer 1</strong></p>
-	<p class="list_item">This index is access after issuing the 0x0050 command and the NMP generates internal Game Pak IRQs with a Command ID that reads 0x8100. The status data for those internal IRQs will have 16-bit values that determine the exact index the NMP will assign for its audio buffers. This value appears arbitrary, so the index may not have a fixed position. The data is available at NMP_DATA_OUT and represents 8-bit samples compatible with the GBA&#39;s DMA sound channels. The buffer is split in half, with the first portion requiring access to this index.</p>
+	<p class="list_item"><strong>Index 0x---- : Left Audio Buffer</strong></p>
+	<p class="list_item">This index is accessed after issuing the 0x0050 command and the NMP generates internal Game Pak IRQs with a Command ID that reads 0x8100. The status data for those internal IRQs will have 16-bit values that determine the exact index the NMP will assign for its audio buffers. This value appears arbitrary, so the index may not have a fixed position. The data is available at NMP_DATA_OUT and represents 8-bit samples compatible with the GBA&#39;s DMA sound channels. These samples, must be read in 16-bit units, however. When reading these samples with the GBA CPU, the MSB represents the first sample, while the LSB represents the second sample.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Index 0x---- : Audio Buffer 2</strong></p>
-	<p class="list_item">This index is much the same as Audio Buffer 1. Accessing this will pull up the second portion of the audio buffer, which contains 8-bit samples. The only thing different about this index is its location. When the NMP generates internal Game Pak IRQs with 0x8100 as the Command ID, the 16-bit index representing Audio Buffer 1 is incremented by the number of audio samples divided by 4 to get the index of Audio Buffer 2.</p>
+	<p class="list_item"><strong>Index 0x---- : Right Audio Buffer</strong></p>
+	<p class="list_item">This index is much the same as the Left Audio Buffer. Accessing this will pull up the second portion of the overall audio buffer, which contains 8-bit samples packed in 16-bit units. The only thing different about this index is its location. See further notes below regarding how the exact index is calculated.</p>
 
 	<a name="nmp_sdc"></a>
 	<p class="gray_title">[Nintendo MP3 Player] : Reading SD Card Data</p>
@@ -5905,7 +5905,7 @@ Command	ID				| Parameters				| SD Card Data
 0x0051 - Stop Music Playback		|					|
 0x0052 - Pause Music Playback		|					|
 0x0053 - Resume Music Playback		|					|
-0x0060 - Seek Forwards/Backwards	|					|
+0x0060 - Seek Forwards/Backwards	| Stream Position, Seek Direction	|
 0x0070 - Unknown Command		|					|
 0x0080 - Adjust Volume			| New Volume				|
 0x0200 - Play Sound Effect		|					|
@@ -5922,8 +5922,8 @@ Command	ID				| Parameters				| SD Card Data
 Command	ID				| Parameters				| SD Card Data
 ----------------------------------------------------------------------------------------------------------------------------------------------
 0x8001 - Initialize NMP Hardware	|					|
-0x8600 - Headphone Status		| Headphone Plugged-In Flag		|
 0x8100 - Update Audio			| Audio Buffer / Trackbar / Timestamp	| Audio Samples
+0x8600 - Headphone Status		| Headphone Plugged-In Flag		|
 ----------------------------------------------------------------------------------------------------------------------------------------------</pre>
 
 	<p>For any and all ASCII strings sent to or returned by these commands, each character is encoded as a 16-bit MSB value. Each character uses 16-bits. As an example, sending the character &#34;A&#34; for a command parameter involves writing 0x00 to NMP_DATA_IN_LO first, then 0x41 to NMP_DATA_IN_HI later. The overall string is transferred or received from the first character to the last character in order, e.g. the filename &#34;music.mp3&#34; has &#34;m&#34; as the first character and &#34;3&#34; as the final one. Strings must be null terminated as well. Additionally, each string may use extended ASCII encoding. Unlike the original Play-Yan and Play-Yan Micro, the NMP has the font to render extended characters. ID3 tags may also use UTF-16LE encoding as long as the characters are Latin script, however, UTF-8 encoding is not supported.</p>
@@ -6079,6 +6079,29 @@ SD Card Data: N/A
 	<p>This command resumes music playback after it has been temporarily put on hold. Game Pak IRQs for audio samples or timestamp and trackbar progress will continue after sending this command.</p>
 	<p class="spc"></p>
 
+
+<pre>-----------------------------------------------------------------------
+Command 0x0060 - Seek Forwards/Backwards
+-----------------------------------------------------------------------
+Parameters :
+
+Byte 0x0000		Stream Position		0x0000 - 0x0063
+Byte 0x0001		Seek Direction
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x4060
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------</pre>
+
+	<p>This command adjusts the current playback position for audio forwards or backwards. The Stream Position parameter represents the current playback position as a percentage (0% to 99%). Seek Direction is an 8-bit value that determines whether the new playback position moves ahead or rewinds. To change the playback position, this command must be called repeatedly (approximately every 15 frames or so) while incremented or decrementing the Seek Direction.</p>
+
+	<p>For moving forwards, the initial value of Seek Direction should be 0x00 and increase by 0x10 every time this command is sent. For moving backwards, the initial value of Seek Direction should be 0xF0 and decrease by 0x10 every time this command is sent. The NMP will interpret these changes in Seek Direction and alter the playback position accordingly. Note that since Seek Direction observes 8-bit overflow and underflow. When seeking forward, 0xF0 will roll over into 0x00 on the next command, and when seeking backward, 0x00 will roll over into 0xF0.</p>
+
+	<p>Seek Direction is incremented/decremented continuously as long as the user holds down Left or Right on the D-Pad while playing music. It will scale the amount of seconds passed for each instance of the 0x0060 command. The default is 2 seconds, but for every 5 or so instances of the 0x0060 command, another second is added. Due to the way Seek Direction works, the NMP will need to be sent at least 2 0x0060 commands before it actually begins seeking, causing a brief delay when first pressing Left or Right.</p>
+	<p class="spc"></p>
+
 <pre>-----------------------------------------------------------------------
 Command 0x0080 - Adjust Volume
 -----------------------------------------------------------------------
@@ -6183,22 +6206,6 @@ SD Card Data: N/A
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x8600 - Headphone Status
------------------------------------------------------------------------
-Parameters : N/A
------------------------------------------------------------------------
-Status Data :
-
-Byte 0x0000 - 0x0001	Command ID		0x8600
-Byte 0x0002 - 0x0003	Headphone Flag		0x00 = No Headphones, 0x01 = Headphones plugged-in
------------------------------------------------------------------------
-SD Card Data: N/A
------------------------------------------------------------------------</pre>
-
-	<p>Whenever headphones are inserted or removed from the NMP&#39;s 3.5mm jack, a Game Pak IRQ is generated. Additionally, immediately after the NMP hardware has been initialized, the cartridge generates a Game Pak IRQ with this Command ID (ensuring that headphones are detected after booting). The IRQ reports the status of whether headphones are plugged-in/removed, using a single byte in Status Data as a flag. Note that this IRQ is only generated for headphones inside the cartridge itself and is completely unrelated to the GBA&#39;s or DS&#39; 3.5mm jack.</p>
-	<p class="spc"></p>
-
-<pre>-----------------------------------------------------------------------
 Command 0x8100 - Update Audio
 -----------------------------------------------------------------------
 Parameters : N/A
@@ -6219,17 +6226,25 @@ Byte 0x0000 - 0x023F	Audio Buffer 2
 
 	<p>After issuing either the 0x50 or 0x200 commands, the NMP hardware will begin generating Game Pak IRQs that return audio samples via the SD Card interface. These IRQs return a lot of Status Data that indicates what is being updated.</p>
 
-	<p>The first is a 16-bit value that dictates the Audio Buffer Size in bytes. Its maximum value is 0x0480, however, it may be smaller. Audio Buffer Size should *always* be a multiple of 16.  The second is a 16-bit value that indicates the Index that needs to be accessed before any audio samples can be read. Unlike the 0x0040 command used to grab ID3 data, Access Index here is completely arbitrary and determined by the hardware, i.e. it may not always have a fixed value.</p>
+	<p>The first is a 16-bit value that dictates the Audio Buffer Size in bytes. Its maximum value is 0x0480, and it should also be divisable by 4 (the NMP software forcibly masks it anyway). Typically, while playing a song, the NMP will constantly update audio with an Audio Buffer Size of 0x480, except for the very last samples of a song, which may not evenly be divisable by 0x480 and thus must use a smaller remainer as the size. The second piece of Status Data is a 16-bit value that indicates the Index that must be accessed before any audio samples are read. Unlike the 0x0040 command used to grab ID3 data, the Access Index here is completely arbitrary and determined by the hardware, i.e. it may not always have a fixed value.</p>
 
 	<p>Trackbar Position represents current playback position as a percentage. 0% is at the very beginning of a song, 50% is at the exact middle of a song, and 99% is at the very end of a song. Going further actually pushes the trackbar indicator offscreen. As such, this value only accepts an 8-bit value with a range of 0 to 99.</p>
 
 	<p>Song Timestamp is the current playback position is seconds. Although it should technically work as 32-bit value, it actually seems to work best as a 24-bit MSB value, using bytes 0x0F, 0x0C, and 0xD in that order. Whereas these bytes add multiple powers of 2 (65536, 256, and 1) to the timestamp, bytes 0x0E adds 1216 seconds to the timestamp.</p>
 
-	<p>If the Access Index is zero, that means the cartridge is updating the Trackbar Position and Song Timestamp. In this case, no audio samples are returned. Otherwise, the specified Index is accessed and data is read through the SD Card interface. The data is split into 2 separate buffers, Audio Buffer 1 and Audio Buffer 2. Each buffer contains half of sound samples. It should be noted that while Audio Buffer 1 uses the Index from Status Data, the Index for Audio Buffer 2 is determined as such:</p>
+	<p>If the Access Index is zero, that means the cartridge is updating the Trackbar Position and Song Timestamp. In this case, no audio samples are returned. Otherwise, the specified Index is accessed and data is read through the SD Card interface. The data is split into 2 separate buffers, a Left Audio Buffer and Right Audio Buffer. Each buffer is half the length of Audio Buffer Size. For example, when using 0x480 as the Audio Buffer size, the Left Audio Buffer and Right Audio Buffer will each have a length of 0x240 bytes.</p>
 
-<pre>ACCESS_INDEX_2 = ACCESS_INDEX_1 + (AUDIO_BUFFER_SIZE / 4)</pre>
+	<p>Before reading any audio samples, the GBA&#39;s CPU must first access the correct index. Afterwards, the sample data becomes available through the SD Card interface. Essentially, the Access Index returned as Status Data represents a virtual address that describes where to grab samples from the NMP. Each address in the Access Index is equal to 16-bits of sample data (a pair of 8-bit samples accessed as a single unit). The first half of this virtual address space is dedicated to the Left Audio Buffer, while the latter half is dedicated to the Right Audio Buffer. For example, if the Audio Buffer Size is 0x480, and the NMP sets the Access Index to 0x200, then the Left Audio Buffer starts at Access Index 0x200, and the Right Audio Buffer starts at Access Index 0x320. Refer to the chart below for more details:</p>
 
-	<p>2 separate reads from the SD Card interface are required to read all audio data as a result of this process. Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.</p>
+<pre>-----------------------------------------------------------------------------------------------------------------------
+Index 0x200       | Index 0x201       |  ... ... ... ...   | Index 0x320       | Index 0x321	   |   ... ... ... ...   
+-----------------------------------------------------------------------------------------------------------------------
+L Samples 000-001 | L Samples 002-003 | L Samples 003-575  | R Samples 000-001 | R Samples 002-003 | R Samples 003-575
+-----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>Once the index for either the Left or Right Audio Buffer is accessed, sample data for the entire channel&#39;s buffer can be read from the SD Card interface continually until the buffer is full. When switching between channels, however, a new index must be accessed.</p>
+
+	<p>Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.</p>
 
 	<p>When headphones are plugged into the NMP, the cartridge only generates Game Pak IRQs that update the trackbar position. With headphones, audio data is processed by the NMP&#39;s own hardware and output separately from the GBA&#39;s sound system.</p>
 
@@ -6241,6 +6256,22 @@ Byte 0x0000 - 0x023F	Audio Buffer 2
 	<p>One interesting detail is that the maximum file size for firmware was supposed to be 65,536 bytes. This is significantly lower than the only known firmware update given for original Play-Yan, which came in around 554KB. The firmware for the NMP was likely far less complicated, perhaps as a result of the hardware lacking any video decoding and focusing exclusively on audio processing.</p>
 
 	<p>The firmware update file has to follow some sort of format to be considered valid. The NMP software checks for the presence of the string &#34;Nintendo MP3 Player firmware update program&#34; at the very start of the file&#39;s data, much like the original Play-Yan expects of its firmware updates.</p>
+
+<pre>-----------------------------------------------------------------------
+Command 0x8600 - Headphone Status
+-----------------------------------------------------------------------
+Parameters : N/A
+-----------------------------------------------------------------------
+Status Data :
+
+Byte 0x0000 - 0x0001	Command ID		0x8600
+Byte 0x0002 - 0x0003	Headphone Flag		0x00 = No Headphones, 0x01 = Headphones plugged-in
+-----------------------------------------------------------------------
+SD Card Data: N/A
+-----------------------------------------------------------------------</pre>
+
+	<p>Whenever headphones are inserted or removed from the NMP&#39;s 3.5mm jack, a Game Pak IRQ is generated. Additionally, immediately after the NMP hardware has been initialized, the cartridge generates a Game Pak IRQ with this Command ID (ensuring that headphones are detected after booting). The IRQ reports the status of whether headphones are plugged-in/removed, using a single byte in Status Data as a flag. Note that this IRQ is only generated for headphones inside the cartridge itself and is completely unrelated to the GBA&#39;s or DS&#39; 3.5mm jack.</p>
+	<p class="spc"></p>
 
 
 
@@ -7487,7 +7518,7 @@ Command 0x28		DNS Query
 	<ul>
 		<li class="list_item">If the first byte is in the range 0x00-0xF0 (inclusive), the pair is written as a tile and the cursor moves one tile to the right.</li>
 		<li class="list_item">If the first byte is in the range 0xF1-0xFD (inclusive), nothing happens.</li>
-		<li class="list_item">If the first byte is 0xFE, the cursor moves to the next line's leftmost tile.</li>
+		<li class="list_item">If the first byte is 0xFE, the cursor moves to the next line&#39;s leftmost tile.</li>
 		<li class="list_item">If the first byte is 0xFF, the game stops reading the file immediately.</li>
 	</ul>
 
@@ -7504,8 +7535,8 @@ File format
 0x00				::  High byte of ranking count (N). Should always be zero.
 0x01				::  Low byte of ranking count (N). Should be 10 or less.
 0x02 - ...			::  Ranking entries.
-0x02 + 56*N			::  Two bytes. If both are 0x00, the player's ranking is not present.
-0x04 + 56*N			::  Player's ranking entry, optional.
+0x02 + 56*N			::  Two bytes. If both are 0x00, the player&#39;s ranking is not present.
+0x04 + 56*N			::  Player&#39;s ranking entry, optional.
 
 ----------------------------------
 Ranking entries - 56 bytes each
@@ -7513,16 +7544,16 @@ Ranking entries - 56 bytes each
 0x00 - 0x03			::  Rank number in big endian.
 0x04 - 0x2B			::  &#34;myname&#34; data, see below.
 0x2C - 0x33			::  &#34;myscore&#34; data, see below.
-0x34				::  Player's gender: 0x00 = male, 0x01 = female.
-0x35				::  Player's age.
-0x36				::  Player's state/prefecture.
+0x34				::  Player&#39;s gender: 0x00 = male, 0x01 = female.
+0x35				::  Player&#39;s age.
+0x36				::  Player&#39;s state/prefecture.
 0x37				::  &#34;today&#34; value: high 4 bits are a year number (mod 16), low 4 bits are a month number.
 
 ----------------------------------
 myname - 40 bytes
 ----------------------------------
-0x00 - 0x03			::  Player's name, right-padded with 0xFF.
-0x04 - 0x23			::  Player's email, right-padded with 0x00.
+0x00 - 0x03			::  Player&#39;s name, right-padded with 0xFF.
+0x04 - 0x23			::  Player&#39;s email, right-padded with 0x00.
 0x24				::  &#34;today&#34; value, see above.
 0x25 - 0x27			::  Always 0x00, but not checked on download.
 
@@ -8119,7 +8150,7 @@ Lines 14+			::  Description.</pre>
 	<a name="mka_que"></a>
 	<p class="gray_title">[Mario Kart Advance] : query.cgb</p>
 
-	<p>This file is downloaded after total.cgb via a POST request in the format &#34;myid=<32 hex digits>&myrecord=<4 hex digits>&pickuprecord=<4 hex digits>&state=<2 hex digits>&driver=<2 hex digits>&rk_1=<8 hex digits>&rk_2=<8 hex digits>&rk_3=<8 hex digits>&rk_4=<8 hex digits>&rk_5=<8 hex digits>&rk_6=<8 hex digits>&rk_7=<8 hex digits>&rk_8=<8 hex digits>&rk_9=<8 hex digits>&rk_10=<8 hex digits>&rk_11=<8 hex digits>&#34;, where the &#34;pickuprecord&#34; value is the player's actual record while the &#34;myrecord&#34; value is 1/100 second slower, and the &#34;rk_*&#34; values are the rank numbers to be displayed in the overall rankings category. The file itself has the following format:</p>
+	<p>This file is downloaded after total.cgb via a POST request in the format &#34;myid=<32 hex digits>&myrecord=<4 hex digits>&pickuprecord=<4 hex digits>&state=<2 hex digits>&driver=<2 hex digits>&rk_1=<8 hex digits>&rk_2=<8 hex digits>&rk_3=<8 hex digits>&rk_4=<8 hex digits>&rk_5=<8 hex digits>&rk_6=<8 hex digits>&rk_7=<8 hex digits>&rk_8=<8 hex digits>&rk_9=<8 hex digits>&rk_10=<8 hex digits>&rk_11=<8 hex digits>&#34;, where the &#34;pickuprecord&#34; value is the player&#39;s actual record while the &#34;myrecord&#34; value is 1/100 second slower, and the &#34;rk_*&#34; values are the rank numbers to be displayed in the overall rankings category. The file itself has the following format:</p>
 
 <pre>----------------------------------
 File format
@@ -8232,10 +8263,10 @@ Overall ranking entry
 0x001A				::  High byte of race time.
 0x001B				::  Low byte of race time.
 0x001C - 0x101B			::  Ghost data.
-0x101C - 0x102B			::  Player's name.
-0x102C - 0x1037			::  Player's phone number.
-0x1038 - 0x103F			::  Player's postal code.
-0x1040 - 0x10BF			::  Player's home address.</pre>
+0x101C - 0x102B			::  Player&#39;s name.
+0x102C - 0x1037			::  Player&#39;s phone number.
+0x1038 - 0x103F			::  Player&#39;s postal code.
+0x1040 - 0x10BF			::  Player&#39;s home address.</pre>
 
 	<p>Outside of Mobile GP, personal info is not uploaded: the two numbers are filled with forward slashes, and the other two text fields are filled with asterisks. Otherwise, on an unmodified game, the postal code is always seven digits followed by a lowercase letter &#34;p&#34;.</p>
 
