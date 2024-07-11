@@ -201,6 +201,9 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_manual_irq = false;
 	play_yan.nmp_title = "";
 	play_yan.nmp_artist = "";
+
+	std::string sfx_filename = config::data_path + "play_yan/sfx.wav";
+	play_yan_load_sfx(sfx_filename);
 }
 
 /****** Writes to Play-Yan I/O ******/
@@ -1596,6 +1599,9 @@ void AGB_MMU::play_yan_wake()
 /****** Loads audio (.MP3) file and then converts it to .WAV for playback ******/
 bool AGB_MMU::play_yan_load_audio(std::string filename)
 {
+	std::string sfx_filename = config::data_path + "play_yan/sfx.wav";
+	bool is_sfx = (filename == sfx_filename) ? true : false;
+
 	play_yan.music_length = 0;
 	play_yan.tracker_update_size = 0;
 	play_yan.audio_sample_rate = 0;
@@ -1605,60 +1611,82 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	SDL_FreeWAV(apu_stat->ext_audio.buffer);
 	apu_stat->ext_audio.buffer = NULL;
 
-	//Abort now if no audio conversion command is specified
-	if(config::audio_conversion_cmd.empty())
-	{
-		std::cout<<"MMU::No audio conversion command specified. Cannot convert file " << filename << "\n";
-		return false;
-	}
-
 	SDL_AudioSpec file_spec;
 
-	std::string out_file = config::temp_media_file + ".wav";
-	std::string sys_cmd = config::audio_conversion_cmd;
-
-	//Delete any existing temporary media file in case audio conversion command complains
-	std::remove(out_file.c_str());
-
-	//Replace %in and %out with proper parameters
-	std::string search_str = "%in";
-	std::size_t pos = sys_cmd.find(search_str);
-
-	if(pos != std::string::npos)
+	//Load music
+	if(!is_sfx)
 	{
-		std::string start = sys_cmd.substr(0, pos);
-		std::string end = sys_cmd.substr(pos + 3);
-		sys_cmd = start + filename + end;
-	}
+		//Abort now if no audio conversion command is specified
+		if(config::audio_conversion_cmd.empty())
+		{
+			std::cout<<"MMU::No audio conversion command specified. Cannot convert file " << filename << "\n";
+			return false;
+		}
 
-	search_str = "%out";
-	pos = sys_cmd.find(search_str);
+		std::string out_file = config::temp_media_file + ".wav";
+		std::string sys_cmd = config::audio_conversion_cmd;
 
-	if(pos != std::string::npos)
-	{
-		std::string start = sys_cmd.substr(0, pos);
-		std::string end = sys_cmd.substr(pos + 4);
-		sys_cmd = start + out_file + end;
-	}
+		//Delete any existing temporary media file in case audio conversion command complains
+		std::remove(out_file.c_str());
+
+		//Replace %in and %out with proper parameters
+		std::string search_str = "%in";
+		std::size_t pos = sys_cmd.find(search_str);
+
+		if(pos != std::string::npos)
+		{
+			std::string start = sys_cmd.substr(0, pos);
+			std::string end = sys_cmd.substr(pos + 3);
+			sys_cmd = start + filename + end;
+		}
+
+		search_str = "%out";
+		pos = sys_cmd.find(search_str);
+
+		if(pos != std::string::npos)
+		{
+			std::string start = sys_cmd.substr(0, pos);
+			std::string end = sys_cmd.substr(pos + 4);
+			sys_cmd = start + out_file + end;
+		}
 		
-	//Check for a command processor on system and run audio conversion command
-	if(system(NULL))
-	{
-		std::cout<<"MMU::Converting audio file " << filename << "\n";
-		system(sys_cmd.c_str());
-		std::cout<<"MMU::Conversion complete\n";
+		//Check for a command processor on system and run audio conversion command
+		if(system(NULL))
+		{
+			std::cout<<"MMU::Converting audio file " << filename << "\n";
+			system(sys_cmd.c_str());
+			std::cout<<"MMU::Conversion complete\n";
+		}
+
+		else
+		{
+			std::cout<<"Conversion of audio file " << filename << " failed \n";
+			return false;
+		}
+
+		if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+		{
+			std::cout<<"MMU::Play-Yan could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
+			return false;
+		}
 	}
 
+	//Load sfx
 	else
 	{
-		std::cout<<"Conversion of audio file " << filename << " failed \n";
-		return false;
-	}
+		if(play_yan.sfx_data.empty())
+		{
+			std::cout<<"MMU::Play-Yan SFX samples are empty\n";
+			return false;
+		}
 
-	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
-	{
-		std::cout<<"MMU::Play-Yan could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
-		return false;
+		SDL_RWops* io_ops = SDL_AllocRW();
+		io_ops = SDL_RWFromMem(play_yan.sfx_data.data(), play_yan.sfx_data.size());
+
+		if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+		{
+			std::cout<<"MMU::Play-Yan could not load SFX samples : " << SDL_GetError() << "\n";
+		}		
 	}
 
 	//Check format, must be S16 audio, LSB
@@ -1681,21 +1709,24 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	play_yan.audio_channels = apu_stat->ext_audio.channels;
 	play_yan.audio_sample_rate = apu_stat->ext_audio.frequency;
 
-	//Determine song length in seconds by the amount of samples
-	u32 song_samples = apu_stat->ext_audio.length / 2;
-	if(file_spec.channels == 2) { song_samples /= 2; }
-
-	u32 song_seconds = song_samples / apu_stat->ext_audio.frequency;
-	if(song_samples % (u32)apu_stat->ext_audio.frequency) { song_seconds += 1; }
-	
-	play_yan.music_length = song_seconds;
-
-	if(play_yan.type != NINTENDO_MP3)
+	if(!is_sfx)
 	{
-		play_yan.tracker_update_size = (0x6400 / play_yan.music_length);
-	}
+		//Determine song length in seconds by the amount of samples
+		u32 song_samples = apu_stat->ext_audio.length / 2;
+		if(file_spec.channels == 2) { song_samples /= 2; }
 
-	std::cout<<"MMU::Play-Yan loaded audio file: " << filename << "\n";
+		u32 song_seconds = song_samples / apu_stat->ext_audio.frequency;
+		if(song_samples % (u32)apu_stat->ext_audio.frequency) { song_seconds += 1; }
+	
+		play_yan.music_length = song_seconds;
+
+		if(play_yan.type != NINTENDO_MP3)
+		{
+			play_yan.tracker_update_size = (0x6400 / play_yan.music_length);
+		}
+
+		std::cout<<"MMU::Play-Yan loaded audio file: " << filename << "\n";
+	}
 
 	return true;
 }
@@ -1909,6 +1940,30 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	play_yan.video_frames.resize(10000, 0xFFFFFFFF);
 
 	return false;
+}
+
+/****** Loads a WAV file for SFX played by the Play-Yan ******/
+bool AGB_MMU::play_yan_load_sfx(std::string filename)
+{
+	play_yan.sfx_data.clear();
+
+	std::ifstream sfx_file(filename.c_str(), std::ios::binary);
+
+	if(!sfx_file.is_open()) 
+	{
+		std::cout<<"MMU::SFX file " << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	sfx_file.seekg(0, sfx_file.end);
+	u32 sfx_file_size = sfx_file.tellg();
+	sfx_file.seekg(0, sfx_file.beg);
+	play_yan.sfx_data.resize(sfx_file_size);
+
+	sfx_file.read(reinterpret_cast<char*> (&play_yan.sfx_data[0]), sfx_file_size);
+	sfx_file.close();
+
+	return true;
 }
 
 /****** Verifies audio data (if any) from a video file ******/

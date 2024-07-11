@@ -376,6 +376,8 @@ class AGB_MMU
 		bool update_audio_stream;
 		bool update_trackbar_timestamp;
 
+		std::vector<u8> sfx_data;
+
 		u32 tracker_progress;
 		u32 tracker_update_size;
 
@@ -661,6 +663,7 @@ class AGB_MMU
 	void play_yan_wake();
 	bool play_yan_load_audio(std::string filename);
 	bool play_yan_load_video(std::string filename);
+	bool play_yan_load_sfx(std::string filename);
 	void play_yan_grab_frame_data(u32 frame);
 	void play_yan_check_video_header(std::string filename);
 	void play_yan_check_audio_from_video(std::vector <u8> &data);
