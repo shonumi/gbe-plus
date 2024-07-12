@@ -453,6 +453,12 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 				core_mmu.play_yan.nmp_manual_irq = false;
 			}
 
+			//Instantly switch for Play-Yan models
+			else
+			{
+				core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
+			}
+
 			config::osd_count = 180;
 		}
 	}
@@ -666,6 +672,12 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 				core_mmu.play_yan.nmp_manual_irq = true;
 				core_mmu.process_play_yan_irq();
 				core_mmu.play_yan.nmp_manual_irq = false;
+			}
+
+			//Instantly switch for Play-Yan models
+			else
+			{
+				core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
 			}
 
 			config::osd_count = 180;
