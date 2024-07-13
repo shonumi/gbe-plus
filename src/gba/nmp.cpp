@@ -448,6 +448,32 @@ void AGB_MMU::process_nmp_cmd()
 
 		//Generate Sound (for menus) - No IRQ generated
 		case 0x200:
+			play_yan.nmp_valid_command = true;
+			play_yan.is_music_playing = true;
+
+			play_yan.audio_sample_index = 0;
+			play_yan.l_audio_dither_error = 0;
+			play_yan.r_audio_dither_error = 0;
+			play_yan.tracker_update_size = 0;
+			apu_stat->ext_audio.last_pos = 0;
+			apu_stat->ext_audio.sample_pos = 0;
+
+			play_yan.update_audio_stream = true;
+			play_yan.update_trackbar_timestamp = false;
+
+			if(apu_stat->ext_audio.use_headphones)
+			{
+				play_yan.nmp_manual_cmd = 0x8100;
+				play_yan.irq_delay = 1;
+			}
+
+			//Get SFX file
+			{
+				std::string sfx_file = config::data_path + "play_yan/sfx.wav";
+				play_yan_load_audio(sfx_file);
+			}
+
+			play_yan.cycles = 400000;
 			break;
 
 		//Check for firmware update file
@@ -830,7 +856,11 @@ void AGB_MMU::access_nmp_io()
 							index *= play_yan.audio_channels;
 							index += index_shift;
 
-							if(index >= stream_size) { index = (stream_size - 1); }
+							if(index >= stream_size)
+							{
+								index = (stream_size - 1);
+								play_yan.is_music_playing = false;
+							}
 
 							//Perform simple Flyod-Steinberg dithering
 							//Grab current sample and add 7/16 of error, quantize results, clip results 
