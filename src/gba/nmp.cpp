@@ -473,7 +473,11 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan_load_audio(sfx_file);
 			}
 
-			play_yan.cycles = 400000;
+			play_yan.nmp_manual_cmd = 0x8100;
+			play_yan.nmp_manual_irq = true;
+			process_play_yan_irq();
+			play_yan.nmp_manual_irq = false;
+
 			break;
 
 		//Check for firmware update file
