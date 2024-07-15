@@ -447,7 +447,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			//Manually trigger IRQ for NMP
 			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
 			{
-				core_mmu.play_yan.nmp_manual_cmd = 0x8600;
+				core_mmu.play_yan.nmp_manual_cmd = AGB_MMU::NMP_HEADPHONE_STATUS;
 				core_mmu.play_yan.nmp_manual_irq = true;
 				core_mmu.process_play_yan_irq();
 				core_mmu.play_yan.nmp_manual_irq = false;
@@ -668,7 +668,7 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 			//Manually trigger IRQ for NMP
 			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
 			{
-				core_mmu.play_yan.nmp_manual_cmd = 0x8600;
+				core_mmu.play_yan.nmp_manual_cmd = AGB_MMU::NMP_HEADPHONE_STATUS;
 				core_mmu.play_yan.nmp_manual_irq = true;
 				core_mmu.process_play_yan_irq();
 				core_mmu.play_yan.nmp_manual_irq = false;

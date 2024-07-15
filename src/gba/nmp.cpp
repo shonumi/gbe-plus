@@ -132,8 +132,8 @@ void AGB_MMU::process_nmp_cmd()
 	switch(play_yan.cmd)
 	{
 		//Start list of files and folders
-		case 0x10:
-			play_yan.nmp_cmd_status = 0x4010;
+		case NMP_START_FILE_LIST:
+			play_yan.nmp_cmd_status = NMP_START_FILE_LIST | 0x4000;
 			play_yan.nmp_valid_command = true;
 
 			play_yan.nmp_status_data[2] = 0;
@@ -159,8 +159,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Continue list of files and folders
-		case 0x11:
-			play_yan.nmp_cmd_status = 0x4011;
+		case NMP_CONTINUE_FILE_LIST:
+			play_yan.nmp_cmd_status = NMP_CONTINUE_FILE_LIST | 0x4000;
 			play_yan.nmp_valid_command = true;
 
 			//Stop list if done
@@ -175,8 +175,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Change directory
-		case 0x20:
-			play_yan.nmp_cmd_status = 0x4020;
+		case NMP_SET_DIR:
+			play_yan.nmp_cmd_status = NMP_SET_DIR | 0x4000;
 			play_yan.nmp_valid_command = true;
 
 			{
@@ -216,8 +216,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Get ID3 Tags
-		case 0x40:
-			play_yan.nmp_cmd_status = 0x4040;
+		case NMP_GET_ID3_DATA:
+			play_yan.nmp_cmd_status = NMP_GET_ID3_DATA | 0x4000;
 			play_yan.nmp_valid_command = true;
 
 			//Get music file
@@ -245,8 +245,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Play Music File
-		case 0x50:
-			play_yan.nmp_cmd_status = 0x4050;
+		case NMP_PLAY_MUSIC:
+			play_yan.nmp_cmd_status = NMP_PLAY_MUSIC | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
 
@@ -298,8 +298,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Stop Music Playback
-		case 0x51:
-			play_yan.nmp_cmd_status = 0x4051;
+		case NMP_STOP_MUSIC:
+			play_yan.nmp_cmd_status = NMP_STOP_MUSIC | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
 			apu_stat->ext_audio.playing = false;
@@ -322,8 +322,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Pause Music Playback
-		case 0x52:
-			play_yan.nmp_cmd_status = 0x4052;
+		case NMP_PAUSE:
+			play_yan.nmp_cmd_status = NMP_PAUSE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
 			apu_stat->ext_audio.playing = false;
@@ -340,8 +340,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Resume Music Playback
-		case 0x53:
-			play_yan.nmp_cmd_status = 0x4053;
+		case NMP_RESUME:
+			play_yan.nmp_cmd_status = NMP_PAUSE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
 
@@ -355,7 +355,7 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan.update_audio_stream = false;
 				play_yan.update_trackbar_timestamp = true;
 
-				play_yan.nmp_manual_cmd = 0x8100;
+				play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
 				play_yan.irq_delay = play_yan.last_delay;
 				play_yan.last_delay = 0;
 			}
@@ -369,8 +369,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Seek Forwards/Backwards
-		case 0x60:
-			play_yan.nmp_cmd_status = 0x4060;
+		case NMP_SEEK:
+			play_yan.nmp_cmd_status = NMP_SEEK | 0x4000;
 			play_yan.nmp_valid_command = true;
 
 			if(play_yan.command_stream.size() >= 4)
@@ -421,7 +421,7 @@ void AGB_MMU::process_nmp_cmd()
 					else { play_yan.audio_sample_index += (16384 * seek_shift); }
 				}
 
-				play_yan.nmp_manual_cmd = 0x8100;
+				play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
 				play_yan.update_audio_stream = false;
 				play_yan.update_trackbar_timestamp = true;
 				play_yan.irq_delay = 0;
@@ -433,7 +433,7 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Adjust Volume - No IRQ generated
-		case 0x80:
+		case NMP_SET_VOLUME:
 			if(play_yan.command_stream.size() >= 4)
 			{
 				play_yan.volume = play_yan.command_stream[3];
@@ -447,7 +447,7 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Generate Sound (for menus) - No IRQ generated
-		case 0x200:
+		case NMP_PLAY_SFX:
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
 
@@ -461,11 +461,11 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.update_audio_stream = true;
 			play_yan.update_trackbar_timestamp = false;
 
-			if(apu_stat->ext_audio.use_headphones)
-			{
-				play_yan.nmp_manual_cmd = 0x8100;
-				play_yan.irq_delay = 1;
-			}
+			//if(apu_stat->ext_audio.use_headphones)
+			//{
+			//	play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
+			//	play_yan.irq_delay = 1;
+			//}
 
 			//Get SFX file
 			{
@@ -473,66 +473,66 @@ void AGB_MMU::process_nmp_cmd()
 				play_yan_load_audio(sfx_file);
 			}
 
-			play_yan.nmp_manual_cmd = 0x8100;
+			play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
 			play_yan.nmp_manual_irq = true;
 			process_play_yan_irq();
 			play_yan.nmp_manual_irq = false;
 
 			break;
 
-		//Check for firmware update file
-		case 0x300:
-			play_yan.nmp_cmd_status = 0x4300;
+		//Check for firmware update file (presumably)
+		case NMP_CHECK_FIRMWARE_FILE:
+			play_yan.nmp_cmd_status = NMP_CHECK_FIRMWARE_FILE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			
 			break;
 
-		//Undocumented command (firmware update related?)
-		case 0x301:
-			play_yan.nmp_cmd_status = 0x4301;
+		//Unknown command (firmware update related? presumably, read firmware)
+		case NMP_READ_FIRMWARE_FILE:
+			play_yan.nmp_cmd_status = NMP_READ_FIRMWARE_FILE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			
 			break;
 
-		//Undocumented command (firmware update related?)
-		case 0x303:
-			play_yan.nmp_cmd_status = 0x4303;
+		//Unknown command (firmware update related? presumably, close firmware file)
+		case NMP_CLOSE_FIRMWARE_FILE:
+			play_yan.nmp_cmd_status = NMP_CLOSE_FIRMWARE_FILE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.cmd = 0;
 			
 			break;
 
 		//Sleep Start
-		case 0x500:
-			play_yan.nmp_cmd_status = 0x8500;
+		case NMP_SLEEP:
+			play_yan.nmp_cmd_status = NMP_SLEEP | 0x8000;
 			play_yan.nmp_valid_command = true;
 
 			break;
 
 		//Sleep End
-		case 0x501:
-			play_yan.nmp_cmd_status = 0x8501;
+		case NMP_WAKE:
+			play_yan.nmp_cmd_status = NMP_WAKE | 0x8000;
 			play_yan.nmp_valid_command = true;
 
 			break;
 
 		//Init NMP Hardware
-		case 0x8001:
-			play_yan.nmp_cmd_status = 0x8001;
+		case NMP_INIT:
+			play_yan.nmp_cmd_status = NMP_INIT;
 			play_yan.nmp_valid_command = true;
 			
 			break;
 
 		//Continue music stream
-		case 0x8100:
-			play_yan.nmp_cmd_status = 0x8100;
+		case NMP_UPDATE_AUDIO:
+			play_yan.nmp_cmd_status = NMP_UPDATE_AUDIO;
 			play_yan.nmp_valid_command = false;
 			play_yan.nmp_data_index = 0;
 
 			//Trigger additional IRQs for processing music
 			if(play_yan.is_music_playing)
 			{
-				play_yan.nmp_manual_cmd = 0x8100;
+				play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
 				play_yan.audio_buffer_size = 0x480;
 
 				//Prioritize audio stream updates
@@ -575,7 +575,7 @@ void AGB_MMU::process_nmp_cmd()
 
 						if(progress >= 100)
 						{
-							play_yan.nmp_manual_cmd = 0x51;
+							play_yan.nmp_manual_cmd = NMP_STOP_MUSIC;
 							play_yan.irq_delay = 1;
 							break;
 						}
@@ -608,8 +608,8 @@ void AGB_MMU::process_nmp_cmd()
 			break;
 
 		//Headphone Status
-		case 0x8600:
-			play_yan.nmp_cmd_status = 0x8600;
+		case NMP_HEADPHONE_STATUS:
+			play_yan.nmp_cmd_status = NMP_HEADPHONE_STATUS;
 			play_yan.nmp_valid_command = true;
 
 			apu_stat->ext_audio.use_headphones = !apu_stat->ext_audio.use_headphones;
@@ -633,7 +633,7 @@ void AGB_MMU::process_nmp_cmd()
 				//Force timestamp update after switching to headphones
 				if(apu_stat->ext_audio.playing)
 				{
-					play_yan.nmp_manual_cmd = 0x8100;
+					play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
 					play_yan.irq_delay = 1;
 				}
 			}
@@ -740,8 +740,8 @@ void AGB_MMU::access_nmp_io()
 		switch(play_yan.cmd)
 		{
 			//File and folder list
-			case 0x10:
-			case 0x11:
+			case NMP_START_FILE_LIST:
+			case NMP_CONTINUE_FILE_LIST:
 				play_yan.nmp_data_index = 0;
 				play_yan.card_data.resize(528, 0x00);
 
@@ -793,7 +793,7 @@ void AGB_MMU::access_nmp_io()
 				break;
 
 			//ID3 Data
-			case 0x40:
+			case NMP_GET_ID3_DATA:
 				play_yan.nmp_data_index = 0;
 				play_yan.card_data.resize(272, 0x00);
 
@@ -824,7 +824,7 @@ void AGB_MMU::access_nmp_io()
 				break;
 
 			//Music Data
-			case 0x8100:
+			case NMP_UPDATE_AUDIO:
 				if(play_yan.update_audio_stream)
 				{
 					play_yan.card_data.resize(play_yan.audio_buffer_size + 2, 0x00);
