@@ -71,6 +71,18 @@ void AGB_MMU::campho_reset()
 		campho_reset_network();
 	}
 
+	#ifdef GBE_NETPLAY
+
+	campho.line.connected = false;
+	campho.line.host_init = false;
+	campho.line.remote_init = false;
+
+	campho.ringer.connected = false;
+	campho.ringer.host_init = false;
+	campho.ringer.remote_init = false;
+
+	#endif
+
 	//Set default config data
 	//Sensible values (50%) for settings like camera brightness/contrast and volumes
 	//Data gets overwritten by a valid save file from MMU, if it exists
