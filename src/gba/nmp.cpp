@@ -461,12 +461,6 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.update_audio_stream = true;
 			play_yan.update_trackbar_timestamp = false;
 
-			//if(apu_stat->ext_audio.use_headphones)
-			//{
-			//	play_yan.nmp_manual_cmd = NMP_UPDATE_AUDIO;
-			//	play_yan.irq_delay = 1;
-			//}
-
 			//Get SFX file
 			{
 				std::string sfx_file = config::data_path + "play_yan/sfx.wav";
@@ -583,7 +577,7 @@ void AGB_MMU::process_nmp_cmd()
 
 					//Song timestamp in seconds
 					//Treated here as a 24-bit MSB value, with bytes 15, 12, and 13 (in that order)
-					play_yan.nmp_status_data[15] = (play_yan.tracker_update_size >> 16) & 0xFF;
+					//play_yan.nmp_status_data[15] = (play_yan.tracker_update_size >> 16) & 0xFF;
 					play_yan.nmp_status_data[12] = (play_yan.tracker_update_size >> 8) & 0xFF;
 					play_yan.nmp_status_data[13] = (play_yan.tracker_update_size & 0xFF);
 

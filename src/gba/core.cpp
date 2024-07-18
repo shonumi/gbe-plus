@@ -658,7 +658,7 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 	}
 
 	//Switch between headphones on/off for Jukebox and Play-Yan
-	else if((event.type == SDLK_F4) && (pressed))
+	else if((input == SDLK_F4) && (pressed))
 	{
 		if(config::cart_type == AGB_PLAY_YAN)
 		{
