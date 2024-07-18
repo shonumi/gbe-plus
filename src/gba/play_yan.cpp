@@ -49,8 +49,9 @@ void AGB_MMU::play_yan_reset()
 	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
 	play_yan.start_irqs = false;
+	play_yan.irq_update = false;
 
-	play_yan.irq_data_ptr = play_yan.sd_check_data[0];
+	play_yan.irq_data_ptr = NULL;
 	play_yan.irq_len = 1;
 
 	play_yan.is_video_playing = false;
@@ -59,7 +60,7 @@ void AGB_MMU::play_yan_reset()
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 	for(u32 x = 0; x < 16; x++) { play_yan.nmp_status_data[x] = 0; }
-	play_yan.cmd = 0;
+	play_yan.cmd = 0xDEADBEEF;
 
 	for(u32 x = 0; x < 4; x++)
 	{
@@ -150,6 +151,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_boot_data[1] = 0x8600;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+	play_yan.irq_data[0] = 0x80000100;
 
 	play_yan.music_length = 0;
 	play_yan.tracker_progress = 0;
@@ -979,27 +981,37 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_GET_STATUS)
 	{
 		play_yan.irq_delay = 60;
-		play_yan.irq_data_ptr = play_yan.sd_check_data[1];
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+
+		play_yan.irq_data[0] = PLAY_YAN_GET_STATUS | 0x40000000;
+		play_yan.irq_data[1] = 0x00000005;
 	}
 
-	//Trigger Game Pak IRQ for booting cartridge/status
-	else if(play_yan.cmd == 0x800000)
+	//Trigger Game Pak IRQ for booting cartridge/status (firmware related?)
+	else if(play_yan.cmd == PLAY_YAN_FIRMWARE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		play_yan.irq_update = true;
+
 		play_yan.irq_delay = 60;
-		play_yan.irq_data_ptr = play_yan.sd_check_data[2];
-		play_yan.irq_len = 2;
+		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_FIRMWARE | 0x40000000;
+		play_yan.irq_data[1] = 0x00000005;
 	}
 
 	//Trigger Play-Yan Micro Game Pak IRQ to open .ini file 
 	else if(play_yan.cmd == PLAY_YAN_CHECK_KEY_FILE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
 		play_yan.irq_delay = 60;
 		play_yan.irq_data_ptr = play_yan.micro[0];
 		play_yan.irq_len = 1;
@@ -1063,6 +1075,8 @@ void AGB_MMU::process_play_yan_irq()
 
 		return;
 	}
+
+	if(!play_yan.cmd) { return; }
 
 	//Process SD card check first and foremost after booting
 	if(play_yan.op_state == PLAY_YAN_NOP)
@@ -1219,14 +1233,35 @@ void AGB_MMU::process_play_yan_irq()
 		//For 2D arrays, also account for multiple IRQs
 		for(u32 x = 0; x < 8; x++)
 		{
-			play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
+			if(play_yan.irq_data_ptr != NULL)
+			{
+				play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
+			}
 		}
-
-		//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 
 		play_yan.irq_count++;
 		play_yan.irq_delay = play_yan.delay_reload;
 		play_yan.irq_data_in_use = true;
+
+		if(play_yan.irq_update)
+		{
+			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+
+			switch(play_yan.cmd)
+			{
+				case PLAY_YAN_FIRMWARE:
+					play_yan.irq_data[0] = 0x80000100;
+					break;
+			}
+
+			play_yan.irq_delay = 10;
+			play_yan.cmd = PLAY_YAN_UPDATE;
+			play_yan.irq_count = 0;
+			play_yan.irq_len = 1;
+			play_yan.irq_update = false;
+		}
+
+		std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 	}
 }
 
