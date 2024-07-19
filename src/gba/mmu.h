@@ -69,6 +69,7 @@ class AGB_MMU
 	{
 		PLAY_YAN_NOP,
 		PLAY_YAN_PROCESS_CMD,
+		PLAY_YAN_IRQ_UPDATE,
 		PLAY_YAN_WAKE,
 		PLAY_YAN_PROCESS_VIDEO_THUMBNAILS,
 		PLAY_YAN_START_AUDIO,
@@ -322,11 +323,9 @@ class AGB_MMU
 		bool irq_update;
 
 		//Play-Yan (Micro) IRQ data
-		u32 sd_check_data[4][8];
 		u32 music_check_data[2][8];
 		u32 music_play_data[3][8];
 		u32 music_stop_data[2][8];
-		u32 folder_ops_data[4][8];
 
 		u32 video_check_data[4][8];
 		u32 video_play_data[2][8];
@@ -678,6 +677,7 @@ class AGB_MMU
 	u8 read_play_yan(u32 address);
 	void process_play_yan_cmd();
 	void process_play_yan_irq();
+	void play_yan_update();
 	void play_yan_set_music_file();
 	void play_yan_set_video_file();
 	void play_yan_set_folder();

@@ -62,15 +62,6 @@ void AGB_MMU::play_yan_reset()
 	for(u32 x = 0; x < 16; x++) { play_yan.nmp_status_data[x] = 0; }
 	play_yan.cmd = 0xDEADBEEF;
 
-	for(u32 x = 0; x < 4; x++)
-	{
-		for(u32 y = 0; y < 8; y++)
-		{
-			play_yan.sd_check_data[x][y] = 0x55555555;
-			play_yan.folder_ops_data[x][y] = 0x0;
-		}
-	}
-
 	for(u32 x = 0; x < 2; x++)
 	{
 		for(u32 y = 0; y < 8; y++)
@@ -98,12 +89,6 @@ void AGB_MMU::play_yan_reset()
 			play_yan.video_check_data[x][y] = 0x0;
 		}
 	}
-
-	//Set 32-bit flags for SD Check interrupts
-	play_yan.sd_check_data[0][0] = 0x80000100; play_yan.sd_check_data[0][1] = 0x00000000;
-	play_yan.sd_check_data[1][0] = 0x40008000; play_yan.sd_check_data[1][1] = 0x00000005; play_yan.sd_check_data[1][2] = 0x00000000;
-	play_yan.sd_check_data[2][0] = 0x40800000; play_yan.sd_check_data[2][1] = 0x00000005; play_yan.sd_check_data[2][2] = 0x00000000;
-	play_yan.sd_check_data[3][0] = 0x80000100; play_yan.sd_check_data[3][1] = 0x00000000;
 
 	//Set 32-bit flags for entering/exiting music menu
 	play_yan.music_check_data[0][0] = 0x80001000;
@@ -134,12 +119,6 @@ void AGB_MMU::play_yan_reset()
 
 	//Set 32-bit flags for waking from sleep
 	play_yan.wake_data[0] = 0x80010001;
-
-	//Set 32-bit flags for folder operations
-	play_yan.folder_ops_data[0][0] = 0x40000200;
-	play_yan.folder_ops_data[1][0] = 0x80001000;
-	play_yan.folder_ops_data[2][0] = 0x40000201;
-	play_yan.folder_ops_data[3][0] = 0x80001000;
 
 	//Set 32-bit flags for Play-Yan Micro .ini file handling
 	play_yan.micro[0][0] = 0x40003000;
@@ -337,7 +316,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if((play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
 
 			//Set file data
-			else if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) { play_yan_set_folder(); }
+			else if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) { play_yan_set_folder(); std::cout<<"HEY\n"; }
 
 			//Music position seeking
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_music_playing))
@@ -824,22 +803,28 @@ void AGB_MMU::process_play_yan_cmd()
 	if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
-		play_yan.irq_delay = 1;
+
+		play_yan.irq_delay = 10;
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.folder_ops_data[0];
-		play_yan.irq_len = 2;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_GET_FILESYS_INFO | 0x40000000;
 	}
 
 	//Trigger Game Pak IRQ for Change Current Directory command
-	if(play_yan.cmd == PLAY_YAN_SET_DIR)
+	else if(play_yan.cmd == PLAY_YAN_SET_DIR)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
-		play_yan.irq_delay = 1;
+
+		play_yan.irq_delay = 10;
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.folder_ops_data[2];
-		play_yan.irq_len = 2;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_SET_DIR | 0x40000000;
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
@@ -997,7 +982,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_update = true;
 
-		play_yan.irq_delay = 60;
+		play_yan.irq_delay = 10;
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
@@ -1048,6 +1033,27 @@ void AGB_MMU::process_play_yan_cmd()
 	}		
 }
 
+/****** Updates Play-Yan when responding to certain IRQs ******/
+void AGB_MMU::play_yan_update()
+{
+	switch(play_yan.cmd)
+	{
+		case PLAY_YAN_FIRMWARE:
+			play_yan.op_state = PLAY_YAN_WAIT;
+			play_yan.irq_update = false;
+
+			play_yan.irq_delay = 1;
+			play_yan.irq_len = 1;
+			play_yan.irq_repeat = 0;
+			play_yan.irq_count = 0;
+
+			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+			play_yan.irq_data[0] = 0x80000100;
+
+			break;
+	}		
+}
+
 /****** Handles Play-Yan interrupt requests including delays and what data to respond with ******/
 void AGB_MMU::process_play_yan_irq()
 {
@@ -1085,7 +1091,9 @@ void AGB_MMU::process_play_yan_irq()
 		play_yan.irq_count = 0;
 	}
 
-	if(play_yan.op_state == PLAY_YAN_WAIT) { return; }
+	else if(play_yan.op_state == PLAY_YAN_WAIT) { return; }
+
+	else if(play_yan.op_state == PLAY_YAN_IRQ_UPDATE) { play_yan_update(); }
 
 	//Trigger Game Pak IRQ
 	memory_map[REG_IF+1] |= 0x20;
@@ -1245,23 +1253,13 @@ void AGB_MMU::process_play_yan_irq()
 
 		if(play_yan.irq_update)
 		{
-			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-
-			switch(play_yan.cmd)
-			{
-				case PLAY_YAN_FIRMWARE:
-					play_yan.irq_data[0] = 0x80000100;
-					break;
-			}
-
+			play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
 			play_yan.irq_delay = 10;
-			play_yan.cmd = PLAY_YAN_UPDATE;
 			play_yan.irq_count = 0;
 			play_yan.irq_len = 1;
-			play_yan.irq_update = false;
 		}
 
-		std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+		//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 	}
 }
 
