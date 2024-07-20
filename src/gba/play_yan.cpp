@@ -82,23 +82,9 @@ void AGB_MMU::play_yan_reset()
 		}
 	}
 
-	for(u32 x = 0; x < 4; x++)
-	{
-		for(u32 y = 0; y < 8; y++)
-		{
-			play_yan.video_check_data[x][y] = 0x0;
-		}
-	}
-
 	//Set 32-bit flags for entering/exiting music menu
 	play_yan.music_check_data[0][0] = 0x80001000;
 	play_yan.music_check_data[1][0] = 0x40000200;
-
-	//Set 32-bit flags for entering/exiting video menu
-	play_yan.video_check_data[0][0] = 0x40800000;
-	play_yan.video_check_data[1][0] = 0x80000100;
-	play_yan.video_check_data[2][0] = 0x40000200;
-	play_yan.video_check_data[3][0] = 0x40000500;
 
 	//Set 32-bit flags for playing music
 	play_yan.music_play_data[0][0] = 0x40000600; play_yan.music_play_data[0][1] = 0x1;
@@ -808,6 +794,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_GET_FILESYS_INFO | 0x40000000;
@@ -822,6 +809,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_SET_DIR | 0x40000000;
@@ -834,13 +822,18 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_GET_THUMBNAIL)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_VIDEO_THUMBNAILS;
+
 		play_yan.irq_delay = 1;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.video_check_data[0];
-		play_yan.irq_len = 4;
-		play_yan.irq_count = 3;
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
 		play_yan.thumbnail_addr = 0;
 		play_yan.thumbnail_index = 0;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_GET_THUMBNAIL | 0x40000000;
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
@@ -889,12 +882,13 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_STOP_VIDEO)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
 		play_yan.irq_delay = 1;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.video_stop_data[0];
-		play_yan.irq_len = 2;
+		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
 		play_yan.video_frame_count = 0;
@@ -904,6 +898,9 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_STOP_VIDEO | 0x40000000;
 	}
 
 	//Trigger Game Pak IRQ for playing music
@@ -969,6 +966,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
@@ -986,6 +984,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_FIRMWARE | 0x40000000;
@@ -1049,6 +1048,20 @@ void AGB_MMU::play_yan_update()
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80000100;
+
+			break;
+
+		case PLAY_YAN_STOP_VIDEO:
+			play_yan.op_state = PLAY_YAN_WAIT;
+			play_yan.irq_update = false;
+
+			play_yan.irq_delay = 1;
+			play_yan.irq_len = 1;
+			play_yan.irq_repeat = 0;
+			play_yan.irq_count = 0;
+
+			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+			play_yan.irq_data[0] = 0x80001000;
 
 			break;
 	}		
@@ -1259,7 +1272,7 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_len = 1;
 		}
 
-		//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+		std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 	}
 }
 
@@ -2116,7 +2129,7 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 void AGB_MMU::play_yan_check_video_header(std::string filename)
 {
 	//Set default video length of 10 seconds
-	play_yan.video_check_data[3][3] = 10000;
+	play_yan.irq_data[3] = 10000;
 
 	#ifdef GBE_IMAGE_FORMATS
 
@@ -2155,7 +2168,7 @@ void AGB_MMU::play_yan_check_video_header(std::string filename)
 
 	//Grab the number of frames and determine run-time
 	u32 frame_count = (header[0x33] << 24) | (header[0x32] << 16) | (header[0x31] << 8) | (header[0x30]);
-	play_yan.video_check_data[3][3] = (frame_count * 33.3333);
+	play_yan.irq_data[3] = (frame_count * 33.3333);
 
 	#endif
 }

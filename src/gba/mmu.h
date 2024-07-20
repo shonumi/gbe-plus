@@ -327,7 +327,6 @@ class AGB_MMU
 		u32 music_play_data[3][8];
 		u32 music_stop_data[2][8];
 
-		u32 video_check_data[4][8];
 		u32 video_play_data[2][8];
 		u32 video_stop_data[2][8];
 		u32 wake_data[8];
