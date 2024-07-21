@@ -66,7 +66,6 @@ void AGB_MMU::play_yan_reset()
 	{
 		for(u32 y = 0; y < 8; y++)
 		{
-			play_yan.music_check_data[x][y] = 0x0;
 			play_yan.music_stop_data[x][y] = 0x0;
 			play_yan.video_play_data[x][y] = 0x0;
 			play_yan.video_stop_data[x][y] = 0x0;
@@ -78,13 +77,8 @@ void AGB_MMU::play_yan_reset()
 		for(u32 y = 0; y < 8; y++)
 		{
 			play_yan.music_play_data[x][y] = 0x0;
-			play_yan.micro[x][y] = 0x0;
 		}
 	}
-
-	//Set 32-bit flags for entering/exiting music menu
-	play_yan.music_check_data[0][0] = 0x80001000;
-	play_yan.music_check_data[1][0] = 0x40000200;
 
 	//Set 32-bit flags for playing music
 	play_yan.music_play_data[0][0] = 0x40000600; play_yan.music_play_data[0][1] = 0x1;
@@ -105,11 +99,6 @@ void AGB_MMU::play_yan_reset()
 
 	//Set 32-bit flags for waking from sleep
 	play_yan.wake_data[0] = 0x80010001;
-
-	//Set 32-bit flags for Play-Yan Micro .ini file handling
-	play_yan.micro[0][0] = 0x40003000;
-	play_yan.micro[1][0] = 0x40003001;
-	play_yan.micro[2][0] = 0x40003003;
 
 	//Set 16-bit data for Nintendo MP3 Player status checking for boot?
 	play_yan.nmp_boot_data[0] = 0x8001;
@@ -302,7 +291,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if((play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) && (control_cmd2 == 0x01)) { play_yan_set_video_file(); }
 
 			//Set file data
-			else if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) { play_yan_set_folder(); std::cout<<"HEY\n"; }
+			else if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO) { play_yan_set_folder(); }
 
 			//Music position seeking
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_music_playing))
@@ -997,10 +986,14 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 60;
-		play_yan.irq_data_ptr = play_yan.micro[0];
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+
+		play_yan.irq_data[0] = PLAY_YAN_CHECK_KEY_FILE | 0x40000000;
 
 		//0x3000 command is unique to Play-Yan Micro. Switch type if command detected
 		play_yan.type = PLAY_YAN_MICRO;
@@ -1011,11 +1004,16 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_READ_KEY_FILE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
 		play_yan.irq_delay = 60;
-		play_yan.irq_data_ptr = play_yan.micro[0];
-		play_yan.irq_len = 2;
+		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
-		play_yan.irq_count = 1;
+		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+
+		play_yan.irq_data[0] = PLAY_YAN_READ_KEY_FILE | 0x40000000;
 
 		play_yan_set_ini_file();
 	}	
@@ -1024,11 +1022,16 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_CLOSE_KEY_FILE)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
 		play_yan.irq_delay = 60;
-		play_yan.irq_data_ptr = play_yan.micro[0];
-		play_yan.irq_len = 3;
+		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
-		play_yan.irq_count = 2;
+		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+
+		play_yan.irq_data[0] = PLAY_YAN_CLOSE_KEY_FILE | 0x40000000;
 	}		
 }
 
@@ -1622,7 +1625,7 @@ void AGB_MMU::play_yan_set_ini_file()
 	if(file_size > 0x10000) { file_size = 0x10000; }
 	
 	//Set the parameter for Game Pak IRQ data
-	play_yan.micro[1][2] = file_size;
+	play_yan.irq_data[2] = file_size;
 
 	//Read data from file and copy to SD card data
 	file.read(reinterpret_cast<char*> (&ini_data[0]), file_size);
