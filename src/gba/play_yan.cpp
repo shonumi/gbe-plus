@@ -97,9 +97,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.video_stop_data[0][0] = 0x40000701;
 	play_yan.video_stop_data[1][0] = 0x80001000;
 
-	//Set 32-bit flags for waking from sleep
-	play_yan.wake_data[0] = 0x80010001;
-
 	//Set 16-bit data for Nintendo MP3 Player status checking for boot?
 	play_yan.nmp_boot_data[0] = 0x8001;
 	play_yan.nmp_boot_data[1] = 0x8600;
@@ -917,17 +914,21 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_STOP_MUSIC)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
 		play_yan.irq_delay = 1;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.music_stop_data[0];
-		play_yan.irq_len = 2;
+		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
 		play_yan.is_music_playing = false;
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
 	}
 
 	//Pause Media Playback
@@ -958,7 +959,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-
 		play_yan.irq_data[0] = PLAY_YAN_GET_STATUS | 0x40000000;
 		play_yan.irq_data[1] = 0x00000005;
 	}
@@ -992,7 +992,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-
 		play_yan.irq_data[0] = PLAY_YAN_CHECK_KEY_FILE | 0x40000000;
 
 		//0x3000 command is unique to Play-Yan Micro. Switch type if command detected
@@ -1012,7 +1011,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-
 		play_yan.irq_data[0] = PLAY_YAN_READ_KEY_FILE | 0x40000000;
 
 		play_yan_set_ini_file();
@@ -1030,7 +1028,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-
 		play_yan.irq_data[0] = PLAY_YAN_CLOSE_KEY_FILE | 0x40000000;
 	}		
 }
@@ -1048,6 +1045,7 @@ void AGB_MMU::play_yan_update()
 			play_yan.irq_len = 1;
 			play_yan.irq_repeat = 0;
 			play_yan.irq_count = 0;
+			play_yan.irq_data_ptr = NULL;
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80000100;
@@ -1062,6 +1060,7 @@ void AGB_MMU::play_yan_update()
 			play_yan.irq_len = 1;
 			play_yan.irq_repeat = 0;
 			play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80001000;
@@ -1639,10 +1638,15 @@ void AGB_MMU::play_yan_set_ini_file()
 void AGB_MMU::play_yan_wake()
 {
 	play_yan.op_state = PLAY_YAN_WAKE;
+
 	play_yan.irq_delay = 60;
-	play_yan.delay_reload = 10;
-	play_yan.irq_data_ptr = play_yan.wake_data;
 	play_yan.irq_len = 1;
+	play_yan.irq_repeat = 0;
+	play_yan.irq_count = 0;
+	play_yan.irq_data_ptr = NULL;
+
+	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+	play_yan.irq_data[0] = PLAY_YAN_UNSLEEP | 0x80000000;
 }
 
 /****** Loads audio (.MP3) file and then converts it to .WAV for playback ******/

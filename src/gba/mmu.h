@@ -108,6 +108,7 @@ class AGB_MMU
 		PLAY_YAN_CLOSE_KEY_FILE = 0x3003,
 		PLAY_YAN_GET_STATUS = 0x8000,
 		PLAY_YAN_SLEEP = 0x10000,
+		PLAY_YAN_UNSLEEP = 0x10001,
 		PLAY_YAN_FIRMWARE = 0x800000,
 
 		NMP_START_FILE_LIST = 0x10,
@@ -329,7 +330,6 @@ class AGB_MMU
 
 		u32 video_play_data[2][8];
 		u32 video_stop_data[2][8];
-		u32 wake_data[8];
 
 		//Nintendo MP3 data
 		u8 nmp_status_data[16];
