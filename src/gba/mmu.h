@@ -323,11 +323,6 @@ class AGB_MMU
 		u32 cycles;
 		bool irq_update;
 
-		//Play-Yan (Micro) IRQ data
-		u32 music_check_data[2][8];
-		u32 music_play_data[3][8];
-		u32 music_stop_data[2][8];
-
 		u32 video_play_data[2][8];
 		u32 video_stop_data[2][8];
 
@@ -361,6 +356,7 @@ class AGB_MMU
 
 		u8 cnt_data[12];
 		u32 cmd;
+		u32 update_cmd;
 		u32 serial_cmd_index;
 		std::vector <u8> command_stream;
 		bool capture_command_stream;

@@ -61,33 +61,17 @@ void AGB_MMU::play_yan_reset()
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 	for(u32 x = 0; x < 16; x++) { play_yan.nmp_status_data[x] = 0; }
 	play_yan.cmd = 0xDEADBEEF;
+	play_yan.update_cmd = 0xFEEDBEEF;
 
 	for(u32 x = 0; x < 2; x++)
 	{
 		for(u32 y = 0; y < 8; y++)
 		{
-			play_yan.music_stop_data[x][y] = 0x0;
 			play_yan.video_play_data[x][y] = 0x0;
 			play_yan.video_stop_data[x][y] = 0x0;
 		}
 	}
 
-	for(u32 x = 0; x < 3; x++)
-	{
-		for(u32 y = 0; y < 8; y++)
-		{
-			play_yan.music_play_data[x][y] = 0x0;
-		}
-	}
-
-	//Set 32-bit flags for playing music
-	play_yan.music_play_data[0][0] = 0x40000600; play_yan.music_play_data[0][1] = 0x1;
-	play_yan.music_play_data[1][0] = 0x40000800;
-	play_yan.music_play_data[2][0] = 0x80001000;
-
-	//Set 32-bit flags for stopping music
-	play_yan.music_stop_data[0][0] = 0x40000801;
-	play_yan.music_stop_data[1][0] = 0x80001000;
 
 	//Set 32-bit flags for playing video
 	play_yan.video_play_data[0][0] = 0x40000700;
@@ -294,14 +278,14 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_music_playing))
 			{
 				//Update trackbar
-				play_yan.music_play_data[2][5] = control_cmd2;
+				play_yan.irq_data[5] = control_cmd2;
 
 				//Update music progress via IRQ data
 				double result = control_cmd2;
 				result /= 25600;
 				result *= play_yan.music_length;
 
-				play_yan.music_play_data[2][6] = result;
+				play_yan.irq_data[6] = result;
 
 				play_yan.irq_repeat = ((0x6400 - result) / play_yan.tracker_update_size);
 				if((0x6400 - (u32)result) % play_yan.tracker_update_size) { play_yan.irq_repeat++; }
@@ -406,14 +390,14 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_music_playing))
 			{
 				//Update trackbar
-				play_yan.music_play_data[2][5] = control_cmd2;
+				play_yan.irq_data[5] = control_cmd2;
 
 				//Update music progress via IRQ data
 				double result = control_cmd2;
 				result /= 25600;
 				result *= play_yan.music_length;
 
-				play_yan.music_play_data[2][6] = result;
+				play_yan.irq_data[6] = result;
 
 				play_yan.irq_repeat = ((0x6400 - result) / play_yan.tracker_update_size);
 				if((0x6400 - (u32)result) % play_yan.tracker_update_size) { play_yan.irq_repeat++; }
@@ -829,12 +813,16 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_GET_ID3_DATA)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
 		play_yan.irq_delay = 1;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.music_play_data[0];
 		play_yan.irq_len = 1;
 		play_yan.irq_repeat = 0;
 		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_GET_ID3_DATA | 0x40000000;
+		play_yan.irq_data[1] = 0x01;
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
@@ -893,18 +881,22 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_PLAY_MUSIC)
 	{
 		play_yan.op_state = PLAY_YAN_START_AUDIO;
-		play_yan.irq_delay = 1;
-		play_yan.delay_reload = 10;
-		play_yan.irq_data_ptr = play_yan.music_play_data[0];
-		play_yan.irq_len = 3;
-		play_yan.irq_repeat = 0;
-		play_yan.irq_count = 1;
-		play_yan.is_music_playing = true;
+		play_yan.irq_update = true;
+		play_yan.update_cmd = PLAY_YAN_PLAY_MUSIC;
 
+		play_yan.irq_delay = 1;
+		play_yan.irq_len = 1;
+		play_yan.irq_repeat = 0;
+		play_yan.irq_count = 0;
+		play_yan.irq_data_ptr = NULL;
+
+		play_yan.is_music_playing = true;
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
-		play_yan.music_play_data[2][5] = play_yan.tracker_progress;
-		play_yan.music_play_data[2][6] = 0;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_PLAY_MUSIC | 0x40000000;
+		play_yan.irq_data[5] = play_yan.tracker_progress;
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
@@ -914,6 +906,8 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_STOP_MUSIC)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		play_yan.irq_update = false;
+		play_yan.update_cmd = 0;
 
 		play_yan.irq_delay = 1;
 		play_yan.irq_len = 1;
@@ -926,6 +920,7 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
+		apu_stat->ext_audio.sample_pos = 0;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
@@ -968,6 +963,7 @@ void AGB_MMU::process_play_yan_cmd()
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_update = true;
+		play_yan.update_cmd = PLAY_YAN_FIRMWARE;
 
 		play_yan.irq_delay = 10;
 		play_yan.irq_len = 1;
@@ -1035,11 +1031,12 @@ void AGB_MMU::process_play_yan_cmd()
 /****** Updates Play-Yan when responding to certain IRQs ******/
 void AGB_MMU::play_yan_update()
 {
-	switch(play_yan.cmd)
+	switch(play_yan.update_cmd)
 	{
 		case PLAY_YAN_FIRMWARE:
 			play_yan.op_state = PLAY_YAN_WAIT;
 			play_yan.irq_update = false;
+			play_yan.update_cmd = 0;
 
 			play_yan.irq_delay = 1;
 			play_yan.irq_len = 1;
@@ -1052,18 +1049,65 @@ void AGB_MMU::play_yan_update()
 
 			break;
 
-		case PLAY_YAN_STOP_VIDEO:
-			play_yan.op_state = PLAY_YAN_WAIT;
-			play_yan.irq_update = false;
-
-			play_yan.irq_delay = 1;
+		case PLAY_YAN_PLAY_MUSIC:
+			play_yan.irq_delay = 50;
 			play_yan.irq_len = 1;
 			play_yan.irq_repeat = 0;
 			play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
+			play_yan.irq_data_ptr = NULL;
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80001000;
+
+			if(!play_yan.pause_media)
+			{
+				u32 current_sample_pos = (apu_stat->ext_audio.use_headphones) ? apu_stat->ext_audio.sample_pos : 0;
+				u32 current_sample_rate = (apu_stat->ext_audio.use_headphones) ? play_yan.audio_sample_rate : 16384;
+				u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+
+				if(current_sample_rate && current_sample_len)
+				{
+					//Update trackbar
+					play_yan.tracker_update_size = (float(current_sample_pos) / float(current_sample_len) * 0x6400);
+					play_yan.irq_data[5] = play_yan.tracker_update_size;
+
+					//Update music progress via IRQ data
+					play_yan.irq_data[6] = current_sample_pos / current_sample_rate;
+				}
+
+				//Start external audio output
+				if(!apu_stat->ext_audio.playing && play_yan.audio_sample_rate && play_yan.audio_channels)
+				{
+					apu_stat->ext_audio.channels = play_yan.audio_channels;
+					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
+					apu_stat->ext_audio.sample_pos = 0;
+					apu_stat->ext_audio.playing = true;
+				}
+
+				//Stop when length is complete
+				if(current_sample_pos >= current_sample_len)
+				{
+					play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+					play_yan.irq_update = false;
+					play_yan.update_cmd = 0;
+
+					play_yan.irq_delay = 1;
+					play_yan.irq_len = 1;
+					play_yan.irq_repeat = 0;
+					play_yan.irq_count = 0;
+					play_yan.irq_data_ptr = NULL;
+
+					play_yan.is_music_playing = false;
+					apu_stat->ext_audio.playing = false;
+
+					play_yan.audio_channels = 0;
+					play_yan.audio_sample_rate = 0;
+					apu_stat->ext_audio.sample_pos = 0;
+
+					for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+					play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+				}
+			}
 
 			break;
 	}		
@@ -1116,20 +1160,8 @@ void AGB_MMU::process_play_yan_irq()
 	//Wait for next IRQ condition after sending all flags
 	if(play_yan.irq_count == play_yan.irq_len)
 	{
-		//After selecting a music file to play, fire IRQs to process audio
-		if(play_yan.op_state == PLAY_YAN_START_AUDIO)
-		{
-			play_yan.op_state = PLAY_YAN_PROCESS_AUDIO;
-			play_yan.irq_delay = 1;
-			play_yan.delay_reload = 60;
-			play_yan.irq_data_ptr = play_yan.music_play_data[0];
-			play_yan.irq_count = 2;
-			play_yan.irq_len = 3;
-			play_yan.irq_repeat = play_yan.music_length + 1;
-		}
-
 		//After selecting a video file to play, fire IRQs to process video
-		else if(play_yan.op_state == PLAY_YAN_START_VIDEO)
+		if(play_yan.op_state == PLAY_YAN_START_VIDEO)
 		{
 			play_yan.op_state = PLAY_YAN_PROCESS_VIDEO;
 			play_yan.irq_delay = 1;
@@ -1138,51 +1170,6 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.irq_count = 1;
 			play_yan.irq_len = 2;
 			play_yan.irq_repeat = play_yan.video_frames.size();
-		}
-
-		//Repeat music IRQs as necessary
-		else if((play_yan.op_state == PLAY_YAN_PROCESS_AUDIO) && (play_yan.irq_repeat))
-		{
-			play_yan.op_state = PLAY_YAN_PROCESS_AUDIO;
-			play_yan.irq_delay = 1;
-			play_yan.delay_reload = 60;
-			play_yan.irq_data_ptr = play_yan.music_play_data[0];
-			play_yan.irq_count = 2;
-			play_yan.irq_len = 3;
-
-			if(!play_yan.pause_media)
-			{
-				play_yan.irq_repeat--;
-
-				//Update trackbar
-				play_yan.music_play_data[2][5] += play_yan.tracker_update_size;
-
-				//Update music progress via IRQ data
-				play_yan.music_play_data[2][6]++;
-
-				//Start external audio output
-				if(!apu_stat->ext_audio.playing && play_yan.audio_sample_rate && play_yan.audio_channels)
-				{
-					apu_stat->ext_audio.channels = play_yan.audio_channels;
-					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
-					apu_stat->ext_audio.sample_pos = 0;
-					apu_stat->ext_audio.playing = true;
-				}
-
-				//Stop when length is complete
-				if(play_yan.music_play_data[2][6] > play_yan.music_length)
-				{
-					play_yan.op_state = PLAY_YAN_PROCESS_CMD;
-					play_yan.irq_delay = 1;
-					play_yan.delay_reload = 1;
-					play_yan.irq_data_ptr = play_yan.music_stop_data[0];
-					play_yan.irq_count = 0;
-					play_yan.irq_len = 2;
-					play_yan.irq_repeat = 0;
-					play_yan.is_music_playing = false;
-					apu_stat->ext_audio.playing = false;
-				}
-			}
 		}
 
 		//Repeat video IRQs as necessary
