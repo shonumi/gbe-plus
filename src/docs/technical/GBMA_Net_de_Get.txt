@@ -86,8 +86,8 @@ Data Structure
 0x00	 			::	Number of memory blocks necessary for the download (modulus 100). Should be 0x00 - 0x63 ideally.
 0x01				::	Mini-game icon type. See Icon Type below for details.
 0x02 - 0x05			::	Game ID, simply in the format "Gxyz" where "xyz" are three numbers. E.g. the first minigame ID in the Net de Get ROM is "G000"
-0x08 - 0x0A			::	Disables download (grayed out text). All 3 must be zero, otherwise download is disabled.
-0x0C - 0x0F			::	Disables menu item completely (no text, item not selectable). All 4 must be zero, otherwise menu item is disabled.
+0x08 - 0x0A			::	Minimum levels in each category to download this minigame. If all 3 are not met, the menu item is grayed out.
+0x0C - 0x0F			::	Minimum hidden levels in each category to see this minigame. If all 4 are not met, the menu item does not appear.
 0x10				::	String Length 1. Each menu item should ideally be 12 characters or less (font is fixed width). Used for minigame name.
 0x11 - ...			::	Menu Item Text (see String Format below).
 0x11 + String Length 1		::	String Length 2. Each menu item draws additional text to a small on-screen textbox. Used brief explanations about minigame. Ideal max is 0xF.
