@@ -323,9 +323,6 @@ class AGB_MMU
 		u32 cycles;
 		bool irq_update;
 
-		u32 video_play_data[2][8];
-		u32 video_stop_data[2][8];
-
 		//Nintendo MP3 data
 		u8 nmp_status_data[16];
 		u16 nmp_boot_data[2];
