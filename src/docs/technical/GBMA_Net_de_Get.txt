@@ -1,6 +1,6 @@
-Net de Get GB Mobile Adapter Server Technical Documentation 0.2
-September 23, 2018
-Shonumi aka D.S. Baxter
+Net de Get GB Mobile Adapter Server Technical Documentation 0.3
+July 24, 2024
+Shonumi aka D.S. Baxter, Winter1760
 
 ***************************************************
 1. Introduction
@@ -16,44 +16,57 @@ Net de Get is a Game Boy Color game published by Konami and released on June 12,
 Net de Get is currently known to access the following URLs:
 
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/h0000.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/h0*.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB_BMVJ/h8*.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/RomList.cgb
 * http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/*
 
-Although a few other URLs are present within the ROM, the above are the only ones observed in actual use.
-
 
 ***************************************************
-3. h0000.cgb
+3. h0000.cgb, h0*.cgb
 ***************************************************
 
-Once some of the default minigames have been played, the "セーバ" or "Server" option in the main menu unlocks. After the user's password is given, this file is then downloaded via HTTP GET. The purpose of h0000.cgb is simply to display the text "ミニゲームリスト" or "Minigame List". Selecting this downloads RomList.cgb via HTTP GET. The format of h0000.cgb is described below:
+Once one of the default minigames has been played, the "セーバ" or "Server" option in the main menu unlocks. After the user's password is given, h0000.cgb is then downloaded via HTTP GET. The purpose of these files is simply to display a selection menu.
 
 ----------------------------------
-Header - 4 bytes
+Header - 5 bytes
 ----------------------------------
-0x0000 - "M"			::	0x4D
-0x0001 - "N"			::	0x4E
-0x0002 - "G"			::	0x47
-0x0003 - "L"			::	0x4C
+0x00 - "M"			::	0x4D
+0x01 - "N"			::	0x4E
+0x02 - "G"			::	0x47
+0x03 - "L"			::	0x4C
+0x04				::	Number of menu items.
 
-----------------------------------
-Text offset - 6 bytes
-----------------------------------
-0x0004 - Offset			::	Offset to text string. Calculated as 10 + (Offset * 5).
-0x0005 - ???			:: 	0x0005 through 0x0009 seem to be ignored.
-0x0006 - ???			::
-0x0007 - ???			::
-0x0008 - ???			::
-0x0009 - ???			::
+Following this is a five-byte file name for each menu item. If the file name begins with a digit "0" or "8", it is inserted into the URL http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/h*.cgb, then the file is downloaded via HTTP GET and its contents treated based on the first digit. In this case, the file name MUST end with a null byte (0x00), or the game will continue copying characters until it reaches one. If the file name does not begin with either of these digits, it is ignored and the menu selection downloads http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/RomList.cgb instead.
+After the file names come the null-terminated names of each menu item, using a custom encoding (see below). Additionally, the game is liable to crash and/or corrupt save data if this file does not end with the bytes 0x00, 0x00, 0x01.
 
-As far as anyone knows, this file only had one menu item, and the "ミニゲームリスト" text itself did not change. The game code appears to only process one offset to whatever text it wants to print. Additionally, the game manual shows only one menu item in a screenshot.
-
+As far as anyone knows, this file only had one menu item, and the "ミニゲームリスト" text itself did not change. Additionally, the game manual shows only one menu item in a screenshot.
 
 ***************************************************
-4. RomList.cgb
+4. h8*.cgb
 ***************************************************
 
-After downloading h0000.cgb, the next file is RomList.cgb. This file contains a list of all available minigames the server has to offer. It also displays how many 8KB blocks of flash memory are required for the  download, as well as the type of minigame being downloaded.
+This file contains a message to the player. Once it has been downloaded, the game disconnects from the internet and the message is displayed.
+
+----------------------------------
+File format
+----------------------------------
+0x00 - 0x17			::	Background palettes 0-2, used for text.
+0x18 - 0x37			::	Background palettes 3-6, unused.
+0x38 - 0x3F			::	Background palette 7, used for background and other elements.
+0x40 - 0x47			::	Object palette 0, used for blinking arrows.
+0x48 - 0x7F			::	Object palettes 1-7, unused.
+0x80				::	Number of pages. No known maximum, but page numbers above 10 use garbage tiles.
+0x81 - 0x82			::	Pointer to page 1 text.
+...				::	Repeat pointers as needed.
+
+Palettes are in GBC format (that is, four colors each in little-endian RGB555). For background palettes, color 0 is the foreground, color 1 is a shadow, and color 3 is the background. The file's contents are read from 0xB000, so the text pointers can be considered as file offsets with 0xB000 added to them.
+
+***************************************************
+5. RomList.cgb
+***************************************************
+
+This file contains a list of all available minigames the server has to offer. It also displays how many 8KB blocks of flash memory are required for the download, as well as the type of minigame being downloaded.
 
 ----------------------------------
 Entry Count - 1 byte
@@ -107,7 +120,7 @@ Each mini game has two icons. The first describes the main type, "Program" for t
 
 
 ***************************************************
-5. cgb/download?name=/A4/CGB-BMVJ/*
+6. cgb/download?name=/A4/CGB-BMVJ/*
 ***************************************************
 
 The GB Mobile Adapter attempts to access this URL for downloading minigames. The file containing the minigame is appended to the base URL. The appended part should be 12 characters, 4 for the price in yen, followed by 8 characters for rest of the unique ID. Although it is unknown if this really was the case, it would make sense to use the minigame ID (e.g. "G000") along with ".cgb". Thus a full URL would be something like:
@@ -118,7 +131,7 @@ Note that the filename of the minigame should start with numbers (the price) sin
 
 
 ***************************************************
-6. Download Wrapper
+7. Download Wrapper
 ***************************************************
 
 Rather than simply downloading the minigame data as-is, Net de Get expects minigames to have come in a sort of wrapper file. This consists of a brief header followed by the actual minigame data as described in the next section below. The wrapper header is as follows:
@@ -159,7 +172,7 @@ Note that the footer is written to SRAM later on, not flash. Improperly formatte
 
 
 ***************************************************
-7. Minigame Format
+8. Minigame Format
 ***************************************************
 
 The minigame format is essentially the same as that found on the MBC6 ROM. Using the base address of the flash ROM bank, minigames look like so:
@@ -208,13 +221,12 @@ For the secondary icon, everything above 0x08 results in garbage tile data being
 
 
 ***************************************************
-8. String Format
+9. String Format
 ***************************************************
 
 Blank entries represent values that are not used and can effectively be treated as spaces.
 
         0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
-0x00
 0x10         !    "    #    $    %    &    '    (    )    *    +    ‘    -    .    /
 0x20    0    1    2    3    4    5    6    7    8    9    :    ;    <    =    >    ?
 0x30    [    ¥    ]    x    ÷    {    |    }    ˜    @    ⌜    ⌟    —    ~    、    。
@@ -241,9 +253,17 @@ A couple of things to note, since some characters listed are not quite the same 
 * 0xF8 is actually inverted color-wise (black outlines, white on the inside).
 * 0xFB is a "smiley face" like 0xFA, but it's kind of lumpy and missing an eye.
 
+Additionally, there are a few control codes:
+
+* 0x00 terminates a string.
+* 0x01 terminates a line.
+* 0x02 takes a second byte and uses it to set the text color. The default color is 0x00.
+* 0x03 takes a second byte and uses it as the parameter to an unknown function. It also causes 0x00 to return just after the second byte and continue printing text.
+* 0x04 clears the text field.
+* 0x0F causes the game to wait for the A button to be pressed, then continues printing text. However, this continuation is broken and probably shouldn't be used.
 
 ***************************************************
-9. MBC6 flash Operation
+10. MBC6 Flash Operation
 ***************************************************
 
 The MBC6 writes games to flash ROM for long-time data storage. Although technically it has a limited number of lifetime writes, it does not rely on a battery unlike cartridge SRAM for DMG/GBC games. The MBC6 uses the MX29F008TC-14. While no specific documentation about the MX29F008TC-14 is available, the following information has been reverse-engineered based on how Net de Get's code expects flash ROM to work.

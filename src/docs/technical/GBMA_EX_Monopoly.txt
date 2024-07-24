@@ -1,5 +1,5 @@
-EX Monopoly Server Technical Documentation 0.1
-January 29, 2024
+EX Monopoly Server Technical Documentation 0.2
+July 24, 2024
 Winter1760
 
 ***************************************************
@@ -81,12 +81,13 @@ When the player uploads their total score, the game sends two POST requests to t
 6. 10.temporary.cgb
 ***************************************************
 
-After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format "myscore=<8 hex digits>". The server responds in the following format:
+After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format "myscore=<16 hex digits>". The server responds in the following format:
 
 0x00 - 0x01				::  If both are 0x00, no rank number is present.
 0x02 - 0x05				::  Rank number in big endian, optional.
 
 If the rank number is greater than 10, the player will be told that they are unranked.
+Note that, in the initial GET request to this file before authentication is complete, the game sends a "Content-Length: 24" header without sending any content.
 
 ***************************************************
 7. String Format
