@@ -268,6 +268,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				
 				if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
 				else { }
+
+				play_yan.irq_delay = 1;
+				process_play_yan_irq();
 			}
 
 			//Video position seeking
@@ -365,6 +368,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				
 				if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
 				else { }
+
+				play_yan.irq_delay = 1;
+				process_play_yan_irq();
 			}
 
 			//Video position seeking
@@ -1163,42 +1169,18 @@ void AGB_MMU::process_play_yan_irq()
 
 	//Trigger Game Pak IRQ
 	memory_map[REG_IF+1] |= 0x20;
+	play_yan.irq_data_in_use = true;
 
-	//Wait for next IRQ condition after sending all flags
-	if(play_yan.irq_count == play_yan.irq_len)
+	if(play_yan.irq_update)
 	{
-		//Stop IRQs until next trigger condition
-		play_yan.op_state = PLAY_YAN_WAIT;
-		play_yan.irq_delay = 0;
+		play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
 		play_yan.irq_count = 0;
+		play_yan.irq_len = 0;
+
+		if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
 	}
 
-	//Send data for IRQ
-	else
-	{
-		//Copy IRQ data from given array pointer
-		//For 2D arrays, also account for multiple IRQs
-		for(u32 x = 0; x < 8; x++)
-		{
-			if(play_yan.irq_data_ptr != NULL)
-			{
-				play_yan.irq_data[x] = *(play_yan.irq_data_ptr + (play_yan.irq_count * 8) + x);
-			}
-		}
-
-		play_yan.irq_data_in_use = true;
-
-		if(play_yan.irq_update)
-		{
-			play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
-			play_yan.irq_count = 0;
-			play_yan.irq_len = 0;
-
-			if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
-		}
-
-		std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
-	}
+	std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 }
 
 /****** Reads a bitmap file for video thumbnail used for Play-Yan video ******/
