@@ -315,11 +315,8 @@ class AGB_MMU
 		u16 access_mode;
 		u16 access_param;
 
-		u32 irq_count;
 		u32 irq_delay;
 		u32 last_delay;
-		u32 irq_repeat;
-		u32 delay_reload;
 		u32 cycles;
 		bool irq_update;
 
@@ -347,9 +344,6 @@ class AGB_MMU
 		bool is_video_playing;
 		bool is_music_playing;
 		bool pause_media;
-
-		u32* irq_data_ptr;
-		u32 irq_len;
 
 		u8 cnt_data[12];
 		u32 cmd;

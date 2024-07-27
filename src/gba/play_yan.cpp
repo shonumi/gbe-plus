@@ -42,17 +42,11 @@ void AGB_MMU::play_yan_reset()
 	play_yan.access_mode = 0;
 	play_yan.access_param = 0;
 
-	play_yan.irq_count = 0;
-	play_yan.irq_repeat = 0;
 	play_yan.irq_delay = 0;
 	play_yan.last_delay = 0;
-	play_yan.delay_reload = 60;
 	play_yan.irq_data_in_use = false;
 	play_yan.start_irqs = false;
 	play_yan.irq_update = false;
-
-	play_yan.irq_data_ptr = NULL;
-	play_yan.irq_len = 1;
 
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
@@ -719,9 +713,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 10;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_GET_FILESYS_INFO | 0x40000000;
@@ -733,9 +724,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 10;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_SET_DIR | 0x40000000;
@@ -750,9 +738,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_VIDEO_THUMBNAILS;
 
 		play_yan.irq_delay = 1;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		play_yan.thumbnail_addr = 0;
 		play_yan.thumbnail_index = 0;
@@ -770,9 +755,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 1;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_GET_ID3_DATA | 0x40000000;
@@ -790,9 +772,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.update_cmd = PLAY_YAN_PLAY_VIDEO;
 
 		play_yan.irq_delay = 1;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
@@ -818,9 +797,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.update_cmd = 0;
 
 		play_yan.irq_delay = 1;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
@@ -844,9 +820,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.update_cmd = PLAY_YAN_PLAY_MUSIC;
 
 		play_yan.irq_delay = 1;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		play_yan.is_music_playing = true;
 		play_yan.tracker_progress = 0;
@@ -868,9 +841,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.update_cmd = 0;
 
 		play_yan.irq_delay = 1;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		play_yan.is_music_playing = false;
 		apu_stat->ext_audio.playing = false;
@@ -905,9 +875,6 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_GET_STATUS)
 	{
 		play_yan.irq_delay = 60;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_GET_STATUS | 0x40000000;
@@ -922,9 +889,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.update_cmd = PLAY_YAN_FIRMWARE;
 
 		play_yan.irq_delay = 10;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_FIRMWARE | 0x40000000;
@@ -937,9 +901,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 60;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_CHECK_KEY_FILE | 0x40000000;
@@ -955,9 +916,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 60;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_READ_KEY_FILE | 0x40000000;
@@ -971,9 +929,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
 		play_yan.irq_delay = 60;
-		play_yan.irq_len = 1;
-		play_yan.irq_count = 0;
-		play_yan.irq_data_ptr = NULL;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_CLOSE_KEY_FILE | 0x40000000;
@@ -991,9 +946,6 @@ void AGB_MMU::play_yan_update()
 			play_yan.update_cmd = 0;
 
 			play_yan.irq_delay = 1;
-			play_yan.irq_len = 1;
-			play_yan.irq_count = 0;
-			play_yan.irq_data_ptr = NULL;
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80000100;
@@ -1002,9 +954,6 @@ void AGB_MMU::play_yan_update()
 
 		case PLAY_YAN_PLAY_MUSIC:
 			play_yan.irq_delay = 60;
-			play_yan.irq_len = 1;
-			play_yan.irq_count = 0;
-			play_yan.irq_data_ptr = NULL;
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80001000;
@@ -1042,9 +991,6 @@ void AGB_MMU::play_yan_update()
 					play_yan.update_cmd = 0;
 
 					play_yan.irq_delay = 1;
-					play_yan.irq_len = 1;
-					play_yan.irq_count = 0;
-					play_yan.irq_data_ptr = NULL;
 
 					play_yan.is_music_playing = false;
 					apu_stat->ext_audio.playing = false;
@@ -1062,9 +1008,6 @@ void AGB_MMU::play_yan_update()
 
 		case PLAY_YAN_PLAY_VIDEO:
 			play_yan.irq_delay = 2;
-			play_yan.irq_len = 1;
-			play_yan.irq_count = 0;
-			play_yan.irq_data_ptr = NULL;
 
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = 0x80001000;
@@ -1104,9 +1047,6 @@ void AGB_MMU::play_yan_update()
 					play_yan.update_cmd = 0;
 
 					play_yan.irq_delay = 1;
-					play_yan.irq_len = 1;
-					play_yan.irq_count = 0;
-					play_yan.irq_data_ptr = NULL;
 
 					play_yan.video_data_addr = 0;
 					play_yan.video_progress = 0;
@@ -1157,11 +1097,7 @@ void AGB_MMU::process_play_yan_irq()
 	if(!play_yan.cmd) { return; }
 
 	//Process SD card check first and foremost after booting
-	if(play_yan.op_state == PLAY_YAN_NOP)
-	{
-		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
-		play_yan.irq_count = 0;
-	}
+	if(play_yan.op_state == PLAY_YAN_NOP) { play_yan.op_state = PLAY_YAN_PROCESS_CMD; }
 
 	else if(play_yan.op_state == PLAY_YAN_WAIT) { return; }
 
@@ -1174,8 +1110,6 @@ void AGB_MMU::process_play_yan_irq()
 	if(play_yan.irq_update)
 	{
 		play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
-		play_yan.irq_count = 0;
-		play_yan.irq_len = 0;
 
 		if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
 	}
@@ -1545,9 +1479,6 @@ void AGB_MMU::play_yan_wake()
 	play_yan.op_state = PLAY_YAN_WAKE;
 
 	play_yan.irq_delay = 60;
-	play_yan.irq_len = 1;
-	play_yan.irq_count = 0;
-	play_yan.irq_data_ptr = NULL;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 	play_yan.irq_data[0] = PLAY_YAN_UNSLEEP | 0x80000000;
