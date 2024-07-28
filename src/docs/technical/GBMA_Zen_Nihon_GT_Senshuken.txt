@@ -237,7 +237,7 @@ Mobile Rank Entry
 0x09				::	Course ID (for custom courses).
 0x0A - 0x0B			::	Unused. Should be zero.
 0x0C - 0x0D			::	Handicap Weight in kilograms. 16-bit value stored LSB first. Max value is 990, game displays values as units of 10 (e.g. 10, 20, 30, 40...). May be zero.
-0x0E - 0x23			::	Player name.
+0x0E - 0x23			::	11 character player name. Uses a custom 16-bit character encoding.
 0x24 - 0x27			::	Course Completion Time. 32-bit value stored LSB first. Same format as Ghost Time, see notes above.
 0x28 - 0x2F			::	GMT timestamp for registration.
 0x30 - 0x33			::	Ghost ID. 32-bit value stored LSB first. Must not be zero.
@@ -295,4 +295,34 @@ Ghost Entry Format
 0x2FAC - 0x2FAF			::	Always zero.
 0x2FB0 - 0x2FB3			::	A 32-bit checksum for all bytes from 0x0000 - 0x2FAF. All bytes are added, one-by-one. Checksum stored LSB first.
 
-The Ghost ID as uploaded is calculated by starting with 0x20031DC, adding the remaining bytes of the Mobile Rank Entry, then adding all bytes of the Track Movement Data, one-by-one.
+The player name as uploaded is limited to 5 characters. The Ghost ID as uploaded is calculated by starting with 0x20031DC, adding the remaining bytes of the Mobile Rank Entry, then adding all bytes of the Track Movement Data, one-by-one.
+
+
+***************************************************
+10. Character Encoding
+***************************************************
+
+	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
+0x000	 	!	"	#	$	%	&	'	(	)	*	+	,	-	.	/
+0x010	0	1	2	3	4	5	6	7	8	9	:	;	<	=	>	?
+0x020	@	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O
+0x030	P	Q	R	S	T	U	V	W	X	Y	Z	[	¥	]	^	_
+0x040	`	a	b	c	d	e	f	g	h	i	j	k	l	m	n	o
+0x050	p	q	r	s	t	u	v	w	x	y	z	{	|	}	~	〒
+0x060	☆	★	○	●	◎	◇	◆	□	■	△	▲	▽	▼	❤	♂	♀
+0x070	\	≠	＜	＞	±	✕	÷	‖	‘	’	“	”	〔	〕	《	》
+0x080	 	。	「	」	、	・	ヲ	ァ	ィ	ゥ	ェ	ォ	ャ	ュ	ョ	ッ
+0x090	ー	ア	イ	ウ	エ	オ	カ	キ	ク	ケ	コ	サ	シ	ス	セ	ソ
+0x0A0	タ	チ	ツ	テ	ト	ナ	ニ	ヌ	ネ	ノ	ハ	ヒ	フ	ヘ	ホ	マ
+0x0B0	ミ	ム	メ	モ	ヤ	ユ	ヨ	ラ	リ	ル	レ	ロ	ワ	ン	゛	゜
+0x0C0	‥	…	ヰ	ヴ	ヱ	 	ガ	ギ	グ	ゲ	ゴ	ザ	ジ	ズ	ゼ	ゾ
+0x0D0	ダ	ヂ	ヅ	デ	ド	パ	ピ	プ	ペ	ポ	バ	ビ	ブ	ベ	ボ	♪
+0x0E0	∞	【	】	℃	¢	£	§	＝	～	™	©	®	→	←	↑	↓
+0x0F0	 	。	『	』	、	・	を	ぁ	ぃ	ぅ	ぇ	ぉ	ゃ	ゅ	ょ	っ
+0x100	ー	あ	い	う	え	お	か	き	く	け	こ	さ	し	す	せ	そ
+0x110	た	ち	つ	て	と	な	に	ぬ	ね	の	は	ひ	ふ	へ	ほ	ま
+0x120	み	む	め	も	や	ゆ	よ	ら	り	る	れ	ろ	わ	ん	゛	゜
+0x130	‥	…	ゐ	 	ゑ	 	が	ぎ	ぐ	げ	ご	ざ	じ	ず	ぜ	ぞ
+0x140	だ	ぢ	づ	で	ど	ぱ	ぴ	ぷ	ぺ	ぽ	ば	び	ぶ	べ	ぼ
+
+For user input, the game uses characters 0x000, 0x081, 0x084, 0x0F5, and 0x100. Characters 0x0BE and 0x0BF appear on the katakana keyboard, while characters 0x12E and 0x12F appear on the hiragana keyboard, though none are actual input characters, and they are unlikely to have been used in downloadable content. Characters 0x0C0, 0x0C1, 0x130, and 0x131 are not available for user input, so it is unknown which, if any, were used in downloadable content. Character 0x135, along with all characters starting at 0x14F, have garbage tile data and should not be used. Finally, character 0xFFFF is used as a terminator.
