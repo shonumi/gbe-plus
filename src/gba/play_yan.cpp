@@ -283,7 +283,18 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						play_yan.video_frame_count -= 30.0;
 					}
 
-					play_yan.video_progress = (play_yan.current_frame * 33.3333);					
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);
+
+					//Update sound as well
+					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+					double result = double(play_yan.video_progress) / play_yan.video_length;
+					result *= current_sample_len;
+
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
+					else { }
+
+					play_yan.irq_delay = 1;
+					process_play_yan_irq();
 				}
 
 				//Rewind trackbar and timestamp
@@ -303,6 +314,17 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					}
 
 					play_yan.video_progress = (play_yan.current_frame * 33.3333);
+
+					//Update sound as well
+					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+					double result = double(play_yan.video_progress) / play_yan.video_length;
+					result *= current_sample_len;
+
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
+					else { }
+
+					play_yan.irq_delay = 1;
+					process_play_yan_irq();
 				}
 
 				play_yan.irq_data[6] = play_yan.video_progress;
@@ -383,7 +405,18 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						play_yan.video_frame_count -= 30.0;
 					}
 
-					play_yan.video_progress = (play_yan.current_frame * 33.3333);					
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);
+
+					//Update sound as well
+					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+					double result = double(play_yan.video_progress) / play_yan.video_length;
+					result *= current_sample_len;
+
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
+					else { }
+
+					play_yan.irq_delay = 1;
+					process_play_yan_irq();				
 				}
 
 				//Rewind trackbar and timestamp
@@ -403,6 +436,17 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					}
 
 					play_yan.video_progress = (play_yan.current_frame * 33.3333);
+
+					//Update sound as well
+					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+					double result = double(play_yan.video_progress) / play_yan.video_length;
+					result *= current_sample_len;
+
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
+					else { }
+
+					play_yan.irq_delay = 1;
+					process_play_yan_irq();
 				}
 
 				play_yan.irq_data[6] = play_yan.video_progress;
@@ -1063,7 +1107,7 @@ void AGB_MMU::play_yan_update()
 			}
 
 			break;
-	}		
+	}
 }
 
 /****** Handles Play-Yan interrupt requests including delays and what data to respond with ******/
@@ -1114,7 +1158,7 @@ void AGB_MMU::process_play_yan_irq()
 		if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
 	}
 
-	std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+	//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 }
 
 /****** Reads a bitmap file for video thumbnail used for Play-Yan video ******/
