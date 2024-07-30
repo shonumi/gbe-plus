@@ -444,6 +444,8 @@ void AGB_APU::generate_dma_b_samples(s16* stream, int length)
 /****** Generate raw samples for playback on external audio channel ******/
 void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 {
+	if(apu_stat.ext_audio.buffer == NULL) { return; }
+
 	double sample_ratio = apu_stat.ext_audio.frequency/apu_stat.sample_rate;
 	u32 last_pos = apu_stat.ext_audio.sample_pos;
 	u32 buffer_pos = 0;
