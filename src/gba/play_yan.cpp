@@ -997,13 +997,13 @@ void AGB_MMU::play_yan_update()
 			break;
 
 		case PLAY_YAN_PLAY_MUSIC:
-			play_yan.irq_delay = 60;
-
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-			play_yan.irq_data[0] = 0x80001000;
 
 			if(!play_yan.pause_media)
 			{
+				play_yan.irq_delay = 60;
+				play_yan.irq_data[0] = 0x80001000;
+
 				u32 current_sample_pos = (apu_stat->ext_audio.use_headphones) ? apu_stat->ext_audio.sample_pos : 0;
 				u32 current_sample_rate = (apu_stat->ext_audio.use_headphones) ? play_yan.audio_sample_rate : 16384;
 				u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
@@ -1051,15 +1051,15 @@ void AGB_MMU::play_yan_update()
 			break;
 
 		case PLAY_YAN_PLAY_VIDEO:
-			play_yan.irq_delay = 2;
-
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-			play_yan.irq_data[0] = 0x80001000;
-			play_yan.irq_data[1] = 0x31AC0;
-			play_yan.irq_data[2] = 0x12C00;
-
+			
 			if(!play_yan.pause_media)
 			{
+				play_yan.irq_delay = 2;
+				play_yan.irq_data[0] = 0x80001000;
+				play_yan.irq_data[1] = 0x31AC0;
+				play_yan.irq_data[2] = 0x12C00;
+
 				//Update video frame counter and grab new video frame if necessary
 				play_yan.video_frame_count += 1.0;
 				play_yan.current_frame++;
