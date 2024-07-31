@@ -860,12 +860,16 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_PLAY_MUSIC)
 	{
 		play_yan.op_state = PLAY_YAN_START_AUDIO;
-		play_yan.irq_update = true;
+		play_yan.irq_update = apu_stat->ext_audio.use_headphones;
 		play_yan.update_cmd = PLAY_YAN_PLAY_MUSIC;
 
 		play_yan.irq_delay = 1;
 
 		play_yan.is_music_playing = true;
+		play_yan.cycles = 0;
+		play_yan.audio_buffer_size = 0x480;
+		play_yan.audio_sample_index = 0;
+
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
 
@@ -1515,6 +1519,48 @@ void AGB_MMU::play_yan_set_ini_file()
 	file.close();
 
 	std::cout<<"MMU::Reading Play-Yan Micro.ini file at " << filename << "\n";
+}
+
+/****** Sets SD card data to sound samples ******/
+void AGB_MMU::play_yan_set_sound_samples()
+{
+	play_yan.card_data.clear();
+	play_yan.card_data.resize(0x10000, 0x00);
+
+	if(play_yan.audio_sample_rate)
+	{
+		double ratio = play_yan.audio_sample_rate / 16384.0;
+		s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
+		u32 stream_size = apu_stat->ext_audio.length / 2;
+
+		s32 sample = 0;
+		s16 error = 0;
+		u32 index = 0;
+		u32 sample_count = 0;
+		u32 offset = 0;
+		u32 limit = (play_yan.audio_buffer_size / 2);
+
+		for(u32 x = 2; x < limit; x++)
+		{
+			index = (ratio * play_yan.audio_sample_index);
+			index *= play_yan.audio_channels;
+
+			if(index >= stream_size)
+			{
+				index = (stream_size - 1);
+				play_yan.is_music_playing = false;
+			}
+
+			//Perform simple Flyod-Steinberg dithering
+			//Grab current sample and add 7/16 of error, quantize results, clip results 
+			sample = e_stream[index];
+			sample >>= 8;
+
+			//Output new samples
+			play_yan.card_data[offset++] = (sample & 0xFF);
+			play_yan.audio_sample_index++;
+		}
+	}
 }
 
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/

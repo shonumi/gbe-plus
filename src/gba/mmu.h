@@ -667,6 +667,7 @@ class AGB_MMU
 	void play_yan_set_folder();
 	void play_yan_get_id3_data(std::string filename);
 	void play_yan_set_ini_file();
+	void play_yan_set_sound_samples();
 	void play_yan_wake();
 	bool play_yan_load_audio(std::string filename);
 	bool play_yan_load_video(std::string filename);

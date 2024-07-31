@@ -1512,10 +1512,27 @@ void ARM7::clock(u32 access_addr, bool first_access)
 			if(mem->play_yan.cycles == 479232)
 			{
 				mem->play_yan.cycles = 0;
-				mem->play_yan.nmp_manual_cmd = 0x8100;
-				mem->play_yan.nmp_manual_irq = true;
-				mem->process_play_yan_irq();
-				mem->play_yan.nmp_manual_irq = false;
+
+				if(mem->play_yan.type == AGB_MMU::NINTENDO_MP3)
+				{
+					mem->play_yan.nmp_manual_cmd = 0x8100;
+					mem->play_yan.nmp_manual_irq = true;
+					mem->process_play_yan_irq();
+					mem->play_yan.nmp_manual_irq = false;
+				}
+
+				else
+				{
+					for(u32 x = 0; x < 8; x++) { mem->play_yan.irq_data[x] = 0; }
+					mem->play_yan.irq_data[0] = 0x80001000;
+					mem->play_yan.irq_data[3] = 0x4DBA0;
+					mem->play_yan.irq_data[4] = 0x480;
+					mem->play_yan_set_sound_samples();
+
+					mem->play_yan.card_addr = 0;
+					mem->play_yan.irq_delay = 1;
+					mem->process_play_yan_irq();
+				}
 			}
 		}
 	}
