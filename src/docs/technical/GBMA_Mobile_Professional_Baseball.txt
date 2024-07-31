@@ -1,5 +1,5 @@
-Mobile Pro Yakyuu - Kantoku no Saihai Server Technical Documentation 0.1
-July 30, 2024
+Mobile Pro Yakyuu - Kantoku no Saihai Server Technical Documentation 0.2
+July 31, 2024
 Winter1760
 
 ***************************************************
@@ -53,7 +53,7 @@ Player Profile
 0x08.0 - 0x08.7			::	Player's squad number. Values 100-109 are used for numbers 00-09 with a leading zero.
 0x09.0 - 0x09.3			::	Player's position (0 = pitcher, 1 = catcher, 2-4 = 1st-3rd base, 5 = shortshop, 6 = left, 7 = center, 8 = right).
 0x09.4 - 0x09.5			::	Pitching hand (0 = right, 1 = left, 2 = both).
-0x09.6				::	0 means batting stats are displayed, 1 means pitching stats are displayed.
+0x09.6				::	0 means the player is an infielder, 1 means otherwise.
 0x09.7 - 0x0A.0			::	Batting hand (0 = right, 1 = left, 2 = both).
 0x0A.1 - 0x0B.0			::	Batting: runs batted in.
 0x0B.1 - 0x0B.7			::	Batting: stolen bases.
