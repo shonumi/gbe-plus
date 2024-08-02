@@ -50,6 +50,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
+	play_yan.is_end_of_samples = false;
 	play_yan.pause_media = false;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
@@ -679,10 +680,44 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	//Read from SD card data
 	else if((address >= 0xB000300) && (address < 0xB000500) && (play_yan.access_param == 0x08) && (play_yan.firmware_addr != 0xFF000))
 	{
-		if(play_yan.update_trackbar_timestamp)
+		//No Headphones - Stop sound sample playback
+		if(play_yan.is_end_of_samples)
 		{
-			std::cout<<"TIME UPDATE\n";
+			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+			play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+
+			play_yan.cycles = 0;
+			play_yan.irq_delay = 1;
+			play_yan.is_music_playing = false;
+			play_yan.is_end_of_samples = false;
+			process_play_yan_irq();
+		}
+
+		//No Headphones - Update music trackbar
+		else if(play_yan.update_trackbar_timestamp)
+		{
+			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+			play_yan.irq_data[0] = 0x80001000;
+
+			u32 current_sample_pos = play_yan.audio_sample_index;
+			u32 current_sample_rate = 16384;
+
+			u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+			current_sample_len = (float(current_sample_len) / float(play_yan.audio_sample_rate)) * 16384;
+
+			if(current_sample_rate && current_sample_len)
+			{
+				//Update trackbar
+				play_yan.tracker_update_size = (float(current_sample_pos) / float(current_sample_len) * 0x6400);
+				play_yan.irq_data[5] = play_yan.tracker_update_size;
+
+				//Update music progress via IRQ data
+				play_yan.irq_data[6] = current_sample_pos / current_sample_rate;
+			}
+
+			play_yan.irq_delay = 1;
 			play_yan.update_trackbar_timestamp = false;
+			process_play_yan_irq();
 		}
 
 		u32 offset = address - 0xB000300;
@@ -852,6 +887,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.video_progress = 0;
 		play_yan.video_frame_count = 0;
 		play_yan.current_frame = 0;
+		play_yan.cycles = 0;
 		play_yan.is_video_playing = false;
 		apu_stat->ext_audio.playing = false;
 
@@ -872,9 +908,9 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_delay = 1;
 
 		play_yan.is_music_playing = true;
-		play_yan.cycles = 0;
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
+		play_yan.cycles = 0;
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
@@ -1561,7 +1597,7 @@ void AGB_MMU::play_yan_set_sound_samples()
 			if(index >= stream_size)
 			{
 				index = (stream_size - 1);
-				play_yan.is_music_playing = false;
+				play_yan.is_end_of_samples = true;
 			}
 
 			//Perform simple Flyod-Steinberg dithering

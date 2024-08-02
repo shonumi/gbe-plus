@@ -343,6 +343,7 @@ class AGB_MMU
 		bool start_irqs;
 		bool is_video_playing;
 		bool is_music_playing;
+		bool is_end_of_samples;
 		bool pause_media;
 
 		u8 cnt_data[12];
