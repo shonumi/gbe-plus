@@ -679,6 +679,12 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	//Read from SD card data
 	else if((address >= 0xB000300) && (address < 0xB000500) && (play_yan.access_param == 0x08) && (play_yan.firmware_addr != 0xFF000))
 	{
+		if(play_yan.update_trackbar_timestamp)
+		{
+			std::cout<<"TIME UPDATE\n";
+			play_yan.update_trackbar_timestamp = false;
+		}
+
 		u32 offset = address - 0xB000300;
 		
 		if((play_yan.card_addr + offset) < 0x10000)
@@ -1536,14 +1542,21 @@ void AGB_MMU::play_yan_set_sound_samples()
 		s32 sample = 0;
 		s16 error = 0;
 		u32 index = 0;
-		u32 sample_count = 0;
+		u32 index_shift = 0;
+		u32 start_sample = play_yan.audio_sample_index;
 		u32 offset = 0;
 		u32 limit = (play_yan.audio_buffer_size / 2);
 
-		for(u32 x = 2; x < limit; x++)
+		if(play_yan.audio_channels) { index_shift = play_yan.audio_channels - 1; }
+
+		for(u32 x = 0; x < play_yan.audio_buffer_size; x++)
 		{
+			if(x == limit) { play_yan.audio_sample_index -= limit; }
+			bool is_left_channel = (x < limit) ? true : false; 
+
 			index = (ratio * play_yan.audio_sample_index);
 			index *= play_yan.audio_channels;
+			index += (is_left_channel) ? 0 : index_shift;
 
 			if(index >= stream_size)
 			{
@@ -1559,6 +1572,9 @@ void AGB_MMU::play_yan_set_sound_samples()
 			//Output new samples
 			play_yan.card_data[offset++] = (sample & 0xFF);
 			play_yan.audio_sample_index++;
+
+			//Update trackbar timestamp approximately, based on samples processed
+			if((play_yan.audio_sample_index % 16384) == 0) { play_yan.update_trackbar_timestamp = true; }
 		}
 	}
 }
