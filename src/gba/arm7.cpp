@@ -1505,11 +1505,12 @@ void ARM7::clock(u32 access_addr, bool first_access)
 			controllers.audio.apu_stat.psg_needs_fill = true;
 		}
 
-		if(mem->play_yan.is_music_playing && !controllers.audio.apu_stat.ext_audio.use_headphones)
+		//Update sound samples for Play-Yan models + NMP when not using headphones
+		if((mem->play_yan.is_music_playing || mem->play_yan.is_video_playing) && !controllers.audio.apu_stat.ext_audio.use_headphones)
 		{
 			mem->play_yan.cycles++;
 
-			if(mem->play_yan.cycles == 479232)
+			if(mem->play_yan.cycles == mem->play_yan.cycle_limit)
 			{
 				mem->play_yan.cycles = 0;
 

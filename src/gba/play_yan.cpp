@@ -48,10 +48,16 @@ void AGB_MMU::play_yan_reset()
 	play_yan.start_irqs = false;
 	play_yan.irq_update = false;
 
+	play_yan.cycles = 0;
+	play_yan.cycle_limit = 479232;
+
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
 	play_yan.is_end_of_samples = false;
 	play_yan.pause_media = false;
+
+	play_yan.audio_irq_active = false;
+	play_yan.video_irq_active = false;
 
 	for(u32 x = 0; x < 12; x++) { play_yan.cnt_data[x] = 0; }
 	for(u32 x = 0; x < 16; x++) { play_yan.nmp_status_data[x] = 0; }
@@ -726,6 +732,24 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		{
 			result = play_yan.card_data[play_yan.card_addr + offset];
 
+			//Check for the end of reading audio samples from the SD card interface
+			if((play_yan.audio_irq_active) && ((play_yan.card_addr + offset) == 0x23F))
+			{
+				play_yan.audio_frame_count++;
+
+				if((play_yan.audio_frame_count & 0x1) == 0)
+				{
+					play_yan.audio_irq_active = false;
+
+					//Once audio has been processed, check to see if any delayed video frames are present
+					if(play_yan.video_irq_active)
+					{
+						play_yan.audio_irq_active = false;
+						play_yan_set_video_pixels();
+					}
+				}
+			}
+
 			//Update Play-Yan card address if necessary
 			if(offset == 0x1FE) { play_yan.card_addr += 0x200; }
 		}
@@ -853,10 +877,16 @@ void AGB_MMU::process_play_yan_cmd()
 	else if(play_yan.cmd == PLAY_YAN_PLAY_VIDEO)
 	{
 		play_yan.op_state = PLAY_YAN_START_VIDEO;
-		play_yan.irq_update = true;
+		play_yan.irq_update = apu_stat->ext_audio.use_headphones;
 		play_yan.update_cmd = PLAY_YAN_PLAY_VIDEO;
 
 		play_yan.irq_delay = 1;
+
+		play_yan.audio_buffer_size = 0x480;
+		play_yan.audio_sample_index = 0;
+		play_yan.audio_frame_count = 0;
+		play_yan.cycles = 0;
+		play_yan.cycle_limit = 1017856;
 
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
@@ -893,6 +923,7 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
+		apu_stat->ext_audio.sample_pos = 0;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_STOP_VIDEO | 0x40000000;
@@ -911,6 +942,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
 		play_yan.cycles = 0;
+		play_yan.cycle_limit = 479232;
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
@@ -1164,6 +1196,24 @@ void AGB_MMU::process_play_yan_irq()
 	{
 		play_yan.irq_delay--;
 		if(play_yan.irq_delay) { return; }
+	}
+
+	//Check for video updates (based on the LCD's operation)
+	if(play_yan.update_video_frame)
+	{
+		play_yan.update_video_frame = false;
+		play_yan.video_frame_count += 1.0;
+
+		if(play_yan.video_frame_count >= 60.0) { play_yan.video_frame_count = 0; }
+
+		if(int(play_yan.video_frame_count) & 0x1)
+		{
+			play_yan.current_frame++;
+
+			//Draw video pixels immediately or delay if audio samples are currently being processed
+			if(!play_yan.audio_irq_active) { play_yan_set_video_pixels(); }
+			else { play_yan.video_irq_active = true; }
+		}
 	}
 
 	if(play_yan.type == NINTENDO_MP3)
@@ -1571,7 +1621,8 @@ void AGB_MMU::play_yan_set_sound_samples()
 
 	if(play_yan.audio_sample_rate)
 	{
-		double ratio = play_yan.audio_sample_rate / 16384.0;
+		float gba_sample_rate = play_yan.is_video_playing ? 8192.0 : 16384.0;
+		double ratio = play_yan.audio_sample_rate / gba_sample_rate;
 		s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
 		u32 stream_size = apu_stat->ext_audio.length / 2;
 
@@ -1609,10 +1660,30 @@ void AGB_MMU::play_yan_set_sound_samples()
 			play_yan.card_data[offset++] = (sample & 0xFF);
 			play_yan.audio_sample_index++;
 
-			//Update trackbar timestamp approximately, based on samples processed
-			if((play_yan.audio_sample_index % 16384) == 0) { play_yan.update_trackbar_timestamp = true; }
+			//Update music trackbar timestamp approximately, based on samples processed
+			if(((play_yan.audio_sample_index % 16384) == 0) && (!play_yan.is_video_playing))
+			{
+				play_yan.update_trackbar_timestamp = true;
+			}
 		}
+
+		play_yan.audio_irq_active = true;
 	}
+}
+
+/****** Sets SD card data to video pixels ******/
+void AGB_MMU::play_yan_set_video_pixels()
+{
+	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+	play_yan.irq_data[0] = 0x80001000;
+	play_yan.irq_data[1] = 0x31AC0;
+	play_yan.irq_data[2] = 0x12C00;
+
+	//Update video progress via IRQ data
+	play_yan.video_progress = (play_yan.current_frame * 33.3333);
+	play_yan.irq_data[6] = play_yan.video_progress;
+
+	play_yan_grab_frame_data(play_yan.current_frame);
 }
 
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
@@ -2155,4 +2226,10 @@ void AGB_MMU::play_yan_check_video_header(std::string filename)
 	play_yan.irq_data[3] = (frame_count * 33.3333);
 
 	#endif
+}
+
+/****** Returns current headphone status ******/
+bool AGB_MMU::play_yan_get_headphone_status()
+{
+	return apu_stat->ext_audio.use_headphones;
 }
