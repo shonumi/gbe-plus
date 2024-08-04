@@ -687,7 +687,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 	else if((address >= 0xB000300) && (address < 0xB000500) && (play_yan.access_param == 0x08) && (play_yan.firmware_addr != 0xFF000))
 	{
 		//No Headphones - Stop sound sample playback
-		if(play_yan.is_end_of_samples)
+		if(play_yan.is_end_of_samples && play_yan.is_music_playing)
 		{
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
@@ -1675,15 +1675,43 @@ void AGB_MMU::play_yan_set_sound_samples()
 void AGB_MMU::play_yan_set_video_pixels()
 {
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-	play_yan.irq_data[0] = 0x80001000;
-	play_yan.irq_data[1] = 0x31AC0;
-	play_yan.irq_data[2] = 0x12C00;
-
-	//Update video progress via IRQ data
 	play_yan.video_progress = (play_yan.current_frame * 33.3333);
-	play_yan.irq_data[6] = play_yan.video_progress;
 
-	play_yan_grab_frame_data(play_yan.current_frame);
+	//Check if video has finished and stop accordingly
+	if(play_yan.video_progress >= play_yan.video_length)
+	{
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		play_yan.irq_update = false;
+		play_yan.update_cmd = 0;
+
+		play_yan.irq_delay = 1;
+
+		play_yan.video_data_addr = 0;
+		play_yan.video_progress = 0;
+		play_yan.is_video_playing = false;
+
+		play_yan.audio_channels = 0;
+		play_yan.audio_sample_rate = 0;
+		apu_stat->ext_audio.sample_pos = 0;
+		apu_stat->ext_audio.playing = false;
+
+		play_yan.irq_data[0] = PLAY_YAN_STOP_VIDEO | 0x40000000;
+
+		std::cout<<"STOP\n";
+	}
+
+	//Otherwise render the most current video frame (even if some are possibly skipped)
+	else
+	{
+		play_yan.irq_data[0] = 0x80001000;
+		play_yan.irq_data[1] = 0x31AC0;
+		play_yan.irq_data[2] = 0x12C00;
+
+		//Update video progress via IRQ data
+		play_yan.irq_data[6] = play_yan.video_progress;
+
+		play_yan_grab_frame_data(play_yan.current_frame);
+	}
 }
 
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
