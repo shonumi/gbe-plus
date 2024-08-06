@@ -347,6 +347,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Adjust Play-Yan bass boost settings
 			else if(play_yan.cmd == PLAY_YAN_SET_BASS_BOOST) { play_yan.bass_boost = control_cmd2; }
 
+			//Adjust Play-Yan video brightness
+			else if(play_yan.cmd == PLAY_YAN_SET_BRIGHTNESS) { play_yan.video_brightness = control_cmd2; }
+
 			//Turn on/off Play-Yan bass boost
 			else if(play_yan.cmd == PLAY_YAN_ENABLE_BASS_BOOST) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
 		}
@@ -468,6 +471,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			//Adjust Play-Yan bass boost settings
 			else if(play_yan.cmd == PLAY_YAN_SET_BASS_BOOST) { play_yan.bass_boost = control_cmd2; }
+
+			//Adjust Play-Yan video brightness
+			else if(play_yan.cmd == PLAY_YAN_SET_BRIGHTNESS) { play_yan.video_brightness = control_cmd2; }
 
 			//Turn on/off Play-Yan bass boost
 			else if(play_yan.cmd == PLAY_YAN_ENABLE_BASS_BOOST) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }

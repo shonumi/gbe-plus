@@ -400,6 +400,7 @@ class AGB_MMU
 
 		u8 volume;
 		u8 bass_boost;
+		u32 video_brightness;
 		bool use_bass_boost;
 		bool use_headphones;
 
