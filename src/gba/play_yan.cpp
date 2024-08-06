@@ -2195,9 +2195,33 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 
 		u8* pixel_data = (u8*)temp_surface->pixels;
 
-		for(u32 index = 0, a = 0, b = start; a < (w * h); a++, b+=3)
+		for(u32 index = 0, a = 0, i = start; a < (w * h); a++, i+=3)
 		{
-			u16 raw_pixel = ((pixel_data[b+2] & 0xF8) << 7) | ((pixel_data[b+1] & 0xF8) << 2) | ((pixel_data[b] & 0xF8) >> 3);
+			u16 raw_pixel = 0;
+
+			//Adjust (increase) brightness if necessary
+			if(play_yan.video_brightness > 0x101)
+			{
+				u32 input_color = 0xFF000000 | (pixel_data[i] << 16) | (pixel_data[i+1] << 8) | pixel_data[i+2];
+				double ratio = (play_yan.video_brightness - 0x100) / 512.0;
+
+				util::hsl temp_color = util::rgb_to_hsl(input_color);
+				temp_color.lightness += ratio;
+				if(temp_color.lightness > 1.0) { temp_color.lightness = 1.0; }
+
+				input_color = util::hsl_to_rgb(temp_color);
+				u8 r = (input_color >> 16) & 0xFF;
+				u8 g = (input_color >> 8) & 0xFF;
+				u8 b = input_color & 0xFF;
+
+				raw_pixel = ((b & 0xF8) << 7) | ((g & 0xF8) << 2) | ((r & 0xF8) >> 3);
+			}
+
+			else
+			{
+				raw_pixel = ((pixel_data[i+2] & 0xF8) << 7) | ((pixel_data[i+1] & 0xF8) << 2) | ((pixel_data[i] & 0xF8) >> 3);
+			}
+
 			play_yan.video_data[index++] = (raw_pixel & 0xFF);
 			play_yan.video_data[index++] = ((raw_pixel >> 8) & 0xFF);
 		}
