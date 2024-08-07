@@ -53,8 +53,8 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
+	play_yan.is_media_playing = false;
 	play_yan.is_end_of_samples = false;
-	play_yan.pause_media = false;
 
 	play_yan.audio_irq_active = false;
 	play_yan.video_irq_active = false;
@@ -701,6 +701,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 			play_yan.cycles = 0;
 			play_yan.irq_delay = 1;
 			play_yan.is_music_playing = false;
+			play_yan.is_media_playing = false;
 			play_yan.is_end_of_samples = false;
 			process_play_yan_irq();
 		}
@@ -748,7 +749,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 					play_yan.audio_irq_active = false;
 
 					//Once audio has been processed, check to see if any delayed video frames are present
-					if(play_yan.video_irq_active)
+					if(play_yan.video_irq_active && play_yan.is_media_playing)
 					{
 						play_yan.audio_irq_active = false;
 						play_yan_set_video_pixels();
@@ -899,6 +900,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.video_frame_count = 0;
 		play_yan.current_frame = 0;
 		play_yan.is_video_playing = true;
+		play_yan.is_media_playing = true;
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
@@ -925,6 +927,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.current_frame = 0;
 		play_yan.cycles = 0;
 		play_yan.is_video_playing = false;
+		play_yan.is_media_playing = false;
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.audio_channels = 0;
@@ -945,6 +948,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_delay = 1;
 
 		play_yan.is_music_playing = true;
+		play_yan.is_media_playing = true;
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
 		play_yan.cycles = 0;
@@ -971,6 +975,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_delay = 1;
 
 		play_yan.is_music_playing = false;
+		play_yan.is_media_playing = false;
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.audio_channels = 0;
@@ -984,14 +989,14 @@ void AGB_MMU::process_play_yan_cmd()
 	//Pause Media Playback
 	else if(play_yan.cmd == PLAY_YAN_PAUSE)
 	{
-		play_yan.pause_media = true;
+		play_yan.is_media_playing = false;
 		apu_stat->ext_audio.playing = false;
 	}
 
 	//Resume Media Playback
 	else if(play_yan.cmd == PLAY_YAN_RESUME)
 	{
-		play_yan.pause_media = false;
+		play_yan.is_media_playing = true;
 
 		if(play_yan.audio_channels && play_yan.audio_sample_rate)
 		{
@@ -1083,7 +1088,7 @@ void AGB_MMU::play_yan_update()
 		case PLAY_YAN_PLAY_MUSIC:
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 
-			if(!play_yan.pause_media)
+			if(play_yan.is_media_playing)
 			{
 				play_yan.irq_delay = 60;
 				play_yan.irq_data[0] = 0x80001000;
@@ -1121,6 +1126,7 @@ void AGB_MMU::play_yan_update()
 					play_yan.irq_delay = 1;
 
 					play_yan.is_music_playing = false;
+					play_yan.is_media_playing = false;
 					apu_stat->ext_audio.playing = false;
 
 					play_yan.audio_channels = 0;
@@ -1137,7 +1143,7 @@ void AGB_MMU::play_yan_update()
 		case PLAY_YAN_PLAY_VIDEO:
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 			
-			if(!play_yan.pause_media)
+			if(play_yan.is_media_playing)
 			{
 				play_yan.irq_delay = 2;
 				play_yan.irq_data[0] = 0x80001000;
@@ -1179,6 +1185,7 @@ void AGB_MMU::play_yan_update()
 					play_yan.video_data_addr = 0;
 					play_yan.video_progress = 0;
 					play_yan.is_video_playing = false;
+					play_yan.is_media_playing = false;
 
 					play_yan.audio_channels = 0;
 					play_yan.audio_sample_rate = 0;
@@ -1205,7 +1212,7 @@ void AGB_MMU::process_play_yan_irq()
 	}
 
 	//Check for video updates (based on the LCD's operation)
-	if(play_yan.update_video_frame)
+	if(play_yan.update_video_frame && play_yan.is_media_playing)
 	{
 		play_yan.update_video_frame = false;
 		play_yan.video_frame_count += 1.0;
@@ -1695,6 +1702,7 @@ void AGB_MMU::play_yan_set_video_pixels()
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
 		play_yan.is_video_playing = false;
+		play_yan.is_media_playing = false;
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
@@ -1702,8 +1710,6 @@ void AGB_MMU::play_yan_set_video_pixels()
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.irq_data[0] = PLAY_YAN_STOP_VIDEO | 0x40000000;
-
-		std::cout<<"STOP\n";
 	}
 
 	//Otherwise render the most current video frame (even if some are possibly skipped)

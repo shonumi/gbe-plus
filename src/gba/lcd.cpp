@@ -1750,7 +1750,8 @@ void AGB_LCD::step()
 			//Process Play-Yan interrupts
 			if((config::cart_type == AGB_PLAY_YAN) && (mem->play_yan.irq_delay)) { mem->process_play_yan_irq(); }
 			
-			else if((config::cart_type == AGB_PLAY_YAN) && (mem->play_yan.is_video_playing) && (!mem->play_yan_get_headphone_status()))
+			else if((config::cart_type == AGB_PLAY_YAN) && (mem->play_yan.is_video_playing) && (mem->play_yan.is_media_playing)
+			&& (!mem->play_yan_get_headphone_status()))
 			{
 				mem->play_yan.update_video_frame = true;
 				mem->process_play_yan_irq();

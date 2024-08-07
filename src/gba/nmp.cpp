@@ -249,6 +249,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = NMP_PLAY_MUSIC | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+			play_yan.is_media_playing = true;
 
 			play_yan.audio_sample_index = 0;
 			play_yan.l_audio_dither_error = 0;
@@ -302,6 +303,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = NMP_STOP_MUSIC | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
+			play_yan.is_media_playing = false;
 			apu_stat->ext_audio.playing = false;
 
 			play_yan.audio_frame_count = 0;
@@ -326,6 +328,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = NMP_PAUSE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
+			play_yan.is_media_playing = false;
 			apu_stat->ext_audio.playing = false;
 
 			play_yan.nmp_seek_pos = 0;
@@ -344,6 +347,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_cmd_status = NMP_PAUSE | 0x4000;
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+			play_yan.is_media_playing = true;
 
 			if(play_yan.audio_sample_rate && play_yan.audio_channels)
 			{
@@ -450,6 +454,7 @@ void AGB_MMU::process_nmp_cmd()
 		case NMP_PLAY_SFX:
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
+			play_yan.is_media_playing = true;
 
 			play_yan.audio_sample_index = 0;
 			play_yan.l_audio_dither_error = 0;
@@ -858,6 +863,7 @@ void AGB_MMU::access_nmp_io()
 							{
 								index = (stream_size - 1);
 								play_yan.is_music_playing = false;
+								play_yan.is_media_playing = false;
 							}
 
 							//Perform simple Flyod-Steinberg dithering

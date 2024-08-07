@@ -1506,7 +1506,7 @@ void ARM7::clock(u32 access_addr, bool first_access)
 		}
 
 		//Update sound samples for Play-Yan models + NMP when not using headphones
-		if((mem->play_yan.is_music_playing || mem->play_yan.is_video_playing) && !controllers.audio.apu_stat.ext_audio.use_headphones)
+		if(mem->play_yan.is_media_playing && !controllers.audio.apu_stat.ext_audio.use_headphones)
 		{
 			mem->play_yan.cycles++;
 
