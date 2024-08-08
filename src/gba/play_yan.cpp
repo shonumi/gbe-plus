@@ -1667,6 +1667,12 @@ void AGB_MMU::play_yan_set_sound_samples()
 			//Perform simple Flyod-Steinberg dithering
 			//Grab current sample and add 7/16 of error, quantize results, clip results 
 			sample = e_stream[index];
+
+			//Set volume manually
+			sample *= (play_yan.volume / 56.0);
+			if(sample > 32767) { sample = 32767; }
+			else if(sample < -32768) { sample = 32768; }
+
 			sample >>= 8;
 
 			//Output new samples
