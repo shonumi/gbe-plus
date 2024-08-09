@@ -305,7 +305,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				}
 
 				//Rewind trackbar and timestamp
-				else
+				else if(control_cmd2 >= 0xFFFFFFFD)
 				{
 					play_yan.video_frame_count -= (8.0 * factor);
 					play_yan.current_frame -= (8 * factor);
@@ -320,6 +320,25 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						play_yan.current_frame = 0;
 					}
 
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);
+
+					//Update sound as well
+					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+					double result = double(play_yan.video_progress) / play_yan.video_length;
+					result *= current_sample_len;
+
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
+					else { }
+
+					play_yan.irq_delay = 1;
+					process_play_yan_irq();
+				}
+
+				//Set specific timestamp
+				else
+				{
+					play_yan.video_frame_count = 0;
+					play_yan.current_frame = (30 * control_cmd2);
 					play_yan.video_progress = (play_yan.current_frame * 33.3333);
 
 					//Update sound as well
@@ -430,7 +449,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				}
 
 				//Rewind trackbar and timestamp
-				else
+				else if(control_cmd2 >= 0xFFFFFFFD)
 				{
 					play_yan.video_frame_count -= (8.0 * factor);
 					play_yan.current_frame -= (8 * factor);
@@ -445,6 +464,25 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 						play_yan.current_frame = 0;
 					}
 
+					play_yan.video_progress = (play_yan.current_frame * 33.3333);
+
+					//Update sound as well
+					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+					double result = double(play_yan.video_progress) / play_yan.video_length;
+					result *= current_sample_len;
+
+					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
+					else { }
+
+					play_yan.irq_delay = 1;
+					process_play_yan_irq();
+				}
+
+				//Set specific timestamp
+				else
+				{
+					play_yan.video_frame_count = 0;
+					play_yan.current_frame = (30 * control_cmd2);
 					play_yan.video_progress = (play_yan.current_frame * 33.3333);
 
 					//Update sound as well
