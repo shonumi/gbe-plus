@@ -457,6 +457,18 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			else
 			{
 				core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
+				
+				if(!core_mmu.play_yan_get_headphone_status())
+				{
+					core_mmu.play_yan.irq_update = false;
+					core_mmu.play_yan.irq_delay = 0;
+					core_mmu.play_yan.op_state = AGB_MMU::PLAY_YAN_PROCESS_CMD;
+				}
+				
+				else
+				{
+					core_mmu.play_yan.irq_update = true;
+				}
 			}
 
 			config::osd_count = 180;
@@ -678,6 +690,18 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 			else
 			{
 				core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
+				
+				if(!core_mmu.play_yan_get_headphone_status())
+				{
+					core_mmu.play_yan.irq_update = false;
+					core_mmu.play_yan.irq_delay = 0;
+					core_mmu.play_yan.op_state = AGB_MMU::PLAY_YAN_PROCESS_CMD;
+				}
+				
+				else
+				{
+					core_mmu.play_yan.irq_update = true;
+				}
 			}
 
 			config::osd_count = 180;
