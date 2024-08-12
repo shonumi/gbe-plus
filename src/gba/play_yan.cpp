@@ -277,7 +277,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Video position seeking
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
 			{
-				u16 factor = (control_cmd2 & 0x8000) ? (0x10000 - control_cmd2) : control_cmd2;
+				u16 factor = (control_cmd2 >= 0xFFFD) ? ((0xFFFF - control_cmd2) + 1) : control_cmd2;
 
 				//Advance trackbar and timestamp
 				if(control_cmd2 <= 0x03)
@@ -305,7 +305,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				}
 
 				//Rewind trackbar and timestamp
-				else if(control_cmd2 >= 0xFFFFFFFD)
+				else if(control_cmd2 >= 0xFFFD)
 				{
 					play_yan.video_frame_count -= (8.0 * factor);
 					play_yan.current_frame -= (8 * factor);
@@ -421,7 +421,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			//Video position seeking
 			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
 			{
-				u16 factor = (control_cmd2 & 0x8000) ? (0x10000 - control_cmd2) : control_cmd2;
+				u16 factor = (control_cmd2 >= 0xFFFFFFFD) ? ((0xFFFFFFFF - control_cmd2) + 1) : control_cmd2;
 
 				//Advance trackbar and timestamp
 				if(control_cmd2 <= 0x03)
