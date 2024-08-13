@@ -298,7 +298,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					result *= current_sample_len;
 
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-					else { }
+					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();
@@ -328,7 +328,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					result *= current_sample_len;
 
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-					else { }
+					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();
@@ -442,7 +442,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					result *= current_sample_len;
 
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-					else { }
+					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();				
@@ -472,7 +472,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					result *= current_sample_len;
 
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-					else { }
+					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();
