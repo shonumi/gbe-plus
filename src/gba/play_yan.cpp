@@ -263,12 +263,25 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
 
 				//Update music progress via IRQ data
-				double result = control_cmd2;
-				result /= 25600;
-				result *= current_sample_len;
-				
-				if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-				else { }
+				if(apu_stat->ext_audio.use_headphones)
+				{
+					double result = control_cmd2;
+					result /= 25600;
+					result *= current_sample_len;
+					apu_stat->ext_audio.sample_pos = result;
+				}
+
+				else
+				{
+					double result = control_cmd2;
+					double ratio = (16384.0 / play_yan.audio_sample_rate);
+					result /= 25600;
+					result *= current_sample_len;
+					result *= ratio;
+
+					play_yan.audio_sample_index = result;
+					play_yan.update_trackbar_timestamp = true;
+				}
 
 				play_yan.irq_delay = 1;
 				process_play_yan_irq();
@@ -347,7 +360,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					result *= current_sample_len;
 
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-					else { }
+					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();
@@ -407,12 +420,25 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
 
 				//Update music progress via IRQ data
-				double result = control_cmd2;
-				result /= 25600;
-				result *= current_sample_len;
-				
-				if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-				else { }
+				if(apu_stat->ext_audio.use_headphones)
+				{
+					double result = control_cmd2;
+					result /= 25600;
+					result *= current_sample_len;
+					apu_stat->ext_audio.sample_pos = result;
+				}
+
+				else
+				{
+					double result = control_cmd2;
+					double ratio = (16384.0 / play_yan.audio_sample_rate);
+					result /= 25600;
+					result *= current_sample_len;
+					result *= ratio;
+
+					play_yan.audio_sample_index = result;
+					play_yan.update_trackbar_timestamp = true;
+				}
 
 				play_yan.irq_delay = 1;
 				process_play_yan_irq();
@@ -491,7 +517,7 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					result *= current_sample_len;
 
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
-					else { }
+					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();
