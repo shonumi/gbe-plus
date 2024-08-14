@@ -1,0 +1,194 @@
+Mobile Pro Yakyuu - Kantoku no Saihai Server Technical Documentation 0.2
+July 31, 2024
+Winter1760
+
+***************************************************
+1. Introduction
+***************************************************
+
+Mobile Pro Yakyuu - Kantoku no Saihai (also known simply as Mobile Professional Baseball) is a baseball game for the Game Boy Advance, published by Mobile21 in 2001. Though it initially released with data for the 2000 NPB season, arguably its most prominent feature was the ability to download updated player data.
+
+***************************************************
+2. Server Structure
+***************************************************
+
+Mobile Professional Baseball is known to access the following URLs:
+
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/AGB-AMBJ/counter.cgb
+* http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/AGB-AMBJ/200.member.cgb
+
+***************************************************
+3. counter.cgb
+***************************************************
+
+This file is one byte simply indicating the current version number of 200.member.cgb, where zero is the version of the data built into the game. If the game sees that this file's byte matches the version number currently present, it will not redownload 200.member.cgb. The version numbers do not need to be sequential, though given the file's name it's very likely that they were.
+
+***************************************************
+4. 200.member.cgb
+***************************************************
+
+This file is saved directly to the game's save file and thus has a size limit of 0x6000 bytes (24 KiB). When the game first boots (and when new data is downloaded), the data is decompressed using SWI #0x13 (HuffUnComp), then that is itself decompressed using SWI #0x11 (LZ77UnCompWram), and the final data is copied to address 0x2000000. The intermediate and final decompressed data each have a size limit of 0x8000 bytes (32 KiB). The first 16 bytes of the final decompressed data are used as follows:
+
+----------------------------------
+Initial Pointers
+----------------------------------
+0x00 - 0x03			::	Pointer to player data, stored LSB first.
+0x04 - 0x07			::	Pointer to all-star data, stored LSB first.
+0x08 - 0x0B			::	Pointer to team data, stored LSB first.
+0x0C - 0x0F			::	Pointer to season data, stored LSB first.
+
+Most of this data is stored in densely-packed bitfields. These bitfields are entirely little-endian; that is, if a field spans multiple bytes, its least-significant bit(s) are stored in the first byte, and its most-significant bit(s) are stored in the last byte; additionally, when multiple fields take a single byte, the first field takes the least-significant bit(s) of that byte, while the last field takes the most-significant bit(s) of that byte. Byte addresses are suffixed with .0 through .7 to indicate the least-significant bit through the most-significant bit, respectively.
+
+***************************************************
+5. Player Data
+***************************************************
+
+The player data is simply 12 pointers, each 4 bytes stored LSB first, to 25 player profiles, which are formatted as follows:
+
+----------------------------------
+Player Profile
+----------------------------------
+0x00.0 - 0x03.7			::	Pointer to player's long name (width limit: 6 characters).
+0x04.0 - 0x07.7			::	Pointer to player's short name (width limit: 3 characters).
+0x08.0 - 0x08.7			::	Player's squad number. Values 100-109 are used for numbers 00-09 with a leading zero.
+0x09.0 - 0x09.3			::	Player's position (0 = pitcher, 1 = catcher, 2-4 = 1st-3rd base, 5 = shortshop, 6 = left, 7 = center, 8 = right).
+0x09.4 - 0x09.5			::	Pitching hand (0 = right, 1 = left, 2 = both).
+0x09.6				::	0 means the player is an infielder, 1 means otherwise.
+0x09.7 - 0x0A.0			::	Batting hand (0 = right, 1 = left, 2 = both).
+0x0A.1 - 0x0B.0			::	Batting: runs batted in.
+0x0B.1 - 0x0B.7			::	Batting: stolen bases.
+0x0C.0 - 0x0C.7			::	Height (cm).
+0x0D.0 - 0x0D.7			::	Weight (kg).
+0x0E.0 - 0x0E.6			::	Birth year (without century).
+0x0E.7 - 0x0F.2			::	Birth month (1 = January).
+0x0F.3 - 0x0F.7			::	Birth day (1-31).
+0x10.0 - 0x10.7			::	Batting: games played.
+0x11.0 - 0x12.1			::	Batting: at-bats.
+0x12.2 - 0x13.1			::	Batting: runs scored.
+0x13.2 - 0x14.2			::	Batting: hits.
+0x14.3 - 0x15.1			::	Batting: double hits.
+0x15.2 - 0x15.6			::	Batting: triple hits.
+0x15.7 - 0x16.5			::	Batting: home runs.
+0x16.6 - 0x17.1			::	Pitching: shutouts.
+0x17.2 - 0x18.3			::	Batting: batting average times 1,000.
+0x18.4 - 0x19.2			::	Pitching: games played.
+0x19.3 - 0x19.7			::	Pitching: complete games.
+0x1A.0 - 0x1B.1			::	Pitching: innings pitched times 3.
+0x1B.2 - 0x1B.6			::	Pitching: wins.
+0x1B.7 - 0x1C.3			::	Pitching: losses.
+0x1C.4 - 0x1D.1			::	Pitching: saves.
+0x1D.2 - 0x1E.1			::	Pitching: walks granted.
+0x1E.2 - 0x1E.6			::	Pitching: times hit batter.
+0x1E.7 - 0x1F.7			::	Pitching: strikeouts.
+0x20.0 - 0x21.1			::	Pitching: earned-run average times 100.
+0x21.2 - 0x23.7			::	Always zero.
+0x24.0 - 0x25.1			::	"Bat distance" points.
+0x25.2 - 0x26.3			::	"Bat skill" points.
+0x26.4 - 0x27.5			::	"Bat accuracy" points.
+0x27.6 - 0x28.7			::	"Base running" points.
+0x29.0 - 0x2A.1			::	"Catch ball" points.
+0x2A.2 - 0x2B.3			::	"Throw distance" points.
+0x2B.4 - 0x2C.5			::	"Pitch judgement" points.
+0x2C.6 - 0x2D.7			::	"Movement" points.
+0x2E.0 - 0x2F.1			::	"Catcher" points.
+0x2F.2 - 0x30.3			::	"Pitch speed" points.
+0x30.4 - 0x31.5			::	"Ball speed" points.
+0x31.6 - 0x32.7			::	"Sharpness" points.
+0x33.0 - 0x34.1			::	"Control" points.
+0x34.2 - 0x35.3			::	"Endurance" points.
+0x35.4 - 0x36.1			::	Top-left corner of batting skill indicator, see below.
+0x36.2 - 0x36.4			::	Width of batting skill indicator, see below.
+0x36.5 - 0x36.7			::	Height of batting skill indicator, see below.
+0x37.0 - 0x37.5			::	Top-left corner of catching skill indicator, see below.
+0x37.6 - 0x38.0			::	Width of catching skill indicator, see below.
+0x38.1 - 0x38.3			::	Height of catching skill indicator, see below.
+0x38.4 - 0x38.6			::	Level (0 = S, 1-6 = A-F).
+0x38.7 - 0x3C.1			::	3-bit skill multipliers for each position, see below.
+0x3C.2 - 0x3C.7			::	Always zero.
+0x3D.0 - 0x3D.3			::	Unknown, treated as a pitch strength.
+0x3D.4 - 0x3D.7			::	Unknown, treated as a pitch strength.
+0x3E.0 - 0x3E.3			::	"Curve" pitch strength.
+0x3E.4 - 0x3E.7			::	"Change-up" pitch strength.
+0x3F.0 - 0x3F.3			::	"Slider" pitch strength.
+0x3F.4 - 0x3F.7			::	"Shoot" pitch strength.
+0x40.0 - 0x40.3			::	"Sinker" pitch strength.
+0x40.4 - 0x40.7			::	"Fork" pitch strength.
+0x41.0 - 0x41.3			::	Always zero.
+0x41.4 - 0x41.7			::	Unknown, treated as a pitch strength.
+0x42.0 - 0x43.7			::	Always zero.
+
+The "skill indicators" are displayed in a 6x6 matrix. The "top-left corner" value is calculated as (row * 6) + column, where the corners of the matrix are (0, 0) and (5, 5). If the indicator is not to be displayed, all its values are set to zero. If both inidicators overlap, the catching skill indicator takes priority. The "skill multipliers" are values from 0-5, where 0 multiplies skill points by 0.5, 1 multiplies them by 0.6, and so forth. The first eight players on a team must take each non-pitcher position, and the ninth must be a pitcher.
+
+***************************************************
+6. All-Star Data
+***************************************************
+
+The all-star data is 2 pointers (first for the Central League, second for the Pacific League), each 4 bytes stored LSB first, to 25 all-star specifiers, which are formatted as follows:
+
+----------------------------------
+All-Star Specifier
+----------------------------------
+0x00.0 - 0x00.3			::	Team number.
+0x00.4 - 0x01.0			::	Player number.
+0x01.1 - 0x01.4			::	Position (see above).
+0x01.5 - 0x03.7			::	Always zero.
+
+Similarly to player data, the first eight members of an all-star team must take each non-pitcher position, and the ninth must be a pitcher.
+
+***************************************************
+7. Team Data
+***************************************************
+
+The team data is not an array of pointers, but simply an array of 12 team profiles, which are formatted as follows:
+
+----------------------------------
+Team Profile
+----------------------------------
+0x00.0 - 0x03.7			::	Pointer to team's name (width limit: 8 characters).
+0x04.0 - 0x07.7			::	Pointer to manager's name (width limit: 8 characters).
+0x08.0 - 0x08.6			::	Founding year (without century).
+0x08.7 - 0x09.2			::	Founding month (1 = January).
+0x09.3 - 0x09.7			::	Founding day (1-31).
+0x0A.0 - 0x0B.4			::	Total wins.
+0x0B.5 - 0x0D.1			::	Total losses.
+0x0D.2 - 0x0D.7			::	League wins.
+0x0E.0 - 0x0F.0			::	Average game length? (minutes).
+0x0F.1 - 0x10.2			::	Win rate times 1,000.
+0x10.3 - 0x13.7			::	Always zero.
+
+Teams are always in the following order:
+
+* Yomiuri Giants (Central)
+* Chunichi Dragons (Central)
+* Yokohama BayStars (Central)
+* Yakult Swallows (Central)
+* Hiroshima Toyo Carp (Central)
+* Hanshin Tigers (Central)
+* Fukuoka Daiei Hawks (Pacific)
+* Seibu Lions (Pacific)
+* Nippon-Ham Fighters (Pacific)
+* Orix BlueWave (Pacific)
+* Chiba Lotte Marines (Pacific)
+* Osaka Kintetsu Buffaloes (Pacific)
+
+***************************************************
+8. Season Data
+***************************************************
+
+The season data is simply a single byte in the range 0x00-0x03, indicating whether the rest of the data represents the 2000, 2001, 2002, or 2003 NPB season.
+
+***************************************************
+9. String Format
+***************************************************
+
+The byte 0x00 terminates a string, 0x5B (left bracket) switches to a half-width font, and 0x5D (right bracket) switches to the default full-width font. Any other byte in a string will be taken along with its next byte as a two-byte Shift-JIS sequence.
+
+All characters from JIS X 0208 row 1 are supported except the following, which will appear as spaces:
+
+゛゜´¨ヽヾゝゞ〃仝〆〇‐‖∥‥÷≠∴♂♀°′″℃¢£§
+
+All characters from JIS X 0208 row 2 will appear as spaces except the following:
+
+◆□■△▲▽▼※→←↑↓
+
+All characters from JIS X 0208 rows 3-5 are supported, and all characters from rows 6-8 will appear as spaces. The circled digits ① through ⑩ from row 13 are supported only in the full-width font, as are all of the "level 1" kanji (rows 16-47).
