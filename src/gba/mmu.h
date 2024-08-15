@@ -683,6 +683,7 @@ class AGB_MMU
 	void play_yan_check_video_header(std::string filename);
 	void play_yan_check_audio_from_video(std::vector <u8> &data);
 	bool play_yan_get_headphone_status();
+	void play_yan_set_headphone_status();
 
 	void write_nmp(u32 address, u8 value);
 	u8 read_nmp(u32 address);

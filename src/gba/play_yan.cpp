@@ -2367,3 +2367,53 @@ bool AGB_MMU::play_yan_get_headphone_status()
 {
 	return apu_stat->ext_audio.use_headphones;
 }
+
+/****** Sets current headphone status (inverts whatever it currently is) ******/
+void AGB_MMU::play_yan_set_headphone_status()
+{
+	//Manually trigger IRQ for NMP
+	if(play_yan.type == NINTENDO_MP3)
+	{
+		play_yan.nmp_manual_cmd = NMP_HEADPHONE_STATUS;
+		play_yan.nmp_manual_irq = true;
+		process_play_yan_irq();
+		play_yan.nmp_manual_irq = false;
+	}
+
+	//Instantly switch for Play-Yan models
+	else
+	{
+		apu_stat->ext_audio.use_headphones = !apu_stat->ext_audio.use_headphones;
+		play_yan.irq_update = apu_stat->ext_audio.use_headphones;
+
+		//Handle IRQs for 8-bit speaker output
+		if(!play_yan.irq_update && play_yan.is_media_playing)
+		{
+			play_yan.irq_delay = 0;
+			play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		}
+
+		//Handle IRQs for headphone output
+		else if(play_yan.irq_update && play_yan.is_media_playing)
+		{
+			play_yan.irq_delay = 1;
+			play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
+		}
+
+		//Set new sample positions depending on output method (regardless of media pause status)
+		if(apu_stat->ext_audio.use_headphones && play_yan.is_music_playing)
+		{
+			double result = play_yan.audio_sample_rate / 16384.0;
+			result *= play_yan.audio_sample_index;
+			apu_stat->ext_audio.sample_pos = result;
+		}
+
+		else if(!apu_stat->ext_audio.use_headphones && play_yan.is_music_playing)
+		{
+			double result = 16384.0 / play_yan.audio_sample_rate;
+			result *= apu_stat->ext_audio.sample_pos;
+			play_yan.audio_sample_index = result;
+		}	
+	}
+}
+

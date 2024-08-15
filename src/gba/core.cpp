@@ -444,33 +444,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 			if(!core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { config::osd_message = "HEADPHONES ON"; }
 			else { config::osd_message = "HEADPHONES OFF"; }
 
-			//Manually trigger IRQ for NMP
-			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
-			{
-				core_mmu.play_yan.nmp_manual_cmd = AGB_MMU::NMP_HEADPHONE_STATUS;
-				core_mmu.play_yan.nmp_manual_irq = true;
-				core_mmu.process_play_yan_irq();
-				core_mmu.play_yan.nmp_manual_irq = false;
-			}
-
-			//Instantly switch for Play-Yan models
-			else
-			{
-				core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
-				core_mmu.play_yan.irq_update = core_mmu.play_yan_get_headphone_status();
-				
-				if(!core_mmu.play_yan.irq_update && core_mmu.play_yan.is_media_playing)
-				{
-					core_mmu.play_yan.irq_delay = 0;
-					core_mmu.play_yan.op_state = AGB_MMU::PLAY_YAN_PROCESS_CMD;
-				}
-				
-				else if(core_mmu.play_yan.irq_update && core_mmu.play_yan.is_media_playing)
-				{
-					core_mmu.play_yan.irq_delay = 1;
-					core_mmu.play_yan.op_state = AGB_MMU::PLAY_YAN_IRQ_UPDATE;
-				}
-			}
+			core_mmu.play_yan_set_headphone_status();
 
 			config::osd_count = 180;
 		}
@@ -678,33 +652,7 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 			if(!core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { config::osd_message = "HEADPHONES ON"; }
 			else { config::osd_message = "HEADPHONES OFF"; }
 
-			//Manually trigger IRQ for NMP
-			if(core_mmu.play_yan.type == AGB_MMU::NINTENDO_MP3)
-			{
-				core_mmu.play_yan.nmp_manual_cmd = AGB_MMU::NMP_HEADPHONE_STATUS;
-				core_mmu.play_yan.nmp_manual_irq = true;
-				core_mmu.process_play_yan_irq();
-				core_mmu.play_yan.nmp_manual_irq = false;
-			}
-
-			//Instantly switch for Play-Yan models
-			else
-			{
-				core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones = !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones;
-				core_mmu.play_yan.irq_update = core_mmu.play_yan_get_headphone_status();
-				
-				if(!core_mmu.play_yan.irq_update && core_mmu.play_yan.is_media_playing)
-				{
-					core_mmu.play_yan.irq_delay = 0;
-					core_mmu.play_yan.op_state = AGB_MMU::PLAY_YAN_PROCESS_CMD;
-				}
-				
-				else if(core_mmu.play_yan.irq_update && core_mmu.play_yan.is_media_playing)
-				{
-					core_mmu.play_yan.irq_delay = 1;
-					core_mmu.play_yan.op_state = AGB_MMU::PLAY_YAN_IRQ_UPDATE;
-				}
-			}
+			core_mmu.play_yan_set_headphone_status();
 
 			config::osd_count = 180;
 		}
