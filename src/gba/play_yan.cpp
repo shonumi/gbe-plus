@@ -2413,7 +2413,16 @@ void AGB_MMU::play_yan_set_headphone_status()
 			double result = 16384.0 / play_yan.audio_sample_rate;
 			result *= apu_stat->ext_audio.sample_pos;
 			play_yan.audio_sample_index = result;
-		}	
+		}
+
+		else if(apu_stat->ext_audio.use_headphones && play_yan.is_video_playing)
+		{
+			apu_stat->ext_audio.sample_pos = ((1/30.0 * play_yan.current_frame) * play_yan.audio_sample_rate);
+		}
+
+		else if(!apu_stat->ext_audio.use_headphones && play_yan.is_video_playing)
+		{
+			play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0);
+		}
 	}
 }
-
