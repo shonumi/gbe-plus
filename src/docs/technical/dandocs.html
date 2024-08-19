@@ -7572,12 +7572,14 @@ myscore - 8 bytes
 	<a name="exm_tmp"></a>
 	<p class="gray_title">[EX Monopoly] : 10.temporary.cgb</p>
 
-	<p>After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format &#34;myscore=<8 hex digits>&#34;. The server responds in the following format:</p>
+	<p>After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format &#34;myscore=<16 hex digits>&#34;. The server responds in the following format:</p>
 
 <pre>0x00 - 0x01			::  If both are 0x00, no rank number is present.
 0x02 - 0x05			::  Rank number in big endian, optional.</pre>
 
 	<p>If the rank number is greater than 10, the player will be told that they are unranked.</p>
+
+	<p>Note that, in the initial GET request to this file before authentication is complete, the game sends a &#34;Content-Length: 24&#34; header without sending any content.</p>
 
 	<a name="exm_str"></a>
 	<p class="gray_title">[EX Monopoly] : String Format</p>
