@@ -54,6 +54,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
 	play_yan.is_media_playing = false;
+	play_yan.is_sfx_playing = false;
 	play_yan.is_end_of_samples = false;
 
 	play_yan.audio_irq_active = false;
@@ -766,6 +767,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 			play_yan.irq_delay = 1;
 			play_yan.is_music_playing = false;
 			play_yan.is_media_playing = false;
+			play_yan.is_sfx_playing = false;
 			play_yan.is_end_of_samples = false;
 			process_play_yan_irq();
 		}
@@ -1002,6 +1004,24 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_data[0] = PLAY_YAN_STOP_VIDEO | 0x40000000;
 	}
 
+	//Trigger Game Pak IRQ for playing sound effects
+	else if(play_yan.cmd == PLAY_YAN_PLAY_SFX)
+	{
+		play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
+		play_yan.irq_update = apu_stat->ext_audio.use_headphones;
+		play_yan.update_cmd = PLAY_YAN_PLAY_MUSIC;
+
+		play_yan.irq_delay = 1;
+
+		play_yan.is_music_playing = true;
+		play_yan.is_media_playing = true;
+		play_yan.is_sfx_playing = true;
+		play_yan.audio_buffer_size = 0x480;
+		play_yan.audio_sample_index = 0;
+		play_yan.cycles = 0;
+		play_yan.cycle_limit = 479232;
+	}
+
 	//Trigger Game Pak IRQ for playing music
 	else if(play_yan.cmd == PLAY_YAN_PLAY_MUSIC)
 	{
@@ -1013,6 +1033,7 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.is_music_playing = true;
 		play_yan.is_media_playing = true;
+		play_yan.is_sfx_playing = false;
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
 		play_yan.cycles = 0;
@@ -1161,7 +1182,7 @@ void AGB_MMU::play_yan_update()
 				u32 current_sample_rate = (apu_stat->ext_audio.use_headphones) ? play_yan.audio_sample_rate : 16384;
 				u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
 
-				if(current_sample_rate && current_sample_len)
+				if(current_sample_rate && current_sample_len && !play_yan.is_sfx_playing)
 				{
 					//Update trackbar
 					play_yan.tracker_update_size = (float(current_sample_pos) / float(current_sample_len) * 0x6400);
@@ -1191,6 +1212,7 @@ void AGB_MMU::play_yan_update()
 
 					play_yan.is_music_playing = false;
 					play_yan.is_media_playing = false;
+					play_yan.is_sfx_playing = false;
 					apu_stat->ext_audio.playing = false;
 
 					play_yan.audio_channels = 0;
@@ -1744,7 +1766,7 @@ void AGB_MMU::play_yan_set_sound_samples()
 			play_yan.audio_sample_index++;
 
 			//Update music trackbar timestamp approximately, based on samples processed
-			if(((play_yan.audio_sample_index % 16384) == 0) && (!play_yan.is_video_playing))
+			if(((play_yan.audio_sample_index % 16384) == 0) && (!play_yan.is_video_playing) && (!play_yan.is_sfx_playing))
 			{
 				play_yan.update_trackbar_timestamp = true;
 			}
