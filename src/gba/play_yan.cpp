@@ -967,6 +967,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.current_frame = 0;
 		play_yan.is_video_playing = true;
 		play_yan.is_media_playing = true;
+		play_yan.is_sfx_playing = false;
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
@@ -994,6 +995,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.cycles = 0;
 		play_yan.is_video_playing = false;
 		play_yan.is_media_playing = false;
+		play_yan.is_sfx_playing = false;
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.audio_channels = 0;
@@ -1016,10 +1018,19 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.is_music_playing = true;
 		play_yan.is_media_playing = true;
 		play_yan.is_sfx_playing = true;
+		apu_stat->ext_audio.playing = false;
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
 		play_yan.cycles = 0;
 		play_yan.cycle_limit = 479232;
+
+		//Get SFX file
+		{
+			std::string sfx_file = config::data_path + "play_yan/sfx.wav";
+			play_yan_load_audio(sfx_file);
+		}
+
+		std::cout<<"SFX START\n";
 	}
 
 	//Trigger Game Pak IRQ for playing music
@@ -1061,6 +1072,7 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.is_music_playing = false;
 		play_yan.is_media_playing = false;
+		play_yan.is_sfx_playing = false;
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.audio_channels = 0;
@@ -1175,7 +1187,7 @@ void AGB_MMU::play_yan_update()
 
 			if(play_yan.is_media_playing)
 			{
-				play_yan.irq_delay = 60;
+				play_yan.irq_delay = play_yan.is_sfx_playing ? 1 : 60;
 				play_yan.irq_data[0] = 0x80001000;
 
 				u32 current_sample_pos = (apu_stat->ext_audio.use_headphones) ? apu_stat->ext_audio.sample_pos : 0;
@@ -1208,19 +1220,27 @@ void AGB_MMU::play_yan_update()
 					play_yan.irq_update = false;
 					play_yan.update_cmd = 0;
 
-					play_yan.irq_delay = 1;
-
 					play_yan.is_music_playing = false;
 					play_yan.is_media_playing = false;
-					play_yan.is_sfx_playing = false;
 					apu_stat->ext_audio.playing = false;
 
 					play_yan.audio_channels = 0;
 					play_yan.audio_sample_rate = 0;
 					apu_stat->ext_audio.sample_pos = 0;
 
-					for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-					play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+					if(!play_yan.is_sfx_playing)
+					{
+						play_yan.irq_delay = 1;
+
+						for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+						play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+					}
+
+					else
+					{
+						play_yan.irq_delay = 0;
+						play_yan.is_sfx_playing = false;
+					}
 				}
 			}
 
@@ -1353,7 +1373,7 @@ void AGB_MMU::process_play_yan_irq()
 		if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
 	}
 
-	//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+	std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 }
 
 /****** Reads a bitmap file for video thumbnail used for Play-Yan video ******/
