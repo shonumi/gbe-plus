@@ -761,15 +761,19 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		if(play_yan.is_end_of_samples && play_yan.is_music_playing)
 		{
 			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-			play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+
+			if(!play_yan.is_sfx_playing)
+			{
+				play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+				play_yan.irq_delay = 1;
+				process_play_yan_irq();
+			}
 
 			play_yan.cycles = 0;
-			play_yan.irq_delay = 1;
 			play_yan.is_music_playing = false;
 			play_yan.is_media_playing = false;
 			play_yan.is_sfx_playing = false;
 			play_yan.is_end_of_samples = false;
-			process_play_yan_irq();
 		}
 
 		//No Headphones - Update music trackbar
@@ -889,12 +893,26 @@ void AGB_MMU::process_play_yan_cmd()
 
 	std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
 
+	if((play_yan.is_sfx_playing) && (play_yan.cmd != PLAY_YAN_PLAY_SFX))
+	{
+		play_yan.irq_update = false;
+
+		play_yan.is_music_playing = false;
+		play_yan.is_media_playing = false;
+		play_yan.is_sfx_playing = false;
+		apu_stat->ext_audio.playing = false;
+
+		play_yan.audio_channels = 0;
+		play_yan.audio_sample_rate = 0;
+		apu_stat->ext_audio.sample_pos = 0;
+	}
+
 	//Trigger Game Pak IRQ for Get Filesystem Info command
 	if(play_yan.cmd == PLAY_YAN_GET_FILESYS_INFO)
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
-		play_yan.irq_delay = 10;
+		play_yan.irq_delay = 1;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_GET_FILESYS_INFO | 0x40000000;
@@ -905,7 +923,7 @@ void AGB_MMU::process_play_yan_cmd()
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 
-		play_yan.irq_delay = 10;
+		play_yan.irq_delay = 1;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_SET_DIR | 0x40000000;
@@ -1009,20 +1027,17 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for playing sound effects
 	else if(play_yan.cmd == PLAY_YAN_PLAY_SFX)
 	{
-		play_yan.op_state = PLAY_YAN_IRQ_UPDATE;
-		play_yan.irq_update = apu_stat->ext_audio.use_headphones;
-		play_yan.update_cmd = PLAY_YAN_PLAY_MUSIC;
-
-		play_yan.irq_delay = 1;
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		play_yan.irq_update = false;
+		play_yan.update_cmd = 0;
 
 		play_yan.is_music_playing = true;
 		play_yan.is_media_playing = true;
 		play_yan.is_sfx_playing = true;
-		apu_stat->ext_audio.playing = false;
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
-		play_yan.cycles = 0;
 		play_yan.cycle_limit = 479232;
+		play_yan.cycles = 470000;
 
 		//Get SFX file
 		{
@@ -1030,7 +1045,8 @@ void AGB_MMU::process_play_yan_cmd()
 			play_yan_load_audio(sfx_file);
 		}
 
-		std::cout<<"SFX START\n";
+		apu_stat->ext_audio.playing = true;
+		apu_stat->ext_audio.sample_pos = 0;
 	}
 
 	//Trigger Game Pak IRQ for playing music
@@ -1187,7 +1203,7 @@ void AGB_MMU::play_yan_update()
 
 			if(play_yan.is_media_playing)
 			{
-				play_yan.irq_delay = play_yan.is_sfx_playing ? 1 : 60;
+				play_yan.irq_delay = 60;
 				play_yan.irq_data[0] = 0x80001000;
 
 				u32 current_sample_pos = (apu_stat->ext_audio.use_headphones) ? apu_stat->ext_audio.sample_pos : 0;
@@ -1220,6 +1236,8 @@ void AGB_MMU::play_yan_update()
 					play_yan.irq_update = false;
 					play_yan.update_cmd = 0;
 
+					play_yan.irq_delay = 1;
+
 					play_yan.is_music_playing = false;
 					play_yan.is_media_playing = false;
 					apu_stat->ext_audio.playing = false;
@@ -1228,19 +1246,8 @@ void AGB_MMU::play_yan_update()
 					play_yan.audio_sample_rate = 0;
 					apu_stat->ext_audio.sample_pos = 0;
 
-					if(!play_yan.is_sfx_playing)
-					{
-						play_yan.irq_delay = 1;
-
-						for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-						play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
-					}
-
-					else
-					{
-						play_yan.irq_delay = 0;
-						play_yan.is_sfx_playing = false;
-					}
+					for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+					play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
 				}
 			}
 
