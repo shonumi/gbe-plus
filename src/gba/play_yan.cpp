@@ -512,6 +512,8 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					play_yan.current_frame = (30 * control_cmd2);
 					play_yan.video_progress = (play_yan.current_frame * 33.3333);
 
+					std::cout<<"CURRENT FRAME -> " << play_yan.current_frame << "\n";
+
 					//Update sound as well
 					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
 					double result = double(play_yan.video_progress) / play_yan.video_length;
@@ -760,20 +762,23 @@ u8 AGB_MMU::read_play_yan(u32 address)
 		//No Headphones - Stop sound sample playback
 		if(play_yan.is_end_of_samples && play_yan.is_music_playing)
 		{
-			for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-
-			if(!play_yan.is_sfx_playing)
-			{
-				play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
-				play_yan.irq_delay = 1;
-				process_play_yan_irq();
-			}
+			bool sfx = play_yan.is_sfx_playing;
 
 			play_yan.cycles = 0;
 			play_yan.is_music_playing = false;
 			play_yan.is_media_playing = false;
 			play_yan.is_sfx_playing = false;
 			play_yan.is_end_of_samples = false;
+			play_yan.update_trackbar_timestamp = false;
+
+			if(!sfx)
+			{
+				for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+				play_yan.irq_data[0] = PLAY_YAN_STOP_MUSIC | 0x40000000;
+				play_yan.irq_delay = 1;
+
+				process_play_yan_irq();
+			}
 		}
 
 		//No Headphones - Update music trackbar
@@ -893,6 +898,9 @@ void AGB_MMU::process_play_yan_cmd()
 
 	std::cout<<"CMD -> 0x" << play_yan.cmd << "\n";
 
+	//Stop SFX if another command is issued before audio is finished playing
+	//The audio data should continuous on real HW (in theory), but it's kind of a pain to schedule that
+	//Here it's stopped early. SFX (issued by Nintendo) may been short enough to avoid this issue? 
 	if((play_yan.is_sfx_playing) && (play_yan.cmd != PLAY_YAN_PLAY_SFX))
 	{
 		play_yan.irq_update = false;
@@ -904,6 +912,7 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
+		play_yan.audio_sample_index = 0;
 		apu_stat->ext_audio.sample_pos = 0;
 	}
 
@@ -978,6 +987,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.audio_frame_count = 0;
 		play_yan.cycles = 0;
 		play_yan.cycle_limit = 1017856;
+		apu_stat->ext_audio.sample_pos = 0;
 
 		play_yan.video_data_addr = 0;
 		play_yan.video_progress = 0;
@@ -986,6 +996,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.is_video_playing = true;
 		play_yan.is_media_playing = true;
 		play_yan.is_sfx_playing = false;
+		play_yan.is_end_of_samples = false;
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
@@ -995,6 +1006,10 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.capture_command_stream = true;
 		play_yan.command_stream.clear();
+
+		//Send IRQ immediately. Sometimes when resuming video playback, GBE+ schedules this IRQ too late 
+		play_yan.irq_delay = 1;
+		process_play_yan_irq();
 	}
 
 	//Trigger Game Pak IRQ for stopping video
@@ -1014,6 +1029,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.is_video_playing = false;
 		play_yan.is_media_playing = false;
 		play_yan.is_sfx_playing = false;
+		play_yan.is_end_of_samples = false;
 		apu_stat->ext_audio.playing = false;
 
 		play_yan.audio_channels = 0;
@@ -1034,6 +1050,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.is_music_playing = true;
 		play_yan.is_media_playing = true;
 		play_yan.is_sfx_playing = true;
+		play_yan.is_end_of_samples = false;
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
 		play_yan.cycle_limit = 479232;
@@ -1045,7 +1062,7 @@ void AGB_MMU::process_play_yan_cmd()
 			play_yan_load_audio(sfx_file);
 		}
 
-		apu_stat->ext_audio.playing = true;
+		apu_stat->ext_audio.playing = apu_stat->ext_audio.use_headphones;
 		apu_stat->ext_audio.sample_pos = 0;
 	}
 
@@ -1065,6 +1082,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.audio_sample_index = 0;
 		play_yan.cycles = 0;
 		play_yan.cycle_limit = 479232;
+		apu_stat->ext_audio.sample_pos = 0;
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
@@ -1089,7 +1107,9 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.is_music_playing = false;
 		play_yan.is_media_playing = false;
 		play_yan.is_sfx_playing = false;
+		play_yan.is_end_of_samples = false;
 		apu_stat->ext_audio.playing = false;
+
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
@@ -1225,7 +1245,6 @@ void AGB_MMU::play_yan_update()
 				{
 					apu_stat->ext_audio.channels = play_yan.audio_channels;
 					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
-					apu_stat->ext_audio.sample_pos = 0;
 					apu_stat->ext_audio.playing = true;
 				}
 
@@ -1282,7 +1301,6 @@ void AGB_MMU::play_yan_update()
 				{
 					apu_stat->ext_audio.channels = play_yan.audio_channels;
 					apu_stat->ext_audio.frequency = play_yan.audio_sample_rate;
-					apu_stat->ext_audio.sample_pos = 0;
 					apu_stat->ext_audio.playing = true;
 				}
 
@@ -1380,7 +1398,7 @@ void AGB_MMU::process_play_yan_irq()
 		if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
 	}
 
-	std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+	//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 }
 
 /****** Reads a bitmap file for video thumbnail used for Play-Yan video ******/
@@ -1747,7 +1765,9 @@ void AGB_MMU::play_yan_set_sound_samples()
 
 	if(play_yan.audio_sample_rate)
 	{
-		float gba_sample_rate = play_yan.is_video_playing ? 8192.0 : 16384.0;
+		//Sample rate is quite variable between Music, Video, and SFX, so calculate it here
+		float gba_sample_rate = (2 << 23) / (0x10000 - timer->at(0).reload_value);
+
 		double ratio = play_yan.audio_sample_rate / gba_sample_rate;
 		s16* e_stream = (s16*)apu_stat->ext_audio.buffer;
 		u32 stream_size = apu_stat->ext_audio.length / 2;
@@ -1810,7 +1830,7 @@ void AGB_MMU::play_yan_set_video_pixels()
 	play_yan.video_progress = (play_yan.current_frame * 33.3333);
 
 	//Check if video has finished and stop accordingly
-	if(play_yan.video_progress >= play_yan.video_length)
+	if((play_yan.video_progress >= play_yan.video_length) && (play_yan.is_video_playing))
 	{
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_update = false;

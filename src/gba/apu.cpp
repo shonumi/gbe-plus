@@ -521,7 +521,13 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 		{
 			stream[x] = -32768;
 			apu_stat.ext_audio.playing = false;
-			mem->play_yan.is_sfx_playing = false;
+
+			if(mem->play_yan.is_sfx_playing)
+			{
+				mem->play_yan.is_music_playing = false;
+				mem->play_yan.is_media_playing = false;
+				mem->play_yan.is_sfx_playing = false;
+			}
 		}
 
 		//GBA Jukebox - Average samples for spectrum analyzer
