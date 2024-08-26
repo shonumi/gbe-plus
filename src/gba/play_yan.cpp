@@ -512,8 +512,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					play_yan.current_frame = (30 * control_cmd2);
 					play_yan.video_progress = (play_yan.current_frame * 33.3333);
 
-					std::cout<<"CURRENT FRAME -> " << play_yan.current_frame << "\n";
-
 					//Update sound as well
 					u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
 					double result = double(play_yan.video_progress) / play_yan.video_length;
@@ -827,6 +825,7 @@ u8 AGB_MMU::read_play_yan(u32 address)
 					if(play_yan.video_irq_active && play_yan.is_media_playing)
 					{
 						play_yan.audio_irq_active = false;
+						play_yan.video_irq_active = false;
 						play_yan_set_video_pixels();
 					}
 				}
@@ -1001,6 +1000,9 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
 
+		play_yan.l_audio_dither_error = 0;
+		play_yan.r_audio_dither_error = 0;
+
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_PLAY_VIDEO | 0x40000000;
 
@@ -1056,6 +1058,9 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.cycle_limit = 479232;
 		play_yan.cycles = 470000;
 
+		play_yan.l_audio_dither_error = 0;
+		play_yan.r_audio_dither_error = 0;
+
 		//Get SFX file
 		{
 			std::string sfx_file = config::data_path + "play_yan/sfx.wav";
@@ -1086,6 +1091,9 @@ void AGB_MMU::process_play_yan_cmd()
 
 		play_yan.tracker_progress = 0;
 		play_yan.tracker_update_size = 0;
+
+		play_yan.l_audio_dither_error = 0;
+		play_yan.r_audio_dither_error = 0;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_PLAY_MUSIC | 0x40000000;
@@ -1784,6 +1792,8 @@ void AGB_MMU::play_yan_set_sound_samples()
 
 		for(u32 x = 0; x < play_yan.audio_buffer_size; x++)
 		{
+			error = (x < limit) ? play_yan.l_audio_dither_error : play_yan.r_audio_dither_error;
+
 			if(x == limit) { play_yan.audio_sample_index -= limit; }
 			bool is_left_channel = (x < limit) ? true : false; 
 
@@ -1800,17 +1810,22 @@ void AGB_MMU::play_yan_set_sound_samples()
 			//Perform simple Flyod-Steinberg dithering
 			//Grab current sample and add 7/16 of error, quantize results, clip results 
 			sample = e_stream[index];
+			sample += ((error >> 4) * 7);
+			sample >>= 8;
 
 			//Set volume manually
 			sample *= (play_yan.volume / 56.0);
-			if(sample > 32767) { sample = 32767; }
-			else if(sample < -32768) { sample = 32768; }
 
-			sample >>= 8;
+			if(sample > 127) { sample = 127; }
+			else if(sample < -128) { sample = -128; }
 
 			//Output new samples
 			play_yan.card_data[offset++] = (sample & 0xFF);
 			play_yan.audio_sample_index++;
+
+			//Calculate new error
+			if(x < limit) { play_yan.l_audio_dither_error = (sample & 0xFF); }
+			else { play_yan.r_audio_dither_error = (sample & 0xFF); }
 
 			//Update music trackbar timestamp approximately, based on samples processed
 			if(((play_yan.audio_sample_index % 16384) == 0) && (!play_yan.is_video_playing) && (!play_yan.is_sfx_playing))
@@ -2460,6 +2475,9 @@ void AGB_MMU::play_yan_set_headphone_status()
 		{
 			play_yan.irq_delay = 0;
 			play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+
+			play_yan.l_audio_dither_error = 0;
+			play_yan.r_audio_dither_error = 0;
 		}
 
 		//Handle IRQs for headphone output
