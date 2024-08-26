@@ -289,12 +289,12 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Video position seeking
-			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
+			else if(((play_yan.cmd == PLAY_YAN_SEEK) || (play_yan.cmd == PLAY_YAN_ADVANCE_FRAME)) && (play_yan.is_video_playing))
 			{
 				u16 factor = (control_cmd2 >= 0xFFFD) ? ((0xFFFF - control_cmd2) + 1) : control_cmd2;
 
 				//Advance trackbar and timestamp
-				if(control_cmd2 <= 0x03)
+				if((control_cmd2 <= 0x03) && (control_cmd2))
 				{
 					play_yan.video_frame_count += (4.0 * factor);
 					play_yan.current_frame += (4 * factor);
@@ -314,13 +314,22 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
 					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
+					//Make sure to forcibly update video on PLAY_YAN_ADVANCE_FRAME command
+					if(play_yan.cmd == PLAY_YAN_ADVANCE_FRAME)
+					{
+						play_yan_set_video_pixels();
+					}
+
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();
 				}
 
 				//Rewind trackbar and timestamp
-				else if(control_cmd2 >= 0xFFFD)
+				else if((control_cmd2 >= 0xFFFD) || (!control_cmd2))
 				{
+					//Using zero seems to jump back quite a bit
+					if(!control_cmd2) { factor = 8; }
+
 					play_yan.video_frame_count -= (8.0 * factor);
 					play_yan.current_frame -= (8 * factor);
 
@@ -446,12 +455,12 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			}
 
 			//Video position seeking
-			else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
+			else if(((play_yan.cmd == PLAY_YAN_SEEK) || (play_yan.cmd == PLAY_YAN_ADVANCE_FRAME)) && (play_yan.is_video_playing))
 			{
 				u16 factor = (control_cmd2 >= 0xFFFFFFFD) ? ((0xFFFFFFFF - control_cmd2) + 1) : control_cmd2;
 
 				//Advance trackbar and timestamp
-				if(control_cmd2 <= 0x03)
+				if((control_cmd2 <= 0x03) && (control_cmd2))
 				{
 					play_yan.video_frame_count += (4.0 * factor);
 					play_yan.current_frame += (4 * factor);
@@ -471,13 +480,22 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 					if(apu_stat->ext_audio.use_headphones) { apu_stat->ext_audio.sample_pos = result; }
 					else { play_yan.audio_sample_index = ((1/30.0 * play_yan.current_frame) * 8192.0); }
 
+					//Make sure to forcibly update video on PLAY_YAN_ADVANCE_FRAME command
+					if(play_yan.cmd == PLAY_YAN_ADVANCE_FRAME)
+					{
+						play_yan_set_video_pixels();
+					}
+
 					play_yan.irq_delay = 1;
 					process_play_yan_irq();				
 				}
 
 				//Rewind trackbar and timestamp
-				else if(control_cmd2 >= 0xFFFFFFFD)
+				else if((control_cmd2 >= 0xFFFFFFFD) || (!control_cmd2))
 				{
+					//Using zero seems to jump back quite a bit
+					if(!control_cmd2) { factor = 8; }
+
 					play_yan.video_frame_count -= (8.0 * factor);
 					play_yan.current_frame -= (8 * factor);
 
