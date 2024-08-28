@@ -38,6 +38,7 @@ enum ir_types
 	GBC_POCKET_SAKURA,
 	GBC_TV_REMOTE,
 	GBC_LIGHT_SOURCE,
+	GBC_IR_NOISE,
 };
 
 enum printer_state

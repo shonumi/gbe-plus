@@ -345,6 +345,11 @@ void DMG_SIO::reset()
 			sio_stat.ir_type = GBC_LIGHT_SOURCE;
 			break;
 
+		//IR Noise
+		case 8:
+			sio_stat.ir_type = GBC_IR_NOISE;
+			break;
+
 		//Use standard GBC IR port communication as the default (GBE+ will ignore it for DMG games)
 		//Also, any invalid types are ignored
 		default:

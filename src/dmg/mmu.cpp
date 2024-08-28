@@ -385,6 +385,15 @@ u8 DMG_MMU::read_u8(u16 address)
 			sio_stat->shifts_left = 1;
 		}
 
+		//Change IR light status randomly for IR Noise option
+		if(sio_stat->ir_type == GBC_IR_NOISE)
+		{
+			u8 noise = (rand() & 0x1);
+
+			if(noise) { memory_map[address] &= ~0x2; }
+			else { memory_map[address] |= 0x2; }
+		}
+
 		//If Bits 6 and 7 are not set, treat Bit 1 as HIGH
 		if((memory_map[address] & 0xC0) == 0) { return memory_map[address] | 0x2; }
 
