@@ -205,6 +205,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->addItem("Constant IR Light");
 	ir_dev->addItem("Zoids CDZ Model");
 	ir_dev->addItem("NTR-027");
+	ir_dev->addItem("IR Noise");
 
 	config_ir = new QPushButton("Configure");
 
