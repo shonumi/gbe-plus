@@ -240,6 +240,7 @@ namespace config
 	extern std::string temp_karaoke_file;
 	extern std::string audio_conversion_cmd;
 	extern std::string remove_vocals_cmd;
+	extern bool force_cart_audio_sync;
 
 	extern u32 glucoboy_daily_grps;
 	extern u32 glucoboy_bonus_grps;

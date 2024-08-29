@@ -274,6 +274,9 @@ namespace config
 	//Remove vocals command
 	std::string remove_vocals_cmd = "";
 
+	//Force audio sync for every video frame for select catridges (Play-Yan, TV Tuner)
+	bool force_cart_audio_sync = false;
+
 	//Glucoboy GRP data
 	u32 glucoboy_daily_grps = 0;
 	u32 glucoboy_bonus_grps = 0;
@@ -1345,6 +1348,9 @@ bool parse_ini_file()
 		//Enable microphone
 		if(!parse_ini_bool(ini_item, "#use_microphone", config::use_microphone, ini_opts, x)) { return false; }
 
+		//Force cart audio sync
+		if(!parse_ini_bool(ini_item, "#force_cart_audio_sync", config::force_cart_audio_sync, ini_opts, x)) { return false; }
+
 		//Override default audio driver
 		parse_ini_str(ini_item, "#override_audio_driver", config::override_audio_driver, ini_opts, x);
 
@@ -2313,6 +2319,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#use_microphone:" + val + "]";
 		}
 
+		//Force cart audio sync
+		else if(ini_item == "#force_cart_audio_sync")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::force_cart_audio_sync) ? "1" : "0";
+
+			output_lines[line_pos] = "[#force_cart_audio_sync:" + val + "]";
+		}
+
 		//Override default audio driver
 		else if(ini_item == "#override_audio_driver")
 		{
@@ -3049,6 +3064,7 @@ bool generate_ini_file()
 	ini_contents += "[#mute]\n\n";
 	ini_contents += "[#use_stereo]\n\n";
 	ini_contents += "[#use_microphone]\n\n";
+	ini_contents += "[#force_cart_audio_sync]\n\n";
 	ini_contents += "[#override_audio_driver]\n\n";
 	ini_contents += "[#use_osd]\n\n";
 	ini_contents += "[#sample_rate]\n\n";
