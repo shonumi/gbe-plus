@@ -1320,6 +1320,16 @@ void AGB_MMU::play_yan_update()
 				{
 					play_yan.video_frame_count -= play_yan.video_current_fps;
 					play_yan_grab_frame_data(play_yan.current_frame);
+
+					//Forcibly sync audio for headphone periodically
+					if(config::force_cart_audio_sync)
+					{
+						u32 current_sample_len = apu_stat->ext_audio.length / (apu_stat->ext_audio.channels * 2);
+						double result = double(play_yan.video_progress) / play_yan.video_length;
+						result *= current_sample_len;
+
+						apu_stat->ext_audio.sample_pos = result;
+					}
 				}
 
 				//Start external audio output
