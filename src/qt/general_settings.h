@@ -76,6 +76,7 @@ class gen_settings : public QDialog
 	QCheckBox* sound_on;
 	QCheckBox* stereo_enable;
 	QCheckBox* mic_enable;
+	QCheckBox* fcas_enable;
 	QComboBox* audio_driver;
 
 	data_dialog* data_folder;

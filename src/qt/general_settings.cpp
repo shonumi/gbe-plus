@@ -491,6 +491,19 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	mic_enable_layout->addWidget(mic_enable_label);
 	mic_enable_set->setLayout(mic_enable_layout);
 
+	//Sound settings - Force Cartridge Audio Sync
+	QWidget* fcas_enable_set = new QWidget(sound);
+	QLabel* fcas_enable_label = new QLabel("Force Cartridge Audio Sync");
+	fcas_enable = new QCheckBox(fcas_enable_set);
+	fcas_enable->setToolTip("Syncs headphone audio for certain cartridges every frame");
+	fcas_enable->setChecked(true);
+
+	QHBoxLayout* fcas_enable_layout = new QHBoxLayout;
+	fcas_enable_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	fcas_enable_layout->addWidget(fcas_enable);
+	fcas_enable_layout->addWidget(fcas_enable_label);
+	fcas_enable_set->setLayout(fcas_enable_layout);
+
 	//Sound settings - Audio Driver
 	QWidget* audio_driver_set = new QWidget(sound);
 	QLabel* audio_driver_label = new QLabel("Audio Driver : ");
@@ -533,6 +546,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(sound_on_set);
 	audio_layout->addWidget(stereo_enable_set);
 	audio_layout->addWidget(mic_enable_set);
+	audio_layout->addWidget(fcas_enable_set);
 	audio_layout->addWidget(audio_driver_set);
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
@@ -1945,6 +1959,10 @@ void gen_settings::set_ini_options()
 	//Microphone recording option
 	if(config::use_microphone) { mic_enable->setChecked(true); }
 	else { mic_enable->setChecked(false); }
+
+	//Force cart audio sync option
+	if(config::force_cart_audio_sync) { fcas_enable->setChecked(true); }
+	else { fcas_enable->setChecked(false); }
 
 	//Dead-zone
 	dead_zone->setValue(config::dead_zone);
