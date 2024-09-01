@@ -47,6 +47,7 @@ cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 
 	resize(600, 400);
 	setWindowTitle(QString("Edit Cheat Codes"));
+	setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	hide();
 
 	data_set = new QWidget;

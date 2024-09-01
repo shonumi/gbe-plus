@@ -1211,6 +1211,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 
 	resize(800, 500);
 	setWindowTitle(tr("DMG-GBC Debugger"));
+	setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 
 	debug_reset = true;
 	text_select = 0;

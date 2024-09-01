@@ -40,6 +40,7 @@ con_ir_menu::con_ir_menu(QWidget *parent) : QDialog(parent)
 
 	setMinimumWidth(300);
 	setWindowTitle(QString("Constant IR Light Configuration"));
+	setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	hide();
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));

@@ -1753,6 +1753,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	resize(450, 450);
 	setWindowTitle(tr("GBE+ Settings"));
+	setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 }
 
 /****** Sets various widgets to values based on the current config paramters (from .ini file) ******/

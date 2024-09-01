@@ -110,6 +110,7 @@ rtc_menu::rtc_menu(QWidget *parent) : QDialog(parent)
 
 	setMinimumWidth(300);
 	setWindowTitle(QString("RTC Offsets"));
+	setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	hide();
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
