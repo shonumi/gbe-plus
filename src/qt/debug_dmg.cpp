@@ -1484,17 +1484,16 @@ void dmg_debug::refresh()
 	//GBC Palettes
 	else
 	{
-		/*
 		//BG
 		for(u8 y = 0; y < 8; y++)
 		{
-			u32* color = main_menu::gbe_plus->get_bg_palette(y);
-
 			for(u8 x = 0; x < 4; x++)
 			{
-				u8 blue = (*color) & 0xFF;
-				u8 green = ((*color) >> 8) & 0xFF;
-				u8 red = ((*color) >> 16) & 0xFF;
+				u32 color = main_menu::gbe_plus->get_core_data((x * 8) + y + 0xFF00);
+
+				u8 blue = (color) & 0xFF;
+				u8 green = (color >> 8) & 0xFF;
+				u8 red = (color >> 16) & 0xFF;
 
 				bg_pal_table->item(y, x)->setBackground(QColor(red, green, blue));
 				color += 8;
@@ -1504,19 +1503,18 @@ void dmg_debug::refresh()
 		//OBJ
 		for(u8 y = 0; y < 8; y++)
 		{
-			u32* color = main_menu::gbe_plus->get_obj_palette(y);
-
 			for(u8 x = 0; x < 4; x++)
 			{
-				u8 blue = (*color) & 0xFF;
-				u8 green = ((*color) >> 8) & 0xFF;
-				u8 red = ((*color) >> 16) & 0xFF;
+				u32 color = main_menu::gbe_plus->get_core_data((x * 8) + y + 0xFE00);
+
+				u8 blue = (color) & 0xFF;
+				u8 green = (color >> 8) & 0xFF;
+				u8 red = (color >> 16) & 0xFF;
 
 				obj_pal_table->item(y, x)->setBackground(QColor(red, green, blue));
 				color += 8;
 			}
 		}
-		*/
 	}
 
 	//Memory viewer

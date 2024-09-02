@@ -1359,5 +1359,36 @@ u32 DMG_core::get_core_data(u32 core_index)
 			break;
 	}
 
+	switch(core_index & 0xFF00)
+	{
+		//Return GBC BG Palette Color
+		case 0xFF00:
+			//Use Bits 0-7 as index
+			{
+				u32 y = (core_index & 0xFF) / 8;
+				u32 x = (core_index & 0xFF) % 8;
+
+				if(y >= 4) { y = 3; }
+				if(x >= 8) { x = 7; }
+
+				result = core_cpu.controllers.video.lcd_stat.bg_colors_final[y][x];
+			}
+			break;
+
+		//Return GBC OBJ Palette Color
+		case 0xFE00:
+			//Use Bits 0-7 as index
+			{
+				u32 y = (core_index & 0xFF) / 8;
+				u32 x = (core_index & 0xFF) % 8;
+
+				if(y >= 4) { y = 3; }
+				if(x >= 8) { x = 7; }
+
+				result = core_cpu.controllers.video.lcd_stat.obj_colors_final[y][x];
+			}
+			break;
+	}
+
 	return result;
 }
