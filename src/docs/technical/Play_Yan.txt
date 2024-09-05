@@ -177,7 +177,8 @@ Command					| Parameter 1							| Parameter 2
 0x3000 - Check For Key File*		| Key File Name							| N/A
 0x3001 - Read Key File Data		| N/A								| N/A
 0x3003 - Close Key File			| N/A								| N/A
-0x8000 - Get Cartridge Status		| N/A								| N/A
+0x8000 - Check For Firmware		| N/A								| N/A
+0x8001 - Get Cartridge Status		| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------
@@ -238,7 +239,7 @@ Additionally for videos, when setting Parameter 1 to 0x00, Parameter 2 acts as a
 7. Game Pak IRQs
 ***************************************************
 
-The Play-Yan's hardware produces a variety of Game Pak IRQs when the software sends certain commands. Not every command will generate an IRQ, however, the ones that do are pivotal to operating the Play-Yan. For example, during the initial boot process, the Play-Yan's software waits indefinitely until several commands to respond with IRQs, without which the software essentially locks up. Each Game Pak IRQ returns data that can be read at 0xB000300 - 0xB00031F. Some commands may cause multiple IRQs to be generated as well, where the return data is simply 0x80000100 or 0x80001000 to signify the end of certain internal operations within the Play-Yan. Use the following process to read the Game Pak IRQ data:
+The Play-Yan's hardware produces a variety of Game Pak IRQs when the software sends certain commands. Not every command will generate an IRQ, however, the ones that do are pivotal to operating the Play-Yan. For example, during the initial boot process, the Play-Yan's software waits indefinitely until several commands to respond with IRQs, without which the software essentially locks up. Each Game Pak IRQ returns data that can be read at 0xB000300 - 0xB00031F. Some commands may cause multiple IRQs to be generated as well, where the first 4 bytes of return data is simply 0x80000100 or 0x80001000. This signifies the end of certain internal operations within the Play-Yan, generally related to firmware loading, or audio/video playback. Use the following process to read the Game Pak IRQ data:
 
 -----------------------------------------------------------------------
 PY_DATA_PARAM = 0x08
@@ -256,12 +257,10 @@ READ DATA FROM 0xB000300 THROUGH 0xB00031F
 A list of commands and their known IRQs and the IRQ data is shown below:
 
 -----------------------------------------------------------------------
-Command 0x200 - Get Filesystem Information - 2 IRQs
+Command 0x200 - Get Filesystem Information - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000200
 Bytes 0x04 - 0x07	| 0x01 or 0x02
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
 This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. The Play-Yan will scan for any files and folders it can find. Afterwards, the software can read the data through the SD Card Data interface described in the section above. The data contains the total number of files and folders within the directory along with 268-byte entries of metadata for each item found. The format of the list returned via SD Card Data is as follows:
@@ -291,11 +290,9 @@ The second parameter determines what types of files will be returned. If this pa
 
 
 -----------------------------------------------------------------------
-Command 0x201 - Change Current Directory - 2 IRQs
+Command 0x201 - Change Current Directory - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000201
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
 Changes the current directory the Play-Yan will look for new files and folders. The folder to change into must be passed as a null-terminated string for Parameter 1. The Play-Yan is capable of traversing up and down directories through this mechanism. The Play-Yan software is programmed to automatically search through various folders and sub-folders in order to map out existing music or video files. If the string in Parameter 1 is just "..", the Play-Yan will move upwards by one folder, allowing it to backtrack through previous directories.
@@ -368,11 +365,9 @@ The frame itself is read similarly to video thumbnails. Refers to the appropiate
 
 
 -----------------------------------------------------------------------
-Command 0x701 - Stop Video Playback - 2 IRQs
+Command 0x701 - Stop Video Playback - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000701
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
 Stops the current video file that is playing.
@@ -411,11 +406,9 @@ For updating audio samples, only the bytes 0x10 through 0x13 need be non-zero. I
 
 
 -----------------------------------------------------------------------
-Command 0x801 - Stop Music Playback - 2 IRQs
+Command 0x801 - Stop Music Playback - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000801
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
 
 Stops the current music file that is playing.
@@ -425,7 +418,7 @@ Stops the current music file that is playing.
 
 
 -----------------------------------------------------------------------
-Command 0x2000 - Play Sound Effect - 1 IRQ
+Command 0x2000 - Play Sound Effect - 1 IRQ*
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------
@@ -476,13 +469,26 @@ This command presumably closes the key file. The Play Yan Micro only executes th
 
 
 -----------------------------------------------------------------------
-Command 0x8000 - Get Cartridge Status - 1 IRQ
+Command 0x8000 - Check For Firmware - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40008000
+Bytes 0x08 - 0x0B	| Firmware File Status
+-----------------------------------------------------------------------
+
+This command is used to determine if a firmware update file is present on the root of the SD card. If both Bit 0 and Bit 1 are set for the Firmware File Status, the Play-Yan software will take steps to load in the new firmware file. In this case, the Play-Yan's code also calls the 0x8001 command immediately after writing to firmware. 
+
+
+
+
+
+-----------------------------------------------------------------------
+Command 0x8001 - Get Cartridge Status - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80000100
 Bytes 0x04 - 0x07	| SD Card Status
 -----------------------------------------------------------------------
 
-A single value is returned for the overall status of the Play-Yan cartridge. This can be used to determine if an appropiate SD card has been inserted or if there are any problems. As the SD card is essential for the Play-Yan, this is the first command executed when booting. Setting the following bits indicates specific errors, and the Play-Yan will halt booting up and display an appropiate message:
+A single value is returned for the overall status of the Play-Yan cartridge. This can be used to determine if an appropiate SD card has been inserted or if there are any problems. As the SD card is essential for the Play-Yan, this is the earlier commands executed when booting. Setting the following bits indicates specific errors, and the Play-Yan will halt booting up and display an appropiate message:
 
 -----------------------------------------------------------------------
 Bit 0	| The cartridge is in bad condition
@@ -492,6 +498,7 @@ Bit 2	| Filesystem error
 
 Setting Bits 0 and 1 together produces the same "cartridge is in bad condition error". Setting Bits 0 and 2 together produces a general error. If no bits are set, this indicates there were no problems.
 
+This command is called after the 0x8000 command detects the presence of a firmware update file. As such, the first 4 bytes it returns are 0x80000100 to indicate the completion of firmware loading.
 
 
 
@@ -512,9 +519,9 @@ This command is called right before the Play-Yan forces the GBA hardware into lo
 Command 0x800000 - Unknown - 2 IRQs
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40800000
-Bytes 0x04 - 0x07	| SD Card Status
+Bytes 0x04 - 0x07	| Unknown
 -----------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
+Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------
 
 This command is issued shortly after Get SD Card Status. It's purpose is currently unknown. It generates 1 IRQ, which also returns the card's status.
