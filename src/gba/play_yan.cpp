@@ -14,6 +14,8 @@
 #include <SDL2/SDL_image.h>
 #endif
 
+#include <filesystem>
+
 #include "mmu.h"
 #include "common/util.h"
 
@@ -1163,14 +1165,37 @@ void AGB_MMU::process_play_yan_cmd()
 		}
 	}
 
-	//Trigger Game Pak IRQ for cartridge status
-	else if(play_yan.cmd == PLAY_YAN_GET_STATUS)
+	//Trigger Game Pak IRQ for checking firmware
+	else if(play_yan.cmd == PLAY_YAN_CHECK_FOR_FIRMWARE)
 	{
 		play_yan.irq_delay = 60;
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-		play_yan.irq_data[0] = PLAY_YAN_GET_STATUS | 0x40000000;
-		play_yan.irq_data[1] = 0x00000005;
+		play_yan.irq_data[0] = PLAY_YAN_CHECK_FOR_FIRMWARE | 0x40000000;
+
+		std::string firmware_file = "";
+
+		if(play_yan.type == PLAY_YAN_MICRO) { firmware_file = config::data_path + "play_yan/play_yanmicro.fup"; }
+		else { firmware_file = firmware_file = config::data_path + "play_yan/playan.fup"; }
+		
+		if(std::filesystem::exists(firmware_file))
+		{
+			play_yan.irq_data[2] = 0x03;
+			std::cout<<"MMU::Play-Yan Firmware Update file detected\n";
+		}
+	}
+
+	//Trigger Game Pak IRQ for cartridge status
+	else if(play_yan.cmd == PLAY_YAN_GET_STATUS)
+	{
+		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
+		play_yan.irq_update = false;
+		play_yan.update_cmd = 0;
+
+		play_yan.irq_delay = 1;
+
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = 0x80000100;
 	}
 
 	//Trigger Game Pak IRQ for booting cartridge/status (firmware related?)
