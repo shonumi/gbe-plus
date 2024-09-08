@@ -2444,6 +2444,11 @@ bool AGB_MMU::read_file(std::string filename)
 	else if(config::cart_type == AGB_PLAY_YAN)
 	{
 		current_save_type = NONE;
+
+		//Use simple string check to detect Play-Yan Micro
+		//Necessary to do it now for firmware checks, validated later with 0x3000 command
+		if(game_code == "ZMBJ") { play_yan.type = PLAY_YAN_MICRO; }
+
 		return true;
 	}
 

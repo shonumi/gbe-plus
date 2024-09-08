@@ -72,7 +72,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.nmp_boot_data[1] = 0x8600;
 
 	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-	play_yan.irq_data[0] = 0x80000100;
 
 	play_yan.music_length = 0;
 	play_yan.tracker_progress = 0;
