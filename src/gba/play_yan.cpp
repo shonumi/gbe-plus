@@ -33,6 +33,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.firmware_addr = 0;
 	play_yan.firmware_status = 0x10;
+	play_yan.firmware_cnt = 0;
 	play_yan.firmware_addr_count = 0;
 
 	play_yan.video_bytes.clear();
@@ -47,7 +48,6 @@ void AGB_MMU::play_yan_reset()
 	play_yan.irq_delay = 0;
 	play_yan.last_delay = 0;
 	play_yan.irq_data_in_use = false;
-	play_yan.start_irqs = false;
 	play_yan.irq_update = false;
 
 	play_yan.cycles = 0;
@@ -153,7 +153,23 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 	{
 		//Unknown I/O
 		case PY_UNK_00:
+			play_yan.firmware_cnt &= ~0xFF;
+			play_yan.firmware_cnt |= value;
+			break;
+
 		case PY_UNK_00+1:
+			play_yan.firmware_cnt &= ~0xFF00;
+			play_yan.firmware_cnt |= (value << 8);
+
+			if(play_yan.firmware_cnt == 0xA5A5)
+			{
+				for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+				play_yan.irq_data[0] = 0x80000100;
+				play_yan.irq_delay = 120;		
+			}
+
+			break;
+
 		case PY_UNK_02:
 		case PY_UNK_02+1:
 			break;
@@ -225,13 +241,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 		if((play_yan.firmware_addr + offset) < 0xFF020)
 		{
 			play_yan.firmware[play_yan.firmware_addr + offset] = value;
-
-			//Start IRQs automatically after first write to firmware
-			if(!play_yan.start_irqs)
-			{
-				play_yan.start_irqs = true;
-				play_yan.irq_delay = 240;
-			}
 		}
 	}
 

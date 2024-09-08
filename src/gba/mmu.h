@@ -309,6 +309,7 @@ class AGB_MMU
 		std::vector<u8> firmware;
 		u32 firmware_addr;
 		u16 firmware_status;
+		u16 firmware_cnt;
 		u8 firmware_addr_count;
 
 		u8 status;
@@ -343,7 +344,6 @@ class AGB_MMU
 
 		u32 irq_data[8];
 		bool irq_data_in_use;
-		bool start_irqs;
 		bool is_video_playing;
 		bool is_music_playing;
 		bool is_media_playing;
