@@ -35,6 +35,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.firmware_status = 0x10;
 	play_yan.firmware_cnt = 0;
 	play_yan.firmware_addr_count = 0;
+	play_yan.update_firmware = false;
 
 	play_yan.video_bytes.clear();
 	play_yan.video_frames.clear();
@@ -1189,6 +1190,8 @@ void AGB_MMU::process_play_yan_cmd()
 		if(std::filesystem::exists(firmware_file))
 		{
 			play_yan.irq_data[2] = 0x03;
+			play_yan.update_firmware = true;
+
 			std::cout<<"MMU::Play-Yan Firmware Update file detected\n";
 		}
 	}
@@ -1569,7 +1572,7 @@ void AGB_MMU::play_yan_set_video_file()
 	util::get_files_in_dir(play_yan.current_dir, ".asf", dir_listing, true, true);
 	util::get_files_in_dir(play_yan.current_dir, ".ASF", dir_listing, true, true);
 
-	if(play_yan.type == PLAY_YAN_MICRO)
+	if((play_yan.type == PLAY_YAN_MICRO) || (play_yan.update_firmware))
 	{
 		util::get_files_in_dir(play_yan.current_dir, ".mp4", dir_listing, true, true);
 		util::get_files_in_dir(play_yan.current_dir, ".MP4", dir_listing, true, true);

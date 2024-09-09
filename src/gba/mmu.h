@@ -311,6 +311,7 @@ class AGB_MMU
 		u16 firmware_status;
 		u16 firmware_cnt;
 		u8 firmware_addr_count;
+		bool update_firmware;
 
 		u8 status;
 		play_yan_states op_state;
