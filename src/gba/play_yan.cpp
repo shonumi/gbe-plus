@@ -2205,40 +2205,56 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	if(thumb_pixels == NULL)
 	{
 		std::vector<u8> new_thumb;
-		u32 mid = (play_yan.video_frames.size() / 2);
 		u32 start = 0;
 		u32 end = 0;
-		
-		if(play_yan.video_frames.size() >= 2)
+		u32 frame_index = 0;
+		bool found_frame = false;
+
+		for(u32 x = 0; x < play_yan.video_frames.size(); x++)
 		{
-			start = play_yan.video_frames[mid];
-			end = play_yan.video_frames[mid + 1];
-		}
+			if(play_yan_grab_frame_data(x))
+			{
+				play_yan.video_data.clear();
+				found_frame = true;
+				frame_index = x;
 
-		else
+				break;
+			}			
+		}
+			
+		if(found_frame)
 		{
-			end = play_yan.video_bytes.size();
+			if(play_yan.video_frames.size() >= 2)
+			{
+				start = play_yan.video_frames[frame_index];
+				end = play_yan.video_frames[frame_index + 1];
+			}
+
+			else
+			{
+				end = play_yan.video_bytes.size();
+			}
+
+			for(u32 x = start; x < end; x++)
+			{
+				new_thumb.push_back(play_yan.video_bytes[x]);
+			}
+
+			io_ops = SDL_RWFromMem(new_thumb.data(), new_thumb.size());
+			SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
+			SDL_Surface* final_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 60, 40, 32, 0, 0, 0, 0);
+
+			SDL_Rect dest_rect;
+			dest_rect.w = 60;
+			dest_rect.h = 40;
+			dest_rect.x = 0;
+			dest_rect.y = 0;
+			SDL_BlitScaled(temp_surface, NULL, final_surface, &dest_rect);
+			SDL_SaveBMP(final_surface, thumb_file.c_str());
+
+			SDL_FreeSurface(final_surface);
+			SDL_FreeSurface(temp_surface);
 		}
-
-		for(u32 x = start; x < end; x++)
-		{
-			new_thumb.push_back(play_yan.video_bytes[x]);
-		}
-
-		io_ops = SDL_RWFromMem(new_thumb.data(), new_thumb.size());
-		SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
-		SDL_Surface* final_surface = SDL_CreateRGBSurface(SDL_SWSURFACE, 60, 40, 32, 0, 0, 0, 0);
-
-		SDL_Rect dest_rect;
-		dest_rect.w = 60;
-		dest_rect.h = 40;
-		dest_rect.x = 0;
-		dest_rect.y = 0;
-		SDL_BlitScaled(temp_surface, NULL, final_surface, &dest_rect);
-		SDL_SaveBMP(final_surface, thumb_file.c_str());
-
-		SDL_FreeSurface(final_surface);
-		SDL_FreeSurface(temp_surface);
 	}
 
 	SDL_FreeSurface(thumb_pixels);
@@ -2374,15 +2390,15 @@ void AGB_MMU::play_yan_check_audio_from_video(std::vector <u8> &data)
 }
 
 /****** Grabs the data for a specific frame ******/
-void AGB_MMU::play_yan_grab_frame_data(u32 frame)
+bool AGB_MMU::play_yan_grab_frame_data(u32 frame)
 {
 	#ifdef GBE_IMAGE_FORMATS
 
 	//Abort if invalid frame is being pulled from video
-	if(frame >= play_yan.video_frames.size()) { return; }
+	if(frame >= play_yan.video_frames.size()) { return false; }
 
 	//Abort if dummy frames are present
-	if(play_yan.video_frames[0] == 0xFFFFFFFF) { return; }
+	if(play_yan.video_frames[0] == 0xFFFFFFFF) { return false; }
 
 	u32 start = play_yan.video_frames[frame];
 	u32 end = 0;
@@ -2454,12 +2470,15 @@ void AGB_MMU::play_yan_grab_frame_data(u32 frame)
 	else
 	{
 		std::cout<<"MMU::Warning - Could not decode video frame #" << std::dec << frame << std::hex << "\n";
+		return false;
 	}
 
 	SDL_FreeSurface(temp_surface);
 	SDL_FreeRW(io_ops);
 
 	#endif
+
+	return true;
 }
 
 /****** Verifies AVI header for videos ******/

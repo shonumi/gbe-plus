@@ -683,7 +683,7 @@ class AGB_MMU
 	bool play_yan_load_audio(std::string filename);
 	bool play_yan_load_video(std::string filename);
 	bool play_yan_load_sfx(std::string filename);
-	void play_yan_grab_frame_data(u32 frame);
+	bool play_yan_grab_frame_data(u32 frame);
 	void play_yan_check_video_header(std::string filename);
 	void play_yan_check_audio_from_video(std::vector <u8> &data);
 	bool play_yan_get_headphone_status();
