@@ -57,6 +57,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.is_video_playing = false;
 	play_yan.is_music_playing = false;
 	play_yan.is_media_playing = false;
+	play_yan.is_media_paused = false;
 	play_yan.is_sfx_playing = false;
 	play_yan.is_end_of_samples = false;
 
@@ -1163,12 +1164,24 @@ void AGB_MMU::process_play_yan_cmd()
 		apu_stat->ext_audio.playing = false;
 	}
 
+	//Disable audio output when seeking forwards/backwards in videos
+	else if((play_yan.cmd == PLAY_YAN_SEEK) && (play_yan.is_video_playing))
+	{
+		play_yan.is_media_paused = true;
+
+		if(apu_stat->ext_audio.use_headphones)
+		{
+			apu_stat->ext_audio.playing = false;
+		}
+	}
+
 	//Resume Media Playback
 	else if(play_yan.cmd == PLAY_YAN_RESUME)
 	{
 		play_yan.is_media_playing = true;
+		play_yan.is_media_paused = false;
 
-		if(play_yan.audio_channels && play_yan.audio_sample_rate)
+		if(play_yan.audio_channels && play_yan.audio_sample_rate && apu_stat->ext_audio.use_headphones)
 		{
 			apu_stat->ext_audio.playing = true;
 		}
@@ -1851,6 +1864,10 @@ void AGB_MMU::play_yan_set_sound_samples()
 		u32 start_sample = play_yan.audio_sample_index;
 		u32 offset = 0;
 		u32 limit = (play_yan.audio_buffer_size / 2);
+		u8 temp_volume = play_yan.volume;
+
+		//Silence audio when seeking forwards/backwards through videos
+		if(play_yan.is_video_playing && play_yan.is_media_paused) { play_yan.volume = 0; }
 
 		if(play_yan.audio_channels) { index_shift = play_yan.audio_channels - 1; }
 
@@ -1899,6 +1916,7 @@ void AGB_MMU::play_yan_set_sound_samples()
 		}
 
 		play_yan.audio_irq_active = true;
+		play_yan.volume = temp_volume;
 	}
 }
 

@@ -348,6 +348,7 @@ class AGB_MMU
 		bool is_video_playing;
 		bool is_music_playing;
 		bool is_media_playing;
+		bool is_media_paused;
 		bool is_sfx_playing;
 		bool is_end_of_samples;
 
@@ -364,8 +365,6 @@ class AGB_MMU
 		std::vector<std::string> music_files;
 		std::vector<std::string> video_files;
 		std::vector<std::string> folders;
-
-		std::vector<u32> video_fps;
 
 		std::vector<u8> video_thumbnail;
 		std::vector<u8> video_data;

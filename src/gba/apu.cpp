@@ -458,6 +458,9 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	u32 stream_size = apu_stat.ext_audio.length / 2;
 	u32 karaoke_size = apu_stat.ext_audio.karaoke_length / 2;
 
+	//Play-Yan - Silence audio when seeking forwards/backwards through videos
+	bool is_seek_video = (mem->play_yan.is_video_playing && mem->play_yan.is_media_paused);
+
 	for(int x = 0; x < length; x++)
 	{
 		buffer_pos = last_pos + (sample_ratio * x);
@@ -487,7 +490,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 
 				//Normal Audio
 				{
-					stream[x] = e_stream[temp_pos];
+					stream[x] = (is_seek_video) ? -32768 : e_stream[temp_pos];
 				}
 			}
 
@@ -511,7 +514,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				else
 				{
 					s32 out_sample = (e_stream[temp_pos] + e_stream[temp_pos + 1]) / 2;
-					stream[x] = out_sample;
+					stream[x] = (is_seek_video) ? -32768 : out_sample;
 				}
 			}	
 		}
