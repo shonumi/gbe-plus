@@ -162,7 +162,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 			play_yan.firmware_cnt &= ~0xFF00;
 			play_yan.firmware_cnt |= (value << 8);
 
-			if(play_yan.firmware_cnt == 0xA5A5)
+			//Generate a firmware related IRQ
+			//HW tests suggest this does not happen after exiting Sleep Mode though!
+			if((play_yan.firmware_cnt == 0xA5A5) && (play_yan.op_state != PLAY_YAN_WAKE))
 			{
 				for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 				play_yan.irq_data[0] = 0x80000100;
@@ -1965,12 +1967,15 @@ void AGB_MMU::play_yan_set_video_pixels()
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
 void AGB_MMU::play_yan_wake()
 {
-	play_yan.op_state = PLAY_YAN_WAKE;
+	if(play_yan.type != NINTENDO_MP3)
+	{
+		play_yan.op_state = PLAY_YAN_WAKE;
 
-	play_yan.irq_delay = 60;
+		play_yan.irq_delay = 60;
 
-	for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
-	play_yan.irq_data[0] = PLAY_YAN_UNSLEEP | 0x80000000;
+		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
+		play_yan.irq_data[0] = PLAY_YAN_UNSLEEP | 0x80000000;
+	}
 }
 
 /****** Loads audio (.MP3) file and then converts it to .WAV for playback ******/
