@@ -1967,6 +1967,8 @@ void AGB_MMU::play_yan_set_video_pixels()
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
 void AGB_MMU::play_yan_wake()
 {
+	if(play_yan.is_music_playing && apu_stat->ext_audio.use_headphones) { return; }
+
 	if(play_yan.type != NINTENDO_MP3)
 	{
 		play_yan.op_state = PLAY_YAN_WAKE;
