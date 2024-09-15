@@ -136,7 +136,7 @@ void AGB_core::sleep()
 	//Wait for exit sleep condition (Joypad, Game Pak, or SIO IRQ)
 	bool exit_sleep = false;
 
-	while(!exit_sleep)
+	while(core_cpu.sleep)
 	{
 		SDL_PollEvent(&event);
 
@@ -150,7 +150,7 @@ void AGB_core::sleep()
 		//Currently only supports Joypad IRQ as an exit condition
 		if(core_pad.joypad_irq)
 		{
-			exit_sleep = true;
+			core_cpu.sleep = false;
 			core_mmu.memory_map[REG_IF + 1] |= 0x10;
 		}
 
@@ -446,6 +446,18 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 
 			core_mmu.play_yan_set_headphone_status();
 
+			//Wake GBA if headphones unplugged, use Game Pak IRQ
+			if(core_mmu.play_yan.is_music_playing && !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones && core_cpu.sleep)
+			{
+				core_cpu.sleep = false;
+
+				for(u32 x = 0; x < 8; x++) { core_mmu.play_yan.irq_data[x] = 0; }
+				core_mmu.play_yan.irq_data[0] = 0x80000100;
+
+				core_mmu.play_yan.irq_delay = 1;
+				core_mmu.process_play_yan_irq();
+			}
+
 			config::osd_count = 180;
 		}
 	}
@@ -653,6 +665,18 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 			else { config::osd_message = "HEADPHONES OFF"; }
 
 			core_mmu.play_yan_set_headphone_status();
+
+			//Wake GBA if headphones unplugged, use Game Pak IRQ
+			if(core_mmu.play_yan.is_music_playing && !core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones && core_cpu.sleep)
+			{
+				core_cpu.sleep = false;
+
+				for(u32 x = 0; x < 8; x++) { core_mmu.play_yan.irq_data[x] = 0; }
+				core_mmu.play_yan.irq_data[0] = 0x80000100;
+
+				core_mmu.play_yan.irq_delay = 1;
+				core_mmu.process_play_yan_irq();
+			}
 
 			config::osd_count = 180;
 		}
