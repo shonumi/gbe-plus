@@ -525,11 +525,20 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 			stream[x] = -32768;
 			apu_stat.ext_audio.playing = false;
 
+			//Terminate Play-Yan SFX
 			if(mem->play_yan.is_sfx_playing)
 			{
 				mem->play_yan.is_music_playing = false;
 				mem->play_yan.is_media_playing = false;
 				mem->play_yan.is_sfx_playing = false;
+			}
+
+			//Terminate Play-Yan Sleep Mode during music playback
+			if(mem->play_yan.is_sleeping)
+			{
+				for(u32 x = 0; x < 8; x++) { mem->play_yan.irq_data[x] = 0; }
+				mem->play_yan.irq_data[0] = 0x40000801;
+				mem->memory_map[REG_IF + 1] |= 0x20;
 			}
 		}
 

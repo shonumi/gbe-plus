@@ -147,11 +147,17 @@ void AGB_core::sleep()
 		//Hotplug joypad
 		else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
 
-		//Currently only supports Joypad IRQ as an exit condition
+		//Exit on Joypad IRQ
 		if(core_pad.joypad_irq)
 		{
 			core_cpu.sleep = false;
 			core_mmu.memory_map[REG_IF + 1] |= 0x10;
+		}
+
+		//Exit on Game Pak IRQ
+		else if(core_mmu.memory_map[REG_IF + 1] & 0x20)
+		{
+			core_cpu.sleep = false;
 		}
 
 		SDL_Delay(50);
@@ -452,7 +458,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 				core_cpu.sleep = false;
 
 				for(u32 x = 0; x < 8; x++) { core_mmu.play_yan.irq_data[x] = 0; }
-				core_mmu.play_yan.irq_data[0] = 0x80000100;
+				core_mmu.play_yan.irq_data[0] = 0x80001000;
 
 				core_mmu.play_yan.irq_delay = 1;
 				core_mmu.process_play_yan_irq();
@@ -672,7 +678,7 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 				core_cpu.sleep = false;
 
 				for(u32 x = 0; x < 8; x++) { core_mmu.play_yan.irq_data[x] = 0; }
-				core_mmu.play_yan.irq_data[0] = 0x80000100;
+				core_mmu.play_yan.irq_data[0] = 0x80001000;
 
 				core_mmu.play_yan.irq_delay = 1;
 				core_mmu.process_play_yan_irq();

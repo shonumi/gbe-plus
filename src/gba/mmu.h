@@ -352,6 +352,7 @@ class AGB_MMU
 		bool is_media_paused;
 		bool is_sfx_playing;
 		bool is_end_of_samples;
+		bool is_sleeping;
 
 		u8 cnt_data[12];
 		u32 cmd;

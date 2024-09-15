@@ -408,6 +408,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			//Turn on/off Play-Yan bass boost
 			else if(play_yan.cmd == PLAY_YAN_ENABLE_BASS_BOOST) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
+
+			//Set sleep status while playing music
+			else if(play_yan.cmd == PLAY_YAN_SLEEP_DURING_PLAYBACK) { play_yan.is_sleeping = (control_cmd2) ? false : true; }
 		}
 	}
 
@@ -574,6 +577,9 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 
 			//Turn on/off Play-Yan bass boost
 			else if(play_yan.cmd == PLAY_YAN_ENABLE_BASS_BOOST) { play_yan.use_bass_boost = (control_cmd2 == 0x8F0F) ? false : true; }
+
+			//Set sleep status while playing music
+			else if(play_yan.cmd == PLAY_YAN_SLEEP_DURING_PLAYBACK) { play_yan.is_sleeping = (control_cmd2) ? false : true; }
 		}
 	}
 
@@ -1275,7 +1281,13 @@ void AGB_MMU::process_play_yan_cmd()
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_CLOSE_KEY_FILE | 0x40000000;
-	}		
+	}
+
+	//Set sleep status
+	else if(play_yan.cmd == PLAY_YAN_SLEEP)
+	{
+		play_yan.is_sleeping = false;
+	}	
 }
 
 /****** Updates Play-Yan when responding to certain IRQs ******/
@@ -1967,6 +1979,9 @@ void AGB_MMU::play_yan_set_video_pixels()
 /****** Wakes Play-Yan from GBA sleep mode - Fires Game Pak IRQ ******/
 void AGB_MMU::play_yan_wake()
 {
+	play_yan.is_sleeping = false;
+
+	//No IRQ is generated for Sleep Mode during music playback (0x906 command)
 	if(play_yan.is_music_playing && apu_stat->ext_audio.use_headphones) { return; }
 
 	if(play_yan.type != NINTENDO_MP3)
