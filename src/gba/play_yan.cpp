@@ -1170,6 +1170,14 @@ void AGB_MMU::process_play_yan_cmd()
 	{
 		play_yan.is_media_playing = false;
 		apu_stat->ext_audio.playing = false;
+
+		if(play_yan.is_video_playing)
+		{
+			play_yan.cmd = 0;
+			play_yan.update_cmd = 0;
+			play_yan.irq_update = false;
+			play_yan.irq_delay = 0;
+		}
 	}
 
 	//Disable audio output when seeking forwards/backwards in videos
@@ -1192,6 +1200,14 @@ void AGB_MMU::process_play_yan_cmd()
 		if(play_yan.audio_channels && play_yan.audio_sample_rate && apu_stat->ext_audio.use_headphones)
 		{
 			apu_stat->ext_audio.playing = true;
+		}
+
+		if(play_yan.is_video_playing)
+		{
+			play_yan.op_state = PLAY_YAN_START_VIDEO;
+			play_yan.irq_update = apu_stat->ext_audio.use_headphones;
+			play_yan.update_cmd = PLAY_YAN_PLAY_VIDEO;
+			play_yan.irq_delay = 1;
 		}
 	}
 
@@ -1497,7 +1513,7 @@ void AGB_MMU::process_play_yan_irq()
 		if(!play_yan.irq_delay) { play_yan.irq_delay = 1; }
 	}
 
-	//std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
+	std::cout<<"IRQ -> 0x" << play_yan.irq_data[0] << "\n";
 }
 
 /****** Reads a bitmap file for video thumbnail used for Play-Yan video ******/
