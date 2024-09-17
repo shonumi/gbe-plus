@@ -36,6 +36,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.firmware_cnt = 0;
 	play_yan.firmware_addr_count = 0;
 	play_yan.update_firmware = false;
+	play_yan.firmware_file = "";
 
 	play_yan.video_bytes.clear();
 	play_yan.video_frames.clear();
@@ -1219,12 +1220,10 @@ void AGB_MMU::process_play_yan_cmd()
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_CHECK_FOR_FIRMWARE | 0x40000000;
 
-		std::string firmware_file = "";
-
-		if(play_yan.type == PLAY_YAN_MICRO) { firmware_file = config::data_path + "play_yan/play_yanmicro.fup"; }
-		else { firmware_file = firmware_file = config::data_path + "play_yan/playan.fup"; }
+		if(play_yan.type == PLAY_YAN_MICRO) { play_yan.firmware_file = config::data_path + "play_yan/play_yanmicro.fup"; }
+		else { play_yan.firmware_file = config::data_path + "play_yan/playan.fup"; }
 		
-		if(std::filesystem::exists(firmware_file))
+		if(std::filesystem::exists(play_yan.firmware_file))
 		{
 			play_yan.irq_data[2] = 0x03;
 			play_yan.update_firmware = true;
