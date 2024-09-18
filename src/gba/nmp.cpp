@@ -10,6 +10,8 @@
 // Manages IRQs and firmware reads/writes
 // Play-Yan and Play-Yan Micro handled separately (see play_yan.cpp)
 
+#include <filesystem>
+
 #include "mmu.h"
 #include "common/util.h" 
 
@@ -483,6 +485,15 @@ void AGB_MMU::process_nmp_cmd()
 		case NMP_CHECK_FIRMWARE_FILE:
 			play_yan.nmp_cmd_status = NMP_CHECK_FIRMWARE_FILE | 0x4000;
 			play_yan.nmp_valid_command = true;
+
+			play_yan.firmware_file = config::data_path + "play_yan/meteor.fup";
+
+			if(std::filesystem::exists(play_yan.firmware_file))
+			{
+				std::cout<<"MMU::Nintendo MP3 Firmware Update file detected\n";
+			}
+
+			else { play_yan.nmp_status_data[3] = 0x01; }
 			
 			break;
 
@@ -490,6 +501,15 @@ void AGB_MMU::process_nmp_cmd()
 		case NMP_READ_FIRMWARE_FILE:
 			play_yan.nmp_cmd_status = NMP_READ_FIRMWARE_FILE | 0x4000;
 			play_yan.nmp_valid_command = true;
+
+			if(std::filesystem::exists(play_yan.firmware_file))
+			{
+				u16 file_size = std::filesystem::file_size(play_yan.firmware_file);
+				play_yan.nmp_status_data[8] = (file_size >> 8);
+				play_yan.nmp_status_data[9] = (file_size & 0xFF);
+			}
+
+			else { play_yan.nmp_status_data[3] = 0x01; }
 			
 			break;
 
