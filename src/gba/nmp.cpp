@@ -131,6 +131,27 @@ void AGB_MMU::process_nmp_cmd()
 	play_yan.nmp_status_data[0] = (play_yan.cmd >> 8);
 	play_yan.nmp_status_data[1] = (play_yan.cmd & 0xFF);
 
+	//Stop SFX if another command is issued before audio is finished playing
+	//The audio data should continuous on real HW (in theory), but it's kind of a pain to schedule that
+	//Here it's stopped early. SFX (issued by Nintendo) may been short enough to avoid this issue? 
+	if((play_yan.is_sfx_playing) && (play_yan.cmd != NMP_UPDATE_AUDIO))
+	{
+		play_yan.is_music_playing = false;
+		play_yan.is_media_playing = false;
+		apu_stat->ext_audio.playing = false;
+
+		play_yan.audio_frame_count = 0;
+		play_yan.tracker_update_size = 0;
+			
+		play_yan.update_audio_stream = false;
+		play_yan.update_trackbar_timestamp = false;
+
+		play_yan.nmp_manual_cmd = 0;
+		play_yan.irq_delay = 0;
+		play_yan.last_delay = 0;
+		play_yan.nmp_manual_irq = false;
+	}
+
 	switch(play_yan.cmd)
 	{
 		//Start list of files and folders
@@ -252,6 +273,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
 			play_yan.is_media_playing = true;
+			play_yan.is_sfx_playing = false;
 
 			play_yan.audio_sample_index = 0;
 			play_yan.l_audio_dither_error = 0;
@@ -306,6 +328,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = false;
 			play_yan.is_media_playing = false;
+			play_yan.is_sfx_playing = false;
 			apu_stat->ext_audio.playing = false;
 
 			play_yan.audio_frame_count = 0;
@@ -457,6 +480,7 @@ void AGB_MMU::process_nmp_cmd()
 			play_yan.nmp_valid_command = true;
 			play_yan.is_music_playing = true;
 			play_yan.is_media_playing = true;
+			play_yan.is_sfx_playing = true;
 
 			play_yan.audio_sample_index = 0;
 			play_yan.l_audio_dither_error = 0;
@@ -884,6 +908,7 @@ void AGB_MMU::access_nmp_io()
 								index = (stream_size - 1);
 								play_yan.is_music_playing = false;
 								play_yan.is_media_playing = false;
+								play_yan.is_sfx_playing = false;
 							}
 
 							//Perform simple Flyod-Steinberg dithering
