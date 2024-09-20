@@ -325,6 +325,7 @@ class AGB_MMU
 		u32 last_delay;
 		u32 cycles;
 		u32 cycle_limit;
+		u32 fs_delay;
 		bool irq_update;
 
 		//Nintendo MP3 data
