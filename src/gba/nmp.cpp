@@ -158,6 +158,7 @@ void AGB_MMU::process_nmp_cmd()
 		case NMP_START_FILE_LIST:
 			play_yan.nmp_cmd_status = NMP_START_FILE_LIST | 0x4000;
 			play_yan.nmp_valid_command = true;
+			play_yan.fs_delay = 5;
 
 			play_yan.nmp_status_data[2] = 0;
 			play_yan.nmp_status_data[3] = 0;
@@ -185,6 +186,7 @@ void AGB_MMU::process_nmp_cmd()
 		case NMP_CONTINUE_FILE_LIST:
 			play_yan.nmp_cmd_status = NMP_CONTINUE_FILE_LIST | 0x4000;
 			play_yan.nmp_valid_command = true;
+			play_yan.fs_delay = 5;
 
 			//Stop list if done
 			if(play_yan.nmp_entry_count >= (play_yan.music_files.size() + play_yan.folders.size()))
@@ -747,8 +749,14 @@ void AGB_MMU::access_nmp_io()
 			play_yan.firmware_addr = 0;
 			play_yan.command_stream.clear();
 
+			//Delay certain commands
+			if(play_yan.fs_delay)
+			{
+				play_yan.fs_delay--;
+			}
+
 			//Finish command
-			if(play_yan.nmp_valid_command)
+			else if(play_yan.nmp_valid_command)
 			{
 				memory_map[REG_IF+1] |= 0x20;
 				play_yan.nmp_valid_command = false;
