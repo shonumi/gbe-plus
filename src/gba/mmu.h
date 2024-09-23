@@ -404,6 +404,7 @@ class AGB_MMU
 		std::string base_dir;
 		std::string current_music_file;
 		std::string current_video_file;
+		std::string last_file;
 
 		u8 volume;
 		u8 bass_boost;

@@ -107,6 +107,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.current_music_file = "";
 	play_yan.current_video_file = "";
+	play_yan.last_file = "";
 
 	play_yan.audio_channels = 0;
 	play_yan.audio_sample_rate = 0;
@@ -2041,6 +2042,13 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 {
 	std::string sfx_filename = config::data_path + "play_yan/sfx.wav";
 	bool is_sfx = (filename == sfx_filename) ? true : false;
+	bool is_cached = false;
+
+	if(!is_sfx)
+	{
+		if(filename == play_yan.last_file) { is_cached = true; }
+		play_yan.last_file = filename;
+	}
 
 	play_yan.music_length = 0;
 	play_yan.tracker_update_size = 0;
@@ -2053,8 +2061,20 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 
 	SDL_AudioSpec file_spec;
 
-	//Load music
-	if(!is_sfx)
+	//Load music, skip conversion
+	if(is_cached)
+	{
+		std::string cached_file = config::temp_media_file + ".wav";
+
+		if(SDL_LoadWAV(cached_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+		{
+			std::cout<<"MMU::Play-Yan could not load audio file: " << filename << " :: " << SDL_GetError() << "\n";
+			return false;
+		}
+	}
+
+	//Load music and convert
+	else if(!is_sfx)
 	{
 		//Abort now if no audio conversion command is specified
 		if(config::audio_conversion_cmd.empty())
@@ -2126,7 +2146,9 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 		if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
 		{
 			std::cout<<"MMU::Play-Yan could not load SFX samples : " << SDL_GetError() << "\n";
-		}		
+		}
+
+		SDL_FreeRW(io_ops);		
 	}
 
 	//Check format, must be S16 audio, LSB
