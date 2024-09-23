@@ -49,7 +49,7 @@ void AGB_MMU::play_yan_reset()
 
 	play_yan.irq_delay = 0;
 	play_yan.last_delay = 0;
-	play_yan.fs_delay = 1;
+	play_yan.fs_delay = 0;
 	play_yan.irq_data_in_use = false;
 	play_yan.irq_update = false;
 
@@ -1085,6 +1085,8 @@ void AGB_MMU::process_play_yan_cmd()
 	//Trigger Game Pak IRQ for playing sound effects
 	else if(play_yan.cmd == PLAY_YAN_PLAY_SFX)
 	{
+		if(play_yan.fs_delay) { return; }
+
 		play_yan.op_state = PLAY_YAN_PROCESS_CMD;
 		play_yan.irq_update = false;
 		play_yan.update_cmd = 0;
@@ -1492,6 +1494,8 @@ void AGB_MMU::process_play_yan_irq()
 
 		return;
 	}
+
+	play_yan.fs_delay = 0;
 
 	if(!play_yan.cmd) { return; }
 
