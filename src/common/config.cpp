@@ -277,6 +277,9 @@ namespace config
 	//Force audio sync for every video frame for select catridges (Play-Yan, TV Tuner)
 	bool force_cart_audio_sync = false;
 
+	//Play-Yan/NMP filesystem delay
+	bool fs_delay = false;
+
 	//Glucoboy GRP data
 	u32 glucoboy_daily_grps = 0;
 	u32 glucoboy_bonus_grps = 0;
@@ -1351,6 +1354,9 @@ bool parse_ini_file()
 		//Force cart audio sync
 		if(!parse_ini_bool(ini_item, "#force_cart_audio_sync", config::force_cart_audio_sync, ini_opts, x)) { return false; }
 
+		//Play-Yan/NMP filesystem delay
+		if(!parse_ini_bool(ini_item, "#play_yan_fs_delay", config::fs_delay, ini_opts, x)) { return false; }
+
 		//Override default audio driver
 		parse_ini_str(ini_item, "#override_audio_driver", config::override_audio_driver, ini_opts, x);
 
@@ -2328,6 +2334,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#force_cart_audio_sync:" + val + "]";
 		}
 
+		//Play-Yan/NMP filesystem delay
+		else if(ini_item == "#play_yan_fs_delay")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::fs_delay) ? "1" : "0";
+
+			output_lines[line_pos] = "[#play_yan_fs_delay:" + val + "]";
+		}
+
 		//Override default audio driver
 		else if(ini_item == "#override_audio_driver")
 		{
@@ -3113,6 +3128,7 @@ bool generate_ini_file()
 	ini_contents += "[#glucoboy_bonus_grps]\n";
 	ini_contents += "[#glucoboy_good_days]\n";
 	ini_contents += "[#glucoboy_days_until_bonus]\n";
+	ini_contents += "[#play_yan_fs_delay]\n\n";
 
 	//Save contents to file.
 	std::ofstream file("gbe.ini", std::ios::out);
