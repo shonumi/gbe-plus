@@ -1602,10 +1602,13 @@ void AGB_MMU::play_yan_set_music_file()
 
 	//Set filesystem delay (emulates wait time when processing large number of files)
 	//Cap at 5s or 300 frames. Let's not get crazy...
-	play_yan.fs_delay = (dir_listing.empty()) ? 1 : (5 * dir_listing.size());
-	if(play_yan.fs_delay > 300) { play_yan.fs_delay = 300; }
+	if(config::fs_delay)
+	{
+		play_yan.fs_delay = (dir_listing.empty()) ? 1 : (5 * dir_listing.size());
+		if(play_yan.fs_delay > 300) { play_yan.fs_delay = 300; }
 
-	play_yan.irq_delay = play_yan.fs_delay;
+		play_yan.irq_delay = play_yan.fs_delay;
+	}
 }
 
 /****** Sets the current SD card data for a given video file via index ******/
@@ -1658,10 +1661,13 @@ void AGB_MMU::play_yan_set_video_file()
 
 	//Set filesystem delay (emulates wait time when processing large number of files)
 	//Cap at 5s or 300 frames. Let's not get crazy...
-	play_yan.fs_delay = (dir_listing.empty()) ? 1 : (5 * dir_listing.size());
-	if(play_yan.fs_delay > 300) { play_yan.fs_delay = 300; }
+	if(config::fs_delay)
+	{
+		play_yan.fs_delay = (dir_listing.empty()) ? 1 : (5 * dir_listing.size());
+		if(play_yan.fs_delay > 300) { play_yan.fs_delay = 300; }
 
-	play_yan.irq_delay = play_yan.fs_delay;
+		play_yan.irq_delay = play_yan.fs_delay;
+	}
 }
 
 /****** Sets the current SD card data for a given folder ******/
@@ -1707,10 +1713,13 @@ void AGB_MMU::play_yan_set_folder()
 
 	//Set filesystem delay (emulates wait time when processing large number of files)
 	//Cap at 5s or 300 frames. Let's not get crazy...
-	play_yan.fs_delay = (dir_listing.empty()) ? 1 : (5 * dir_listing.size());
-	if(play_yan.fs_delay > 300) { play_yan.fs_delay = 300; }
+	if(config::fs_delay)
+	{
+		play_yan.fs_delay = (dir_listing.empty()) ? 1 : (5 * dir_listing.size());
+		if(play_yan.fs_delay > 300) { play_yan.fs_delay = 300; }
 
-	play_yan.irq_delay = play_yan.fs_delay;
+		play_yan.irq_delay = play_yan.fs_delay;
+	}
 }
 
 /****** Gets the current ID3 data (Title + Artist) for a given MP3 file ******/
