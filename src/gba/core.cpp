@@ -710,8 +710,24 @@ void AGB_core::update_volume(u8 volume)
 /****** Feeds key input from an external source (useful for TAS) ******/
 void AGB_core::feed_key_input(int sdl_key, bool pressed)
 {
+	u16 last_input = core_pad.key_input;
+	u16 key_mask = (core_pad.key_cnt & 0x3FF);
+
 	core_pad.process_keyboard(sdl_key, pressed);
 	handle_hotkey(sdl_key, pressed);
+	u16 next_input = core_pad.key_input;
+
+	//Manually handle Joypad IRQs
+	if((last_input != next_input) && (next_input != 0x3FF))
+	{
+		//Logical OR mode
+		if(((core_pad.key_cnt & 0x8000) == 0) && (~next_input & key_mask))  { core_pad.joypad_irq = true; }
+
+		//Logical AND mode
+		else if ((core_pad.key_cnt & 0x8000) && ((~next_input & key_mask) == key_mask)) { core_pad.joypad_irq = true; }
+	}
+
+	else { core_pad.joypad_irq = false; }
 }
 
 /****** Return a CPU register ******/
