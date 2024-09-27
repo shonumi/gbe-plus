@@ -169,7 +169,7 @@ Command					| Parameter 1							| Parameter 2
 0x903 - Advance Frame			| Advance Frame Speed						| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
 0x905 - Seek Forwards/Backwards		| Seek Speed							| Seek Position
-0x906 - Unknown				| N/A								| N/A
+0x906 - Sleep During Playback		| Sleep Status, 0 = Enter Sleep Mode, 1 = Exit Sleep Mode	| N/A
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
 0xD01 - Enable/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
@@ -231,6 +231,10 @@ Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands w
 * The 0x905 Seek Forwards/Backwards command uses Parameter 1 to indicate the direction to fast forward or rewind audio/video. It operates differently depending on which media is being played. For audio, it represents a new value for the Track Bar Position used for the 0x800 command. To go forward, the Play-Yan's software takes the current value and increments it, then passes it along to the 0x905 command. For video, values 0x01 - 0x03 moves forward; higher values skip ahead further. Values 0xFFFFFFFF through 0xFFFFFFFD move backwards; lower values rewind more. For the Play-Yan Micro, the parameters are 16-bit, therefore rewinding uses values 0xFFFF through 0xFFFD instead.
 
 Additionally for videos, when setting Parameter 1 to 0x00, Parameter 2 acts as a specific seek position. This allows video playback to jump to a fixed timestamp. The Play-Yan's software uses this feature to continue videos if the user exits before it finishes. The value of Parameter 2 appears to be a frame number. Note that while the Play-Yan software automatically records the frames count when exiting a video, it always restarts the playback several seconds (~5 to 6) prior to the exit. If a video is cancelled too early, the software won't even bother offering the user the option to continue playback and will simply restart from the beginning.
+
+* The 0x906 Sleep During Playback command uses Parameter 1 to indicate whether the Play-Yan hardware should enter or exit Sleep Mode while playing music. Note that this Sleep Mode is different from the GBA's. Here, the cartridge will continously generate audio through its built-in headphone jack. After issuing the 0x906 command to enter Sleep Mode, the Play-Yan's software will separately put the GBA into a low-power mode Halt state. This command is also different from the 0x10000 Enter Sleep Mode command. Most importantly, 0x906 command does not generate Game Pak IRQs when exiting Sleep Mode. Additionally, this command is only available to the user when headphones are plugged in.
+
+The GBA and Play-Yan will briefly exit Sleep Mode when a song ends. The Play-Yan will generate a Game Pak IRQ for the 0x801 Stop Music Playback command at that time. The Play-Yan's software will then re-enter Sleep Mode on its own after a few seconds unless the user intervenes.
 
 * The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the "key file", which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use "play_yanmicro.ini", however, it can technically be any length.
 

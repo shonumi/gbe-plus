@@ -4445,10 +4445,10 @@ Command					| Parameter 1							| Parameter 2
 0x800 - Play Music File*		| Music Filename						| N/A
 0x801 - Stop Music Playback		| N/A								| N/A
 0x902 - Pause Music/Video Playback	| N/A								| N/A
-0x903 - Unknown				| N/A								| N/A
+0x903 - Advance Frame			| Advance Frame Speed						| N/A
 0x904 - Resume Music/Video Playback	| N/A								| N/A
-0x905 - Seek Forwards/Backwards		| Seek Speed							| N/A
-0x906 - Unknown				| N/A								| N/A
+0x905 - Seek Forwards/Backwards		| Seek Speed							| Seek Position
+0x906 - Sleep During Playback		| Sleep Status, 0 = Is Sleeping, 1 = Is Awake			| N/A
 0xB00 - Adjust Volume			| Volume level, Min = 0x00, Max = 0x38				| N/A
 0xD00 - Adjust Bass Boost		| Bass boost level, Min = 0x00, Max = 0x0F			| N/A
 0xD01 - Enable/Disable Bass Boost	| ON = 0x800F, OFF = 0x8F0F					| N/A
@@ -4456,7 +4456,8 @@ Command					| Parameter 1							| Parameter 2
 0x3000 - Check For Key File*		| Key File Name							| N/A
 0x3001 - Read Key File Data		| N/A								| N/A
 0x3003 - Close Key File			| N/A								| N/A
-0x8000 - Get SD Cartridge Status	| N/A								| N/A
+0x8000 - Check For Firmware		| N/A								| N/A
+0x8001 - Get Cartridge Status		| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------</pre>
@@ -4494,24 +4495,35 @@ PY_DATA_PARAM = 0x08
 
 	<p>Note that the data address specified by PY_DATA_ADDR is 0xFF020. Some commands will trigger a Game Pak IRQ when the Play-Yan responds. See the section below for more details.</p>
 
-	<p>The 0x201 Change Current Directory command uses Parameter 1 as a null-terminated string representing the target folder the Play-Yan will move into. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
+	<ul>
+		<li class="list_item"><p>The 0x201 Change Current Directory command uses Parameter 1 as a null-terminated string representing the target folder the Play-Yan will move into. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p></li>
 
-	<p>The 0x500 Grab Video Thumbnail Data command sends additional data via Parameter 3. Some of these bytes are a null-terminated string representing the filename of a specific video to generate thumbnail data. This string begins at 0xB000114. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.</p>
+		<li class="list_item"><p>The 0x500 Grab Video Thumbnail Data command sends additional data via Parameter 3. Some of these bytes are a null-terminated string representing the filename of a specific video to generate thumbnail data. This string begins at 0xB000114. Altogether, 0x218 bytes are sent. Since this amount exceeds the 0xB0002FF boundary for parameter input, the last 0x18 bytes are written at the beginning of the section, starting over at 0xB000100.</p></li>
 
-	<p>The 0x600 Grab ID3 Data command uses Parameter 1 as a null-terminated string representing the target file to lookup metadata. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
+		<li class="list_item"><p>The 0x600 Grab ID3 Data command uses Parameter 1 as a null-terminated string representing the target file to lookup metadata. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p></li>
 
-	<p>The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename&#39;s string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.</p>
+		<li class="list_item"><p>The 0x700 Play Video command uses Parameter 3 as a null-terminated string representing the filename of a specific video file to play. Like music, the Play-Yan software internally monitors which video the user has highlighted and passes the filename&#39;s string to the hardware. This string likewise has no fixed length. The Play-Yan appears to send additional unknown data after the string.</p></li>
 
-	<p>The 0x800 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename&#39;s string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p>
+		<li class="list_item"><p>The 0x800 Play Music File command uses Parameter 1 as a null-terminated string representing the filename of specific music file to play. The Play-Yan software internally keeps track of which song the user has currently highlighted, and it passes the filename&#39;s string to the hardware. The string has no fixed length, thus making this an irregular command. The Play-Yan appears to send additional unknown data after the string.</p></li>
 
-	<p>The 0x905 Seek Forwards/Backwards command uses Parameter 1 to indicate the direction to fast forward or rewind audio/video. It operates differently depending on which media is being played. For audio, it represents a new value for the Track Bar Position used for the 0x800 command. To go forward, the Play-Yan&#39;s software takes the current value and increments it, then passes it along to the 0x905 command. For video, only two values are used for Parameter 1: 0x01 to go forward and 0xFFFFFFFF to go backwards.</p>
+		<li class="list_item"><p>The 0x903 Advance Frame Command moves the current video playback position forward by the number of frames specified in Parameter 1. The Play-Yan software only ever uses a value of 0x01 for this command, thus in practice it always advances by a single frame. This command is used when video playback is paused. Note that there does not appear to be a corresponding command to step backwards by a given amount of frames while paused. The Play-Yan software somewhat gets around this by temporarily unpausing playback, calling the Seek Backwards command, and quickly pausing the video again.</p></li>
 
-	<p>The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the &#34;key file&#34;, which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use &#34;play_yanmicro.ini&#34;, however, it can technically be any length.</p>
+		<li class="list_item"><p>The 0x905 Seek Forwards/Backwards command uses Parameter 1 to indicate the direction to fast forward or rewind audio/video. It operates differently depending on which media is being played. For audio, it represents a new value for the Track Bar Position used for the 0x800 command. To go forward, the Play-Yan&#39;s software takes the current value and increments it, then passes it along to the 0x905 command. For video, values 0x01 - 0x03 moves forward; higher values skip ahead further. Values 0xFFFFFFFF through 0xFFFFFFFD move backwards; lower values rewind more. For the Play-Yan Micro, the parameters are 16-bit, therefore rewinding uses values 0xFFFF through 0xFFFD instead.</p>
+
+		<p>Additionally for videos, when setting Parameter 1 to 0x00, Parameter 2 acts as a specific seek position. This allows video playback to jump to a fixed timestamp. The Play-Yan&#39;s software uses this feature to continue videos if the user exits before it finishes. The value of Parameter 2 appears to be a frame number. Note that while the Play-Yan software automatically records the frames count when exiting a video, it always restarts the playback several seconds (~5 to 6) prior to the exit. If a video is cancelled too early, the software won&#39;t even bother offering the user the option to continue playback and will simply restart from the beginning.</p></li>
+
+		<li class="list_item"><p>The 0x906 Sleep During Playback command uses Parameter 1 to indicate whether the Play-Yan hardware should enter or exit Sleep Mode while playing music. Note that this Sleep Mode is different from the GBA&#39;s. Here, the cartridge will continously generate audio through its built-in headphone jack. After issuing the 0x906 command to enter Sleep Mode, the Play-Yan&#39;s software will separately put the GBA into a low-power mode Halt state. This command is also different from the 0x10000 Enter Sleep Mode command. Most importantly, 0x906 command does not generate Game Pak IRQs when exiting Sleep Mode. Additionally, this command is only available to the user when headphones are plugged in.</p>
+
+		<p>The GBA and Play-Yan will briefly exit Sleep Mode when a song ends. The Play-Yan will generate a Game Pak IRQ for the 0x801 Stop Music Playback command at that time. The Play-Yan's software will then re-enter Sleep Mode on its own after a few seconds unless the user intervenes.</p></li>
+
+		<li class="list_item"><p>The 0x3000 Check For Key File command uses Parameter 1 as a null-terminated string representing the filename of the &#34;key file&#34;, which is a .ini text file containing various settings such as what theme to use, video brightness, and audio volume. This command, as well as all other 0x300x commands, is exclusive to the Play-Yan Micro. The string should have a fixed length, as the software is hardcoded to use &#34;play_yanmicro.ini&#34;, however, it can technically be any length.</p></li>
+
+	</ul>
 
 	<a name="pyn_irq"></a>
 	<p class="gray_title">[Play-Yan] : Game Pak IRQs</p>
 
-	<p>The Play-Yan&#39;s hardware produces a variety of Game Pak IRQs when the software sends certain commands. Not every command will generate an IRQ, however, the ones that do are pivotal to operating the Play-Yan. For example, during the initial boot process, the Play-Yan&#39;s software waits indefinitely until several commands to respond with IRQs, without which the software essentially locks up. Each Game Pak IRQ returns data that can be read at 0xB000300 - 0xB00031F. Some commands may cause multiple IRQs to be generated as well, where the return data is simply 0x80000100 or 0x80001000 to signify the end of certain internal operations within the Play-Yan. Use the following process to read the Game Pak IRQ data:</p>
+	<p>The Play-Yan&#39;s hardware produces a variety of Game Pak IRQs when the software sends certain commands. Not every command will generate an IRQ, however, the ones that do are pivotal to operating the Play-Yan. For example, during the initial boot process, the Play-Yan&#39;s software waits indefinitely until several commands to respond with IRQs, without which the software essentially locks up. Each Game Pak IRQ returns data that can be read at 0xB000300 - 0xB00031F. Some commands may cause multiple IRQs to be generated as well, where the first 4 bytes of return data is simply 0x80000100 or 0x80001000. This signifies the end of certain internal operations within the Play-Yan, generally related to firmware loading, or audio/video playback. Use the following process to read the Game Pak IRQ data:</p>
 
 <pre>-----------------------------------------------------------------------
 PY_DATA_PARAM = 0x08
@@ -4530,12 +4542,10 @@ READ DATA FROM 0xB000300 THROUGH 0xB00031F
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x200 - Get Filesystem Information - 2 IRQs
+Command 0x200 - Get Filesystem Information - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000200
 Bytes 0x04 - 0x07	| 0x01 or 0x02
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</pre>
 
 	<p>This command prompts the Play-Yan to start reading the filesystem on the SD card. It allows the software to grab a list of available files or folders for music, or video files. The Play-Yan will scan for any files and folders it can find. Afterwards, the software can read the data through the SD Card Data interface described in the section above. The data contains the total number of files and folders within the directory along with 268-byte entries of metadata for each item found. The format of the list returned via SD Card Data is as follows:</p>
@@ -4562,11 +4572,9 @@ Bytes 0x0108 - 0x010B	| Entry Type
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x201 - Change Current Directory - 2 IRQs
+Command 0x201 - Change Current Directory - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000201
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</pre>
 
 	<p>Changes the current directory the Play-Yan will look for new files and folders. The folder to change into must be passed as a null-terminated string for Parameter 1. The Play-Yan is capable of traversing up and down directories through this mechanism. The Play-Yan software is programmed to automatically search through various folders and sub-folders in order to map out existing music or video files. If the string in Parameter 1 is just &#34;..&#34;, the Play-Yan will move upwards by one folder, allowing it to backtrack through previous directories.</p>
@@ -4625,11 +4633,9 @@ Bytes 0x18 - 0x1B	| Current Video Position
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x701 - Stop Video Playback - 2 IRQs
+Command 0x701 - Stop Video Playback - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000701
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</pre>
 
 	<p>Stops the current video file that is playing.</p>
@@ -4661,18 +4667,16 @@ Bytes 0x18 - 0x1B	| Play Time in Seconds
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x801 - Stop Music Playback - 2 IRQs
+Command 0x801 - Stop Music Playback - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40000801
------------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</pre>
 
 	<p>Stops the current music file that is playing.</p>
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x2000 - Play Sound Effect - 1 IRQ
+Command 0x2000 - Play Sound Effect - 1 IRQ*
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80001000
 -----------------------------------------------------------------------</pre>
@@ -4711,9 +4715,19 @@ Bytes 0x00 - 0x03	| 0x40003003
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x8000 - Get Cartridge Status - 1 IRQ
+Command 0x8000 - Check For Firmware - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40008000
+Bytes 0x08 - 0x0B	| Firmware File Status
+-----------------------------------------------------------------------</pre>
+
+	<p>This command is used to determine if a firmware update file is present on the root of the SD card. If both Bit 0 and Bit 1 are set for the Firmware File Status, the Play-Yan software will take steps to load in the new firmware file. In this case, the Play-Yan&#39;s code also calls the 0x8001 command immediately after writing to firmware.</p>
+	<p class="spc"></p>
+
+<pre>-----------------------------------------------------------------------
+Command 0x8001 - Get Cartridge Status - 1 IRQ
+-----------------------------------------------------------------------
+Bytes 0x00 - 0x03	| 0x80000100
 Bytes 0x04 - 0x07	| SD Card Status
 -----------------------------------------------------------------------</pre>
 
@@ -4725,7 +4739,9 @@ Bit 1	| No SD card detected or incompatible card inserted
 Bit 2	| Filesystem error
 -----------------------------------------------------------------------</pre>
 
-	<p>Setting Bits 0 and 1 together produces the same "cartridge is in bad condition error". Setting Bits 0 and 2 together produces a general error. If no bits are set, this indicates there were no problems.</p>
+	<p>Setting Bits 0 and 1 together produces the same &#34;cartridge is in bad condition error&#34;. Setting Bits 0 and 2 together produces a general error. If no bits are set, this indicates there were no problems.</p>
+
+	<p>This command is called after the 0x8000 command detects the presence of a firmware update file. As such, the first 4 bytes it returns are 0x80000100 to indicate the completion of firmware loading.</p>
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
@@ -4741,9 +4757,9 @@ Bytes 0x00 - 0x03	| 0x80010001
 Command 0x800000 - Unknown - 2 IRQs
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x40800000
-Bytes 0x04 - 0x07	| SD Card Status
+Bytes 0x04 - 0x07	| Unknown
 -----------------------------------------------------------------------
-Bytes 0x00 - 0x03	| 0x80001000
+Bytes 0x00 - 0x03	| 0x80000100
 -----------------------------------------------------------------------</pre>
 
 	<p>This command is issued shortly after Get SD Card Status. It&#39;s purpose is currently unknown. It generates 1 IRQ, which also returns the card&#39;s status.</p>
@@ -6248,15 +6264,7 @@ L Samples 000-001 | L Samples 002-003 | L Samples 003-575  | R Samples 000-001 |
 	<p>Game Pak IRQs with the Command ID 0x8100 are also generated for sound effects. Functionally, there is no difference between the Status Data used for music or sound effects. The NMP software, however, will only play sound effects if no music is currently playing. Obviously, however, the Trackbar Position and Song Timestamp values are unused/irrelevant for sound effects.</p>
 
 	<p>When headphones are plugged into the NMP, the cartridge only generates Game Pak IRQs that update the trackbar position. With headphones, audio data is processed by the NMP&#39;s own hardware and output separately from the GBA&#39;s sound system.</p>
-
-	<a name="nmp_upd"></a>
-	<p class="gray_title">[Nintendo MP3 Player] : Firmware Update</p>
-
-	<p>The NMP apparently has the ability to update its built-in firmware. After loading the default firmware from ROM, it will search for an update file called &#34;meteor.fup&#34;. This functionality is similar to the original Play-Yan that expanded its features (such as MP4 support). Strangely enough, it seems no such firmware update file was ever published by Nintendo. The NMP manual makes no mention of this functionality either. Currently, it remains unknown what sort of upgrades any new firmware might have brought or why Nintendo decided to leave upgrades as a future option. At any rate, it is completely unused at this time.</p>
-
-	<p>One interesting detail is that the maximum file size for firmware was supposed to be 65,536 bytes. This is significantly lower than the only known firmware update given for original Play-Yan, which came in around 554KB. The firmware for the NMP was likely far less complicated, perhaps as a result of the hardware lacking any video decoding and focusing exclusively on audio processing.</p>
-
-	<p>The firmware update file has to follow some sort of format to be considered valid. The NMP software checks for the presence of the string &#34;Nintendo MP3 Player firmware update program&#34; at the very start of the file&#39;s data, much like the original Play-Yan expects of its firmware updates.</p>
+	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
 Command 0x8600 - Headphone Status
@@ -6272,7 +6280,16 @@ SD Card Data: N/A
 -----------------------------------------------------------------------</pre>
 
 	<p>Whenever headphones are inserted or removed from the NMP&#39;s 3.5mm jack, a Game Pak IRQ is generated. Additionally, immediately after the NMP hardware has been initialized, the cartridge generates a Game Pak IRQ with this Command ID (ensuring that headphones are detected after booting). The IRQ reports the status of whether headphones are plugged-in/removed, using a single byte in Status Data as a flag. Note that this IRQ is only generated for headphones inside the cartridge itself and is completely unrelated to the GBA&#39;s or DS&#39; 3.5mm jack.</p>
-	<p class="spc"></p>
+
+	<a name="nmp_upd"></a>
+	<p class="gray_title">[Nintendo MP3 Player] : Firmware Update</p>
+
+	<p>The NMP apparently has the ability to update its built-in firmware. After loading the default firmware from ROM, it will search for an update file called &#34;meteor.fup&#34;. This functionality is similar to the original Play-Yan that expanded its features (such as MP4 support). Strangely enough, it seems no such firmware update file was ever published by Nintendo. The NMP manual makes no mention of this functionality either. Currently, it remains unknown what sort of upgrades any new firmware might have brought or why Nintendo decided to leave upgrades as a future option. At any rate, it is completely unused at this time.</p>
+
+	<p>One interesting detail is that the maximum file size for firmware was supposed to be 65,536 bytes. This is significantly lower than the only known firmware update given for original Play-Yan, which came in around 554KB. The firmware for the NMP was likely far less complicated, perhaps as a result of the hardware lacking any video decoding and focusing exclusively on audio processing.</p>
+
+	<p>The firmware update file has to follow some sort of format to be considered valid. The NMP software checks for the presence of the string &#34;Nintendo MP3 Player firmware update program&#34; at the very start of the file&#39;s data, much like the original Play-Yan expects of its firmware updates.</p>
+
 
 
 
@@ -8426,12 +8443,12 @@ Content-Type: text&#47;plain; charset=iso-2022-jp
 	<a name="mpy_cnt"></a>
 	<p class="gray_title">[Mobile Pro Yakyuu] : counter.cgb</p>
 
-	<p>This file is one byte simply indicating the current version number of 200.member.cgb, where zero is the version of the data built into the game. If the game sees that this file's byte matches the version number currently present, it will not redownload 200.member.cgb. The version numbers do not need to be sequential, though given the file's name it's very likely that they were.</p>
+	<p>This file is one byte simply indicating the current version number of 200.member.cgb, where zero is the version of the data built into the game. If the game sees that this file&#39;s byte matches the version number currently present, it will not redownload 200.member.cgb. The version numbers do not need to be sequential, though given the file&#39;s name it&#39;s very likely that they were.</p>
 
 	<a name="mpy_mem"></a>
 	<p class="gray_title">[Mobile Pro Yakyuu] : 200.member.cgb</p>
 
-	<p>This file is saved directly to the game's save file and thus has a size limit of 0x6000 bytes (24 KiB). When the game first boots (and when new data is downloaded), the data is decompressed using SWI #0x13 (HuffUnComp), then that is itself decompressed using SWI #0x11 (LZ77UnCompWram), and the final data is copied to address 0x2000000. The intermediate and final decompressed data each have a size limit of 0x8000 bytes (32 KiB). The first 16 bytes of the final decompressed data are used as follows:</p>
+	<p>This file is saved directly to the game&#39;s save file and thus has a size limit of 0x6000 bytes (24 KiB). When the game first boots (and when new data is downloaded), the data is decompressed using SWI #0x13 (HuffUnComp), then that is itself decompressed using SWI #0x11 (LZ77UnCompWram), and the final data is copied to address 0x2000000. The intermediate and final decompressed data each have a size limit of 0x8000 bytes (32 KiB). The first 16 bytes of the final decompressed data are used as follows:</p>
 
 <pre>----------------------------------
 Initial Pointers
@@ -8642,7 +8659,7 @@ Team Profile
 	<a name="ndg_h00"></a>
 	<p class="gray_title">[Net de Get] : h0000.cgb, h0*.cgb</p>
 
-	<p>Once one of the default minigames has been played, the &#34;セーバ&#34; or &#34;Server&#34; option in the main menu unlocks. After the user's password is given, h0000.cgb is then downloaded via HTTP GET. The purpose of these files is simply to display a selection menu.</p>
+	<p>Once one of the default minigames has been played, the &#34;セーバ&#34; or &#34;Server&#34; option in the main menu unlocks. After the user&#39;s password is given, h0000.cgb is then downloaded via HTTP GET. The purpose of these files is simply to display a selection menu.</p>
 
 <pre>----------------------------------
 Header - 5 bytes
@@ -8676,7 +8693,7 @@ File format
 0x81 - 0x82			::	Pointer to page 1 text.
 ...				::	Repeat pointers as needed.</pre>
 
-	<p>Palettes are in GBC format (that is, four colors each in little-endian RGB555). For background palettes, color 0 is the foreground, color 1 is a shadow, and color 3 is the background. The file's contents are read from 0xB000, so the text pointers can be considered as file offsets with 0xB000 added to them.</p>
+	<p>Palettes are in GBC format (that is, four colors each in little-endian RGB555). For background palettes, color 0 is the foreground, color 1 is a shadow, and color 3 is the background. The file&#39;s contents are read from 0xB000, so the text pointers can be considered as file offsets with 0xB000 added to them.</p>
 
 	<a name="ndg_rom"></a>
 	<p class="gray_title">[Net de Get] : RomList.cgb</p>
@@ -8702,7 +8719,7 @@ Data Structure
 0x01				::	Mini-game icon type. See Icon Type below for details.
 0x08 - 0x0A			::	Minimum levels in each category to download this minigame. If all 3 are not met, the menu item is grayed out and cannot be selected.
 0x0C - 0x0D			::	If both are not zero, the menu item does not appear.
-0x0E				::	Minimum hidden level to download this minigame. If not met, the minigame's name does not appear and it cannot be selected.
+0x0E				::	Minimum hidden level to download this minigame. If not met, the minigame&#39;s name does not appear and it cannot be selected.
 0x0F				::	If not zero, the menu item does not appear.
 0x10				::	String Length 1. Each menu item should ideally be 12 characters or less (font is fixed width). Used for minigame name.
 0x11 - ...			::	Menu Item Text (see String Format below).
@@ -8870,7 +8887,7 @@ Secondary Minigame Icon Type
 		<li class="list_item">0x02 takes a second byte and uses it to set the text color. The default color is 0x00.</li>
 		<li class="list_item">0x03 takes a second byte and uses it as the parameter to an unknown function. It also causes 0x00 to return just after the second byte and continue printing text.</li>
 		<li class="list_item">0x04 clears the text field.</li>
-		<li class="list_item">0x0F causes the game to wait for the A button to be pressed, then continues printing text. However, this continuation is broken and probably shouldn't be used.</li>
+		<li class="list_item">0x0F causes the game to wait for the A button to be pressed, then continues printing text. However, this continuation is broken and probably shouldn&#39;t be used.</li>
 	</ul>
 
 	<a name="ndg_fla"></a>
