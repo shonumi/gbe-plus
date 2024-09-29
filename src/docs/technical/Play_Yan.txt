@@ -534,7 +534,7 @@ Command 0x800000 - Unknown - 2 IRQs
 Bytes 0x00 - 0x03	| 0x40800000
 -----------------------------------------------------------------------
 
-This command is issued shortly after the Check For Firmware command, and only if no firmware update file was found. Its purpose is currently unknown.
+This command is issued only if no firmware update file was found. It seems to take the place of the 0x8001 command in that case. Its purpose is currently unknown, but appears related to firmware.
 
 
 
@@ -641,3 +641,26 @@ PLAY_YAN_AudioWide: Determines the level of stereo sound amplification (values 0
 PLAY_YAN_VideoPlayMode: Determines how videos are played, such as play a single video once, loop over a single video continously, play all videos once, or loop over all videos (values 0 through 3 respectively).
 
 PLAY_YAN_VideoBright: Determines the level of brightness adjustment for video playback (values 0 through 5).
+
+
+***************************************************
+11. Firmware Update
+***************************************************
+
+Both the original Play-Yan and the Play-Yan Micro have the ability to update their internal firmware when the appropiate file is provided in the root directory of the SD card. This update is applied after the default firmware is loaded from ROM. Apparently the default firmware contains a hard-coded string that will be used for the update. The original Play-Yan looks for a file called "playan.fup", while the Micro version looks for a file called "play_yanmicro.fup".
+
+Nintendo only ever released a firmware update file for the original Play-Yan, in July of 2005. The update added MP4 support (MPEG-4 as the video codec and stereo AAC as the audio codec), bringing the original model inline with the later Micro version. This firmware update file measures in at around 554KB and is still available to download from Nintendo's Japanese website. No firmware update file for the Play-Yan Micro is known to exist, however.
+
+The following is the current working theory of how firmware update is processed:
+
+1) Default firmware from ROM is loaded into firmware and executed at boot.
+
+2) Later during boot, the 0x8000 command is issued to determine if a firmware update file is present.
+
+3) If a firmware update file is present, a small portion of default firmware from ROM is rewritten and executed.
+
+4) Immediately afterwards, the 0x8001 command is issued. This seems to automatically load and execute the firmware update file.
+
+5) The Play-Yan's software checks the SD card status as reported by 0x8001 to make sure no errors occurred.
+
+Steps 3 through 5 appear to repeat every time the user enters the Music or Videos menu. It is important to note that this happens only after boot, or when switching from Music to Videos or switching from Videos to Music. Exiting the Music menu and re-entering the Music menu, for example, does not trigger the above process. As the firmware file is quite massive for the GBA, it appears the firmware file is not read manually byte-by-byte (in contrast to the Nintendo MP3 Player). The 0x8001 command likely handles loading and validating the firmware update file.
