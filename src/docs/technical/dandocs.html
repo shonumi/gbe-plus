@@ -4376,7 +4376,7 @@ WRITE DATA INTO 0xB000300 THROUGH 0xB0004FF
 
 	<p>The address to write the firmware is internal to the Play-Yan. This is evidently any address from 0x00000 - 0xEFFFF. Only 512 bytes can be written at a time, so writing the entire firmware to the Play-Yan requires multiple iterations of the above steps.</p>
 
-	<p>The Play-Yan provides its own default firmware in its ROM and uploads this accordingly on every boot. This method ensures that the firmware is never corrupted by a bad update. A similar method is used for the WiiSpeak accessory on the Wii. The Play-Yan can update to a newer firmware if such a file is included on the SD card. For the original Play-Yan, the software looks for the file &#34;playan.fup&#34;. Nintendo did release at least one firmware update as well, allowing the original Play-Yan to run MP4 files, something the later Play-Yan Micro version could do out-of-the-box.</p>
+	<p>The Play-Yan provides its own default firmware in its ROM and uploads this accordingly on every boot. This method ensures that the firmware is never corrupted by a bad update. A similar method is used for the WiiSpeak accessory on the Wii. The Play-Yan can update to a newer firmware if such a file is included on the SD card.</p>
 
 	<p>To read from the Play-Yan&#39;s firmware, the following steps are performed:</p>
 
@@ -4458,7 +4458,7 @@ Command					| Parameter 1							| Parameter 2
 0x3001 - Read Key File Data		| N/A								| N/A
 0x3003 - Close Key File			| N/A								| N/A
 0x8000 - Check For Firmware		| N/A								| N/A
-0x8001 - Get Cartridge Status		| N/A								| N/A
+0x8001 - Load Firmware			| N/A								| N/A
 0x10000 - Enter Sleep Mode		| N/A								| N/A
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------</pre>
@@ -4624,11 +4624,13 @@ Bytes 0x08 - 0x0B	| Frame Size in Bytes
 Bytes 0x18 - 0x1B	| Current Video Position
 -----------------------------------------------------------------------</pre>
 
-	<p>These interrupts are responsible for alerting the Play-Yan&#39;s software when a new video frame is ready for display, as well as the current position within a video as it is playing. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.</p>
+	<p>These interrupts are responsible for alerting the Play-Yan&#39;s software when a new video frame is ready for display, updating the current playback position within a video, and updating the video&#39;s audio. The first IRQ initializes the process, while the second IRQ repeats indefinitely until the end of the video.</p>
 
-	<p>Each time the second IRQ is fired, the Current Video Position is updated. The Play-Yan software uses this to determine the minutes/seconds timestamp. Its value is expressed in milliseconds. This IRQ fires every time a video frame needs to be displayed, therefore it should match the video&#39;s framerate. Each increment of the Current Video Position should thus reflect that. E.g. for a video playing at 30 frames-per-second, the Current Video Position value increases by approximately 0x21 or 0x22.</p>
+	<p>There are 2 distinct types of Game Pak IRQs generated continuously when playing a video file. The first updates video data and the current timestamp, while the second updates the audio data. If Audio Buffer Size is non-zero, only the audio is updated, otherwise video is updated. Do note that when headphones are plugged in, the Play-Yan only generates Game Pak IRQs that update video data.</p>
 
-	<p>The frame itself is read similarly to video thumbnails. Refers to the appropiate section below for more details. The size of the frame is the video&#39;s resolution (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.</p>
+	<p>The Current Video Position&#39;s value is expressed in milliseconds. As this IRQ fires every time a video frame needs to be displayed, the value incremented should match the video&#39;s framerate. E.g. for a video playing at 30 frames-per-second, the Current Video Position value increases by approximately 0x21 or 0x22. The video frame itself is read similarly to video thumbnails. Refer to the appropiate section below for more details. The size of the frame is the video&#39;s resolution on the GBA (typically 240x160) in 15-bit color pixels. Therefore, this value is usually 0x12C00.</p>
+
+	<p>Sample data is read from the SD Card Data interface. The data is equally split into left and right audio buffers. Typically, the buffer will always be 0x480 samples total unless the very end of a video has fewer than that remaining. Videos always use a sample rate of 8192Hz.</p>
 
 	<p>*The second IRQ constantly fires for the duration of the video for as many frames need to be updated each second.</p>
 	<p class="spc"></p>
@@ -4664,6 +4666,8 @@ Bytes 0x18 - 0x1B	| Play Time in Seconds
 
 	<p>For updating audio samples, only the bytes 0x10 through 0x13 need be non-zero. If those bytes are zero, then the Play-Yan software will interpret the IRQ data as representing an update to the trackbar, in which case bytes 0x14 through 0x1B should hold values appropiate for the current playback time. Do note that when headphones are plugged in, the Play-Yan only generates Game Pak IRQs that update the trackbar position. In this case, the Play-Yan&#39;s hardware handles pushing out audio samples, therefore an audio buffer is not needed.</p>
 
+	<p>Sample data is read from the SD Card Data interface. The data is equally split into left and right audio buffers. Typically, the buffer will always be 0x480 samples total unless the very end of a song has fewer than that remaining. Music always uses a sample rate of 16384Hz.</p>
+
 	<p>*The second IRQ constantly fires for the duration of the music.</p>
 	<p class="spc"></p>
 
@@ -4680,9 +4684,14 @@ Bytes 0x00 - 0x03	| 0x40000801
 Command 0x2000 - Play Sound Effect - 1 IRQ*
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80001000
+Bytes 0x10 - 0x13	| Audio Buffer Size
 -----------------------------------------------------------------------</pre>
 
-	<p>Only 1 IRQ is fired for this command. It appears to force the Play-Yan to generate a brief sound effect, typically used for menus or when playing Garage Games. The default sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate the sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it decides whether or not to use the headphone jack or the GBA&#39;s speakers as output. Samples for the sound effect are embedded within firmware, so the sound itself can be changed. </p>
+	<p>This command generates a brief sound effect from the Play-Yan. It is typically used for menus or when playing Garage Games. The default sound effect (something like a chirp) is the same in all instances. It is necessary for the Play-Yan itself to generate these sound effects rather than the GBA because the Play-Yan may need to push samples through the built-in headphone. The Play-Yan is responsible for generating all sound (music, video, and sound effects), and it also determines whether or not the headphone jack or the GBA&#39;s speakers will be used as output. Samples for the sound effect are embedded within firmware, so the sound itself can be changed in theory.</p>
+
+	<p>Sound effects use an audio buffer much like music and videos do, with the same format. The audio buffer size of sound effects, however, is generally extremely short, measuring in at only 0x2BA samples. While the original Play-Yan uses a set sample rate of 8192Hz for sound effects, the Play-Yan Micro switches from 16384Hz during the intro animation to 8192Hz for all subsequent operations. Do note that these IRQs are not generated when headphones are plugged into the Play-Yan.</p>
+
+	<p>*This IRQ constantly fires for the duration of the sound effect.</p>
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
@@ -4726,13 +4735,13 @@ Bytes 0x08 - 0x0B	| Firmware File Status
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
-Command 0x8001 - Get Cartridge Status - 1 IRQ
+Command 0x8001 - Load Firmware - 1 IRQ
 -----------------------------------------------------------------------
 Bytes 0x00 - 0x03	| 0x80000100
 Bytes 0x04 - 0x07	| SD Card Status
 -----------------------------------------------------------------------</pre>
 
-	<p>A single value is returned for the overall status of the Play-Yan cartridge. This can be used to determine if an appropiate SD card has been inserted or if there are any problems. As the SD card is essential for the Play-Yan, this is the earlier commands executed when booting. Non-zero values for the SD Card Status represent specific errors. The Play-Yan will halt booting up and display the following messages:</p>
+	<p>This command seems to load a firmware update file if it&#39;s present. A single value is returned for the overall status of the Play-Yan cartridge. This can be used to determine if an appropiate SD card has been inserted or if there are any problems in general. Non-zero values for the SD Card Status represent specific errors. The Play-Yan will halt and display the following messages:</p>
 
 <pre>-----------------------------------------------------------------------
 0x01	| カートリッジが調子悪いみたい...
@@ -4751,7 +4760,7 @@ Bytes 0x04 - 0x07	| SD Card Status
 	| An error occurred...
 -----------------------------------------------------------------------</pre>
 
-	<p>This command is called after the 0x8000 command detects the presence of a firmware update file, and at various points when the new firmware is apparently executing.</p>
+	<p>This command is called at various points when the new firmware is apparently executing, such as during boot and when the user switches between Music and Video menus.</p>
 	<p class="spc"></p>
 
 <pre>-----------------------------------------------------------------------
