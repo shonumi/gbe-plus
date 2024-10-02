@@ -42,8 +42,11 @@
 			{
 				width: 100%;
 				background-color: #C0C0C0;
+				margin-top: 1.5em;
 				margin-bottom: 15px;
 				padding-left: 5px;
+				padding-bottom: 5px;
+				padding-top: 5px;
 				font-size: 24px;
 			}
 
@@ -52,6 +55,9 @@
 				width: 95%;
 				background-color: #C0C0C0;
 				margin-bottom: 15px;
+				padding-left: 5px;
+				padding-bottom: 5px;
+				padding-top: 5px;
 				font-size: 24px;
 			}
 
@@ -4621,6 +4627,7 @@ Bytes 0x00 - 0x03	| 0x40000700
 Bytes 0x00 - 0x03	| 0x80001000
 Bytes 0x04 - 0x07	| Video Length Counter
 Bytes 0x08 - 0x0B	| Frame Size in Bytes
+Bytes 0x10 - 0x13	| Audio Buffer Size
 Bytes 0x18 - 0x1B	| Current Video Position
 -----------------------------------------------------------------------</pre>
 
@@ -7580,7 +7587,7 @@ Command 0x28		DNS Query
 	<a name="exm_que"></a>
 	<p class="gray_title">[EX Monopoly] : query_T.cgb, query_M.cgb</p>
 
-	<p>These two files have the same format, but query_T.cgb is given a &#34;today&#34; value of 00 and gives data for all time while query_M.cgb is given a &#34;today&#34; value corresponding to the current or previous month and gives data only for that month. Both files are retreived via a POST request in the format &#34;myname=<80 hex digits>&today=<2 hex digits>&#34;, and have the following format:</p>
+	<p>These two files have the same format, but query_T.cgb is given a &#34;today&#34; value of 00 and gives data for all time while query_M.cgb is given a &#34;today&#34; value corresponding to the current or previous month and gives data only for that month. Both files are retreived via a POST request in the format &#34;myname=&lt;80 hex digits&gt;&amp;today=&lt;2 hex digits&gt;&#34;, and have the following format:</p>
 
 <pre>----------------------------------
 File format
@@ -7624,7 +7631,7 @@ myscore - 8 bytes
 	<a name="exm_tmp"></a>
 	<p class="gray_title">[EX Monopoly] : 10.temporary.cgb</p>
 
-	<p>After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format &#34;myscore=<16 hex digits>&#34;. The server responds in the following format:</p>
+	<p>After both requests to 0.regist.cgb, the game sends a final POST request to this file in the format &#34;myscore=&lt;16 hex digits&gt;&#34;. The server responds in the following format:</p>
 
 <pre>0x00 - 0x01			::  If both are 0x00, no rank number is present.
 0x02 - 0x05			::  Rank number in big endian, optional.</pre>
@@ -8205,7 +8212,7 @@ Lines 14+			::  Description.</pre>
 	<a name="mka_que"></a>
 	<p class="gray_title">[Mario Kart Advance] : query.cgb</p>
 
-	<p>This file is downloaded after total.cgb via a POST request in the format &#34;myid=<32 hex digits>&myrecord=<4 hex digits>&pickuprecord=<4 hex digits>&state=<2 hex digits>&driver=<2 hex digits>&rk_1=<8 hex digits>&rk_2=<8 hex digits>&rk_3=<8 hex digits>&rk_4=<8 hex digits>&rk_5=<8 hex digits>&rk_6=<8 hex digits>&rk_7=<8 hex digits>&rk_8=<8 hex digits>&rk_9=<8 hex digits>&rk_10=<8 hex digits>&rk_11=<8 hex digits>&#34;, where the &#34;pickuprecord&#34; value is the player&#39;s actual record while the &#34;myrecord&#34; value is 1/100 second slower, and the &#34;rk_*&#34; values are the rank numbers to be displayed in the overall rankings category. The file itself has the following format:</p>
+	<p>This file is downloaded after total.cgb via a POST request in the format &#34;myid=&lt;32 hex digits&gt;&myrecord=&lt;4 hex digits&gt;&pickuprecord=&lt;4 hex digits&gt;&state=&lt;2 hex digits&gt;&driver=&lt;2 hex digits&gt;&rk_1=&lt;8 hex digits&gt;&rk_2=&lt;8 hex digits&gt;&rk_3=&lt;8 hex digits&gt;&rk_4=&lt;8 hex digits&gt;&rk_5=&lt;8 hex digits&gt;&rk_6=&lt;8 hex digits&gt;&rk_7=&lt;8 hex digits&gt;&rk_8=&lt;8 hex digits&gt;&rk_9=&lt;8 hex digits&gt;&rk_10=&lt;8 hex digits&gt;&rk_11=&lt;8 hex digits&gt;&#34;, where the &#34;pickuprecord&#34; value is the player&#39;s actual record while the &#34;myrecord&#34; value is 1/100 second slower, and the &#34;rk_*&#34; values are the rank numbers to be displayed in the overall rankings category. The file itself has the following format:</p>
 
 <pre>----------------------------------
 File format
@@ -8234,8 +8241,8 @@ Ranking set
 0x05				::  Minute number.
 0x06 - 0x09			::  Number of ranked players in big endian.
 0x0A - 0x0D			::  Number of total players in big endian.
-0x0E				::  High byte of top 10 count (N <= 11).
-0x0F				::  Low byte of top 10 count (N <= 11).
+0x0E				::  High byte of top 10 count (N &lt;= 11).
+0x0F				::  Low byte of top 10 count (N &lt;= 11).
 0x10 - ...			::  Up to eleven top 10 ranking entries.
 
 ----------------------------------
@@ -8268,7 +8275,7 @@ Overall ranking entry
 	<a name="mka_gha"></a>
 	<p class="gray_title">[Mario Kart Advance] : 0.dlghost.cgb, 0.dlghost2.cgb, 0.dlghost3.cgb</p>
 
-	<p>These files are downloaded via POST requests in varying formats: 0.dlghost.cgb, used when downloading by global rank, receives &#34;ghostrank=<8 hex digits>&state=00&driver=00&#34;; 0.dlghost2.cgb, used when downloading by race time, receives &#34;ghostscore=<4 hex digits>&state=00&driver=00&#34;, where the &#34;ghostscore&#34; value is 1/100 second slower than the requested time; and 0.dlghost3.cgb, used when downloading by kart ID, receives &#34;myid=<32 hex digits>&state=00&driver=00&#34;. They all share the following format:</p>
+	<p>These files are downloaded via POST requests in varying formats: 0.dlghost.cgb, used when downloading by global rank, receives &#34;ghostrank=&lt;8 hex digits&gt;&amp;state=00&amp;driver=00&#34;; 0.dlghost2.cgb, used when downloading by race time, receives &#34;ghostscore=&lt;4 hex digits&gt;&amp;state=00&driver=00&#34;, where the &#34;ghostscore&#34; value is 1/100 second slower than the requested time; and 0.dlghost3.cgb, used when downloading by kart ID, receives &#34;myid=&lt;32 hex digits&gt;&amp;state=00&amp;driver=00&#34;. They all share the following format:</p>
 
 <pre>0x0000				::  High byte of year number, not used.
 0x0001				::  Low byte of year number, not used.
@@ -9260,8 +9267,8 @@ Ghost Entry Format
 	<p class="gray_title">[Zen Nihon GT Senshuken] : Character Encoding</p>
 
 <pre>	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
-0x000	 	!	&#34;	#	$	%	&	&#39;	(	)	*	+	,	-	.	&#47;
-0x010	0	1	2	3	4	5	6	7	8	9	:	;	<	=	>	?
+0x000	 	!	&#34;	#	$	%	&amp;	&#39;	(	)	*	+	,	-	.	&#47;
+0x010	0	1	2	3	4	5	6	7	8	9	:	;	&lt;	=	&gt;	?
 0x020	@	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O
 0x030	P	Q	R	S	T	U	V	W	X	Y	Z	[	¥	]	^	_
 0x040	`	a	b	c	d	e	f	g	h	i	j	k	l	m	n	o

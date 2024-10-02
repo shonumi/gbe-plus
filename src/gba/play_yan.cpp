@@ -172,7 +172,6 @@ void AGB_MMU::write_play_yan(u32 address, u8 value)
 				for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 				play_yan.irq_data[0] = 0x80000100;
 				play_yan.irq_delay = 120;
-				std::cout<<"LOAD\n";	
 			}
 
 			break;
