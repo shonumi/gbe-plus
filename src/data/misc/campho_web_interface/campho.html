@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Campho Input</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+		<script type="text/javascript" src="campho.js"></script>
+
+		<style type="text/css">
+
+			body
+			{
+				font-family: sans-serif;
+				margin: 0px;
+				background-color: #C0C0C0;
+				padding: 8px;
+				height: 100%;
+			}
+
+			.center
+			{
+				text-align: center;
+			}
+
+			.big_button
+			{
+				height:10%;
+				font-size: 2em;
+			}
+
+			img
+			{
+				border: 3px solid #000;
+			}
+
+			canvas
+			{
+				display: none;
+			}
+
+			video
+			{
+				display: none;
+			}
+
+		</style>
+
+	</head>
+
+	<body>
+
+	<p class="center">
+		<video id="campho_video">No Video</video>
+	</p>
+
+	<p class="center">
+		<button id="campho_start" class="big_button">Begin Camera Capture</button>
+		<p id="campho_status">Camera Status : Initializing...</p>
+	</p>
+
+	<canvas id="campho_canvas"></canvas>
+
+	<p class="center">
+		<img id="campho_output" alt="Camera Output" />
+	</p>
+
+	</body>
+</html>
