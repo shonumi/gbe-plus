@@ -98,7 +98,12 @@ function get_camera_data()
 		//Crop canvas to some multiple of 174x144
 		video_canvas.width = 174 * factor;
 		video_canvas.height = 144 * factor;
-		camera_context.drawImage(video_src, 0, 0, vid_w, vid_h);
+
+		//Crop towards the center of camera input
+		let shift_x = -(vid_w - video_canvas.width) / 2;
+		let shift_y = -(vid_h - video_canvas.height) / 2;
+
+		camera_context.drawImage(video_src, shift_x, shift_y, vid_w, vid_h);
 
 		let video_data = video_canvas.toDataURL("image/png");
 		video_img.setAttribute("src", video_data);
