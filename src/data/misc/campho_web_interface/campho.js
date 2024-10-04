@@ -93,12 +93,20 @@ function get_camera_data()
 	//Only update if valid video data was captured
 	if(vid_w && vid_h)
 	{
-		video_canvas.width = vid_w;
-		video_canvas.height = vid_h;
+		let factor = parseInt(vid_w / 174);
+
+		//Crop canvas to some multiple of 174x144
+		video_canvas.width = 174 * factor;
+		video_canvas.height = 144 * factor;
 		camera_context.drawImage(video_src, 0, 0, vid_w, vid_h);
 
 		let video_data = video_canvas.toDataURL("image/png");
 		video_img.setAttribute("src", video_data);
+
+		factor = parseFloat(1.0 / factor); 
+
+		//Scale canvas down to 174x144 for transfer
+		camera_context.scale(factor, factor);
 
 		//Convert and send data via networking (websockets)
 		convert_pixel_data();
@@ -110,7 +118,7 @@ function convert_pixel_data()
 {
 	pixel_data = [];
 
-	let img_data = camera_context.getImageData(0, 0, vid_w, vid_h);
+	let img_data = camera_context.getImageData(0, 0, 174, 144);
   	let temp_data = img.data;
 
 	let r = 0;
