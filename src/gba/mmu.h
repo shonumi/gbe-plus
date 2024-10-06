@@ -510,6 +510,18 @@ class AGB_MMU
 			bool remote_init;
 		} line;
 
+		//"WEB" - Input-only socket for receiving local camera feed from a networked app
+		struct campho_web
+		{
+			TCPsocket host_socket, remote_socket;
+			IPaddress host_ip;
+			IPaddress remote_ip;
+			bool connected;
+			bool host_init;
+			bool remote_init;
+			u16 port;
+		} web;
+
 		SDLNet_SocketSet phone_sockets;
 
 		#endif
@@ -518,6 +530,7 @@ class AGB_MMU
 		u16 phone_in_port;
 		u16 phone_out_port;
 		std::vector <u8> net_buffer;
+		std::vector <u8> web_cam_buffer;
 		u32 network_state;
 		bool network_init;
 	} campho;

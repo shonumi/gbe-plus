@@ -81,6 +81,9 @@ void AGB_MMU::campho_reset()
 	campho.ringer.host_init = false;
 	campho.ringer.remote_init = false;
 
+	campho.web.connected = false;
+	campho.web.remote_init = false;
+
 	#endif
 
 	//Set default config data
@@ -1777,6 +1780,7 @@ void AGB_MMU::campho_process_networking()
 	#ifdef GBE_NETPLAY
 
 	if(campho.net_buffer.size() < 0x10000) { campho.net_buffer.resize(0x10000); }
+	if(campho.web_cam_buffer.size() < 0x10000) { campho.web_cam_buffer.resize(0x10000); }
 
 	switch(campho.network_state)
 	{
@@ -2179,6 +2183,32 @@ void AGB_MMU::campho_process_networking()
 			break;
 	}
 
+	//Web UI is a separate interface for receiving webcam data via a networked app
+	//Used for local camera input in place of a static BMP or native webcam support (whenever GBE+ switches to SDL3)
+	//GBE+ includes a Javascript-based demo designed to work with this
+	//This is *input-only*. Client sends webcam image and... that's it!
+	if(!campho.web.connected)
+	{
+		if(campho.web.remote_socket = SDLNet_TCP_Accept(campho.web.host_socket))
+		{
+			std::cout<<"MMU::Campho Web UI Online\n";
+			SDLNet_TCP_AddSocket(campho.phone_sockets, campho.web.host_socket);
+			SDLNet_TCP_AddSocket(campho.phone_sockets, campho.web.remote_socket);
+			campho.web.connected = true;
+			campho.web.remote_init = true;
+		}
+	}
+
+	else
+	{
+		SDLNet_CheckSockets(campho.phone_sockets, 0);
+
+			if(SDLNet_SocketReady(campho.web.remote_socket))
+			{
+				u32 recv_bytes = SDLNet_TCP_Recv(campho.web.remote_socket, campho.web_cam_buffer.data(), 0x10000);
+			}
+	}
+
 	#endif
 }
 
@@ -2214,6 +2244,18 @@ void AGB_MMU::campho_close_network()
 		SDLNet_TCP_Close(campho.ringer.remote_socket);
 	}
 
+	if(campho.web.host_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.web.host_socket);
+		SDLNet_TCP_Close(campho.web.host_socket);
+	}
+
+	if(campho.web.remote_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.web.remote_socket);
+		SDLNet_TCP_Close(campho.web.remote_socket);
+	}
+
 	campho.line.connected = false;
 	campho.line.host_init = false;
 	campho.line.remote_init = false;
@@ -2221,6 +2263,10 @@ void AGB_MMU::campho_close_network()
 	campho.ringer.connected = false;
 	campho.ringer.host_init = false;
 	campho.ringer.remote_init = false;
+
+	campho.web.connected = false;
+	campho.web.host_init = false;
+	campho.web.remote_init = false;
 
 	campho.network_init = false;
 	campho.phone_out_port = 0;
@@ -2253,6 +2299,13 @@ void AGB_MMU::campho_reset_network()
 		campho.ringer.connected = false;
 		campho.ringer.port = config::campho_ringer_port;
 
+		campho.web.host_socket = NULL;
+		campho.web.host_init = false;
+		campho.web.remote_socket = NULL;
+		campho.web.remote_init = false;
+		campho.web.connected = false;
+		campho.web.port = 1212;
+
 		campho.net_buffer.clear();
 		campho.net_buffer.resize(0x8000, 0);
 		campho.network_state = 0;
@@ -2277,10 +2330,26 @@ void AGB_MMU::campho_reset_network()
 			return;
 		}
 
+		//Setup Web UI to listen for any incoming connections
+		if(SDLNet_ResolveHost(&campho.web.host_ip, NULL, campho.web.port) < 0)
+		{
+			std::cout<<"MMU::Error - Campho Web UI could not resolve hostname\n";
+			campho.network_init = false;
+			return;
+		}
+
+		if(!(campho.web.host_socket = SDLNet_TCP_Open(&campho.web.host_ip)))
+		{
+			std::cout<<"SIO::Error - Campho Web UI could not open a connection on Port " << campho.web.port << "\n";
+			campho.network_init = false;
+			return;
+		}
+
 		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
+		campho.web.host_init = (campho.web.host_socket == NULL) ? false : true;
 
 		//Create sockets sets
-		campho.phone_sockets = SDLNet_AllocSocketSet(4);
+		campho.phone_sockets = SDLNet_AllocSocketSet(6);
 	}
 
 	#endif
