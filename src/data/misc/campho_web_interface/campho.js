@@ -13,7 +13,12 @@ let video_status = null;
 
 let camera_context;
 
-let pixel_data = [];
+let connected = false;
+let server_addr = "ws://127.0.0.1:8000";
+let server_status = null;
+let campho_socket;
+
+let pixel_data = new Uint8Array(174*144*2);
 
 /****** Sets up camera if hardware is available ******/
 function setup_camera()
@@ -23,6 +28,7 @@ function setup_camera()
 	video_img = document.getElementById("campho_output");
 	video_button = document.getElementById("campho_start");
 	video_status = document.getElementById("campho_status");
+	server_status = document.getElementById("campho_server");
 
 	//Setup camera through getUserMedia
 	navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then((stream) =>
@@ -82,6 +88,20 @@ function setup_camera()
 			video_button.innerHTML = "Begin Camera Stream";
 		}
 	}, false,);
+
+	//Open WebSocket connection now
+	campho_socket = new WebSocket(server_addr);
+
+	campho_socket.addEventListener("open", (ev) =>
+	{
+		connected = true;
+		server_status.innerHTML = "Server Status : Connected";
+	});
+
+	campho_socket.addEventListener("error", (ev) =>
+	{
+		server_status.innerHTML = "Server Status : Connection Failed. Please Refresh";
+	});
 }
 
 /****** Grabs 1 frame from camera ******/
@@ -115,13 +135,14 @@ function get_camera_data()
 
 		//Convert and send data via networking (websockets)
 		convert_pixel_data();
+		send_pixel_data();
 	}
 }
 
-/****** Convert canvas data into 16-bit pixel data for TCP transfer ******/
+/****** Convert canvas data into 15-bit pixel data for TCP transfer ******/
 function convert_pixel_data()
 {
-	pixel_data = [];
+	pixel_data.fill(0);
 
 	let img_data = camera_context.getImageData(0, 0, 174, 144);
   	let temp_data = img.data;
@@ -129,6 +150,8 @@ function convert_pixel_data()
 	let r = 0;
 	let g = 0;
 	let b = 0;
+
+	let index = 0;
 
 	//Cycle through RGBA channels for conversion
 	for(let x = 0; x < temp.data.length; x += 4)
@@ -144,9 +167,18 @@ function convert_pixel_data()
 		let lo_byte = gba_color & 0xFF;
 		let hi_byte = (gba_color >> 8) & 0xFF;
 
-		pixel_data.push(lo_byte);
-		pixel_data.push(hi_byte);
+		pixel_data[index++] = lo_byte;
+		pixel_data[index++] = hi_byte;
 	} 
+}
+
+/****** Sends 15-bit pixel data over TCP via websockets ******/
+function send_pixel_data()
+{
+	if(connected)
+	{
+		//send(pixel_data);
+	}
 }
 
 window.addEventListener("load", setup_camera, false); 
