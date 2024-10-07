@@ -14,11 +14,10 @@ let video_status = null;
 let camera_context;
 
 let connected = false;
-let server_addr = "ws://127.0.0.1:8000";
+let server_addr = "";
 let server_status = null;
-let campho_socket;
 
-let pixel_data = new Uint8Array(174*144*2);
+let pixel_data = new Uint8Array(176*144*3);
 
 /****** Sets up camera if hardware is available ******/
 function setup_camera()
@@ -89,19 +88,12 @@ function setup_camera()
 		}
 	}, false,);
 
-	//Open WebSocket connection now
-	campho_socket = new WebSocket(server_addr);
+	pixel_data.fill(0);
 
-	campho_socket.addEventListener("open", (ev) =>
-	{
-		connected = true;
-		server_status.innerHTML = "Server Status : Connected";
-	});
+	let req = new XMLHttpRequest();
 
-	campho_socket.addEventListener("error", (ev) =>
-	{
-		server_status.innerHTML = "Server Status : Connection Failed. Please Refresh";
-	});
+	req.open("POST", server_addr);
+	req.send(null);
 }
 
 /****** Grabs 1 frame from camera ******/
@@ -113,10 +105,10 @@ function get_camera_data()
 	//Only update if valid video data was captured
 	if(vid_w && vid_h)
 	{
-		let factor = parseInt(vid_w / 174);
+		let factor = parseInt(vid_w / 176);
 
-		//Crop canvas to some multiple of 174x144
-		video_canvas.width = 174 * factor;
+		//Crop canvas to some multiple of 176x144
+		video_canvas.width = 176 * factor;
 		video_canvas.height = 144 * factor;
 
 		//Crop towards the center of camera input
@@ -130,21 +122,21 @@ function get_camera_data()
 
 		factor = parseFloat(1.0 / factor); 
 
-		//Scale canvas down to 174x144 for transfer
+		//Scale canvas down to 176x144 for transfer
 		camera_context.scale(factor, factor);
 
 		//Convert and send data via networking (websockets)
 		convert_pixel_data();
-		send_pixel_data();
+		//send_pixel_data();
 	}
 }
 
-/****** Convert canvas data into 15-bit pixel data for TCP transfer ******/
+/****** Convert canvas data into 24-bit pixel data for TCP transfer ******/
 function convert_pixel_data()
 {
 	pixel_data.fill(0);
 
-	let img_data = camera_context.getImageData(0, 0, 174, 144);
+	let img_data = camera_context.getImageData(0, 0, 176, 144);
   	let temp_data = img.data;
 
 	let r = 0;
@@ -160,25 +152,20 @@ function convert_pixel_data()
 		g = (temp_data[x + 1] >> 5);
 		b = (temp_data[x + 2] >> 5);
 
-		//GBA pixels are 15-bit BGR,
-		//Store bytes as LSB to match GBA format
-		let gba_color = (b << 10) | (g << 5) | r;
-
-		let lo_byte = gba_color & 0xFF;
-		let hi_byte = (gba_color >> 8) & 0xFF;
-
-		pixel_data[index++] = lo_byte;
-		pixel_data[index++] = hi_byte;
+		//Send data as 24-bit RGB values
+		pixel_data[index++] = b;
+		pixel_data[index++] = g;
+		pixel_data[index++] = r;
 	} 
 }
 
-/****** Sends 15-bit pixel data over TCP via websockets ******/
+/****** Sends 24-bit pixel data over TCP via websockets ******/
 function send_pixel_data()
 {
-	if(connected)
-	{
-		//send(pixel_data);
-	}
+	let req = new XMLHttpRequest();
+
+	req.open("POST", server_addr);
+	req.send(null);
 }
 
 window.addEventListener("load", setup_camera, false); 
