@@ -14,8 +14,9 @@ let video_status = null;
 let camera_context;
 
 let connected = false;
-let server_addr = "";
+let server_addr = "http://10.0.0.151:1212";
 let server_status = null;
+let server_req;
 
 let pixel_data = new Uint8Array(176*144*3);
 
@@ -65,8 +66,9 @@ function setup_camera()
 	video_button.addEventListener("click", (ev) =>
 	{
 		ev.preventDefault();
-
-		if(!camera_activated) { return; }
+	
+		pixel_data.fill(0);
+		send_pixel_data();
 
 		if(!camera_capture_started)
 		{
@@ -87,13 +89,6 @@ function setup_camera()
 			video_button.innerHTML = "Begin Camera Stream";
 		}
 	}, false,);
-
-	pixel_data.fill(0);
-
-	let req = new XMLHttpRequest();
-
-	req.open("POST", server_addr);
-	req.send(null);
 }
 
 /****** Grabs 1 frame from camera ******/
@@ -127,7 +122,7 @@ function get_camera_data()
 
 		//Convert and send data via networking (websockets)
 		convert_pixel_data();
-		//send_pixel_data();
+		send_pixel_data();
 	}
 }
 
@@ -137,7 +132,6 @@ function convert_pixel_data()
 	pixel_data.fill(0);
 
 	let img_data = camera_context.getImageData(0, 0, 176, 144);
-  	let temp_data = img.data;
 
 	let r = 0;
 	let g = 0;
@@ -146,11 +140,11 @@ function convert_pixel_data()
 	let index = 0;
 
 	//Cycle through RGBA channels for conversion
-	for(let x = 0; x < temp.data.length; x += 4)
+	for(let x = 0; x < img_data.length; x += 4)
 	{
-		r = (temp_data[x] >> 5);
-		g = (temp_data[x + 1] >> 5);
-		b = (temp_data[x + 2] >> 5);
+		r = (img_data[x] >> 5);
+		g = (img_data[x + 1] >> 5);
+		b = (img_data[x + 2] >> 5);
 
 		//Send data as 24-bit RGB values
 		pixel_data[index++] = b;
@@ -162,10 +156,10 @@ function convert_pixel_data()
 /****** Sends 24-bit pixel data over TCP via websockets ******/
 function send_pixel_data()
 {
-	let req = new XMLHttpRequest();
-
-	req.open("POST", server_addr);
-	req.send(null);
+	server_req = new XMLHttpRequest();
+	server_req.open("POST", server_addr);
+	server_req.send(pixel_data);
+	console.log("Sending Pixel Data");
 }
 
 window.addEventListener("load", setup_camera, false); 
