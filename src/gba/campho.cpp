@@ -1780,7 +1780,7 @@ void AGB_MMU::campho_process_networking()
 	#ifdef GBE_NETPLAY
 
 	if(campho.net_buffer.size() < 0x10000) { campho.net_buffer.resize(0x10000); }
-	if(campho.web_cam_buffer.size() < 0x10000) { campho.web_cam_buffer.resize(0x10000); }
+	if(campho.web_cam_buffer.size() < 0x20000) { campho.web_cam_buffer.resize(0x20000); }
 
 	switch(campho.network_state)
 	{
@@ -2187,26 +2187,29 @@ void AGB_MMU::campho_process_networking()
 	//Used for local camera input in place of a static BMP or native webcam support (whenever GBE+ switches to SDL3)
 	//GBE+ includes a Javascript-based demo designed to work with this
 	//This is *input-only*. Client sends webcam image and... that's it!
-	if(!campho.web.connected)
+	if(campho.web.remote_socket = SDLNet_TCP_Accept(campho.web.host_socket))
 	{
-		if(campho.web.remote_socket = SDLNet_TCP_Accept(campho.web.host_socket))
+		u32 recv_bytes = SDLNet_TCP_Recv(campho.web.remote_socket, campho.web_cam_buffer.data(), 0x20000);
+
+		if(recv_bytes)
 		{
-			std::cout<<"MMU::Campho Web UI Online\n";
-			SDLNet_TCP_AddSocket(campho.phone_sockets, campho.web.host_socket);
-			SDLNet_TCP_AddSocket(campho.phone_sockets, campho.web.remote_socket);
-			campho.web.connected = true;
-			campho.web.remote_init = true;
+			std::cout<<"RECV BYTES -> 0x" << recv_bytes << "\n";
+
+			std::cout<<"\n";
+			for(u32 x = 0; x < recv_bytes; x++) { std::cout<<campho.web_cam_buffer[x]; }
+			std::cout<<"\n";
+
+			std::string http_str = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\n";
+			std::vector <u8> http_data;
+
+			http_data.resize(http_str.length());
+			util::str_to_data(http_data.data(), http_str);
+
+			u32 send_bytes = SDLNet_TCP_Send(campho.web.remote_socket, (void*)http_data.data(), http_data.size());
+
+			SDLNet_TCP_Close(campho.web.remote_socket);
 		}
-	}
 
-	else
-	{
-		SDLNet_CheckSockets(campho.phone_sockets, 0);
-
-			if(SDLNet_SocketReady(campho.web.remote_socket))
-			{
-				u32 recv_bytes = SDLNet_TCP_Recv(campho.web.remote_socket, campho.web_cam_buffer.data(), 0x10000);
-			}
 	}
 
 	#endif
