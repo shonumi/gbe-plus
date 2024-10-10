@@ -14,7 +14,7 @@ let video_status = null;
 let camera_context;
 
 let connected = false;
-let server_addr = "http://10.0.0.151:1212";
+let server_addr = "http://127.0.0.1:1212";
 let server_status = null;
 let server_req;
 
@@ -66,9 +66,6 @@ function setup_camera()
 	video_button.addEventListener("click", (ev) =>
 	{
 		ev.preventDefault();
-	
-		pixel_data.fill(0);
-		send_pixel_data();
 
 		if(!camera_capture_started)
 		{
@@ -129,9 +126,8 @@ function get_camera_data()
 /****** Convert canvas data into 24-bit pixel data for TCP transfer ******/
 function convert_pixel_data()
 {
-	pixel_data.fill(0);
-
-	let img_data = camera_context.getImageData(0, 0, 176, 144);
+	let img = camera_context.getImageData(0, 0, 176, 144);
+	let data = img.data;
 
 	let r = 0;
 	let g = 0;
@@ -139,27 +135,29 @@ function convert_pixel_data()
 
 	let index = 0;
 
-	//Cycle through RGBA channels for conversion
-	for(let x = 0; x < img_data.length; x += 4)
+	//Cycle through RGBA channels for data
+	for(let x = 0; x < data.length; x += 4)
 	{
-		r = (img_data[x] >> 5);
-		g = (img_data[x + 1] >> 5);
-		b = (img_data[x + 2] >> 5);
-
 		//Send data as 24-bit RGB values
-		pixel_data[index++] = b;
-		pixel_data[index++] = g;
-		pixel_data[index++] = r;
-	} 
+		pixel_data[index++] = data[x + 2];
+		pixel_data[index++] = data[x + 1];
+		pixel_data[index++] = data[x];
+	}
 }
 
 /****** Sends 24-bit pixel data over TCP via websockets ******/
 function send_pixel_data()
 {
-	server_req = new XMLHttpRequest();
-	server_req.open("POST", server_addr);
-	server_req.send(pixel_data);
-	console.log("Sending Pixel Data");
+	fetch(server_addr, 
+	{
+		method: 'POST',
+		body: pixel_data,
+	})
+
+	.catch((err) =>
+	{
+        	console.error('A fetch error occurred!');
+	});
 }
 
 window.addEventListener("load", setup_camera, false); 
