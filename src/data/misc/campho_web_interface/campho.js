@@ -16,7 +16,7 @@ let camera_context;
 let connected = false;
 let server_addr = "http://127.0.0.1:1212";
 let server_status = null;
-let server_req;
+let server_ready = true;
 
 let pixel_data = new Uint8Array(176*144*3);
 
@@ -148,16 +148,30 @@ function convert_pixel_data()
 /****** Sends 24-bit pixel data over TCP via websockets ******/
 function send_pixel_data()
 {
-	fetch(server_addr, 
+	//Only send if the previous request has been confirmed as completed
+	//This means the actual video stream may update at least the 5FPS
+	//That depends on the server (GBE+), but that's fine, let the server do its thing
+	if(server_ready)
 	{
-		method: 'POST',
-		body: pixel_data,
-	})
+		server_ready = false;
 
-	.catch((err) =>
-	{
-        	console.error('A fetch error occurred!');
-	});
+		fetch(server_addr, 
+		{
+			method: 'POST',
+			body: pixel_data,
+		})
+
+		.then(response =>
+		{
+			server_ready = true;
+		})
+
+		.catch((err) =>
+		{
+        		console.error('A fetch error occurred!');
+			server_ready = true;
+		});
+	}
 }
 
 window.addEventListener("load", setup_camera, false); 
