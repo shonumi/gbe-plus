@@ -2183,33 +2183,47 @@ void AGB_MMU::campho_process_networking()
 			break;
 	}
 
-	//Web UI is a separate interface for receiving webcam data via a networked app
+	//HTTP-based Web UI is a separate interface for receiving webcam data via a networked app
 	//Used for local camera input in place of a static BMP or native webcam support (whenever GBE+ switches to SDL3)
 	//GBE+ includes a Javascript-based demo designed to work with this
-	//This is *input-only*. Client sends webcam image and... that's it!
-	if(campho.web.remote_socket = SDLNet_TCP_Accept(campho.web.host_socket))
+	//This is *input-only*. Client sends webcam image, GBE+ sends HTTP response... and that's it!
+
+	//Start new HTTP POST request
+	if(!campho.web.transfer_start)
 	{
-		u32 recv_bytes = SDLNet_TCP_Recv(campho.web.remote_socket, campho.web_cam_buffer.data(), 0x20000);
-
-		if(recv_bytes)
+		if(campho.web.remote_socket = SDLNet_TCP_Accept(campho.web.host_socket))
 		{
-			std::cout<<"RECV BYTES -> 0x" << recv_bytes << "\n";
+			campho.web.transfer_start = true;
+			campho.web.recv_bytes = 0;
+		}
+	}
 
-			std::cout<<"\n";
-			for(u32 x = 0; x < recv_bytes; x++) { std::cout<<campho.web_cam_buffer[x]; }
-			std::cout<<"\n";
+	//Grab data for HTTP POST request
+	if(campho.web.transfer_start)
+	{
+		campho.web.recv_bytes += SDLNet_TCP_Recv(campho.web.remote_socket, campho.net_buffer.data(), 0x10000);
 
-			std::string http_str = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\n";
+		//Finish HTTP POST with response
+		//We are being lazy here. Just make sure ~76KB are sent, which generally means we got all of it
+		if(campho.web.recv_bytes >= 76000)
+		{
+			campho.web.transfer_start = false;
+
+			//Generate and send HTTP response
+			std::string http_str = "HTTP/1.1 200 OK\r\n";
+			http_str += "Access-Control-Allow-Origin: *\r\n\r\n";
+
 			std::vector <u8> http_data;
-
 			http_data.resize(http_str.length());
 			util::str_to_data(http_data.data(), http_str);
 
 			u32 send_bytes = SDLNet_TCP_Send(campho.web.remote_socket, (void*)http_data.data(), http_data.size());
 
+			//Close connection to signal end of transfer
 			SDLNet_TCP_Close(campho.web.remote_socket);
-		}
 
+			std::cout<<"COMPLETE\n";
+		}
 	}
 
 	#endif
@@ -2308,6 +2322,8 @@ void AGB_MMU::campho_reset_network()
 		campho.web.remote_init = false;
 		campho.web.connected = false;
 		campho.web.port = 1212;
+		campho.web.transfer_start = false;
+		campho.web.recv_bytes = 0;
 
 		campho.net_buffer.clear();
 		campho.net_buffer.resize(0x8000, 0);

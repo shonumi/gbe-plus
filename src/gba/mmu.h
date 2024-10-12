@@ -520,6 +520,9 @@ class AGB_MMU
 			bool host_init;
 			bool remote_init;
 			u16 port;
+
+			u32 recv_bytes;
+			bool transfer_start;
 		} web;
 
 		SDLNet_SocketSet phone_sockets;
