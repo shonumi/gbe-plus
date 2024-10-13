@@ -129,10 +129,6 @@ function convert_pixel_data()
 	let img = camera_context.getImageData(0, 0, 176, 144);
 	let data = img.data;
 
-	let r = 0;
-	let g = 0;
-	let b = 0;
-
 	let index = 0;
 
 	//Cycle through RGBA channels for data

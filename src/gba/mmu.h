@@ -534,6 +534,7 @@ class AGB_MMU
 		u16 phone_out_port;
 		std::vector <u8> net_buffer;
 		std::vector <u8> web_cam_buffer;
+		std::vector <u8> web_cam_img;
 		u32 network_state;
 		bool network_init;
 	} campho;

@@ -1213,22 +1213,32 @@ void AGB_MMU::process_campho()
 		campho.rom_stat = 0xA00A;
 
 		//Grab pixel data for captured video frame
-		//Pull data from BMP file
+		//Pull data from BMP file or webcam
 		if(campho.update_local_camera)
 		{
-			SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
-
-			if(source != NULL)
+			//Use webcam data if available
+			if(!campho.web_cam_img.empty())
 			{
-				u8* cam_pixel_data = (u8*)source->pixels;
-				campho_get_image_data(cam_pixel_data, campho.local_capture_buffer, source->w, source->h, false);	
+				campho_get_image_data(campho.web_cam_img.data(), campho.local_capture_buffer, 176, 144, false);
+			} 
+			
+			//Use static BMP
+			else
+			{
+				SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
+
+				if(source != NULL)
+				{
+					u8* cam_pixel_data = (u8*)source->pixels;
+					campho_get_image_data(cam_pixel_data, campho.local_capture_buffer, source->w, source->h, false);	
+				}
+
+				SDL_FreeSurface(source);
 			}
 
 			campho_set_local_video_data();
 			campho.update_local_camera = false;
 			campho.camera_mode |= 0x01;
-
-			SDL_FreeSurface(source);
 		}
 
 		//Flag a remote video frame as ready to draw
@@ -1780,7 +1790,6 @@ void AGB_MMU::campho_process_networking()
 	#ifdef GBE_NETPLAY
 
 	if(campho.net_buffer.size() < 0x10000) { campho.net_buffer.resize(0x10000); }
-	if(campho.web_cam_buffer.size() < 0x20000) { campho.web_cam_buffer.resize(0x20000); }
 
 	switch(campho.network_state)
 	{
@@ -2187,6 +2196,7 @@ void AGB_MMU::campho_process_networking()
 	//Used for local camera input in place of a static BMP or native webcam support (whenever GBE+ switches to SDL3)
 	//GBE+ includes a Javascript-based demo designed to work with this
 	//This is *input-only*. Client sends webcam image, GBE+ sends HTTP response... and that's it!
+	//Data is grabbed once per-frame, non-blocking, so TCP transfer may take a bit to finish
 
 	//Start new HTTP POST request
 	if(!campho.web.transfer_start)
@@ -2195,13 +2205,19 @@ void AGB_MMU::campho_process_networking()
 		{
 			campho.web.transfer_start = true;
 			campho.web.recv_bytes = 0;
+			campho.web_cam_buffer.clear();
 		}
 	}
 
 	//Grab data for HTTP POST request
 	if(campho.web.transfer_start)
 	{
+		u32 diff = campho.web.recv_bytes;
 		campho.web.recv_bytes += SDLNet_TCP_Recv(campho.web.remote_socket, campho.net_buffer.data(), 0x10000);
+		diff = campho.web.recv_bytes - diff;
+
+		//Copy new data into webcam buffer
+		for(u32 x = 0; x < diff; x++) { campho.web_cam_buffer.push_back(campho.net_buffer[x]); }
 
 		//Finish HTTP POST with response
 		//We are being lazy here. Just make sure ~76KB are sent, which generally means we got all of it
@@ -2222,7 +2238,17 @@ void AGB_MMU::campho_process_networking()
 			//Close connection to signal end of transfer
 			SDLNet_TCP_Close(campho.web.remote_socket);
 
-			std::cout<<"COMPLETE\n";
+			//Parse complete POST data for RGB image
+			std::string raw_str = util::data_to_str(campho.web_cam_buffer.data(), campho.web_cam_buffer.size());
+			std::size_t header_match = raw_str.find("\r\n\r\n");
+
+			if(header_match != std::string::npos)
+			{
+				raw_str = raw_str.substr(header_match + 4);
+				campho.web_cam_img.resize(raw_str.length());
+				util::str_to_data(campho.web_cam_img.data(), raw_str);
+				campho.update_local_camera = true;
+			}
 		}
 	}
 
