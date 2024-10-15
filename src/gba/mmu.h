@@ -522,6 +522,7 @@ class AGB_MMU
 			u16 port;
 
 			u32 recv_bytes;
+			u32 timeout;
 			bool transfer_start;
 		} web;
 

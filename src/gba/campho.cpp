@@ -2205,7 +2205,11 @@ void AGB_MMU::campho_process_networking()
 		{
 			campho.web.transfer_start = true;
 			campho.web.recv_bytes = 0;
+			campho.web.timeout = SDL_GetTicks();
 			campho.web_cam_buffer.clear();
+
+			SDLNet_TCP_AddSocket(campho.phone_sockets, campho.web.host_socket);
+			SDLNet_TCP_AddSocket(campho.phone_sockets, campho.web.remote_socket);
 		}
 	}
 
@@ -2213,7 +2217,15 @@ void AGB_MMU::campho_process_networking()
 	if(campho.web.transfer_start)
 	{
 		u32 diff = campho.web.recv_bytes;
-		campho.web.recv_bytes += SDLNet_TCP_Recv(campho.web.remote_socket, campho.net_buffer.data(), 0x10000);
+		u32 ticks = SDL_GetTicks() - campho.web.timeout;
+
+		SDLNet_CheckSockets(campho.phone_sockets, 0);
+
+		if(SDLNet_SocketReady(campho.web.remote_socket))
+		{
+			campho.web.recv_bytes += SDLNet_TCP_Recv(campho.web.remote_socket, campho.net_buffer.data(), 0x10000);
+		}
+
 		diff = campho.web.recv_bytes - diff;
 
 		//Copy new data into webcam buffer
@@ -2221,7 +2233,8 @@ void AGB_MMU::campho_process_networking()
 
 		//Finish HTTP POST with response
 		//We are being lazy here. Just make sure ~76KB are sent, which generally means we got all of it
-		if(campho.web.recv_bytes >= 76000)
+		//Timeout the connection early on this side. Technically report 200 status, but disregard the data
+		if((campho.web.recv_bytes >= 76000) || (ticks > 500))
 		{
 			campho.web.transfer_start = false;
 
@@ -2236,18 +2249,23 @@ void AGB_MMU::campho_process_networking()
 			u32 send_bytes = SDLNet_TCP_Send(campho.web.remote_socket, (void*)http_data.data(), http_data.size());
 
 			//Close connection to signal end of transfer
+			SDLNet_TCP_DelSocket(campho.phone_sockets, campho.web.host_socket);
+			SDLNet_TCP_DelSocket(campho.phone_sockets, campho.web.remote_socket);
 			SDLNet_TCP_Close(campho.web.remote_socket);
 
 			//Parse complete POST data for RGB image
-			std::string raw_str = util::data_to_str(campho.web_cam_buffer.data(), campho.web_cam_buffer.size());
-			std::size_t header_match = raw_str.find("\r\n\r\n");
-
-			if(header_match != std::string::npos)
+			if(ticks <= 500)
 			{
-				raw_str = raw_str.substr(header_match + 4);
-				campho.web_cam_img.resize(raw_str.length());
-				util::str_to_data(campho.web_cam_img.data(), raw_str);
-				campho.update_local_camera = true;
+				std::string raw_str = util::data_to_str(campho.web_cam_buffer.data(), campho.web_cam_buffer.size());
+				std::size_t header_match = raw_str.find("\r\n\r\n");
+
+				if(header_match != std::string::npos)
+				{
+					raw_str = raw_str.substr(header_match + 4);
+					campho.web_cam_img.resize(raw_str.length());
+					util::str_to_data(campho.web_cam_img.data(), raw_str);
+					campho.update_local_camera = true;
+				}
 			}
 		}
 	}
