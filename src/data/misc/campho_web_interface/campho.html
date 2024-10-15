@@ -11,6 +11,7 @@
 			body
 			{
 				font-family: sans-serif;
+				font-size: 1.5em;
 				margin: 0px;
 				background-color: #C0C0C0;
 				padding: 8px;
@@ -20,6 +21,21 @@
 			.center
 			{
 				text-align: center;
+			}
+
+			.box
+			{
+				margin: auto;
+				width: 50%;
+				border: 2px solid #000;
+				border-radius: 25px;
+				background-color: #DFDFDF;
+				text-indent: 3em;
+			}
+
+			.e
+			{
+				text-shadow: 2px 2px;
 			}
 
 			.big_button
@@ -43,6 +59,11 @@
 				display: none;
 			}
 
+			input
+			{
+				font-size: 1.0em;
+			}
+
 		</style>
 
 	</head>
@@ -53,11 +74,15 @@
 		<video id="campho_video">No Video</video>
 	</p>
 
-	<p class="center">
-		<button id="campho_start" class="big_button">Begin Camera Capture</button>
-		<p id="campho_status">Camera Status : Initializing...</p>
-		<p id="campho_server">Server Status : Connecting...</p>
-	</p>
+	<p class="center"><button id="campho_start" class="big_button" disabled>Begin Camera Capture</button></p>
+
+	<div class="box">
+		<p id="campho_status"><span class="e">📷</span> Camera Status : Initializing...</p>
+		<p id="campho_server"><span class="e">🖥️</span> Server Status : Connecting...</p>
+
+		<p>GBE+ IPv4 Address + Port</p>
+		<p><input type="text" id="campho_address" value="127.0.0.1:1212"></p>
+	</div>
 
 	<canvas id="campho_canvas"></canvas>
 

@@ -14,7 +14,7 @@ let video_status = null;
 let camera_context;
 
 let connected = false;
-let server_addr = "http://127.0.0.1:1212";
+let server_addr = "";
 let server_status = null;
 let server_ready = true;
 
@@ -40,7 +40,7 @@ function setup_camera()
 	.catch((err) =>
 	{
         	console.error('An error occurred!');
-		video_status.innerHTML = "Camera Status : Offline";
+		video_status.innerHTML = "<span class='e'>📷</span> Camera Status : Offline";
 	});
 
 	//Once video stream has started set dimensions of video
@@ -58,7 +58,8 @@ function setup_camera()
 			video_canvas.setAttribute("height", vid_h);
 			camera_activated = true;
 
-			video_status.innerHTML = "Camera Status : Online";
+			video_status.innerHTML = "<span class='e'>📷</span> Camera Status : Online";
+			video_button.disabled = false;
 		}
 	}, false,);
 
@@ -73,7 +74,7 @@ function setup_camera()
 			camera_interval = setInterval(get_camera_data, 200);
 
 			camera_capture_started = true;
-			video_status.innerHTML = "Camera Status : Stream Started";
+			video_status.innerHTML = "<span class='e'>📷</span> Camera Status : Stream Started";
 			video_button.innerHTML = "End Camera Stream";
 		}
 
@@ -82,7 +83,7 @@ function setup_camera()
 			clearInterval(camera_interval);
 
 			camera_capture_started = false;
-			video_status.innerHTML = "Camera Status : Online";
+			video_status.innerHTML = "<span class='e'>📷</span> Camera Status : Online";
 			video_button.innerHTML = "Begin Camera Stream";
 		}
 	}, false,);
@@ -150,6 +151,7 @@ function send_pixel_data()
 	if(server_ready)
 	{
 		server_ready = false;
+		server_addr = "http://" + document.getElementById("campho_address").value;
 
 		fetch(server_addr, 
 		{
