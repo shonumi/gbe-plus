@@ -202,6 +202,7 @@ namespace config
 	extern bool mute;
 	extern bool use_stereo;
 	extern bool use_microphone;
+	extern u32 microphone_id;
 	extern std::string override_audio_driver;
 	
 	extern u32 sys_width;

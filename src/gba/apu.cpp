@@ -218,18 +218,23 @@ bool AGB_APU::init()
 
 			if(mic_id != 0)
 			{
-				if(final_spec.format != AUDIO_S16SYS)
+				if((!config::microphone_id) || (config::microphone_id == mic_id))
 				{
-					std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support S16 audio\n";
-				}
+					if(final_spec.format != AUDIO_S16SYS)
+					{
+						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support S16 audio\n";
+					}
 
-				else
-				{
-					std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " :: " << SDL_GetAudioDeviceName(x, 1) << "\n";
-					std::cout<<"APU::Microphone Channels - " << u32(final_spec.channels) << std::hex << "\n";
+					else
+					{
+						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " :: " << SDL_GetAudioDeviceName(x, 1) << "\n";
+						std::cout<<"APU::Microphone Channels - " << u32(final_spec.channels) << std::hex << "\n";
 
-					apu_stat.mic_init = true;
-					apu_stat.mic_id = mic_id;
+						apu_stat.mic_init = true;
+						apu_stat.mic_id = mic_id;
+
+						break;
+					}
 				}
 			}
 		}
