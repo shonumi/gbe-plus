@@ -251,6 +251,7 @@ namespace config
 
 	extern u16 campho_ringer_port;
 	extern u16 campho_input_port;
+	extern u16 campho_web_port;
 
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;

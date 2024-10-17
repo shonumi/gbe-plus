@@ -2365,7 +2365,7 @@ void AGB_MMU::campho_reset_network()
 		campho.web.remote_socket = NULL;
 		campho.web.remote_init = false;
 		campho.web.connected = false;
-		campho.web.port = 1212;
+		campho.web.port = config::campho_web_port;
 		campho.web.transfer_start = false;
 		campho.web.recv_bytes = 0;
 

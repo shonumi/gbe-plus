@@ -289,6 +289,7 @@ namespace config
 
 	u16 campho_ringer_port = 1980;
 	u16 campho_input_port = 1981;
+	u16 campho_web_port = 1212;
 
 	//On-screen display settings
 	bool use_osd = false;
@@ -1811,6 +1812,9 @@ bool parse_ini_file()
 		//Campho Input Port
 		if(!parse_ini_number(ini_item, "#campho_input_port", config::campho_input_port, ini_opts, x, 0, 65535)) { return false; }
 
+		//Campho Web UI Port
+		if(!parse_ini_number(ini_item, "#campho_web_port", config::campho_web_port, ini_opts, x, 0, 65535)) { return false; }
+
 		//IR database index
 		if(!parse_ini_number(ini_item, "#id_db_index", config::ir_db_index, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
@@ -2712,6 +2716,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#campho_input_port:" + val + "]";
 		}
 
+		//Campho Web UI Port
+		else if(ini_item == "#campho_web_port")
+		{
+			line_pos = output_count[x];
+			std::string val = util::to_str(config::campho_web_port);
+
+			output_lines[line_pos] = "[#campho_web_port:" + val + "]";
+		}
+
 		//IR database index
 		else if(ini_item == "#ir_db_index")
 		{
@@ -3125,6 +3138,7 @@ bool generate_ini_file()
 	ini_contents += "[#netplay_id]\n\n";
 	ini_contents += "[#campho_ringer_port]\n\n";
 	ini_contents += "[#campho_input_port]\n\n";
+	ini_contents += "[#campho_web_port]\n\n";
 	ini_contents += "[#ir_db_index]\n\n";
 	ini_contents += "[#nds_touch_mode]\n\n";
 	ini_contents += "[#virtual_cursor_enable]\n\n";
