@@ -1899,6 +1899,13 @@ void AGB_MMU::campho_process_networking()
 			campho.video_frame_slice = 0;
 			campho.last_slice = 0;
 
+			//Turn on microphone if possible
+			if(config::use_microphone && apu_stat->mic_init)
+			{
+				apu_stat->is_mic_on = true;
+				SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+			}
+
 			break;
 
 		//Transfer Audio/Video data (as the receiver)
@@ -1910,6 +1917,7 @@ void AGB_MMU::campho_process_networking()
 			{
 				u32 recv_bytes = SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 0x10000);
 				u16 status = (campho.net_buffer[1] << 8) | campho.net_buffer[0];
+				u16 size = (campho.net_buffer[3] << 8) | campho.net_buffer[2];
 
 				if(recv_bytes > 0)
 				{
@@ -1932,6 +1940,11 @@ void AGB_MMU::campho_process_networking()
 							}
 
 							break;
+
+						case 0x2222:
+							std::cout<<"AUDIO DATA RECV'D\n";
+
+							break;
 					}
 				}
 			}
@@ -1945,18 +1958,45 @@ void AGB_MMU::campho_process_networking()
 				campho.net_buffer[2] = 0x00;
 				campho.net_buffer[3] = 0x63;
 
-				SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
-
-				if(source != NULL)
+				//Use webcam data if available
+				if(!campho.web_cam_img.empty())
 				{
-					SDL_Surface* temp_bmp = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);
-					u8* cam_pixel_data = (u8*)source->pixels;
-					campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
+					campho_get_image_data(campho.web_cam_img.data(), campho.net_buffer, 176, 144, true);
+				} 
+			
+				//Use static BMP
+				else
+				{
+					SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
+
+					if(source != NULL)
+					{
+						u8* cam_pixel_data = (u8*)source->pixels;
+						campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
+					}
+
+					SDL_FreeSurface(source);
 				}
 
 				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.net_buffer.data(), 0xC604);
 
 				campho.send_video_data = false;
+			}
+
+			if(campho.send_audio_data)
+			{
+				u16 size = campho.microphone_out_buffer.size() * 2;
+
+				//Internal GBE+ header for video transfers. Type and Data Len. Actual data follows
+				campho.net_buffer[0] = 0x22;
+				campho.net_buffer[1] = 0x22;
+				campho.net_buffer[2] = (size >> 8);
+				campho.net_buffer[3] = (size & 0xFF);
+
+				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.microphone_out_buffer.data(), size);
+
+				campho.microphone_out_buffer.clear();
+				campho.send_audio_data = false;
 			}
 
 			break;
@@ -2090,6 +2130,13 @@ void AGB_MMU::campho_process_networking()
 						campho.video_frame_slice = 0;
 						campho.last_slice = 0;
 
+						//Turn on microphone if possible
+						if(config::use_microphone && apu_stat->mic_init)
+						{
+							apu_stat->is_mic_on = true;
+							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+						}
+
 						std::cout<<"MMU::Remote Campho Answered Call\n";
 					}
 				}
@@ -2121,6 +2168,7 @@ void AGB_MMU::campho_process_networking()
 			{
 				u32 recv_bytes = SDLNet_TCP_Recv(campho.line.remote_socket, campho.net_buffer.data(), 0x10000);
 				u16 status = (campho.net_buffer[1] << 8) | campho.net_buffer[0];
+				u16 size = (campho.net_buffer[3] << 8) | campho.net_buffer[2];
 				
 				if(recv_bytes > 0)
 				{
@@ -2138,6 +2186,11 @@ void AGB_MMU::campho_process_networking()
 							}
 
 							break;
+
+						case 0x2222:
+							std::cout<<"AUDIO DATA RECV'D\n";
+
+							break;
 					}
 				}
 			}
@@ -2151,17 +2204,45 @@ void AGB_MMU::campho_process_networking()
 				campho.net_buffer[2] = 0x00;
 				campho.net_buffer[3] = 0x63;
 
-				SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
-
-				if(source != NULL)
+				//Use webcam data if available
+				if(!campho.web_cam_img.empty())
 				{
-					u8* cam_pixel_data = (u8*)source->pixels;
-					campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
+					campho_get_image_data(campho.web_cam_img.data(), campho.net_buffer, 176, 144, true);
+				} 
+			
+				//Use static BMP
+				else
+				{
+					SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
+
+					if(source != NULL)
+					{
+						u8* cam_pixel_data = (u8*)source->pixels;
+						campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
+					}
+
+					SDL_FreeSurface(source);
 				}
 
 				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 0xC604);
 
 				campho.send_video_data = false;
+			}
+
+			if(campho.send_audio_data)
+			{
+				u16 size = campho.microphone_out_buffer.size() * 2;
+
+				//Internal GBE+ header for video transfers. Type and Data Len. Actual data follows
+				campho.net_buffer[0] = 0x22;
+				campho.net_buffer[1] = 0x22;
+				campho.net_buffer[2] = (size >> 8);
+				campho.net_buffer[3] = (size & 0xFF);
+
+				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.microphone_out_buffer.data(), size);
+
+				campho.microphone_out_buffer.clear();
+				campho.send_audio_data = false;
 			}
 
 			break;
@@ -2173,6 +2254,13 @@ void AGB_MMU::campho_process_networking()
 				campho.net_buffer[0] = 0;
 				campho.net_buffer[1] = 0;
 				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), 2);
+			}
+
+			//Turn off microphone if possible
+			if(config::use_microphone && apu_stat->mic_init)
+			{
+				apu_stat->is_mic_on = false;
+				SDL_PauseAudioDevice(apu_stat->mic_id, 1);
 			}
 
 			break;
@@ -2188,6 +2276,13 @@ void AGB_MMU::campho_process_networking()
 
 			campho_close_network();
 			campho_reset_network();
+
+			//Turn off microphone if possible
+			if(config::use_microphone && apu_stat->mic_init)
+			{
+				apu_stat->is_mic_on = false;
+				SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+			}
 
 			break;
 	}

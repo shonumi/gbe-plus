@@ -536,6 +536,8 @@ class AGB_MMU
 		std::vector <u8> net_buffer;
 		std::vector <u8> web_cam_buffer;
 		std::vector <u8> web_cam_img;
+		std::vector <s16> microphone_in_buffer;
+		std::vector <s16> microphone_out_buffer;
 		u32 network_state;
 		bool network_init;
 	} campho;

@@ -796,16 +796,38 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		//Grab samples from microphone and add to the buffer
 		else if(apu_link->apu_stat.is_mic_on)
 		{
-			for(u32 x = 0; x < length; x++)
+			if(config::cart_type == AGB_JUKEBOX)
 			{
-				if(apu_link->apu_stat.is_recording) { apu_link->mic_buffer.push_back(stream[x]); }
-				mic_volume += std::abs(stream[x]);
+				for(u32 x = 0; x < length; x++)
+				{
+					if(apu_link->apu_stat.is_recording) { apu_link->mic_buffer.push_back(stream[x]); }
+					mic_volume += std::abs(stream[x]);
+				}
+
+				//Calculate average mic volume
+				mic_volume /= length;
+				double ratio = (mic_volume / 32767.0);
+				apu_link->mem->jukebox.io_regs[0x008B] = 0xFFEE + (22 * ratio);
 			}
 
-			//Calculate average mic volume
-			mic_volume /= length;
-			double ratio = (mic_volume / 32767.0);
-			apu_link->mem->jukebox.io_regs[0x008B] = 0xFFEE + (22 * ratio);
+			else if(config::cart_type == AGB_CAMPHO)
+			{
+				for(u32 x = 0; x < length; x++)
+				{
+					apu_link->mem->campho.microphone_out_buffer.push_back(stream[x]);
+				}
+
+				if(!apu_link->mem->campho.microphone_out_buffer.empty())
+				{
+					apu_link->mem->campho.send_audio_data = true;
+				}
+			}
+		}
+
+		//Clear microphone buffer if turned off
+		else
+		{
+			if(!apu_link->mic_buffer.empty()) { apu_link->mic_buffer.clear(); }
 		}
 	}
 }
