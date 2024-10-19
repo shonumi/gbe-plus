@@ -50,6 +50,7 @@ class AGB_APU
 	void generate_dma_a_samples(s16* stream, int length);
 	void generate_dma_b_samples(s16* stream, int length);
 	void generate_ext_audio_hi_samples(s16* stream, int length);
+	void generate_campho_audio_samples(s16* stream, int length);
 
 	//Serialize data for save state loading/saving
 	bool apu_read(u32 offset, std::string filename);

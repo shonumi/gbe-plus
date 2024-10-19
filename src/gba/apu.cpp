@@ -449,6 +449,12 @@ void AGB_APU::generate_dma_b_samples(s16* stream, int length)
 /****** Generate raw samples for playback on external audio channel ******/
 void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 {
+	if(config::cart_type == AGB_CAMPHO)
+	{
+		generate_campho_audio_samples(stream, length);
+		return;
+	}
+
 	if(apu_stat.ext_audio.buffer == NULL) { return; }
 
 	double sample_ratio = apu_stat.ext_audio.frequency/apu_stat.sample_rate;
@@ -574,6 +580,29 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	apu_stat.ext_audio.sample_pos = buffer_pos;
 }
 
+/****** Generate raw samples for playback on external audio channel - Campho Audio Edition ******/
+void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
+{
+	double sample_ratio = apu_stat.sample_rate / apu_stat.sample_rate;
+	u32 buffer_pos = 0;
+	u32 buffer_size = mem->campho.microphone_in_buffer.size();
+	s16 sample = 0;
+
+	for(int x = 0; x < length; x++)
+	{
+		buffer_pos = (sample_ratio * x);
+
+		if(buffer_pos < buffer_size)
+		{
+			sample = mem->campho.microphone_in_buffer[buffer_pos];
+		}
+
+		stream[x] = sample;
+	}
+
+	mem->campho.microphone_in_buffer.clear();
+}
+
 /****** SDL Audio Callback ******/ 
 void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 {
@@ -623,7 +652,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	if(apu_link->apu_stat.ext_audio.playing)
 	{
 		//Generate raw samples (high quality)
-		if(apu_link->apu_stat.ext_audio.use_headphones)
+		if((apu_link->apu_stat.ext_audio.use_headphones) || (config::cart_type == AGB_CAMPHO))
 		{
 			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], length);
 		}
@@ -814,7 +843,9 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 			{
 				for(u32 x = 0; x < length; x++)
 				{
-					apu_link->mem->campho.microphone_out_buffer.push_back(stream[x]);
+					u16 sample = stream[x];
+					apu_link->mem->campho.microphone_out_buffer.push_back(sample & 0xFF);
+					apu_link->mem->campho.microphone_out_buffer.push_back(sample >> 8);
 				}
 
 				if(!apu_link->mem->campho.microphone_out_buffer.empty())

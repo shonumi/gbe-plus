@@ -1906,6 +1906,9 @@ void AGB_MMU::campho_process_networking()
 				SDL_PauseAudioDevice(apu_stat->mic_id, 0);
 			}
 
+			apu_stat->ext_audio.playing = true;
+			apu_stat->ext_audio.volume = 63;
+
 			break;
 
 		//Transfer Audio/Video data (as the receiver)
@@ -1918,6 +1921,7 @@ void AGB_MMU::campho_process_networking()
 				u32 recv_bytes = SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 0x10000);
 				u16 status = (campho.net_buffer[1] << 8) | campho.net_buffer[0];
 				u16 size = (campho.net_buffer[3] << 8) | campho.net_buffer[2];
+				u32 len = (size & 0xFFFE) + 4;
 
 				if(recv_bytes > 0)
 				{
@@ -1926,6 +1930,17 @@ void AGB_MMU::campho_process_networking()
 						case 0x0000:
 							std::cout<<"MMU::Call Ended Remotely\n";
 							campho.call_state = 5;
+
+							//Turn off microphone if possible
+							if(config::use_microphone && apu_stat->mic_init)
+							{
+								apu_stat->is_mic_on = false;
+								SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+							}
+
+							apu_stat->ext_audio.playing = false;
+							apu_stat->ext_audio.volume = 0;
+
 							return;
 
 						case 0x1111:
@@ -1943,6 +1958,15 @@ void AGB_MMU::campho_process_networking()
 
 						case 0x2222:
 							std::cout<<"AUDIO DATA RECV'D\n";
+
+							for(u32 x = 4; x < len; x += 2)
+							{
+								u8 lo = campho.net_buffer[x];
+								u8 hi = campho.net_buffer[x + 1];
+
+								u16 sample = (hi << 8) | lo;
+								campho.microphone_in_buffer.push_back(sample);
+							}
 
 							break;
 					}
@@ -1985,15 +2009,18 @@ void AGB_MMU::campho_process_networking()
 
 			if(campho.send_audio_data)
 			{
-				u16 size = campho.microphone_out_buffer.size() * 2;
+				u32 size = campho.microphone_out_buffer.size();
+				if(size > 0xFFFB) { size = 0xFFFB; }
 
 				//Internal GBE+ header for video transfers. Type and Data Len. Actual data follows
 				campho.net_buffer[0] = 0x22;
 				campho.net_buffer[1] = 0x22;
-				campho.net_buffer[2] = (size >> 8);
-				campho.net_buffer[3] = (size & 0xFF);
+				campho.net_buffer[2] = (size & 0xFF);
+				campho.net_buffer[3] = (size >> 8);
 
-				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.microphone_out_buffer.data(), size);
+				for(u32 x = 0; x < size; x++) { campho.net_buffer[4 + x] = campho.microphone_out_buffer[x]; }
+
+				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.net_buffer.data(), (size + 4));
 
 				campho.microphone_out_buffer.clear();
 				campho.send_audio_data = false;
@@ -2137,6 +2164,9 @@ void AGB_MMU::campho_process_networking()
 							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
 						}
 
+						apu_stat->ext_audio.playing = true;
+						apu_stat->ext_audio.volume = 63;
+
 						std::cout<<"MMU::Remote Campho Answered Call\n";
 					}
 				}
@@ -2169,6 +2199,7 @@ void AGB_MMU::campho_process_networking()
 				u32 recv_bytes = SDLNet_TCP_Recv(campho.line.remote_socket, campho.net_buffer.data(), 0x10000);
 				u16 status = (campho.net_buffer[1] << 8) | campho.net_buffer[0];
 				u16 size = (campho.net_buffer[3] << 8) | campho.net_buffer[2];
+				u32 len = (size & 0xFFFE) + 4;
 				
 				if(recv_bytes > 0)
 				{
@@ -2189,6 +2220,15 @@ void AGB_MMU::campho_process_networking()
 
 						case 0x2222:
 							std::cout<<"AUDIO DATA RECV'D\n";
+
+							for(u32 x = 4; x < len; x += 2)
+							{
+								u8 lo = campho.net_buffer[x];
+								u8 hi = campho.net_buffer[x + 1];
+
+								u16 sample = (hi << 8) | lo;
+								campho.microphone_in_buffer.push_back(sample);
+							}
 
 							break;
 					}
@@ -2231,15 +2271,18 @@ void AGB_MMU::campho_process_networking()
 
 			if(campho.send_audio_data)
 			{
-				u16 size = campho.microphone_out_buffer.size() * 2;
+				u32 size = campho.microphone_out_buffer.size();
+				if(size > 0xFFFB) { size = 0xFFFB; }
 
 				//Internal GBE+ header for video transfers. Type and Data Len. Actual data follows
 				campho.net_buffer[0] = 0x22;
 				campho.net_buffer[1] = 0x22;
-				campho.net_buffer[2] = (size >> 8);
-				campho.net_buffer[3] = (size & 0xFF);
+				campho.net_buffer[2] = (size & 0xFF);
+				campho.net_buffer[3] = (size >> 8);
 
-				SDLNet_TCP_Send(campho.line.host_socket, (void*)campho.microphone_out_buffer.data(), size);
+				for(u32 x = 0; x < size; x++) { campho.net_buffer[4 + x] = campho.microphone_out_buffer[x]; }
+
+				SDLNet_TCP_Send(campho.ringer.remote_socket, (void*)campho.net_buffer.data(), (size + 4));
 
 				campho.microphone_out_buffer.clear();
 				campho.send_audio_data = false;
@@ -2263,6 +2306,9 @@ void AGB_MMU::campho_process_networking()
 				SDL_PauseAudioDevice(apu_stat->mic_id, 1);
 			}
 
+			apu_stat->ext_audio.playing = false;
+			apu_stat->ext_audio.volume = 0;
+
 			break;
 
 		//Terminate networking and restart
@@ -2283,6 +2329,9 @@ void AGB_MMU::campho_process_networking()
 				apu_stat->is_mic_on = false;
 				SDL_PauseAudioDevice(apu_stat->mic_id, 1);
 			}
+
+			apu_stat->ext_audio.playing = false;
+			apu_stat->ext_audio.volume = 0;
 
 			break;
 	}
