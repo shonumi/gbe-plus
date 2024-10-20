@@ -211,6 +211,13 @@ bool AGB_APU::init()
     		microphone_spec.callback = agb_microphone_callback;
     		microphone_spec.userdata = this;
 
+		//Special microphone settings for Campho Advance
+		if(config::cart_type == AGB_CAMPHO)
+		{
+			microphone_spec.samples = 2048;
+			microphone_spec.freq = 22050.0;
+		}
+
 		for(u32 x = 0; x < max_devices; x++)
 		{
 			//Open recording device
@@ -223,6 +230,11 @@ bool AGB_APU::init()
 					if(final_spec.format != AUDIO_S16SYS)
 					{
 						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support S16 audio\n";
+					}
+
+					else if((final_spec.freq != 22050) && (config::cart_type == AGB_CAMPHO))
+					{
+						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support 22050Hz audio\n";
 					}
 
 					else
@@ -583,7 +595,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 /****** Generate raw samples for playback on external audio channel - Campho Audio Edition ******/
 void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
 {
-	double sample_ratio = apu_stat.sample_rate / apu_stat.sample_rate;
+	double sample_ratio = 22050.0 / apu_stat.sample_rate;
 	u32 buffer_pos = 0;
 	u32 buffer_size = mem->campho.microphone_in_buffer.size();
 	s16 sample = 0;
@@ -600,7 +612,17 @@ void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
 		stream[x] = sample;
 	}
 
-	mem->campho.microphone_in_buffer.clear();
+	//Delete samples that have already been played
+	if(buffer_pos >= buffer_size)
+	{
+		mem->campho.microphone_in_buffer.clear();
+	}
+
+	else
+	{
+		std::vector<s16>::iterator c = mem->campho.microphone_in_buffer.begin();
+		mem->campho.microphone_in_buffer.erase(c, c + buffer_pos);
+	}
 }
 
 /****** SDL Audio Callback ******/ 
