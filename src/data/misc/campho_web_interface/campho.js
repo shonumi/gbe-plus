@@ -113,12 +113,12 @@ function get_camera_data()
 		let video_data = video_canvas.toDataURL("image/png");
 		video_img.setAttribute("src", video_data);
 
-		factor = parseFloat(1.0 / factor); 
+		//Scale image back to canvas
+		video_canvas.width = 176;
+		video_canvas.height = 144;
+		camera_context.drawImage(video_img, 0, 0, 176, 144);
 
-		//Scale canvas down to 176x144 for transfer
-		camera_context.scale(factor, factor);
-
-		//Convert and send data via networking (websockets)
+		//Convert and send data via networking (HTTP POST)
 		convert_pixel_data();
 		send_pixel_data();
 	}
@@ -146,7 +146,7 @@ function convert_pixel_data()
 function send_pixel_data()
 {
 	//Only send if the previous request has been confirmed as completed
-	//This means the actual video stream may update at least the 5FPS
+	//This means the actual video stream may update at less than 5FPS
 	//That depends on the server (GBE+), but that's fine, let the server do its thing
 	if(server_ready)
 	{
