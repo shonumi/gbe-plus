@@ -599,6 +599,7 @@ void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
 	u32 buffer_pos = 0;
 	u32 buffer_size = mem->campho.microphone_in_buffer.size();
 	s16 sample = 0;
+	double volume = (mem->campho.speaker_volume) ? (mem->campho.speaker_volume / 100.0) : 0;
 
 	for(int x = 0; x < length; x++)
 	{
@@ -607,6 +608,9 @@ void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
 		if(buffer_pos < buffer_size)
 		{
 			sample = mem->campho.microphone_in_buffer[buffer_pos];
+
+			//Apply volume from Campho Advance user settings
+			sample *= volume;
 		}
 
 		stream[x] = sample;
@@ -863,9 +867,12 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 			else if(config::cart_type == AGB_CAMPHO)
 			{
+				double volume = (apu_link->mem->campho.mic_volume) ? (apu_link->mem->campho.mic_volume / 100.0) : 0;
+
 				for(u32 x = 0; x < length; x++)
 				{
-					u16 sample = stream[x];
+					//Apply volume from Campho Advance user settings
+					u16 sample = (stream[x] * volume);
 					apu_link->mem->campho.microphone_out_buffer.push_back(sample & 0xFF);
 					apu_link->mem->campho.microphone_out_buffer.push_back(sample >> 8);
 				}
