@@ -85,6 +85,7 @@ function setup_camera()
 			camera_capture_started = false;
 			video_status.innerHTML = "<span class='e'>📷</span> Camera Status : Online";
 			video_button.innerHTML = "Begin Camera Stream";
+			server_status.innerHTML = "<span class='e'>🖥️</span> Server Status : Connecting...";
 		}
 	}, false,);
 }
@@ -162,12 +163,14 @@ function send_pixel_data()
 		.then(response =>
 		{
 			server_ready = true;
+			server_status.innerHTML = "<span class='e'>🖥️</span> Server Status : Connected";
 		})
 
 		.catch((err) =>
 		{
         		console.error('A fetch error occurred!');
 			server_ready = true;
+			server_status.innerHTML = "<span class='e'>🖥️</span> Server Status : Comms Error!";
 		});
 	}
 }
