@@ -573,6 +573,7 @@ class AGB_MMU
 		u8 video_contrast;
 		u8 video_hue;
 		u16 channel_id_list[62];
+		u32 current_frame;
 		float channel_freq;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
@@ -756,6 +757,7 @@ class AGB_MMU
 	void process_tv_tuner_cmd();
 	bool tv_tuner_load_video(std::string filename);
 	void tv_tuner_check_audio_from_video(std::vector <u8> &data);
+	bool tv_tuner_grab_frame_data(u32 frame);
 
 	//GPIO handling functions
 	void process_rtc();

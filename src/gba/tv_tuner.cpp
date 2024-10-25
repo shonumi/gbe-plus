@@ -8,6 +8,10 @@
 //
 // Handles I/O for the Agatsuma TV Tuner (ATVT)
 
+#ifdef GBE_IMAGE_FORMATS
+#include <SDL2/SDL_image.h>
+#endif
+
 #include "mmu.h"
 #include "common/util.h"
 
@@ -32,6 +36,8 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.video_brightness = 0;
 	tv_tuner.video_contrast = 0;
 	tv_tuner.video_hue = 0;
+
+	tv_tuner.current_frame = 0;
 
 	u16 temp_channel_list[62] =
 	{
@@ -473,7 +479,8 @@ void AGB_MMU::tv_tuner_render_frame()
 	//Render TV channel video
 	else if(tv_tuner.is_channel_on[tv_tuner.current_channel])
 	{
-
+		tv_tuner_grab_frame_data(tv_tuner.current_frame);
+		tv_tuner.current_frame++;
 	}
 
 	//Render static noise (grayscale) if channel has no signal
@@ -703,4 +710,71 @@ void AGB_MMU::tv_tuner_check_audio_from_video(std::vector <u8> &data)
 		apu_stat->ext_audio.channels = data[i + 6];
 		apu_stat->ext_audio.frequency = (data[i + 11] << 24) | (data[i + 10] << 16) | (data[i + 9] << 8) | data[i + 8];	
 	}
+}
+
+/****** Grabs the data for a specific frame ******/
+bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
+{
+	#ifdef GBE_IMAGE_FORMATS
+
+	//Abort if invalid frame is being pulled from video
+	if(frame >= tv_tuner.video_frames.size()) { return false; }
+
+	//Abort if dummy frames are present
+	if(tv_tuner.video_frames[0] == 0xFFFFFFFF) { return false; }
+
+	u32 start = tv_tuner.video_frames[frame];
+	u32 end = 0;
+
+	//Check to see if this is the last frame
+	//In that case, set end to be last byte of video data
+	if((frame + 1) == tv_tuner.video_frames.size()) { end = tv_tuner.video_bytes.size(); }
+	else { end = tv_tuner.video_frames[frame + 1]; }
+
+	std::vector<u8> new_frame;
+
+	for(u32 x = start; x < end; x++)
+	{
+		new_frame.push_back(tv_tuner.video_bytes[x]);
+	}
+	
+	//Decode JPG data from memory into SDL_Surface
+	SDL_RWops* io_ops = SDL_AllocRW();
+	io_ops = SDL_RWFromMem(new_frame.data(), new_frame.size());
+
+	SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
+
+	if(temp_surface != NULL)
+	{
+		//Copy and convert data into video frame buffer used by Play-Yan
+		tv_tuner.video_stream.clear();
+		tv_tuner.video_stream.resize(0x12C00, 0x00);
+
+		u32 w = 240;
+		u32 h = 160;
+
+		u8* pixel_data = (u8*)temp_surface->pixels;
+
+		for(u32 index = 0, a = 0, i = 0; a < (w * h); a++, i += 3)
+		{
+			u16 raw_pixel = 0;
+			raw_pixel = ((pixel_data[i+2] & 0xF8) << 7) | ((pixel_data[i+1] & 0xF8) << 2) | ((pixel_data[i] & 0xF8) >> 3);
+
+			tv_tuner.video_stream[index++] = (raw_pixel & 0xFF);
+			tv_tuner.video_stream[index++] = ((raw_pixel >> 8) & 0xFF);
+		}
+	}
+
+	else
+	{
+		std::cout<<"MMU::Warning - Could not decode video frame #" << std::dec << frame << std::hex << "\n";
+		return false;
+	}
+
+	SDL_FreeSurface(temp_surface);
+	SDL_FreeRW(io_ops);
+
+	#endif
+
+	return true;
 }
