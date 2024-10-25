@@ -578,6 +578,8 @@ class AGB_MMU
 		std::vector<u8> data_stream;
 		std::vector<u8> cmd_stream;
 		std::vector<u8> video_stream;
+		std::vector<u8> video_bytes;
+		std::vector<u32> video_frames;
 
 		u8 flash_cmd;
 		u8 flash_cmd_status;
@@ -752,6 +754,8 @@ class AGB_MMU
 	void write_tv_tuner(u32 address, u8 value);
 	void tv_tuner_render_frame();
 	void process_tv_tuner_cmd();
+	bool tv_tuner_load_video(std::string filename);
+	void tv_tuner_check_audio_from_video(std::vector <u8> &data);
 
 	//GPIO handling functions
 	void process_rtc();

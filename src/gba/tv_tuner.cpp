@@ -23,6 +23,8 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.data_stream.clear();
 	tv_tuner.cmd_stream.clear();
 	tv_tuner.video_stream.clear();
+	tv_tuner.video_frames.clear();
+	tv_tuner.video_bytes.clear();
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
 	tv_tuner.is_av_connected = false;
@@ -491,5 +493,214 @@ void AGB_MMU::tv_tuner_render_frame()
 			tv_tuner.video_stream.push_back(color & 0xFF);
 			tv_tuner.video_stream.push_back(color >> 8);
 		}
+	}
+}
+
+/****** Loads video that's already been converted - MJPEG video, 16-bit PCM-LE ******/
+bool AGB_MMU::tv_tuner_load_video(std::string filename)
+{
+	#ifdef GBE_IMAGE_FORMATS
+
+	apu_stat->ext_audio.channels = 0;
+	apu_stat->ext_audio.frequency = 0;
+
+	tv_tuner.video_bytes.clear();
+	tv_tuner.video_frames.clear();
+
+	std::vector<u8> vid_info;
+	std::vector<u8> mus_info;
+	std::vector<u8> tmp_info;
+	std::ifstream vid_file(filename.c_str(), std::ios::binary);
+
+	if(!vid_file.is_open()) 
+	{
+		tv_tuner.video_frames.resize(10000, 0xFFFFFFFF);
+		std::cout<<"MMU::" << filename << " could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	vid_file.seekg(0, vid_file.end);
+	u32 vid_file_size = vid_file.tellg();
+	vid_file.seekg(0, vid_file.beg);
+	vid_info.resize(vid_file_size);
+
+	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
+	vid_file.close();
+
+	//Verify audio data format separately
+	tv_tuner_check_audio_from_video(vid_info);
+
+	u32 index = 0;
+
+	//Search for movi and idx1 FOURCC as start and endpoints of usable data
+	bool found_movi = false;
+
+	for(u32 x = 0; x < (vid_file_size - 4); x++)
+	{
+		if((vid_info[x] == 0x6D) && (vid_info[x + 1] == 0x6F)
+		&& (vid_info[x + 2] == 0x76) && (vid_info[x + 3] == 0x69))
+		{
+			index = x;
+			found_movi = true;
+		}
+	} 
+
+	if(!found_movi)
+	{
+		tv_tuner.video_frames.resize(10000, 0xFFFFFFFF);
+		std::cout<<"MMU::No movi FOURCC found in " << filename << ". Check if file is valid AVI video.\n";
+		return false;
+	}
+
+	for(u32 x = index; x < vid_file_size; x++)
+	{
+		if(x < (vid_file_size - 4))
+		{
+
+			if((vid_info[x] == 0x69) && (vid_info[x + 1] == 0x64)
+			&& (vid_info[x + 2] == 0x78) && (vid_info[x + 3] == 0x31))
+			{
+				break;
+			}
+		}
+
+		tmp_info.push_back(vid_info[x]);
+	}
+
+	//Search and parse each 00dc FOURCC - Video Frames
+	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
+	{
+		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x30)
+		&& (tmp_info[x + 2] == 0x64) && (tmp_info[x + 3] == 0x63))
+		{
+			tv_tuner.video_frames.push_back(tv_tuner.video_bytes.size());
+
+			x += 4;
+			u32 len = (tmp_info[x + 3] << 24) | (tmp_info[x + 2] << 16) | (tmp_info[x + 1] << 8) | tmp_info[x];
+
+			x += 4;
+			for(u32 y = 0; y < len; y++)
+			{
+				tv_tuner.video_bytes.push_back(tmp_info[x + y]);
+			}
+
+			x += (len - 1);
+		}
+	}
+
+	if(tv_tuner.video_frames.empty())
+	{
+		tv_tuner.video_frames.resize(10000, 0xFFFFFFFF);
+		std::cout<<"MMU::No video data found in " << filename << ". Check if file is valid AVI video.\n";
+		return false;
+	}
+
+	u32 run_time = tv_tuner.video_frames.size() / 30;
+
+	std::cout<<"MMU::Loaded video file: " << filename << "\n";
+	std::cout<<"MMU::Run Time: -> " << std::dec << (run_time / 60) << " : " << (run_time % 60) << std::hex << "\n";
+
+	//Search and parse each 01wb FOURCC - Audio Data
+	for(u32 x = 0; x < (tmp_info.size() - 4); x++)
+	{
+		if((tmp_info[x] == 0x30) && (tmp_info[x + 1] == 0x31)
+		&& (tmp_info[x + 2] == 0x77) && (tmp_info[x + 3] == 0x62))
+		{
+			x += 4;
+			u32 len = (tmp_info[x + 3] << 24) | (tmp_info[x + 2] << 16) | (tmp_info[x + 1] << 8) | tmp_info[x];
+
+			x += 4;
+			for(u32 y = 0; y < len; y++)
+			{
+				mus_info.push_back(tmp_info[x + y]);
+			}
+
+			x += (len - 1);
+		}
+	}
+
+	//Create .WAV file in memory, then have SDL load it for external audio
+	if(apu_stat->ext_audio.frequency && apu_stat->ext_audio.channels)
+	{
+		std::vector<u8> mus_header;
+		util::build_wav_header(mus_header, apu_stat->ext_audio.frequency, apu_stat->ext_audio.channels, mus_info.size());
+
+		std::vector<u8> mus_file = mus_header;
+		mus_file.insert(mus_file.end(), mus_info.begin(), mus_info.end());
+
+		SDL_RWops* io_ops = SDL_AllocRW();
+		io_ops = SDL_RWFromMem(mus_file.data(), mus_file.size());
+
+		if(io_ops != NULL)
+		{
+			//Clear previous buffer if necessary
+			SDL_FreeWAV(apu_stat->ext_audio.buffer);
+			apu_stat->ext_audio.buffer = NULL;
+
+			SDL_AudioSpec file_spec;
+
+			if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+			{
+				std::cout<<"MMU::TV Tuner could not load audio from video : " << SDL_GetError() << "\n";
+			}
+		}
+
+		SDL_FreeRW(io_ops);
+	}
+
+	return true;
+	
+	#endif
+
+	tv_tuner.video_frames.resize(10000, 0xFFFFFFFF);
+
+	return false;
+}
+
+/****** Verifies audio data (if any) from a video file ******/
+void AGB_MMU::tv_tuner_check_audio_from_video(std::vector <u8> &data)
+{
+	u32 i = 0;
+
+	//Search for auds FOURCC as start of usable data
+	bool found_auds = false;
+
+	for(u32 x = i; x < (data.size() - 4); x++)
+	{
+		if((data[x] == 0x61) && (data[x + 1] == 0x75)
+		&& (data[x + 2] == 0x64) && (data[x + 3] == 0x73))
+		{
+			i = x + 4;
+			found_auds = true;
+		}
+	}
+
+	if(!found_auds) { return; }
+
+	//Search for strf FOURCC as start of usable data
+	bool found_strf = false;
+
+	for(u32 x = i; x < (data.size() - 4); x++)
+	{
+		if((data[x] == 0x73) && (data[x + 1] == 0x74)
+		&& (data[x + 2] == 0x72) && (data[x + 3] == 0x66))
+		{
+			i = x + 4;
+			found_strf = true;
+		}
+	}
+
+	if(!found_strf) { return; }
+
+	//Make sure there is enough data to read - strf size (4) + strf data (16)
+	if((i + 20) < data.size())
+	{
+		u8 audio_type = data[i + 4];
+
+		//Verify audio type is PCM
+		if(audio_type != 0x01) { return; }
+
+		apu_stat->ext_audio.channels = data[i + 6];
+		apu_stat->ext_audio.frequency = (data[i + 11] << 24) | (data[i + 10] << 16) | (data[i + 9] << 8) | data[i + 8];	
 	}
 }
