@@ -12,6 +12,8 @@
 #include <SDL2/SDL_image.h>
 #endif
 
+#include <filesystem>
+
 #include "mmu.h"
 #include "common/util.h"
 
@@ -54,6 +56,22 @@ void AGB_MMU::tv_tuner_reset()
 	{
 		tv_tuner.is_channel_on[x] = false;
 		tv_tuner.channel_id_list[x] = temp_channel_list[x];
+
+		//Check for data/tv/XX, where XX is a folder representing video files for a given channel
+		std::string channel_path = config::data_path + "tv/" + util::to_str(x + 1) + "/";
+		std::filesystem::path fs_path { channel_path };
+
+		if(std::filesystem::exists(fs_path) && std::filesystem::is_directory(fs_path))
+		{
+			std::vector<std::string> channel_files;
+			util::get_files_in_dir(channel_path, ".avi", channel_files, true, true);
+
+			if(!channel_files.empty())
+			{
+				tv_tuner.is_channel_on[x] = true;
+				std::cout<<"MMU::TV Tuner Channel # " << std::dec << (x + 1) << std::hex << " is live\n";
+			}
+		}
 	}
 
 	tv_tuner.flash_cmd = 0;
@@ -97,7 +115,6 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 
 					else
 					{
-						//std::cout<<"START 1\n";
 						tv_tuner.state = TV_TUNER_START_DATA;
 					}
 
@@ -111,7 +128,6 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			{
 				if((value & 0x1) == 0)
 				{
-					//std::cout<<"START 2\n";
 					tv_tuner.state = TV_TUNER_START_DATA;
 				}
 
@@ -124,7 +140,6 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			{
 				if((tv_tuner.data_stream[1] & 0x03) == 0x02)
 				{
-					//std::cout<<"STOP 1\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 
 					//Check for specific commands
@@ -143,7 +158,6 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 				if(((tv_tuner.data_stream[0] & 0x03) == 0x01) && ((tv_tuner.data_stream[1] & 0x03) == 0x00)
 				&& ((tv_tuner.data_stream[2] & 0x03) == 0x02) && ((tv_tuner.data_stream[3] & 0x03) == 0x03))
 				{
-					//std::cout<<"STOP 2\n";
 					tv_tuner.state = TV_TUNER_STOP_DATA;
 					tv_tuner.data_stream.clear();
 					tv_tuner.cmd_stream.clear();
@@ -194,7 +208,6 @@ void AGB_MMU::write_tv_tuner(u32 address, u8 value)
 			//Wait for acknowledgement
 			else if((tv_tuner.state == TV_TUNER_ACK_DATA) && (tv_tuner.transfer_count == 4))
 			{
-				//std::cout<<"ACK\n";
 				tv_tuner.state = TV_TUNER_NEXT_DATA;
 				tv_tuner.data_stream.clear();
 				tv_tuner.transfer_count = 0;
@@ -336,7 +349,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		u8 param_1 = tv_tuner.cmd_stream[1];
 		u8 param_2 = tv_tuner.cmd_stream[2];
 
-		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
+		//std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
 
 		//Render video frame
 		if((param_1 == 0x0D) && (param_2 == 0x00))
@@ -384,7 +397,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		u8 param_1 = tv_tuner.cmd_stream[1];
 
-		std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
+		//std::cout<<"CMD 0xD8 -> 0x" << (u32)param_1 << "\n";
 	}
 
 	//D9 command -> Reads a single 8-bit value
@@ -394,7 +407,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		tv_tuner.read_request = true;
 		tv_tuner.read_data = 0;
 
-		std::cout<<"CMD 0xD9\n";
+		//std::cout<<"CMD 0xD9\n";
 	}
 
 	//87 command -> Reads a single 8-bit value
@@ -409,7 +422,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 			tv_tuner.read_data = 0xC0;
 		}
 
-		std::cout<<"CMD 0x87\n";
+		//std::cout<<"CMD 0x87\n";
 	}
 
 	//C0 Command -> Reads a 16-bit value
