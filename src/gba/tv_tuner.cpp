@@ -438,10 +438,20 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 			for(u32 x = 0; x < 62; x++)
 			{
-				if(raw_freq == tv_tuner.channel_id_list[x])
+				u16 freq_start = tv_tuner.channel_id_list[x];
+				u16 freq_end = (x == 61) ? 0xFFFF : tv_tuner.channel_id_list[x + 1];
+
+				//Detect channel change within the total frequency range for a given channel
+				if((raw_freq >= freq_start) && (raw_freq < freq_end))
 				{
-					tv_tuner.current_channel = x;
-					std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
+					u8 new_channel = x;
+
+					if(new_channel != tv_tuner.current_channel)
+					{
+						tv_tuner.current_channel = x;
+						std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
+					}
+
 					break;
 				}
 			}
