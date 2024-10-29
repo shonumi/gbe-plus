@@ -574,6 +574,7 @@ class AGB_MMU
 		u8 video_hue;
 		u16 channel_id_list[62];
 		u32 current_frame;
+		u32 current_file;
 		float channel_freq;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
@@ -581,6 +582,7 @@ class AGB_MMU
 		std::vector<u8> video_stream;
 		std::vector<u8> video_bytes;
 		std::vector<u32> video_frames;
+		std::vector<std::string> channel_file_list;
 
 		u8 flash_cmd;
 		u8 flash_cmd_status;

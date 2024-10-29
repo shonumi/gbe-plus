@@ -24,6 +24,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.data = 0;
 	tv_tuner.transfer_count = 0;
 	tv_tuner.current_channel = 1;
+	tv_tuner.current_file = 0;
 	tv_tuner.channel_freq = 91.25;
 	tv_tuner.state = TV_TUNER_STOP_DATA;
 	tv_tuner.data_stream.clear();
@@ -31,6 +32,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.video_stream.clear();
 	tv_tuner.video_frames.clear();
 	tv_tuner.video_bytes.clear();
+	tv_tuner.channel_file_list.clear();
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
 	tv_tuner.is_av_connected = false;
@@ -449,7 +451,12 @@ void AGB_MMU::process_tv_tuner_cmd()
 					if(new_channel != tv_tuner.current_channel)
 					{
 						tv_tuner.current_channel = x;
+						tv_tuner.channel_file_list.clear();
 						std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
+
+						//Grab list of video files associated with this channel
+						std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
+						util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
 					}
 
 					break;
