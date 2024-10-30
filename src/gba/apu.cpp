@@ -678,7 +678,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	if(apu_link->apu_stat.ext_audio.playing)
 	{
 		//Generate raw samples (high quality)
-		if((apu_link->apu_stat.ext_audio.use_headphones) || (config::cart_type == AGB_CAMPHO))
+		if((apu_link->apu_stat.ext_audio.use_headphones) || (config::cart_type == AGB_CAMPHO) || (config::cart_type == AGB_TV_TUNER))
 		{
 			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], length);
 		}

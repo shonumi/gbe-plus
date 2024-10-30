@@ -36,6 +36,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
 	tv_tuner.is_av_connected = false;
+	tv_tuner.is_searching_channels = false;
 
 	tv_tuner.video_brightness = 0;
 	tv_tuner.video_contrast = 0;
@@ -418,6 +419,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 	{
 		tv_tuner.state = TV_TUNER_READ_DATA;
 		tv_tuner.read_request = true;
+		tv_tuner.is_searching_channels = true;
 
 		if(tv_tuner.is_channel_on[tv_tuner.current_channel])
 		{
@@ -450,13 +452,33 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 					if(new_channel != tv_tuner.current_channel)
 					{
-						tv_tuner.current_channel = x;
-						tv_tuner.channel_file_list.clear();
+						//Stop video playback
+						apu_stat->ext_audio.playing = false;
+						apu_stat->ext_audio.sample_pos = 0;
+						apu_stat->ext_audio.volume = 0;
+						tv_tuner.current_frame = 0;
+
 						std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
 
-						//Grab list of video files associated with this channel
-						std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
-						util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
+						//Delay playing videos for TV channels until searching is complete
+						if(!tv_tuner.is_searching_channels)
+						{
+							//Grab list of video files associated with this channel
+							tv_tuner.current_channel = x;
+							tv_tuner.channel_file_list.clear();
+
+							std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
+							util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
+
+							//Load new video and restart playback
+							if(!tv_tuner.channel_file_list.empty() && tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]))
+							{
+								apu_stat->ext_audio.playing = true;
+								apu_stat->ext_audio.volume = 63;
+							}
+						}
+
+						tv_tuner.is_searching_channels = false;
 					}
 
 					break;
@@ -563,6 +585,13 @@ bool AGB_MMU::tv_tuner_load_video(std::string filename)
 
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
 	vid_file.close();
+
+	if(vid_file_size < 4) 
+	{
+		tv_tuner.video_frames.resize(10000, 0xFFFFFFFF);
+		std::cout<<"MMU::" << filename << " file size is too small. \n";
+		return false;
+	}
 
 	//Verify audio data format separately
 	tv_tuner_check_audio_from_video(vid_info);
