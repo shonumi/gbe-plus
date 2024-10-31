@@ -2234,6 +2234,13 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
 	vid_file.close();
 
+	if(vid_file_size < 4) 
+	{
+		play_yan.video_frames.resize(10000, 0xFFFFFFFF);
+		std::cout<<"MMU::" << filename << " file size is too small. \n";
+		return false;
+	}
+
 	//Verify audio data format separately
 	play_yan_check_audio_from_video(vid_info);
 
