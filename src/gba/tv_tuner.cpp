@@ -39,6 +39,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.is_av_input_on = false;
 	tv_tuner.is_av_connected = false;
 	tv_tuner.is_channel_changed = false;
+	tv_tuner.is_stream_paused = false;
 
 	tv_tuner.video_brightness = 0;
 	tv_tuner.video_contrast = 0;
@@ -471,6 +472,14 @@ void AGB_MMU::process_tv_tuner_cmd()
 		tv_tuner.is_channel_changed = false;
 		tv_tuner.next_channel = 0;
 		tv_tuner.signal_delay = 0;
+
+		if(apu_stat->ext_audio.playing) { tv_tuner.is_stream_paused = true; }
+
+		//Stop video playback
+		apu_stat->ext_audio.playing = false;
+		apu_stat->ext_audio.sample_pos = 0;
+		apu_stat->ext_audio.volume = 0;
+		tv_tuner.current_frame = 0;
 	}
 
 	//C0 Command -> Reads a 16-bit value
@@ -493,10 +502,10 @@ void AGB_MMU::process_tv_tuner_cmd()
 				if((raw_freq >= freq_start) && (raw_freq < freq_end))
 				{
 					u8 new_channel = x;
+					tv_tuner.next_channel = new_channel;
 
 					if(new_channel != tv_tuner.current_channel)
 					{
-						tv_tuner.next_channel = new_channel;
 						tv_tuner.is_channel_changed = true;
 						tv_tuner.signal_delay = 20;
 					}
@@ -551,6 +560,15 @@ void AGB_MMU::tv_tuner_render_frame()
 	//Render TV channel video
 	else if(tv_tuner.is_channel_on[tv_tuner.current_channel])
 	{
+		//Resume playback after pause (from searching channels)
+		//TODO - Calculate number of frames paused and resume at the correct timestamp
+		if(tv_tuner.is_stream_paused)
+		{
+			apu_stat->ext_audio.playing = true;
+			apu_stat->ext_audio.volume = 63;
+			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
+		}
+
 		tv_tuner_grab_frame_data(tv_tuner.current_frame);
 		tv_tuner.current_frame++;
 	}
