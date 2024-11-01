@@ -569,9 +569,11 @@ class AGB_MMU
 		u8 data;
 		u8 transfer_count;
 		u8 current_channel;
+		u8 next_channel;
 		u8 video_brightness;
 		u8 video_contrast;
 		u8 video_hue;
+		u8 signal_delay;
 		u16 channel_id_list[62];
 		u32 current_frame;
 		u32 current_file;
@@ -592,7 +594,7 @@ class AGB_MMU
 		bool is_channel_on[62];
 		bool is_av_input_on;
 		bool is_av_connected;
-		bool is_searching_channels;
+		bool is_channel_changed;
 
 		u8 cnt_a;
 		u8 cnt_b;
