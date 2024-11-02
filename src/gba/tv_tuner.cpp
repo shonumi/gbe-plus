@@ -71,6 +71,7 @@ void AGB_MMU::tv_tuner_reset()
 		{
 			std::vector<std::string> channel_files;
 			util::get_files_in_dir(channel_path, ".avi", channel_files, true, true);
+			util::get_files_in_dir(channel_path, ".AVI", channel_files, true, true);
 
 			if(!channel_files.empty())
 			{
