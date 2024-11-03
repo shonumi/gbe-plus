@@ -366,14 +366,15 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 			if(tv_tuner.is_channel_changed)
 			{
-				std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
-
 				//Grab list of video files associated with this channel
 				tv_tuner.current_channel = tv_tuner.next_channel;
 				tv_tuner.channel_file_list.clear();
 
+				std::cout<<"CHANNEL CHANGE -> " << std::dec << ((u32)tv_tuner.current_channel + 1) << std::hex << "\n";
+
 				std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
 				util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
+				util::get_files_in_dir(channel_path, ".AVI", tv_tuner.channel_file_list, true, true);
 
 				//Load new video and restart playback
 				if(!tv_tuner.channel_file_list.empty() && tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]))
@@ -381,6 +382,13 @@ void AGB_MMU::process_tv_tuner_cmd()
 					apu_stat->ext_audio.playing = true;
 					apu_stat->ext_audio.volume = 63;
 				}
+
+				//Calculate playback position based on ticks since boot + channel loop start time
+				//Mirrors live TV broadcasts
+				u32 global_ticks = (SDL_GetTicks() / 1000);
+
+				tv_tuner.current_frame = (global_ticks * 30);
+				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 			}
 
 			tv_tuner.is_channel_changed = false;
