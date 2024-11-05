@@ -46,6 +46,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.video_hue = 0;
 
 	tv_tuner.current_frame = 0;
+	tv_tuner.start_ticks = SDL_GetTicks();
 
 	u16 temp_channel_list[62] =
 	{
@@ -385,7 +386,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 				//Calculate playback position based on ticks since boot + channel loop start time
 				//Mirrors live TV broadcasts
-				u32 global_ticks = (SDL_GetTicks() / 1000);
+				u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
 
 				tv_tuner.current_frame = (global_ticks * 30);
 				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
@@ -570,9 +571,13 @@ void AGB_MMU::tv_tuner_render_frame()
 	else if(tv_tuner.is_channel_on[tv_tuner.current_channel])
 	{
 		//Resume playback after pause (from searching channels)
-		//TODO - Calculate number of frames paused and resume at the correct timestamp
 		if(tv_tuner.is_stream_paused)
 		{
+			u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
+
+			tv_tuner.current_frame = (global_ticks * 30);
+			tv_tuner.is_stream_paused = false;
+
 			apu_stat->ext_audio.playing = true;
 			apu_stat->ext_audio.volume = 63;
 			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
