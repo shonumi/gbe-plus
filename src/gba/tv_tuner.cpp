@@ -35,10 +35,12 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.video_frames.clear();
 	tv_tuner.video_bytes.clear();
 	tv_tuner.channel_file_list.clear();
+	tv_tuner.channel_runtime.clear();
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
 	tv_tuner.is_av_connected = false;
 	tv_tuner.is_channel_changed = false;
+	tv_tuner.is_channel_scheduled = false;
 	tv_tuner.is_stream_paused = false;
 
 	tv_tuner.video_brightness = 0;
@@ -376,6 +378,16 @@ void AGB_MMU::process_tv_tuner_cmd()
 				std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
 				util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
 				util::get_files_in_dir(channel_path, ".AVI", tv_tuner.channel_file_list, true, true);
+
+				//Get total channel video length
+				tv_tuner.channel_runtime.clear();
+
+				for(u32 x = 0; x < tv_tuner.channel_file_list.size(); x++)
+				{
+					std::string tv_file = tv_tuner.channel_file_list[x];
+					u32 end_time = tv_tuner.start_ticks + (tv_tuner_get_video_length(tv_file) * 1000);
+					tv_tuner.channel_runtime.push_back(end_time);
+				}
 
 				//Load new video and restart playback
 				if(!tv_tuner.channel_file_list.empty() && tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]))
@@ -888,4 +900,32 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 	#endif
 
 	return true;
+}
+
+/****** Returns the total length of a video (in seconds) ******/
+u32 AGB_MMU::tv_tuner_get_video_length(std::string filename)
+{
+	std::ifstream vid_file(filename.c_str(), std::ios::binary);
+	if(!vid_file.is_open()) { return 0; }
+
+	std::filesystem::path fs_path { filename };
+	u32 vid_file_size = std::filesystem::file_size(fs_path);
+
+	//This is a quick 'n' dirty way of reading standard AVI header for total frames
+	//Only the first 52 bytes are needed here
+	//Total Frame offset = 48th byte
+	if(vid_file_size < 52) { return 0; }
+
+	std::vector<u8> temp_data;
+	temp_data.resize(52);
+
+	vid_file.read(reinterpret_cast<char*> (&temp_data[0]), 52);
+	vid_file.close();
+
+	u32 total_frames = (temp_data[51] << 24) | (temp_data[50] << 16) | (temp_data[49] << 8) | temp_data[48];
+	u32 result = total_frames / 30;
+	
+	if(total_frames % 30) { result++; }
+
+	return result;
 }

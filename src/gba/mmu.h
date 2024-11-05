@@ -585,6 +585,7 @@ class AGB_MMU
 		std::vector<u8> video_stream;
 		std::vector<u8> video_bytes;
 		std::vector<u32> video_frames;
+		std::vector<u32> channel_runtime;
 		std::vector<std::string> channel_file_list;
 
 		u8 flash_cmd;
@@ -596,6 +597,7 @@ class AGB_MMU
 		bool is_av_input_on;
 		bool is_av_connected;
 		bool is_channel_changed;
+		bool is_channel_scheduled;
 		bool is_stream_paused;
 
 		u8 cnt_a;
@@ -765,6 +767,7 @@ class AGB_MMU
 	bool tv_tuner_load_video(std::string filename);
 	void tv_tuner_check_audio_from_video(std::vector <u8> &data);
 	bool tv_tuner_grab_frame_data(u32 frame);
+	u32 tv_tuner_get_video_length(std::string filename);
 
 	//GPIO handling functions
 	void process_rtc();
