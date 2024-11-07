@@ -379,14 +379,28 @@ void AGB_MMU::process_tv_tuner_cmd()
 				util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
 				util::get_files_in_dir(channel_path, ".AVI", tv_tuner.channel_file_list, true, true);
 
+				//Calculate playback position based on ticks since boot + channel loop start time
+				//Mirrors live TV broadcasts
+				u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
+				u32 local_ticks = 0;
+
 				//Get total channel video length
 				tv_tuner.channel_runtime.clear();
+				tv_tuner.current_file = 0;
 
 				for(u32 x = 0; x < tv_tuner.channel_file_list.size(); x++)
 				{
 					std::string tv_file = tv_tuner.channel_file_list[x];
-					u32 end_time = tv_tuner.start_ticks + (tv_tuner_get_video_length(tv_file) * 1000);
+					u32 start_time = (!x) ? 0 : tv_tuner.channel_runtime[x - 1];
+					u32 end_time = start_time + tv_tuner_get_video_length(tv_file);
 					tv_tuner.channel_runtime.push_back(end_time);
+
+					//Find out which video is playing based on current ticks
+					if((global_ticks >= start_time) && (global_ticks < end_time))
+					{
+						tv_tuner.current_file = x;
+						local_ticks = start_time;
+					}
 				}
 
 				//Load new video and restart playback
@@ -396,11 +410,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 					apu_stat->ext_audio.volume = 63;
 				}
 
-				//Calculate playback position based on ticks since boot + channel loop start time
-				//Mirrors live TV broadcasts
-				u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
-
-				tv_tuner.current_frame = (global_ticks * 30);
+				tv_tuner.current_frame = ((global_ticks - local_ticks) * 30);
 				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 			}
 
