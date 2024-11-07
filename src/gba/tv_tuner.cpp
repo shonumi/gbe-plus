@@ -605,8 +605,31 @@ void AGB_MMU::tv_tuner_render_frame()
 			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 		}
 
-		tv_tuner_grab_frame_data(tv_tuner.current_frame);
+		bool render_result = tv_tuner_grab_frame_data(tv_tuner.current_frame);
 		tv_tuner.current_frame++;
+
+		//Move onto next video if no schedule file exists
+		if((tv_tuner.current_frame >= tv_tuner.video_frames.size()) && !tv_tuner.is_channel_scheduled)
+		{
+			u32 next_video = tv_tuner.current_file + 1;
+			tv_tuner.current_frame -= tv_tuner.video_frames.size();
+			
+			if(next_video < tv_tuner.channel_file_list.size())
+			{
+				tv_tuner.current_file++;
+				tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]);
+
+				apu_stat->ext_audio.playing = true;
+				apu_stat->ext_audio.volume = 63;
+				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
+			}
+
+			//End of stream
+			else
+			{
+				tv_tuner.video_frames.clear();
+			}
+		}
 	}
 
 	//Render static noise (grayscale) if channel has no signal
