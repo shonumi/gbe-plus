@@ -624,10 +624,11 @@ void AGB_MMU::tv_tuner_render_frame()
 				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 			}
 
-			//End of stream
+			//End of unscheduled stream, so disable channel signal
 			else
 			{
 				tv_tuner.video_frames.clear();
+				tv_tuner.is_channel_on[tv_tuner.current_channel] = false;
 			}
 		}
 	}
