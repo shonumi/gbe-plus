@@ -605,6 +605,12 @@ void AGB_MMU::tv_tuner_render_frame()
 			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 		}
 
+		//Forcibly sync audio periodically
+		if(config::force_cart_audio_sync)
+		{
+			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency);
+		}
+
 		bool render_result = tv_tuner_grab_frame_data(tv_tuner.current_frame);
 		tv_tuner.current_frame++;
 
