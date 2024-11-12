@@ -1071,6 +1071,7 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.cycles = 0;
 		play_yan.is_video_playing = false;
 		play_yan.is_media_playing = false;
+		play_yan.is_media_paused = false;
 		play_yan.is_sfx_playing = false;
 		play_yan.is_end_of_samples = false;
 		apu_stat->ext_audio.playing = false;
@@ -1435,6 +1436,7 @@ void AGB_MMU::play_yan_update()
 					play_yan.video_progress = 0;
 					play_yan.is_video_playing = false;
 					play_yan.is_media_playing = false;
+					play_yan.is_media_paused = false;
 
 					play_yan.audio_channels = 0;
 					play_yan.audio_sample_rate = 0;
@@ -2004,6 +2006,7 @@ void AGB_MMU::play_yan_set_video_pixels()
 		play_yan.video_progress = 0;
 		play_yan.is_video_playing = false;
 		play_yan.is_media_playing = false;
+		play_yan.is_media_paused = false;
 
 		play_yan.audio_channels = 0;
 		play_yan.audio_sample_rate = 0;
