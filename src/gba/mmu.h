@@ -768,6 +768,7 @@ class AGB_MMU
 	void tv_tuner_check_audio_from_video(std::vector <u8> &data);
 	bool tv_tuner_grab_frame_data(u32 frame);
 	u32 tv_tuner_get_video_length(std::string filename);
+	bool tv_tuner_read_schedule(std::string filename);
 
 	//GPIO handling functions
 	void process_rtc();

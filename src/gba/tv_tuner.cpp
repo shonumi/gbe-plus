@@ -379,6 +379,10 @@ void AGB_MMU::process_tv_tuner_cmd()
 				util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
 				util::get_files_in_dir(channel_path, ".AVI", tv_tuner.channel_file_list, true, true);
 
+				//Check if channel is scheduled
+				std::string channel_schedule = channel_path + "schedule.txt";
+				tv_tuner.is_channel_scheduled = tv_tuner_read_schedule(channel_schedule);
+
 				//Calculate playback position based on ticks since boot + channel loop start time
 				//Mirrors live TV broadcasts
 				u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
@@ -968,4 +972,67 @@ u32 AGB_MMU::tv_tuner_get_video_length(std::string filename)
 	if(total_frames % 30) { result++; }
 
 	return result;
+}
+
+/****** Reads TV schedule file for a given channel ******/
+bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
+{
+	std::string input_line = "";
+	std::ifstream file(filename.c_str(), std::ios::in);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::Error - Could not open TV schedule " << filename << "\n";
+		return false;
+	}
+
+	bool scheduled_file_found = false;
+
+	//Parse line for filename and start time. Data is separated by a colon
+	while(getline(file, input_line))
+	{
+		if(!input_line.empty())
+		{
+			std::size_t parse_symbol;
+			s32 pos = 0;
+
+			std::string out_file = "";
+			std::string out_time = "";
+
+			bool end_of_string = true;
+
+			//Grab filename
+			parse_symbol = input_line.find(":", pos);
+			
+			if(parse_symbol != std::string::npos)
+			{
+				out_file = input_line.substr(pos, parse_symbol);
+				pos += (parse_symbol + 1);
+				end_of_string = false;
+			}
+
+			//Grab start time
+			if((pos < input_line.length()) && (!end_of_string))
+			{
+				out_time = input_line.substr(pos);
+			}
+
+			//Parse start time for given video file
+			if(!out_file.empty() && !out_time.empty())
+			{
+				scheduled_file_found = true;
+			}
+		}
+	}
+
+	//Report failure if schedule exists, but no entries matched files for this channel
+	if(!scheduled_file_found)
+	{
+		std::cout<<"MMU::No scheduled files found in " << filename << "\n";
+		return false;
+	}
+
+	std::cout<<"MMU::Reading Channel Schedule File  " << filename << "\n";
+
+	return true;
 }
