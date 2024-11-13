@@ -1430,7 +1430,7 @@ void AGB_MMU::play_yan_update()
 					play_yan.irq_update = false;
 					play_yan.update_cmd = 0;
 
-					play_yan.irq_delay = 1;
+					play_yan.irq_delay = 0;
 
 					play_yan.video_data_addr = 0;
 					play_yan.video_progress = 0;
@@ -1475,8 +1475,16 @@ void AGB_MMU::process_play_yan_irq()
 			play_yan.current_frame++;
 
 			//Draw video pixels immediately or delay if audio samples are currently being processed
-			if(!play_yan.audio_irq_active) { play_yan_set_video_pixels(); }
-			else { play_yan.video_irq_active = true; }
+			if(!play_yan.audio_irq_active)
+			{
+				play_yan_set_video_pixels();
+				play_yan.irq_delay = 0;
+			}
+
+			else
+			{
+				play_yan.video_irq_active = true;
+			}
 		}
 	}
 
