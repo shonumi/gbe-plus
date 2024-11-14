@@ -1020,8 +1020,6 @@ void AGB_MMU::process_play_yan_cmd()
 		play_yan.irq_update = apu_stat->ext_audio.use_headphones;
 		play_yan.update_cmd = PLAY_YAN_PLAY_VIDEO;
 
-		play_yan.irq_delay = 1;
-
 		play_yan.audio_buffer_size = 0x480;
 		play_yan.audio_sample_index = 0;
 		play_yan.audio_frame_count = 0;
@@ -1364,7 +1362,7 @@ void AGB_MMU::play_yan_update()
 					play_yan.irq_update = false;
 					play_yan.update_cmd = 0;
 
-					play_yan.irq_delay = 1;
+					play_yan.irq_delay = 0;
 
 					play_yan.is_music_playing = false;
 					play_yan.is_media_playing = false;
