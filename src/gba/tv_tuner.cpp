@@ -12,6 +12,7 @@
 #include <SDL2/SDL_image.h>
 #endif
 
+#include <ctime>
 #include <filesystem>
 
 #include "mmu.h"
@@ -986,7 +987,9 @@ bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
 		return false;
 	}
 
-	bool scheduled_file_found = false;
+	bool file_found = false;
+	bool video_playing = false;
+	u32 video_id = 0xFFFFFFFF;
 
 	//Parse line for filename and start time. Data is separated by a colon
 	while(getline(file, input_line))
@@ -1020,15 +1023,48 @@ bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
 			//Parse start time for given video file
 			if(!out_file.empty() && !out_time.empty())
 			{
-				scheduled_file_found = true;
+				for(u32 x = 0; x < tv_tuner.channel_file_list.size(); x++)
+				{
+					if(out_file == util::get_filename_from_path(tv_tuner.channel_file_list[x]))
+					{
+						file_found = true;
+
+						u32 seconds_now = 0;
+						u32 start_time = 0;
+						util::from_str(out_time, start_time);
+						u32 end_time = start_time + tv_tuner_get_video_length(tv_tuner.channel_file_list[x]);
+
+						//Get current time of day in seconds, determine if scheduled video is playing right now
+						time_t system_time = time(0);
+						tm* current_time = localtime(&system_time);
+						seconds_now = (current_time->tm_hour * 3600) + (current_time->tm_min * 60) + (current_time->tm_sec);
+
+						if((seconds_now >= start_time) && (seconds_now < end_time))
+						{
+							video_playing = true;
+							video_id = x;
+
+							break;
+						}
+					}
+				}
 			}
+
+			if(video_playing) { break; }
 		}
 	}
 
 	//Report failure if schedule exists, but no entries matched files for this channel
-	if(!scheduled_file_found)
+	if(!file_found)
 	{
 		std::cout<<"MMU::No scheduled files found in " << filename << "\n";
+		return false;
+	}
+
+	//Report failure if schedule exists, entries found, but nothing playing atm
+	else if(!video_playing)
+	{
+		std::cout<<"MMU::No scheduled file are playing for " << filename << "\n";
 		return false;
 	}
 
