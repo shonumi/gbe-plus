@@ -50,6 +50,7 @@ void AGB_MMU::tv_tuner_reset()
 
 	tv_tuner.current_frame = 0;
 	tv_tuner.start_ticks = SDL_GetTicks();
+	tv_tuner.scheduled_seconds = 90000;
 
 	u16 temp_channel_list[62] =
 	{
@@ -382,41 +383,10 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 				//Check if channel is scheduled
 				std::string channel_schedule = channel_path + "schedule.txt";
-				tv_tuner.is_channel_scheduled = tv_tuner_read_schedule(channel_schedule);
+				tv_tuner.is_channel_scheduled = tv_tuner_play_schedule(channel_schedule);
 
-				//Calculate playback position based on ticks since boot + channel loop start time
-				//Mirrors live TV broadcasts
-				u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
-				u32 local_ticks = 0;
-
-				//Get total channel video length
-				tv_tuner.channel_runtime.clear();
-				tv_tuner.current_file = 0;
-
-				for(u32 x = 0; x < tv_tuner.channel_file_list.size(); x++)
-				{
-					std::string tv_file = tv_tuner.channel_file_list[x];
-					u32 start_time = (!x) ? 0 : tv_tuner.channel_runtime[x - 1];
-					u32 end_time = start_time + tv_tuner_get_video_length(tv_file);
-					tv_tuner.channel_runtime.push_back(end_time);
-
-					//Find out which video is playing based on current ticks
-					if((global_ticks >= start_time) && (global_ticks < end_time))
-					{
-						tv_tuner.current_file = x;
-						local_ticks = start_time;
-					}
-				}
-
-				//Load new video and restart playback
-				if(!tv_tuner.channel_file_list.empty() && tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]))
-				{
-					apu_stat->ext_audio.playing = true;
-					apu_stat->ext_audio.volume = 63;
-				}
-
-				tv_tuner.current_frame = ((global_ticks - local_ticks) * 30);
-				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
+				//Otherwise, play live TV
+				if(!tv_tuner.is_channel_scheduled) { tv_tuner_play_live(); }
 			}
 
 			tv_tuner.is_channel_changed = false;
@@ -975,8 +945,8 @@ u32 AGB_MMU::tv_tuner_get_video_length(std::string filename)
 	return result;
 }
 
-/****** Reads TV schedule file for a given channel ******/
-bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
+/****** Reads TV schedule file for a given channel and plays the video ******/
+bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 {
 	std::string input_line = "";
 	std::ifstream file(filename.c_str(), std::ios::in);
@@ -989,7 +959,9 @@ bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
 
 	bool file_found = false;
 	bool video_playing = false;
-	u32 video_id = 0xFFFFFFFF;
+
+	tv_tuner.scheduled_seconds = 90000;
+	std::vector<u32> time_list;
 
 	//Parse line for filename and start time. Data is separated by a colon
 	while(getline(file, input_line))
@@ -1029,28 +1001,45 @@ bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
 					{
 						file_found = true;
 
-						u32 seconds_now = 0;
 						u32 start_time = 0;
 						util::from_str(out_time, start_time);
 						u32 end_time = start_time + tv_tuner_get_video_length(tv_tuner.channel_file_list[x]);
 
-						//Get current time of day in seconds, determine if scheduled video is playing right now
-						time_t system_time = time(0);
-						tm* current_time = localtime(&system_time);
-						seconds_now = (current_time->tm_hour * 3600) + (current_time->tm_min * 60) + (current_time->tm_sec);
+						time_list.push_back(end_time);
 
-						if((seconds_now >= start_time) && (seconds_now < end_time))
+						if(!video_playing)
 						{
-							video_playing = true;
-							video_id = x;
+							u32 seconds_now = tv_tuner_get_seconds();
 
-							break;
+							if((seconds_now >= start_time) && (seconds_now < end_time))
+							{
+								video_playing = true;
+								
+								//Load new video and start playback
+								if(!tv_tuner_load_video(tv_tuner.channel_file_list[x]))
+								{
+									apu_stat->ext_audio.playing = true;
+									apu_stat->ext_audio.volume = 63;
+								}
+
+								tv_tuner.current_frame = ((seconds_now - start_time) * 30);
+								apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
+							}
 						}
 					}
 				}
 			}
+		}
+	}
 
-			if(video_playing) { break; }
+	//Find next scheduled video start time
+	for(u32 x = 0; x < time_list.size(); x++)
+	{
+		u32 seconds_now = tv_tuner_get_seconds();
+		
+		if((seconds_now < time_list[x]) && (tv_tuner.scheduled_seconds > time_list[x]))
+		{
+			tv_tuner.scheduled_seconds = time_list[x];
 		}
 	}
 
@@ -1058,6 +1047,7 @@ bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
 	if(!file_found)
 	{
 		std::cout<<"MMU::No scheduled files found in " << filename << "\n";
+		tv_tuner.is_channel_on[tv_tuner.current_channel] = false;
 		return false;
 	}
 
@@ -1065,10 +1055,57 @@ bool AGB_MMU::tv_tuner_read_schedule(std::string filename)
 	else if(!video_playing)
 	{
 		std::cout<<"MMU::No scheduled file are playing for " << filename << "\n";
+		tv_tuner.is_channel_on[tv_tuner.current_channel] = false;
 		return false;
 	}
 
 	std::cout<<"MMU::Reading Channel Schedule File  " << filename << "\n";
-
+	tv_tuner.is_channel_on[tv_tuner.current_channel] = true;
 	return true;
+}
+
+/****** Get current time of day in seconds ******/
+u32 AGB_MMU::tv_tuner_get_seconds()
+{
+	time_t system_time = time(0);
+	tm* current_time = localtime(&system_time);
+	return (current_time->tm_hour * 3600) + (current_time->tm_min * 60) + (current_time->tm_sec);
+}
+
+/****** Plays "live" or unscheduled TV, starts as soon as GBE+ boots ******/
+void AGB_MMU::tv_tuner_play_live()
+{
+	//Calculate playback position based on ticks since boot + channel loop start time
+	//Mirrors live TV broadcasts
+	u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
+	u32 local_ticks = 0;
+
+	//Get total channel video length
+	tv_tuner.channel_runtime.clear();
+	tv_tuner.current_file = 0;
+
+	for(u32 x = 0; x < tv_tuner.channel_file_list.size(); x++)
+	{
+		std::string tv_file = tv_tuner.channel_file_list[x];
+		u32 start_time = (!x) ? 0 : tv_tuner.channel_runtime[x - 1];
+		u32 end_time = start_time + tv_tuner_get_video_length(tv_file);
+		tv_tuner.channel_runtime.push_back(end_time);
+
+		//Find out which video is playing based on current ticks
+		if((global_ticks >= start_time) && (global_ticks < end_time))
+		{
+			tv_tuner.current_file = x;
+			local_ticks = start_time;
+		}
+	}
+
+	//Load new video and restart playback
+	if(!tv_tuner.channel_file_list.empty() && tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]))
+	{
+		apu_stat->ext_audio.playing = true;
+		apu_stat->ext_audio.volume = 63;
+	}
+
+	tv_tuner.current_frame = ((global_ticks - local_ticks) * 30);
+	apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 }

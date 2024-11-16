@@ -578,6 +578,7 @@ class AGB_MMU
 		u32 current_frame;
 		u32 current_file;
 		u32 start_ticks;
+		u32 scheduled_seconds;
 		float channel_freq;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;
@@ -768,7 +769,9 @@ class AGB_MMU
 	void tv_tuner_check_audio_from_video(std::vector <u8> &data);
 	bool tv_tuner_grab_frame_data(u32 frame);
 	u32 tv_tuner_get_video_length(std::string filename);
-	bool tv_tuner_read_schedule(std::string filename);
+	bool tv_tuner_play_schedule(std::string filename);
+	u32 tv_tuner_get_seconds();
+	void tv_tuner_play_live();
 
 	//GPIO handling functions
 	void process_rtc();
