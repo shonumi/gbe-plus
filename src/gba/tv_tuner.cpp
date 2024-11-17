@@ -381,12 +381,21 @@ void AGB_MMU::process_tv_tuner_cmd()
 				util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
 				util::get_files_in_dir(channel_path, ".AVI", tv_tuner.channel_file_list, true, true);
 
-				//Check if channel is scheduled
+				//Check if channel is scheduled, otherwise play live TV
 				std::string channel_schedule = channel_path + "schedule.txt";
-				tv_tuner.is_channel_scheduled = tv_tuner_play_schedule(channel_schedule);
+				std::filesystem::path schedule_path { channel_schedule };
 
-				//Otherwise, play live TV
-				if(!tv_tuner.is_channel_scheduled) { tv_tuner_play_live(); }
+				if(std::filesystem::exists(schedule_path) && !std::filesystem::is_directory(schedule_path))
+				{
+					tv_tuner.is_channel_scheduled = true;
+					tv_tuner_play_schedule(channel_schedule);
+				}
+
+				else
+				{
+					tv_tuner.is_channel_scheduled = false;
+					tv_tuner_play_live();
+				}
 			}
 
 			tv_tuner.is_channel_changed = false;
@@ -631,6 +640,12 @@ void AGB_MMU::tv_tuner_render_frame()
 			tv_tuner.video_stream.push_back(color & 0xFF);
 			tv_tuner.video_stream.push_back(color >> 8);
 		}
+	}
+
+	//Check for start of scheduled video
+	if(tv_tuner.is_channel_scheduled)
+	{
+
 	}
 }
 
@@ -1005,7 +1020,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 						util::from_str(out_time, start_time);
 						u32 end_time = start_time + tv_tuner_get_video_length(tv_tuner.channel_file_list[x]);
 
-						time_list.push_back(end_time);
+						time_list.push_back(start_time);
 
 						if(!video_playing)
 						{
@@ -1016,7 +1031,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 								video_playing = true;
 								
 								//Load new video and start playback
-								if(!tv_tuner_load_video(tv_tuner.channel_file_list[x]))
+								if(tv_tuner_load_video(tv_tuner.channel_file_list[x]))
 								{
 									apu_stat->ext_audio.playing = true;
 									apu_stat->ext_audio.volume = 63;
