@@ -645,7 +645,14 @@ void AGB_MMU::tv_tuner_render_frame()
 	//Check for start of scheduled video
 	if(tv_tuner.is_channel_scheduled)
 	{
+		u32 seconds_now = tv_tuner_get_seconds();
 
+		if(seconds_now >= tv_tuner.scheduled_seconds)
+		{
+			std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
+			std::string channel_schedule = channel_path + "schedule.txt";
+			tv_tuner.is_channel_on[tv_tuner.current_channel] = tv_tuner_play_schedule(channel_schedule);
+		}
 	}
 }
 
