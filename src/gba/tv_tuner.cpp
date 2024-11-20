@@ -1076,7 +1076,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 	//Report failure if schedule exists, entries found, but nothing playing atm
 	else if(!video_playing)
 	{
-		std::cout<<"MMU::No scheduled file are playing for " << filename << "\n";
+		std::cout<<"MMU::No scheduled files are playing for " << filename << "\n";
 		tv_tuner.is_channel_on[tv_tuner.current_channel] = false;
 		return false;
 	}
@@ -1106,6 +1106,8 @@ void AGB_MMU::tv_tuner_play_live()
 	tv_tuner.channel_runtime.clear();
 	tv_tuner.current_file = 0;
 
+	bool file_found = false;
+
 	for(u32 x = 0; x < tv_tuner.channel_file_list.size(); x++)
 	{
 		std::string tv_file = tv_tuner.channel_file_list[x];
@@ -1118,7 +1120,15 @@ void AGB_MMU::tv_tuner_play_live()
 		{
 			tv_tuner.current_file = x;
 			local_ticks = start_time;
+			file_found = true;
 		}
+	}
+
+	//Abort loading video if no unscheduled video is currently playing
+	if(!file_found)
+	{
+		std::cout<<"No unscheduled files are playing for Channel " << std::dec << u32(tv_tuner.current_channel + 1) << std::hex << "\n";
+		return;
 	}
 
 	//Load new video and restart playback
