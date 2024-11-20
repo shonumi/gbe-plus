@@ -383,6 +383,37 @@ u32 multiply_color_factor(u32 color, double factor)
 	return output.color;
 }
 
+/****** Changes an RGB color's contrast by factor ******/ 
+u32 adjust_contrast(u32 color, s16 factor)
+{
+	//Truncate factor to -255 through +255
+	if(factor < -255) { factor = -255; }
+	else if(factor > 255) { factor = 255; }
+
+	//Calculate contrast correction factor
+	float correction_factor = (259.0 * (factor + 255)) / (255.0 * (259 - factor));
+
+	//Change RGB channels and truncate results
+	s16 r = (color >> 16) & 0xFF;
+	s16 g = (color >> 8) & 0xFF;
+	s16 b = (color & 0xFF);
+
+	r = (correction_factor * (r - 128)) + 128;
+	g = (correction_factor * (g - 128)) + 128;
+	b = (correction_factor * (b - 128)) + 128;
+
+	if(r < 0) { r = 0; }
+	else if(r > 255) { r = 255; }
+
+	if(g < 0) { g = 0; }
+	else if(g > 255) { g = 255; }
+
+	if(b < 0) { b = 0; }
+	else if(b > 255) { b = 255; }
+
+	return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+
 /****** Mirrors bits ******/
 u32 reflect(u32 src, u8 bit)
 {
