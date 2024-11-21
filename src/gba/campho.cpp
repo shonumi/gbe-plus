@@ -1448,57 +1448,10 @@ void AGB_MMU::campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, 
 		}
 
 		//Adjust contrast as per user settings - Do nothing if settings are in the middle
-		//The color math here is very linear and hacky
 		if(campho.video_contrast != 5)
 		{
-			util::hsl temp_color = util::rgb_to_hsl(input_color);
-			double l = temp_color.lightness;
-			double s = temp_color.saturation;
-			double ratio;
-
-			//Decrease contrast
-			if(campho.video_contrast < 5)
-			{
-				u8 contrast = (5 - campho.video_contrast);
-
-				ratio = (0.5 - l) / 5.0;
-				temp_color.lightness += (contrast * ratio);
-
-				ratio = (s / 5.0);
-				temp_color.saturation -= (contrast * ratio);
-			}
-
-			//Increase contrast
-			else
-			{
-				u8 contrast = (campho.video_contrast - 5);
-
-				//Make bright colors brighter
-				if(l >= 0.67)
-				{
-					ratio = (1.0 - l) / 5.0;
-					temp_color.lightness += (contrast * ratio);
-				}
-
-				//Make dark colors darker
-				else if(l <= 0.33)
-				{
-					ratio = (l / 5.0);
-					temp_color.lightness -= (contrast * ratio);
-				}
-
-				//Move all other colors towards neutral brightness
-				else
-				{
-					ratio = (0.5 - l) / 5.0;
-					temp_color.lightness += (contrast * ratio);
-				}
-
-				ratio = (1.0 - s) / 5.0;
-				temp_color.saturation += ((campho.video_contrast - 5) * ratio);
-			}
-
-			input_color = util::hsl_to_rgb(temp_color);
+			s16 ratio = -255 + (campho.video_contrast * 51);
+			input_color = util::adjust_contrast(input_color, ratio);
 
 			r = (input_color >> 19) & 0x1F;
 			g = (input_color >> 11) & 0x1F;

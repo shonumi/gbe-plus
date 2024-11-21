@@ -64,7 +64,7 @@ namespace util
 	u32 add_color_factor(u32 color, u32 factor);
 	u32 sub_color_factor(u32 color, u32 factor);
 	u32 multiply_color_factor(u32 color, double factor);
-	u32 adjust_contrast(u32 color, u8 factor);
+	u32 adjust_contrast(u32 color, s16 factor);
 
 	u32 reflect(u32 src, u8 bit);
 	void init_crc32_table();
