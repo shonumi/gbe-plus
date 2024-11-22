@@ -52,6 +52,18 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.start_ticks = SDL_GetTicks();
 	tv_tuner.scheduled_seconds = 90000;
 
+	tv_tuner.flash_cmd = 0;
+	tv_tuner.flash_cmd_status = 0;
+	tv_tuner.flash_data.clear();
+	tv_tuner.flash_data.resize(0x100, 0xFF);
+
+	tv_tuner.cnt_a = 0;
+	tv_tuner.cnt_b = 0;
+	tv_tuner.read_data = 0;
+
+	//Only search for active TV channels if the ATVT is actually being emulated
+	if(config::cart_type != AGB_TV_TUNER) { return; }
+
 	u16 temp_channel_list[62] =
 	{
 		0x0890, 0x08F0, 0x0950, 0x0D90, 0x0DF0, 0x0E50, 0x0EB0, 0x0EF0, 0x0F50, 0x0FB0,
@@ -85,15 +97,6 @@ void AGB_MMU::tv_tuner_reset()
 			}
 		}
 	}
-
-	tv_tuner.flash_cmd = 0;
-	tv_tuner.flash_cmd_status = 0;
-	tv_tuner.flash_data.clear();
-	tv_tuner.flash_data.resize(0x100, 0xFF);
-
-	tv_tuner.cnt_a = 0;
-	tv_tuner.cnt_b = 0;
-	tv_tuner.read_data = 0;
 }
 
 /****** Writes to ATVT I/O ******/
