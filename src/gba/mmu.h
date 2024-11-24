@@ -160,7 +160,7 @@ class AGB_MMU
 		CAMPHO_SEND_AT_COMMAND = 0x9FF0,
 	};
 
-	//TV Tuner Operational States
+	//TV Tuner Operational States + Misc
 	enum tv_tuner_states
 	{
 		TV_TUNER_STOP_DATA,
@@ -169,6 +169,7 @@ class AGB_MMU
 		TV_TUNER_ACK_DATA,
 		TV_TUNER_NEXT_DATA,
 		TV_TUNER_READ_DATA,
+		TV_TUNER_MAX_SECS = 86400,
 	};
 
 	backup_types current_save_type;

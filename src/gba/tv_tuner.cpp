@@ -50,7 +50,7 @@ void AGB_MMU::tv_tuner_reset()
 
 	tv_tuner.current_frame = 0;
 	tv_tuner.start_ticks = SDL_GetTicks();
-	tv_tuner.scheduled_seconds = 90000;
+	tv_tuner.scheduled_seconds = TV_TUNER_MAX_SECS;
 
 	tv_tuner.flash_cmd = 0;
 	tv_tuner.flash_cmd_status = 0;
@@ -985,7 +985,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 	bool file_found = false;
 	bool video_playing = false;
 
-	tv_tuner.scheduled_seconds = 90000;
+	tv_tuner.scheduled_seconds = TV_TUNER_MAX_SECS;
 	std::vector<u32> time_list;
 
 	//Parse line for filename and start time. Data is separated by a colon
@@ -1029,7 +1029,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 						u32 start_time = 0;
 						util::from_str(out_time, start_time);
 						u32 end_time = start_time + tv_tuner_get_video_length(tv_tuner.channel_file_list[x]);
-						u32 test_time = end_time - 86400;
+						u32 test_time = end_time - TV_TUNER_MAX_SECS;
 
 						time_list.push_back(start_time);
 
@@ -1040,15 +1040,16 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 							bool is_valid_time = false;
 
 							//Check to see if video started and finishes before midnight
-							if((end_time < 86400) && (seconds_now >= start_time) && (seconds_now < end_time))
+							if((end_time < TV_TUNER_MAX_SECS) && (seconds_now >= start_time) && (seconds_now < end_time))
 							{
 								is_valid_time = true;
 							}
 
 							//Check to see if video started before midnight but ends on the next day
-							else if((end_time >= 86400) && ((seconds_now >= start_time) || (seconds_now < test_time)))
+							else if((end_time >= TV_TUNER_MAX_SECS) && ((seconds_now >= start_time) || (seconds_now < test_time)))
 							{
 								is_valid_time = true;
+								if(seconds_now < test_time) { seconds_now += TV_TUNER_MAX_SECS; }
 							}
 
 							if(is_valid_time)
