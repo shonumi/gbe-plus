@@ -579,7 +579,8 @@ class AGB_MMU
 		u32 current_frame;
 		u32 current_file;
 		u32 start_ticks;
-		u32 scheduled_seconds;
+		u32 scheduled_start;
+		u32 scheduled_end;
 		float channel_freq;
 		tv_tuner_states state;
 		std::vector<u8> data_stream;

@@ -43,6 +43,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.is_channel_changed = false;
 	tv_tuner.is_channel_scheduled = false;
 	tv_tuner.is_stream_paused = false;
+	tv_tuner.is_scheduled_video_loaded = false;
 
 	tv_tuner.video_brightness = 0;
 	tv_tuner.video_contrast = 0;
@@ -50,7 +51,8 @@ void AGB_MMU::tv_tuner_reset()
 
 	tv_tuner.current_frame = 0;
 	tv_tuner.start_ticks = SDL_GetTicks();
-	tv_tuner.scheduled_seconds = TV_TUNER_MAX_SECS;
+	tv_tuner.scheduled_start = TV_TUNER_MAX_SECS;
+	tv_tuner.scheduled_end = TV_TUNER_MAX_SECS;
 
 	tv_tuner.flash_cmd = 0;
 	tv_tuner.flash_cmd_status = 0;
@@ -649,8 +651,24 @@ void AGB_MMU::tv_tuner_render_frame()
 	if(tv_tuner.is_channel_scheduled)
 	{
 		u32 seconds_now = tv_tuner_get_seconds();
+		u32 start_time = tv_tuner.scheduled_start;
+		u32 end_time = tv_tuner.scheduled_end;
+		u32 test_time = end_time - TV_TUNER_MAX_SECS;
+		bool is_video_playing = false;
 
-		if(seconds_now >= tv_tuner.scheduled_seconds)
+		//Check to see if video starts and finishes before midnight
+		if((end_time < TV_TUNER_MAX_SECS) && (seconds_now >= start_time) && (start_time < end_time))
+		{
+			is_video_playing = true;
+		}
+
+		//Check to see if video started before midnight but ends on the next day
+		else if((end_time >= TV_TUNER_MAX_SECS) && ((seconds_now >= start_time) || (seconds_now < test_time)))
+		{
+			is_video_playing = true;
+		}
+
+		if(is_video_playing)
 		{
 			std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
 			std::string channel_schedule = channel_path + "schedule.txt";
@@ -985,8 +1003,10 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 	bool file_found = false;
 	bool video_playing = false;
 
-	tv_tuner.scheduled_seconds = TV_TUNER_MAX_SECS;
+	tv_tuner.scheduled_start = TV_TUNER_MAX_SECS;
+	tv_tuner.scheduled_end = TV_TUNER_MAX_SECS;
 	std::vector<u32> time_list;
+	std::vector<u32> end_list;
 
 	//Parse line for filename and start time. Data is separated by a colon
 	while(getline(file, input_line))
@@ -1032,6 +1052,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 						u32 test_time = end_time - TV_TUNER_MAX_SECS;
 
 						time_list.push_back(start_time);
+						end_list.push_back(end_time);
 
 						if(!video_playing)
 						{
@@ -1078,9 +1099,10 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 	{
 		u32 seconds_now = tv_tuner_get_seconds();
 		
-		if((seconds_now < time_list[x]) && (tv_tuner.scheduled_seconds > time_list[x]))
+		if((seconds_now < time_list[x]) && (tv_tuner.scheduled_start > time_list[x]))
 		{
-			tv_tuner.scheduled_seconds = time_list[x];
+			tv_tuner.scheduled_start = time_list[x];
+			tv_tuner.scheduled_end = end_list[x];
 		}
 	}
 
