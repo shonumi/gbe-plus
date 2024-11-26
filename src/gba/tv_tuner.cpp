@@ -393,7 +393,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 				if(std::filesystem::exists(schedule_path) && !std::filesystem::is_directory(schedule_path))
 				{
 					tv_tuner.is_channel_scheduled = true;
-					tv_tuner_play_schedule(channel_schedule);
+					tv_tuner.is_scheduled_video_loaded = tv_tuner_play_schedule(channel_schedule);
 				}
 
 				else
@@ -626,6 +626,14 @@ void AGB_MMU::tv_tuner_render_frame()
 				tv_tuner.is_channel_on[tv_tuner.current_channel] = false;
 			}
 		}
+
+		//Signal end of scheduled video
+		else if((tv_tuner.current_frame >= tv_tuner.video_frames.size()) && tv_tuner.is_channel_scheduled)
+		{
+			tv_tuner.is_scheduled_video_loaded = false;
+			tv_tuner.video_frames.clear();
+			tv_tuner.is_channel_on[tv_tuner.current_channel] = false;
+		}
 	}
 
 	//Render static noise (grayscale) if channel has no signal
@@ -668,11 +676,12 @@ void AGB_MMU::tv_tuner_render_frame()
 			is_video_playing = true;
 		}
 
-		if(is_video_playing)
+		if(is_video_playing && !tv_tuner.is_scheduled_video_loaded)
 		{
 			std::string channel_path = config::data_path + "tv/" + util::to_str(tv_tuner.current_channel + 1) + "/";
 			std::string channel_schedule = channel_path + "schedule.txt";
 			tv_tuner.is_channel_on[tv_tuner.current_channel] = tv_tuner_play_schedule(channel_schedule);
+			tv_tuner.is_scheduled_video_loaded = tv_tuner.is_channel_on[tv_tuner.current_channel];
 		}
 	}
 }
