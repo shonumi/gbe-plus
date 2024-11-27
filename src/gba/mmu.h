@@ -598,6 +598,7 @@ class AGB_MMU
 		bool read_request;
 		bool is_channel_on[62];
 		bool is_av_input_on;
+		bool is_av_input_changed;
 		bool is_av_connected;
 		bool is_channel_changed;
 		bool is_channel_scheduled;

@@ -39,6 +39,7 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.channel_runtime.clear();
 	tv_tuner.read_request = false;
 	tv_tuner.is_av_input_on = false;
+	tv_tuner.is_av_input_changed = false;
 	tv_tuner.is_av_connected = false;
 	tv_tuner.is_channel_changed = false;
 	tv_tuner.is_channel_scheduled = false;
@@ -426,6 +427,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 		else if(param_1 == 0x02)
 		{
 			tv_tuner.is_av_input_on = (param_2 == 0xE1) ? true : false;
+			tv_tuner.is_av_input_changed = ~tv_tuner.is_av_input_on;
 
 			if(tv_tuner.is_av_input_on) { std::cout<<"AV INPUT ON\n"; }
 			else { std::cout<<"TV INPUT ON\n"; }
@@ -525,7 +527,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 					u8 new_channel = x;
 					tv_tuner.next_channel = new_channel;
 
-					if(new_channel != tv_tuner.current_channel)
+					if((new_channel != tv_tuner.current_channel) || (tv_tuner.is_av_input_changed))
 					{
 						tv_tuner.is_channel_changed = true;
 						tv_tuner.signal_delay = 20;
