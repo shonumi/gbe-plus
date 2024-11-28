@@ -67,7 +67,7 @@ void AGB_MMU::tv_tuner_reset()
 	//Only search for active TV channels if the ATVT is actually being emulated
 	if(config::cart_type != AGB_TV_TUNER) { return; }
 
-	u16 temp_channel_list[62] =
+	u16 temp_channel_list[63] =
 	{
 		0x0890, 0x08F0, 0x0950, 0x0D90, 0x0DF0, 0x0E50, 0x0EB0, 0x0EF0, 0x0F50, 0x0FB0,
 		0x1010, 0x1070, 0x2050, 0x20B0, 0x2110, 0x2170, 0x21D0, 0x2230, 0x2290, 0x22F0,
@@ -75,16 +75,21 @@ void AGB_MMU::tv_tuner_reset()
 		0x2710, 0x2770, 0x27D0, 0x2830, 0x2890, 0x28F0, 0x2950, 0x29B0, 0x2A10, 0x2A70,
 		0x2AD0, 0x2B30, 0x2B90, 0x2BF0, 0x2C50, 0x2CB0, 0x2D10, 0x2D70, 0x2DD0, 0x2E30,
 		0x2E90, 0x2EF0, 0x2F50, 0x2FB0, 0x3010, 0x3070, 0x30D0, 0x3130, 0x3190, 0x31F0,
-		0x3250, 0x32B0
+		0x3250, 0x32B0, 0x0000,
 	};
 
-	for(u32 x = 0; x < 62; x++)
+	for(u32 x = 0; x < 63; x++)
 	{
 		tv_tuner.is_channel_on[x] = false;
 		tv_tuner.channel_id_list[x] = temp_channel_list[x];
 
 		//Check for data/tv/XX, where XX is a folder representing video files for a given channel
-		std::string channel_path = config::data_path + "tv/" + util::to_str(x + 1) + "/";
+		//Channel 63 is a special case in GBE+, points to data/tv/av for AV input
+		std::string channel_path = "";
+
+		if(x == TV_TUNER_AV_STREAM) { channel_path = config::data_path + "tv/av/"; }
+		else { channel_path = config::data_path + "tv/" + util::to_str(x + 1) + "/"; }
+
 		std::filesystem::path fs_path { channel_path };
 
 		if(std::filesystem::exists(fs_path) && std::filesystem::is_directory(fs_path))
@@ -95,8 +100,17 @@ void AGB_MMU::tv_tuner_reset()
 
 			if(!channel_files.empty())
 			{
-				tv_tuner.is_channel_on[x] = true;
-				std::cout<<"MMU::TV Tuner Channel # " << std::dec << (x + 1) << std::hex << " is live\n";
+				if(x != TV_TUNER_AV_STREAM)
+				{
+					tv_tuner.is_channel_on[x] = true;
+					std::cout<<"MMU::TV Tuner Channel # " << std::dec << (x + 1) << std::hex << " is live\n";
+				}
+
+				else
+				{
+					tv_tuner.is_av_connected = true;
+					std::cout<<"MMU::TV Tuner AV Input is live\n";
+				}
 			}
 		}
 	}
@@ -429,8 +443,36 @@ void AGB_MMU::process_tv_tuner_cmd()
 			tv_tuner.is_av_input_on = (param_2 == 0xE1) ? true : false;
 			tv_tuner.is_av_input_changed = ~tv_tuner.is_av_input_on;
 
-			if(tv_tuner.is_av_input_on) { std::cout<<"AV INPUT ON\n"; }
-			else { std::cout<<"TV INPUT ON\n"; }
+			if(tv_tuner.is_av_input_on)
+			{
+				//Stop video playback
+				apu_stat->ext_audio.playing = false;
+				apu_stat->ext_audio.sample_pos = 0;
+				apu_stat->ext_audio.volume = 0;
+				tv_tuner.current_frame = 0;
+
+				tv_tuner.is_channel_on[TV_TUNER_AV_STREAM] = true;
+				tv_tuner.is_channel_scheduled = false;
+
+				u32 temp_channel = tv_tuner.current_channel;
+				tv_tuner.current_channel = TV_TUNER_AV_STREAM;
+
+				tv_tuner.channel_file_list.clear();				
+				std::string channel_path = config::data_path + "tv/av/";
+				util::get_files_in_dir(channel_path, ".avi", tv_tuner.channel_file_list, true, true);
+				util::get_files_in_dir(channel_path, ".AVI", tv_tuner.channel_file_list, true, true);
+
+				tv_tuner_play_live();
+				tv_tuner.current_channel = temp_channel;				
+
+				std::cout<<"AV INPUT ON\n";
+			}
+
+			else
+			{
+				tv_tuner.is_channel_on[TV_TUNER_AV_STREAM] = false;
+				std::cout<<"TV INPUT ON\n";
+			}
 		}
 
 		//Set video contrast level

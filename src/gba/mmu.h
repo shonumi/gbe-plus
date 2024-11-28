@@ -169,6 +169,7 @@ class AGB_MMU
 		TV_TUNER_ACK_DATA,
 		TV_TUNER_NEXT_DATA,
 		TV_TUNER_READ_DATA,
+		TV_TUNER_AV_STREAM = 62,
 		TV_TUNER_MAX_SECS = 86400,
 	};
 
@@ -575,7 +576,7 @@ class AGB_MMU
 		u8 video_contrast;
 		u8 video_hue;
 		u8 signal_delay;
-		u16 channel_id_list[62];
+		u16 channel_id_list[63];
 		u32 current_frame;
 		u32 current_file;
 		u32 start_ticks;
@@ -596,7 +597,7 @@ class AGB_MMU
 		std::vector<u8> flash_data;
 
 		bool read_request;
-		bool is_channel_on[62];
+		bool is_channel_on[63];
 		bool is_av_input_on;
 		bool is_av_input_changed;
 		bool is_av_connected;
