@@ -84,7 +84,7 @@ void AGB_MMU::tv_tuner_reset()
 		tv_tuner.channel_id_list[x] = temp_channel_list[x];
 
 		//Check for data/tv/XX, where XX is a folder representing video files for a given channel
-		//Channel 63 is a special case in GBE+, points to data/tv/av for AV input
+		//Channel 63 is a special case in GBE+, points to data/tv/av for A/V input
 		std::string channel_path = "";
 
 		if(x == TV_TUNER_AV_STREAM) { channel_path = config::data_path + "tv/av/"; }
@@ -109,7 +109,7 @@ void AGB_MMU::tv_tuner_reset()
 				else
 				{
 					tv_tuner.is_av_connected = true;
-					std::cout<<"MMU::TV Tuner AV Input is live\n";
+					std::cout<<"MMU::TV Tuner A/V Input is live\n";
 				}
 			}
 		}
@@ -613,7 +613,38 @@ void AGB_MMU::tv_tuner_render_frame()
 	{
 		if(tv_tuner.is_av_connected)
 		{
+			//Forcibly sync audio periodically
+			if(config::force_cart_audio_sync)
+			{
+				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency);
+			}
 
+			bool render_result = tv_tuner_grab_frame_data(tv_tuner.current_frame);
+			tv_tuner.current_frame++;
+
+			//Move onto next video in A/V stream
+			if((tv_tuner.current_frame >= tv_tuner.video_frames.size()) && !tv_tuner.is_channel_scheduled)
+			{
+				u32 next_video = tv_tuner.current_file + 1;
+				tv_tuner.current_frame -= tv_tuner.video_frames.size();
+			
+				if(next_video < tv_tuner.channel_file_list.size())
+				{
+					tv_tuner.current_file++;
+					tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]);
+
+					apu_stat->ext_audio.playing = true;
+					apu_stat->ext_audio.volume = 63;
+					apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
+				}
+
+				//End of A/V stream
+				else
+				{
+					tv_tuner.video_frames.clear();
+					tv_tuner.is_av_connected = false;
+				}
+			}
 		}
 
 		else
