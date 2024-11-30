@@ -443,7 +443,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 			tv_tuner.is_av_input_on = (param_2 == 0xE1) ? true : false;
 			tv_tuner.is_av_input_changed = ~tv_tuner.is_av_input_on;
 
-			if(tv_tuner.is_av_input_on)
+			if((tv_tuner.is_av_input_on) && (!tv_tuner.is_channel_on[TV_TUNER_AV_STREAM]))
 			{
 				//Stop video playback
 				apu_stat->ext_audio.playing = false;
