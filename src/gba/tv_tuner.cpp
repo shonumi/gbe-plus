@@ -414,7 +414,7 @@ void AGB_MMU::process_tv_tuner_cmd()
 				else
 				{
 					tv_tuner.is_channel_scheduled = false;
-					tv_tuner_play_live();
+					tv_tuner.is_channel_on[tv_tuner.current_channel] = tv_tuner_play_live();
 				}
 			}
 
@@ -1220,7 +1220,7 @@ u32 AGB_MMU::tv_tuner_get_seconds()
 }
 
 /****** Plays "live" or unscheduled TV, starts as soon as GBE+ boots ******/
-void AGB_MMU::tv_tuner_play_live()
+bool AGB_MMU::tv_tuner_play_live()
 {
 	//Calculate playback position based on ticks since boot + channel loop start time
 	//Mirrors live TV broadcasts
@@ -1253,7 +1253,7 @@ void AGB_MMU::tv_tuner_play_live()
 	if(!file_found)
 	{
 		std::cout<<"No unscheduled files are playing for Channel " << std::dec << u32(tv_tuner.current_channel + 1) << std::hex << "\n";
-		return;
+		return false;
 	}
 
 	//Load new video and restart playback
@@ -1264,5 +1264,7 @@ void AGB_MMU::tv_tuner_play_live()
 	}
 
 	tv_tuner.current_frame = ((global_ticks - local_ticks) * 30);
-	apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
+	apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency);
+
+	return true;
 }

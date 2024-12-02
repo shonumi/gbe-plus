@@ -776,7 +776,7 @@ class AGB_MMU
 	u32 tv_tuner_get_video_length(std::string filename);
 	bool tv_tuner_play_schedule(std::string filename);
 	u32 tv_tuner_get_seconds();
-	void tv_tuner_play_live();
+	bool tv_tuner_play_live();
 
 	//GPIO handling functions
 	void process_rtc();
