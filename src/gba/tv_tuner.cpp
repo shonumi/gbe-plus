@@ -533,10 +533,8 @@ void AGB_MMU::process_tv_tuner_cmd()
 
 		std::cout<<"CHANNEL PROBE -> " << std::dec << ((u32)tv_tuner.next_channel + 1) << std::hex << "\n";
 
-		//This command cancels scheduled channel changes when probing active channels
-		tv_tuner.is_channel_changed = false;
-		tv_tuner.next_channel = 0;
-		tv_tuner.signal_delay = 0;
+		//Extend delay for scheduled channel changes when probing active channels
+		if(tv_tuner.signal_delay) { tv_tuner.signal_delay = 60; }
 
 		if(apu_stat->ext_audio.playing) { tv_tuner.is_stream_paused = true; }
 
