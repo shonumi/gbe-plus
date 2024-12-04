@@ -475,24 +475,22 @@ void AGB_MMU::process_tv_tuner_cmd()
 			}
 		}
 
-		//Set video contrast level
-		else if(param_1 == 0x10)
+		//Various TV image manipulation commands
+		else if(param_1 == TV_TUNER_SET_CONTRAST)
 		{
 			tv_tuner.video_contrast = param_2;
 
 			std::cout<<"VIDEO CONTRAST -> 0x" << (u32)param_2 << "\n";
 		}
 
-		//Set video brightness level
-		else if(param_1 == 0x11)
+		else if(param_1 == TV_TUNER_SET_BRIGHTNESS)
 		{
 			tv_tuner.video_brightness = param_2;
 
 			std::cout<<"VIDEO BRIGHTNESS -> 0x" << (u32)param_2 << "\n";
 		}
 
-		//Set video hue level
-		else if(param_1 == 0x15)
+		else if(param_1 == TV_TUNER_SET_HUE)
 		{
 			tv_tuner.video_hue = param_2;
 
