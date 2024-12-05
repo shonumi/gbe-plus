@@ -33,6 +33,8 @@ AGB_GamePad::AGB_GamePad()
 	sensor_x = 0x392;
 	sensor_y = 0x3A0;
 
+	ext_volume = 63;
+
 	joypad_irq = false;
 	joy_init = false;
 	key_cnt = 0;
@@ -494,6 +496,18 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			gyro_flags &= ~0x8;
 		}
 
+		//Increase TV volume
+		else if(config::cart_type == AGB_TV_TUNER)
+		{
+			if(ext_volume < 63)
+			{
+				ext_volume++;
+				float percent = (ext_volume / 63.0) * 100.0; 
+				config::osd_message = "VOLUME " + util::to_str(u8(percent));
+				config::osd_count = 180;
+			}
+		}
+
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[2]; }
 
@@ -546,6 +560,18 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			gyro_flags |= 0x80;
 
 			gyro_flags &= ~0x4;
+		}
+
+		//Decrease TV volume
+		else if(config::cart_type == AGB_TV_TUNER)
+		{
+			if(ext_volume > 0)
+			{
+				ext_volume--;
+				float percent = (ext_volume / 63.0) * 100.0; 
+				config::osd_message = "VOLUME " + util::to_str(u8(percent));
+				config::osd_count = 180;
+			}
 		}
 
 		//Emulate Battle Chip insertion
@@ -775,6 +801,18 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			gyro_flags &= ~0x8;
 		}
 
+		//Increase TV volume
+		else if(config::cart_type == AGB_TV_TUNER)
+		{
+			if(ext_volume < 63)
+			{
+				ext_volume++;
+				float percent = (ext_volume / 63.0) * 100.0; 
+				config::osd_message = "VOLUME " + util::to_str(u8(percent));
+				config::osd_count = 180;
+			}
+		}
+
 		//Emulate Battle Chip insertion
 		else if((config::sio_device >= 10) && (config::sio_device <= 12)) { config::battle_chip_id = config::chip_list[2]; }
 
@@ -822,6 +860,18 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			gyro_flags |= 0x80;
 
 			gyro_flags &= ~0x4;
+		}
+
+		//Decrease TV volume
+		else if(config::cart_type == AGB_TV_TUNER)
+		{
+			if(ext_volume > 0)
+			{
+				ext_volume--;
+				float percent = (ext_volume / 63.0) * 100.0; 
+				config::osd_message = "VOLUME " + util::to_str(u8(percent));
+				config::osd_count = 180;
+			}
 		}
 
 		//Emulate Battle Chip insertion

@@ -630,7 +630,7 @@ void AGB_MMU::tv_tuner_render_frame()
 					tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]);
 
 					apu_stat->ext_audio.playing = true;
-					apu_stat->ext_audio.volume = 63;
+					apu_stat->ext_audio.volume = g_pad->ext_volume;
 					apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 				}
 
@@ -661,7 +661,7 @@ void AGB_MMU::tv_tuner_render_frame()
 			tv_tuner.is_stream_paused = false;
 
 			apu_stat->ext_audio.playing = true;
-			apu_stat->ext_audio.volume = 63;
+			apu_stat->ext_audio.volume = g_pad->ext_volume;
 			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 		}
 
@@ -686,7 +686,7 @@ void AGB_MMU::tv_tuner_render_frame()
 				tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]);
 
 				apu_stat->ext_audio.playing = true;
-				apu_stat->ext_audio.volume = 63;
+				apu_stat->ext_audio.volume = g_pad->ext_volume;
 				apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
 			}
 
@@ -754,6 +754,12 @@ void AGB_MMU::tv_tuner_render_frame()
 			tv_tuner.is_channel_on[tv_tuner.current_channel] = tv_tuner_play_schedule(channel_schedule);
 			tv_tuner.is_scheduled_video_loaded = tv_tuner.is_channel_on[tv_tuner.current_channel];
 		}
+	}
+
+	//Update volume (based on context input from the Game Pad)
+	if(apu_stat->ext_audio.playing)
+	{
+		apu_stat->ext_audio.volume = g_pad->ext_volume;
 	}
 }
 
@@ -1161,7 +1167,7 @@ bool AGB_MMU::tv_tuner_play_schedule(std::string filename)
 								if(tv_tuner_load_video(tv_tuner.channel_file_list[x]))
 								{
 									apu_stat->ext_audio.playing = true;
-									apu_stat->ext_audio.volume = 63;
+									apu_stat->ext_audio.volume = g_pad->ext_volume;
 								}
 
 								tv_tuner.current_frame = ((seconds_now - start_time) * 30);
@@ -1256,7 +1262,7 @@ bool AGB_MMU::tv_tuner_play_live()
 	if(!tv_tuner.channel_file_list.empty() && tv_tuner_load_video(tv_tuner.channel_file_list[tv_tuner.current_file]))
 	{
 		apu_stat->ext_audio.playing = true;
-		apu_stat->ext_audio.volume = 63;
+		apu_stat->ext_audio.volume = g_pad->ext_volume;
 	}
 
 	tv_tuner.current_frame = ((global_ticks - local_ticks) * 30);
