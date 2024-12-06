@@ -34,6 +34,7 @@ AGB_GamePad::AGB_GamePad()
 	sensor_y = 0x3A0;
 
 	ext_volume = 63;
+	ext_volume_count = 800;
 
 	joypad_irq = false;
 	joy_init = false;
@@ -499,12 +500,17 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		//Increase TV volume
 		else if(config::cart_type == AGB_TV_TUNER)
 		{
-			if(ext_volume < 63)
+			if(ext_volume_count < 800)
 			{
-				ext_volume++;
-				float percent = (ext_volume / 63.0) * 100.0; 
-				config::osd_message = "VOLUME " + util::to_str(u8(percent));
-				config::osd_count = 180;
+				ext_volume_count++;
+
+				if(((ext_volume_count & 0x7) == 0x00) && (ext_volume < 63))
+				{
+					ext_volume++;
+					float percent = (ext_volume / 63.0) * 100.0; 
+					config::osd_message = "VOLUME " + util::to_str(u8(percent));
+					config::osd_count = 180;
+				}
 			}
 		}
 
@@ -565,12 +571,17 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 		//Decrease TV volume
 		else if(config::cart_type == AGB_TV_TUNER)
 		{
-			if(ext_volume > 0)
+			if(ext_volume_count > 0)
 			{
-				ext_volume--;
-				float percent = (ext_volume / 63.0) * 100.0; 
-				config::osd_message = "VOLUME " + util::to_str(u8(percent));
-				config::osd_count = 180;
+				ext_volume_count--;
+
+				if(((ext_volume_count & 0x7) == 0x00) && (ext_volume > 0))
+				{
+					ext_volume--;
+					float percent = (ext_volume / 63.0) * 100.0; 
+					config::osd_message = "VOLUME " + util::to_str(u8(percent));
+					config::osd_count = 180;
+				}
 			}
 		}
 
@@ -804,12 +815,17 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 		//Increase TV volume
 		else if(config::cart_type == AGB_TV_TUNER)
 		{
-			if(ext_volume < 63)
+			if(ext_volume_count < 800)
 			{
-				ext_volume++;
-				float percent = (ext_volume / 63.0) * 100.0; 
-				config::osd_message = "VOLUME " + util::to_str(u8(percent));
-				config::osd_count = 180;
+				ext_volume_count++;
+
+				if(((ext_volume_count & 0x7) == 0x00) && (ext_volume < 63))
+				{
+					ext_volume++;
+					float percent = (ext_volume / 63.0) * 100.0; 
+					config::osd_message = "VOLUME " + util::to_str(u8(percent));
+					config::osd_count = 180;
+				}
 			}
 		}
 
@@ -862,15 +878,20 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			gyro_flags &= ~0x4;
 		}
 
-		//Decrease TV volume
+		//Increase TV volume
 		else if(config::cart_type == AGB_TV_TUNER)
 		{
-			if(ext_volume > 0)
+			if(ext_volume_count > 0)
 			{
-				ext_volume--;
-				float percent = (ext_volume / 63.0) * 100.0; 
-				config::osd_message = "VOLUME " + util::to_str(u8(percent));
-				config::osd_count = 180;
+				ext_volume_count--;
+
+				if(((ext_volume_count & 0x7) == 0x00) && (ext_volume > 0))
+				{
+					ext_volume--;
+					float percent = (ext_volume / 63.0) * 100.0; 
+					config::osd_message = "VOLUME " + util::to_str(u8(percent));
+					config::osd_count = 180;
+				}
 			}
 		}
 

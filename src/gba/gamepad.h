@@ -56,6 +56,7 @@ class AGB_GamePad
 	u16 sensor_y;
 
 	u8 ext_volume;
+	u32 ext_volume_count;
 
 	bool joypad_irq;
 	bool joy_init;
