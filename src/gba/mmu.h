@@ -607,7 +607,6 @@ class AGB_MMU
 		bool is_channel_changed;
 		bool is_channel_scheduled;
 		bool is_scheduled_video_loaded;
-		bool is_stream_paused;
 
 		u8 cnt_a;
 		u8 cnt_b;

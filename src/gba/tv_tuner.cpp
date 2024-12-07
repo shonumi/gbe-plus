@@ -43,7 +43,6 @@ void AGB_MMU::tv_tuner_reset()
 	tv_tuner.is_av_connected = false;
 	tv_tuner.is_channel_changed = false;
 	tv_tuner.is_channel_scheduled = false;
-	tv_tuner.is_stream_paused = false;
 	tv_tuner.is_scheduled_video_loaded = false;
 
 	tv_tuner.video_brightness = 0;
@@ -534,8 +533,6 @@ void AGB_MMU::process_tv_tuner_cmd()
 		//Extend delay for scheduled channel changes when probing active channels
 		if(tv_tuner.signal_delay) { tv_tuner.signal_delay = 60; }
 
-		if(apu_stat->ext_audio.playing) { tv_tuner.is_stream_paused = true; }
-
 		//Stop video playback
 		apu_stat->ext_audio.playing = false;
 		apu_stat->ext_audio.sample_pos = 0;
@@ -652,19 +649,6 @@ void AGB_MMU::tv_tuner_render_frame()
 	//Render TV channel video
 	else if(tv_tuner.is_channel_on[tv_tuner.current_channel])
 	{
-		//Resume playback after pause (from searching channels)
-		if(tv_tuner.is_stream_paused)
-		{
-			u32 global_ticks = ((SDL_GetTicks() - tv_tuner.start_ticks) / 1000);
-
-			tv_tuner.current_frame = (global_ticks * 30);
-			tv_tuner.is_stream_paused = false;
-
-			apu_stat->ext_audio.playing = true;
-			apu_stat->ext_audio.volume = g_pad->ext_volume;
-			apu_stat->ext_audio.sample_pos = ((1/30.0 * tv_tuner.current_frame) * apu_stat->ext_audio.frequency); 
-		}
-
 		//Forcibly sync audio periodically
 		if(config::force_cart_audio_sync)
 		{
