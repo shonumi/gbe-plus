@@ -477,23 +477,53 @@ void AGB_MMU::process_tv_tuner_cmd()
 		//Various TV image manipulation commands
 		else if(param_1 == TV_TUNER_SET_CONTRAST)
 		{
-			tv_tuner.video_contrast = param_2;
+			if(param_2 & 0x80)
+			{
+				param_2--;
+				param_2 = ~param_2;
+				tv_tuner.video_contrast = -param_2;
+			}
 
-			std::cout<<"VIDEO CONTRAST -> 0x" << (u32)param_2 << "\n";
+			else
+			{
+				tv_tuner.video_contrast = param_2;
+			}
+
+			std::cout<<"VIDEO CONTRAST -> " << std::dec << (s32)tv_tuner.video_contrast << std::hex << "\n";
 		}
 
 		else if(param_1 == TV_TUNER_SET_BRIGHTNESS)
 		{
-			tv_tuner.video_brightness = param_2;
+			if(param_2 & 0x80)
+			{
+				param_2--;
+				param_2 = ~param_2;
+				tv_tuner.video_brightness = -param_2;
+			}
 
-			std::cout<<"VIDEO BRIGHTNESS -> 0x" << (u32)param_2 << "\n";
+			else
+			{
+				tv_tuner.video_brightness = param_2;
+			}
+
+			std::cout<<"VIDEO BRIGHTNESS -> " << std::dec << (s32)tv_tuner.video_brightness << std::hex << "\n";
 		}
 
 		else if(param_1 == TV_TUNER_SET_HUE)
 		{
-			tv_tuner.video_hue = param_2;
+			if(param_2 & 0x80)
+			{
+				param_2--;
+				param_2 = ~param_2;
+				tv_tuner.video_hue = -param_2;
+			}
 
-			std::cout<<"VIDEO HUE -> 0x" << (u32)param_2 << "\n";
+			else
+			{
+				tv_tuner.video_hue = param_2;
+			}
+
+			std::cout<<"VIDEO HUE -> " << std::dec << (s32)tv_tuner.video_hue << std::hex << "\n";
 		}
 
 	}
@@ -997,7 +1027,7 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 
 	if(temp_surface != NULL)
 	{
-		//Copy and convert data into video frame buffer used by Play-Yan
+		//Copy and convert data into video frame buffer used by ATVT
 		tv_tuner.video_stream.clear();
 		tv_tuner.video_stream.resize(0x12C00, 0x00);
 

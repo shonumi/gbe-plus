@@ -575,9 +575,9 @@ class AGB_MMU
 		u8 transfer_count;
 		u8 current_channel;
 		u8 next_channel;
-		u8 video_brightness;
-		u8 video_contrast;
-		u8 video_hue;
+		s8 video_brightness;
+		s8 video_contrast;
+		s8 video_hue;
 		u8 signal_delay;
 		u16 channel_id_list[63];
 		u32 current_frame;
