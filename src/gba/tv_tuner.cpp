@@ -1027,6 +1027,10 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 
 	if(temp_surface != NULL)
 	{
+		//Calculate ratios used to change Brightness, Contrast, and Hue
+		float bright_ratio = 0.0;
+		if(tv_tuner.video_brightness) { bright_ratio = (0.5 / 127) * tv_tuner.video_brightness; }
+
 		//Copy and convert data into video frame buffer used by ATVT
 		tv_tuner.video_stream.clear();
 		tv_tuner.video_stream.resize(0x12C00, 0x00);
@@ -1038,8 +1042,29 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 
 		for(u32 index = 0, a = 0, i = 0; a < (w * h); a++, i += 3)
 		{
+			u8 r = (pixel_data[i] >> 3);
+			u8 g = (pixel_data[i + 1] >> 3);
+			u8 b = (pixel_data[i + 2] >> 3);
+
 			u16 raw_pixel = 0;
-			raw_pixel = ((pixel_data[i+2] & 0xF8) << 7) | ((pixel_data[i+1] & 0xF8) << 2) | ((pixel_data[i] & 0xF8) >> 3);
+			u32 input_color = 0xFF000000 | (pixel_data[i] << 16) | (pixel_data[i + 1] << 8) | pixel_data[i + 2];
+
+			if(tv_tuner.video_brightness)
+			{
+				util::hsl temp_color = util::rgb_to_hsl(input_color);
+				temp_color.lightness += bright_ratio;
+
+				if(temp_color.lightness > 1.0) { temp_color.lightness = 1.0; }
+				if(temp_color.lightness < 0.0) { temp_color.lightness = 0.0; }
+
+				input_color = util::hsl_to_rgb(temp_color);
+
+				r = (input_color >> 19) & 0x1F;
+				g = (input_color >> 11) & 0x1F;
+				b = (input_color >> 3) & 0x1F;
+			}
+
+			raw_pixel = ((b << 10) | (g << 5) | r);
 
 			tv_tuner.video_stream[index++] = (raw_pixel & 0xFF);
 			tv_tuner.video_stream[index++] = ((raw_pixel >> 8) & 0xFF);
