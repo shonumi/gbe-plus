@@ -1027,7 +1027,7 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 
 	if(temp_surface != NULL)
 	{
-		//Calculate ratios used to change Brightness, Contrast, and Hue
+		//Calculate ratios used to change Brightness and Hue. Contrast value can be used as is.
 		//Note that "Hue" is translated from the ATVT menu. It actually changes saturation!
 		float bright_ratio = 0.0;
 		if(tv_tuner.video_brightness) { bright_ratio = (0.5 / 127) * tv_tuner.video_brightness; }
@@ -1077,6 +1077,15 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 				if(temp_color.saturation < 0.0) { temp_color.saturation = 0.0; }
 
 				input_color = util::hsl_to_rgb(temp_color);
+
+				r = (input_color >> 19) & 0x1F;
+				g = (input_color >> 11) & 0x1F;
+				b = (input_color >> 3) & 0x1F;
+			}
+
+			if(tv_tuner.video_contrast)
+			{
+				input_color = util::adjust_contrast(input_color, tv_tuner.video_contrast);
 
 				r = (input_color >> 19) & 0x1F;
 				g = (input_color >> 11) & 0x1F;
