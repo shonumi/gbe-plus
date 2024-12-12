@@ -1030,10 +1030,12 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 		//Calculate ratios used to change Brightness and Hue. Contrast value can be used as is.
 		//Note that "Hue" is translated from the ATVT menu. It actually changes saturation!
 		float bright_ratio = 0.0;
-		if(tv_tuner.video_brightness) { bright_ratio = (0.5 / 127) * tv_tuner.video_brightness; }
+		u8 bright_max = (tv_tuner.video_brightness > 0) ? 127 : 128;
+		if(tv_tuner.video_brightness) { bright_ratio = (0.5 / bright_max) * tv_tuner.video_brightness; }
 
 		float hue_ratio = 0.0;
-		if(tv_tuner.video_hue) { hue_ratio = (0.5 / 127) * tv_tuner.video_hue; }
+		u8 hue_max = (tv_tuner.video_hue > 0) ? 127 : 128;
+		if(tv_tuner.video_hue) { hue_ratio = (0.5 / hue_max) * tv_tuner.video_hue; }
 
 		//Copy and convert data into video frame buffer used by ATVT
 		tv_tuner.video_stream.clear();
