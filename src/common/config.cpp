@@ -843,7 +843,7 @@ bool parse_cli_args()
 			}
 
 			//Enable fullscreen mode
-			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN_DESKTOP; } 
+			else if((config::cli_args[x] == "-f") || (config::cli_args[x] == "--fullscreen")) { config::flags |= SDL_WINDOW_FULLSCREEN; } 
 
 			//Use MBC1M multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--mbc1m") { config::cart_type = DMG_MBC1M; }
