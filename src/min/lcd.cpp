@@ -130,7 +130,29 @@ bool MIN_LCD::init()
 		//Set up software rendering
 		else
 		{
-			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, config::sys_width, config::sys_height, config::flags);
+			u32 next_w = config::sys_width;
+			u32 next_h = config::sys_height;
+
+			if(config::flags & SDL_WINDOW_FULLSCREEN)
+			{
+				SDL_DisplayMode current_mode;
+				SDL_GetCurrentDisplayMode(0, &current_mode);
+
+				next_w = current_mode.w;
+				next_h = current_mode.h;
+
+				double max_width, max_height, ratio = 0.0;
+
+				max_width = (double)next_w / config::sys_width;
+				max_height = (double)next_h / config::sys_height;
+
+				if(max_width <= max_height) { ratio = max_width; }
+				else { ratio = max_height; }
+
+				max_fullscreen_ratio = ratio;
+			}
+
+			window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, next_w, next_h, config::flags);
 			SDL_GetWindowSize(window, &config::win_width, &config::win_height);
 			final_screen = SDL_GetWindowSurface(window);
 			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
