@@ -523,6 +523,31 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_driver_layout->addWidget(audio_driver);
 	audio_driver_set->setLayout(audio_driver_layout);
 
+	//Sound settings - Microphone Selection
+	QWidget* mic_select_set = new QWidget(sound);
+	QLabel* mic_select_label = new QLabel("Microphone Select : ");
+	mic_select = new QComboBox(mic_select_set);
+	mic_select->setToolTip("Selects the microphone for audio input.");
+	mic_select->addItem("None");
+
+	//Init SDL Audio now to detect microphones
+	SDL_InitSubSystem(SDL_INIT_AUDIO);
+
+	s32 max_devices = SDL_GetNumAudioDevices(1);
+	if(max_devices < 0) { max_devices = 0; }
+
+	for(u32 x = 0; x < max_devices; x++)
+	{
+		std::string temp_str = SDL_GetAudioDeviceName(x, 1);
+		mic_select->addItem(QString::fromStdString(temp_str));
+	}
+
+	QHBoxLayout* mic_select_layout = new QHBoxLayout;
+	mic_select_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	mic_select_layout->addWidget(mic_select_label);
+	mic_select_layout->addWidget(mic_select);
+	mic_select_set->setLayout(mic_select_layout);
+
 	//Sound settings - Volume
 	QWidget* volume_set = new QWidget(sound);
 	QLabel* volume_label = new QLabel("Volume : ");
@@ -548,6 +573,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(mic_enable_set);
 	audio_layout->addWidget(fcas_enable_set);
 	audio_layout->addWidget(audio_driver_set);
+	audio_layout->addWidget(mic_select_set);
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 

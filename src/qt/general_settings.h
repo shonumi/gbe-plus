@@ -78,6 +78,7 @@ class gen_settings : public QDialog
 	QCheckBox* mic_enable;
 	QCheckBox* fcas_enable;
 	QComboBox* audio_driver;
+	QComboBox* mic_select;
 
 	data_dialog* data_folder;
 
