@@ -657,7 +657,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	double dma_a_ratio = apu_link->apu_stat.dma[0].master_volume / 128.0;
 	double dma_b_ratio = apu_link->apu_stat.dma[1].master_volume / 128.0;
 
-	double ext_ratio = apu_link->apu_stat.ext_audio.volume / 63.0;
+	double ext_ratio = (apu_link->apu_stat.ext_audio.volume & 0x63) / 63.0;
 
 	//Custom software mixing
 	for(u32 x = 0; x < length; x++)
