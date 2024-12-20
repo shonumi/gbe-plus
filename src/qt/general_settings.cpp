@@ -511,10 +511,18 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_driver->setToolTip("Selects the audio driver for SDL.");
 	audio_driver->addItem("Default");
 
-	for(u32 x = 0; x < SDL_GetNumAudioDrivers(); x++)
+	s32 max_drivers = SDL_GetNumAudioDrivers();
+	if(max_drivers < 0) { max_drivers = 0; }
+
+	for(u32 x = 0; x < max_drivers; x++)
 	{
-		std::string temp_str = SDL_GetAudioDriver(x);
-		audio_driver->addItem(QString::fromStdString(temp_str));
+		const char* temp_driver = SDL_GetAudioDriver(x);
+
+		if(temp_driver != NULL)
+		{
+			std::string temp_str = temp_driver;
+			audio_driver->addItem(QString::fromStdString(temp_str));
+		}
 	}
 
 	QHBoxLayout* audio_driver_layout = new QHBoxLayout;
@@ -538,8 +546,13 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	for(u32 x = 0; x < max_devices; x++)
 	{
-		std::string temp_str = SDL_GetAudioDeviceName(x, 1);
-		mic_select->addItem(QString::fromStdString(temp_str));
+		const char* temp_device = SDL_GetAudioDeviceName(x, 1);
+
+		if(temp_device != NULL)
+		{
+			std::string temp_str = temp_device;
+			mic_select->addItem(QString::fromStdString(temp_str));
+		}
 	}
 
 	QHBoxLayout* mic_select_layout = new QHBoxLayout;
