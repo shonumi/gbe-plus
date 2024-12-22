@@ -544,6 +544,9 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	s32 max_devices = SDL_GetNumAudioDevices(1);
 	if(max_devices < 0) { max_devices = 0; }
 
+	microphone_id_list.clear();
+	microphone_id_list.push_back(0);
+
 	for(u32 x = 0; x < max_devices; x++)
 	{
 		const char* temp_device = SDL_GetAudioDeviceName(x, 1);
@@ -552,7 +555,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 		{
 			std::string temp_str = temp_device;
 			mic_select->addItem(QString::fromStdString(temp_str));
+
+			SDL_AudioDeviceID mic_id = 0;
+			SDL_AudioSpec sound_test_spec;
+			SDL_AudioSpec mic_test_spec;
+
+			mic_id = SDL_OpenAudioDevice(temp_device, 1, &mic_test_spec, &sound_test_spec, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+			microphone_id_list.push_back(mic_id);
 		}
+	}
+
+	//Make sure to close any opened microphones to preserve the correct ID
+	for(u32 x = 1; x < microphone_id_list.size(); x++)
+	{
+		SDL_CloseAudioDevice(microphone_id_list[x]);
 	}
 
 	QHBoxLayout* mic_select_layout = new QHBoxLayout;
@@ -1509,6 +1525,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_samples, SIGNAL(valueChanged(int)), this, SLOT(sample_size_change()));
 	connect(audio_driver, SIGNAL(currentIndexChanged(int)), this, SLOT(audio_driver_change()));
+	connect(mic_select, SIGNAL(currentIndexChanged(int)), this, SLOT(microphone_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
 	connect(input_device, SIGNAL(currentIndexChanged(int)), this, SLOT(input_device_change()));
@@ -2449,6 +2466,22 @@ void gen_settings::audio_driver_change()
 		config::override_audio_driver = "";
 		std::string env_var = "SDL_AUDIODRIVER=" + config::override_audio_driver;
 		putenv(const_cast<char*>(env_var.c_str()));
+	}
+}
+
+/****** Changes the core's selected microphone for audio input ******/
+void gen_settings::microphone_change()
+{
+	u32 index = mic_select->currentIndex();
+
+	if(index > 0)
+	{
+		config::microphone_id = microphone_id_list[index];
+	}
+
+	else
+	{
+		config::microphone_id = 0;
 	}
 }
 

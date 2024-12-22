@@ -250,6 +250,7 @@ class gen_settings : public QDialog
 	void sample_rate_change();
 	void sample_size_change();
 	void audio_driver_change();
+	void microphone_change();
 	void mute();
 	void set_paths(int index);
 	void rebuild_input_index();
@@ -337,6 +338,8 @@ class gen_settings : public QDialog
 	u32 joystick_count;
 	u16 chip_list[512];
 	u16 init_chip_list[4];
+
+	std::vector<u32> microphone_id_list;
 };
 
 #endif //SETTINGS_GBE_QT 
