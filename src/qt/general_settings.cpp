@@ -1989,6 +1989,20 @@ void gen_settings::set_ini_options()
 		}
 	}
 
+	//Microphone
+	if(!config::microphone_id) { mic_select->setCurrentIndex(0); }
+
+	else
+	{
+		for(u32 x = 0; x < microphone_id_list.size(); x++)
+		{
+			if(config::microphone_id == microphone_id_list[x])
+			{
+				mic_select->setCurrentIndex(x);
+			}
+		}
+	}
+
 	//Sample size
 	sound_samples->setValue(config::sample_size);
 
