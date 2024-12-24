@@ -536,7 +536,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* mic_select_label = new QLabel("Microphone Select : ");
 	mic_select = new QComboBox(mic_select_set);
 	mic_select->setToolTip("Selects the microphone for audio input.");
-	mic_select->addItem("None");
+	mic_select->addItem("Default");
 
 	//Init SDL Audio now to detect microphones
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
