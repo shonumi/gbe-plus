@@ -286,3 +286,10 @@ It should be noted that all I/O for the ATVT's flash memory is 16-bit, however, 
 ***************************************************
 
 Audio output appears to be handled by the ATVT itself. Given the complexities of trying to convert live over-the-air audio to GBA compatible samples, as well as the quality of the GBA audio system, Agatsuma likely chose to bypass that all and have the ATVT directly handle audio. It may have been a technologically simpler approach too. At any rate, there doesn't seem to be any audio handling code in the ATVT's ROM at all either.
+
+
+***************************************************
+8. AGB-P-ZTVJ
+***************************************************
+
+Prior to its release, news reports circa 2006 noted that the ATVT was to have a GBA game code of "AGB-P-ZTVJ". The "Z" would have indicated a special media cartridge in the same category of the GBA Jukebox and Play-Yan. Strangely enough, however, the ATVT itself has no external markings bearing this game code. Neither its box nor instruction pamplet have this information either. Generally the last 4 characters of the game code match data in the ROM header, but the ATVT uses "dtv0". Although the ATVT was marketed as a DS accessory, it is physically a GBA cartridge. Despite being officially licensed by Nintendo themselves, the ATVT appears somewhat anamalous in this regard compared to nearly every other GBA cartridge. The only similar case is the Campho Advance, which did not receive an official game code despite being licensed as well.
