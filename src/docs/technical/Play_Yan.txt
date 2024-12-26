@@ -19,14 +19,15 @@ On September 13, 2005, Nintendo released an updated version called the Play-Yan 
 - Features a normal-sized SD card reader.
 - Can handle card capacities up to 2GB, depending on the manufacturer.
 - Not compatible with SDHC, SDXC, or SDUC cards.
-- Used hardware decoding for media files via an Alpha Mosiac VC01.
+- Uses hardware decoding for media files via an Alpha Mosiac VC01.
 - Uploads firmware on boot, and can optionally update with the correct files on an SD card.
 - Features a slightly larger than normal cartridge shell.
 - Has a 3.5mm audio jack to output sound and bypass the GBA's speakers.
-- Could generate video thumbnails and parse some ID3 tags (ID3v1 through ID3v2.4).
-- Videos used ASF or MP4 containers with G.726 or AAC as audio codecs, respectively.
+- Generates video thumbnails and parses some ID3 tags (ID3v1 through ID3v2.4).
+- Videos use ASF or MP4 containers with G.726 or AAC as audio codecs, respectively.
+- Both ASF and MP4 files use MPEG-4 (MP4S) as the video codec.
 - Maximum of 30 frames-per-second for video.
-- The original version came with 13 "Garage Games" built into the ROM, unlockable with special video files.
+- The original version has 13 "Garage Games" built into the ROM, unlockable with special video files.
 
 
 ***************************************************
