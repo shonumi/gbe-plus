@@ -47,6 +47,8 @@ The codes appear to be simple, e.g. "AAE" for a framed picture and "AIG" for a g
 
 Below are a list of 3-letter codes and the items they generate when used in the email header. If the game does not recognize the code, a present icon will appear next to the email, but no item is actually received.
 
+The 3-letter codes act as stand-ins for numbers (A = 0 ... Z = 25) in a weird mix of Base-10 and Base-26. The position of each letter multiplies its value by 10. As a result, some values can have multiple encodings that the game will accept. For example, the number "20" can be enocoded as "AAU" or "ABK" or "ACA".
+
 ---------------------------------------------------
 Codes			| Item
 ---------------------------------------------------
@@ -68,8 +70,8 @@ AAP	ABF		Wall-mounted TV
 AAQ	ABG		Digital Component Stereo
 AAR	ABH		Component Stereo
 AAS	ABI		Gramophone
-AAT	ABJ		Massage Chair
-AAU	ABK	ACA	"Sexy" Massage Chair
+AAT	ABJ		Massage Chair 1
+AAU	ABK	ACA	Massage Chair 2
 AAV	ABL	ACB	Relaxing Chair
 AAW	ABM	ACC	Globe
 AAX	ABN	ACD	Cosmic Globe
