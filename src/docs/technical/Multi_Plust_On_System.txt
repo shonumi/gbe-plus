@@ -149,50 +149,78 @@ Wyburst Rare #2			* 0x1726
 ==============================================
 PF003 :: Gabrian
 ==============================================
-				* 0x1650
-				* 0x1630
+Gabrian Basic			* 0x1690
+Gabrian Attack			* 0x1650
+Gabrian Guard			* 0x17D0
+Gabrian Extra			* 0x1630
+Gabrian Power			* 0x17A2
+Gabrian Rare #1			* 0x1762
 
 
 ==============================================
 PF004 :: Molly
 ==============================================
-				* 0x16D8
-				* 0x16B2
-				* 0x1672
+Molly Basic			* 0x1798
+Molly Attack			* 0x1758
+Molly Guard			* 0x16D8
+Molly Extra			* 0x1738
+Molly Power			* 0x16B2
+Molly Rare #1			* 0x1672
 
 
 ==============================================
 PF005 :: Hania
 ==============================================
-				* 0x1688
-				* 0x1648
-				* 0x1628
+Hania Basic			* 0x1688
+Hania Attack			* 0x1648
+Hania Guard			* 0x17C8
+Hania Extra			* 0x1628
+Hania Power			* 0x1792
+Hania Rare #1			* 0x1752
 
 
 ==============================================
 PF006 :: Zagarian
 ==============================================
-				* 0x1614
+Zagarian Basic			* 0x17A4
+Zagarian Attack			* 0x1764
+Zagarian Guard			* 0x16E4
+Zagarian Extra			* 0x1614
+Zagarian Power			* 0x16CA
+Zagarian Rare #1		* 0x172A
 
 
 ==============================================
 PF007 :: Tan Q
 ==============================================
-				* 0x16D4
+Tan Q Basic			* 0x1794
+Tan Q Attack			* 0x1754
+Tan Q Guard			* 0x16D4
+Tan Q Extra			* 0x1734
+Tan Q Power			* 0x16AA
+Tan Q Rare #1			* 0x166A
 
 
 ==============================================
-PF008 :: Warrion
+PF008 :: Wariarm
 ==============================================
-				* 0x16F0
-				* 0x1612
+Wariarm Basic			* 0x17B0
+Wariarm Attack			* 0x1770
+Wariarm Guard			* 0x16F0
+Wariarm Extra			* 0x1708
+Wariarm Power			* 0x16E2
+Wariarm Rare #1			* 0x1612
 
 
 ==============================================
 PF009 :: Doryuun
 ==============================================
-				* 0x16B8
-				* 0x1678
+Doryuun Basic			* 0x16B8
+Doryuun Attack			* 0x1678
+Doryuun Guard			* 0x17F8
+Doryuun Extra			* 0x1704
+Doryuun Power			* 0x17F2
+Doryuun Rare #1			* 0x160A
 
 
 ==============================================
