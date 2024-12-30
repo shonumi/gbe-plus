@@ -116,193 +116,255 @@ The ID is received serially, MSB first. Essentially, a "1" bit is transferred wh
 5. Pluster IDs
 ***************************************************
 
-Currently, there are 22 identified Pluster figurines along with some 16-bit IDs that will generate that character in the games. There are multiple variants of figurines, therefore Plusters have multiple valid IDs, since the configuration of their spokes is different. The electronic toys may treat them differently, yet the GBA games do not.
+There are 22 identified Pluster characters spread over 136 figurines. Each one is associated with a unique 16-bit ID that will generate that character in the games. There are multiple variants of figurines, therefore the Plusters themselves have multiple valid IDs, since the configuration of the spokes is different. These variants may grant special stat bonuses, for example stronger defense or offense in the RPGs, or faster acceleration or different color schemes in the racing game.
 
-IMPORTANT: Most of these IDs were generated artificially by testing them against the games. Entries marked with a "!" represent actual IDs directly captured from a MPOS. The artificially generated ones are, however, sufficient for the purposes of emulation or using homebrew on a second GBA to fake a connected MPOS.
+Figurines from the PF-EX series are only compatible with Bouken Yuuki Pluster World: Densetsu no Plust Gate EX. They will not be recognized by either Bouken Yuuki Pluster World: Densetsu no Plust Gate or Bouken Yuuki Pluster World: Pluston GP.
+
 
 ==============================================
 PF001 :: Beetma
 ==============================================
-Beetma Advance			! 0x1780
-Beetma Attack			* 0x1740
-Beetma Guard			* 0x16C0
-Beetma Extra			* 0x1720
-Beetma Power			* 0x1682
-Beetma Rare #1			* 0x1642
-Beetma Basic			* 0x1786
-Beetma Rare #2			* 0x1746
+Beetma Advance			0x1780
+Beetma Attack			0x1740
+Beetma Guard			0x16C0
+Beetma Extra			0x1720
+Beetma Power			0x1682
+Beetma Rare #1			0x1642
+Beetma Basic			0x1786
+Beetma Rare #2			0x1746
 
 
 ==============================================
 PF002 :: Wyburst
 ==============================================
-Wyburst Advance			! 0x16A0
-Wyburst Attack			* 0x1660
-Wyburst Guard			* 0x17E0
-Wyburst Extra			* 0x1710
-Wyburst Power			* 0x17C2
-Wyburst Rare #1			* 0x1622
-Wyburst Basic			* 0x16C6
-Wyburst Rare #2			* 0x1726
+Wyburst Advance			0x16A0
+Wyburst Attack			0x1660
+Wyburst Guard			0x17E0
+Wyburst Extra			0x1710
+Wyburst Power			0x17C2
+Wyburst Rare #1			0x1622
+Wyburst Basic			0x16C6
+Wyburst Rare #2			0x1726
 
 
 ==============================================
 PF003 :: Gabrian
 ==============================================
-Gabrian Basic			* 0x1690
-Gabrian Attack			* 0x1650
-Gabrian Guard			* 0x17D0
-Gabrian Extra			* 0x1630
-Gabrian Power			* 0x17A2
-Gabrian Rare #1			* 0x1762
+Gabrian Basic			0x1690
+Gabrian Attack			0x1650
+Gabrian Guard			0x17D0
+Gabrian Extra			0x1630
+Gabrian Power			0x17A2
+Gabrian Rare #1			0x1762
 
 
 ==============================================
 PF004 :: Molly
 ==============================================
-Molly Basic			* 0x1798
-Molly Attack			* 0x1758
-Molly Guard			* 0x16D8
-Molly Extra			* 0x1738
-Molly Power			* 0x16B2
-Molly Rare #1			* 0x1672
+Molly Basic			0x1798
+Molly Attack			0x1758
+Molly Guard			0x16D8
+Molly Extra			0x1738
+Molly Power			0x16B2
+Molly Rare #1			0x1672
 
 
 ==============================================
 PF005 :: Hania
 ==============================================
-Hania Basic			* 0x1688
-Hania Attack			* 0x1648
-Hania Guard			* 0x17C8
-Hania Extra			* 0x1628
-Hania Power			* 0x1792
-Hania Rare #1			* 0x1752
+Hania Basic			0x1688
+Hania Attack			0x1648
+Hania Guard			0x17C8
+Hania Extra			0x1628
+Hania Power			0x1792
+Hania Rare #1			0x1752
 
 
 ==============================================
 PF006 :: Zagarian
 ==============================================
-Zagarian Basic			* 0x17A4
-Zagarian Attack			* 0x1764
-Zagarian Guard			* 0x16E4
-Zagarian Extra			* 0x1614
-Zagarian Power			* 0x16CA
-Zagarian Rare #1		* 0x172A
+Zagarian Basic			0x17A4
+Zagarian Attack			0x1764
+Zagarian Guard			0x16E4
+Zagarian Extra			0x1614
+Zagarian Power			0x16CA
+Zagarian Rare #1		0x172A
 
 
 ==============================================
 PF007 :: Tan Q
 ==============================================
-Tan Q Basic			* 0x1794
-Tan Q Attack			* 0x1754
-Tan Q Guard			* 0x16D4
-Tan Q Extra			* 0x1734
-Tan Q Power			* 0x16AA
-Tan Q Rare #1			* 0x166A
+Tan Q Basic			0x1794
+Tan Q Attack			0x1754
+Tan Q Guard			0x16D4
+Tan Q Extra			0x1734
+Tan Q Power			0x16AA
+Tan Q Rare #1			0x166A
 
 
 ==============================================
 PF008 :: Wariarm
 ==============================================
-Wariarm Basic			* 0x17B0
-Wariarm Attack			* 0x1770
-Wariarm Guard			* 0x16F0
-Wariarm Extra			* 0x1708
-Wariarm Power			* 0x16E2
-Wariarm Rare #1			* 0x1612
+Wariarm Basic			0x17B0
+Wariarm Attack			0x1770
+Wariarm Guard			0x16F0
+Wariarm Extra			0x1708
+Wariarm Power			0x16E2
+Wariarm Rare #1			0x1612
 
 
 ==============================================
 PF009 :: Doryuun
 ==============================================
-Doryuun Basic			* 0x16B8
-Doryuun Attack			* 0x1678
-Doryuun Guard			* 0x17F8
-Doryuun Extra			* 0x1704
-Doryuun Power			* 0x17F2
-Doryuun Rare #1			* 0x160A
+Doryuun Basic			0x16B8
+Doryuun Attack			0x1678
+Doryuun Guard			0x17F8
+Doryuun Extra			0x1704
+Doryuun Power			0x17F2
+Doryuun Rare #1			0x160A
 
 
 ==============================================
 PF010 :: Fezard
 ==============================================
-				* 0x16D2
-				* 0x1618
+Fezard Basic			0x17A8
+Fezard Attack			0x1768
+Fezard Guard			0x16E8
+Fezard Extra			0x1618
+Fezard Power			0x16D2
+Fezard Rare #1			0x1732
 
 
 ==============================================
 PF011 :: Mashanta
 ==============================================
-				* 0x1684		
-				* 0x1644
-				* 0x1624
+Mashanta Basic			0x1684		
+Mashanta Attack			0x1644
+Mashanta Guard			0x17C4
+Mashanta Extra			0x1624
+Mashanta Power			0x178A
+Mashanta Rare #1		0x174A
 
 
 ==============================================
 PF012 :: Gingardo
 ==============================================
-				* 0x16B4		
-				* 0x1674
+Gingardo Basic			0x16B4		
+Gingardo Attack			0x1674
+Gingardo Guard			0x17F4
+Gingardo Extra			0x160C
+Gingardo Power			0x17EA
+Gingardo Rare #1		0x171A
 
 
 ==============================================
 PF013 :: Torastorm
 ==============================================
-				* 0x16CC
+Torastorm Basic			0x178C
+Torastorm Attack		0x174C
+Torastorm Guard			0x16CC
+Torastorm Extra			0x172C
+Torastorm Power			0x169A
+Torastorm Rare #1		0x165A
 
 
 ==============================================
 PF014 :: Gongoragon
 ==============================================
-				* 0x16AC
+Gongoragon Basic		0x16AC
+Gongoragon Attack		0x166C
+Gongoragon Guard		0x17EC
+Gongoragon Extra		0x171C
+Gongoragon Power		0x17DA
+Gongoragon Rare #1		0x163A
 
 
 ==============================================
 PF015 :: Mighty V
 ==============================================
-				* 0x169C
+Mighty V Basic			0x169C
+Mighty V Attack			0x165C
+Mighty V Guard			0x17DC
+Mighty V Extra			0x163C
+Mighty V Power			0x17BA
+Mighty V Rare #1		0x177A
 
 
 ==============================================
 PF016 :: Dorastorm
 ==============================================
-				* 0x16FC
+Dorastorm Basic			0x17BC
+Dorastorm Attack		0x177C
+Dorastorm Guard			0x16FC
+Dorastorm Extra			0x1702
+Dorastorm Power			0x16FA
+Dorastorm Rare #1		0x1606
 
 
 ==============================================
 PF-EX001 :: Beetma EX
 ==============================================
-				! 0x1666
+Beetma EX Basic			0x1666
+Beetma EX Attack		0x17E6
+Beetma EX Guard			0x1716
+Beetma EX Extra			0x1696
+Beetma EX Power			0x1656
+Beetma EX Rare #1		0x17D6
 
 
 ==============================================
 PF-EX002 :: Varouze
 ==============================================
-				* 0x1636
+Varouze Basic			0x1636
+Varouze Attack			0x17B6
+Varouze Guard			0x1776
+Varouze Extra			0x16F6
+Varouze Power			0x170E
+Varouze Rare #1			0x168E
 
 
 ==============================================
 PF-EX003 :: Gigajoule
 ==============================================
-				! 0x164E
+Gigajoule Basic			0x164E
+Gigajoule Attack		0x17CE
+Gigajoule Guard			0x162E
+Gigajoule Extra			0x17AE
+Gigajoule Power			0x176E
+Gigajoule Rare #1		0x16EE
 
 
 ==============================================
-PF-EX004 :: Badnick
+PF-EX004 :: Birdnick
 ==============================================
-				* 0x161E
+Birdnick Basic			0x161E
+Birdnick Attack			0x179E
+Birdnick Guard			0x175E
+Birdnick Extra			0x16DE
+Birdnick Power			0x173E
+Birdnick Rare #1		0x16BE
 
 
 ==============================================
 PF-EX005 :: Poseihorn
 ==============================================
-				* 0x167E
+Poseihorn Basic			0x167E
+Poseihorn Attack		0x17FE
+Poseihorn Guard			0x1701
+Poseihorn Extra			0x1681
+Poseihorn Power			0x1641
+Poseihorn Rare #1		0x17C1
 
 
 ==============================================
 PF-EX006 :: Tera
 ==============================================
-				* 0x1621
+Tera Basic			0x1621
+Tera Attack			0x17A1
+Tera Guard			0x1761
+Tera Extra			0x16E1
+Tera Power			0x1611
+Tera Rare #1			0x1791
 
 
 When the MPOS is connected to the GBA but has no Pluster figurine inserted, the device returns the ID 0x1400.
