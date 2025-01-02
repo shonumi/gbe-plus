@@ -22,10 +22,12 @@ class mpos_menu : public QDialog
 
 	QDialogButtonBox* close_button;
 
-	QComboBox* pluster;
+	QComboBox* pluster_type;
+	QComboBox* pluster_figure;
 
 	private slots:
-	void update_pluster_figurine();
+	void update_pluster_type();
+	void update_pluster_figure();
 };
 
 #endif //PP2MENU_GBE_QT 
