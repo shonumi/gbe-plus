@@ -739,23 +739,27 @@ bool DMG_SIO::receive_byte()
 			else if(temp_buffer[1] == 0x40)
 			{
 				temp_buffer[1] = 0x41;
-				
-				//Clear out Bit 1 of RP if receiving signal
-				if(temp_buffer[0] == 1)
-				{
-					mem->memory_map[REG_RP] &= ~0x2;
-					mem->ir_counter = 12672;
-				}
 
-				//Set Bit 1 of RP if IR signal is normal
-				else
+				//Handle GBC IR signals
+				if(mem->cart.mbc_type != DMG_MMU::HUC1)
 				{
-					mem->memory_map[REG_RP] |= 0x2;
-					mem->ir_counter = 0;
+					//Clear out Bit 1 of RP if receiving signal
+					if(temp_buffer[0] == 1)
+					{
+						mem->memory_map[REG_RP] &= ~0x2;
+						mem->ir_counter = 12672;
+					}
+
+					//Set Bit 1 of RP if IR signal is normal
+					else
+					{
+						mem->memory_map[REG_RP] |= 0x2;
+						mem->ir_counter = 0;
+					}
 				}
 
 				//Handle IR signals for HuC-1
-				if(mem->cart.mbc_type == DMG_MMU::HUC1)
+				else
 				{
 					//Set to IR cart register to 0xC1 if receiving signal
 					if(temp_buffer[0] == 1) { mem->ir_signal = 0x01; }
