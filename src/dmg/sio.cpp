@@ -762,10 +762,10 @@ bool DMG_SIO::receive_byte()
 				else
 				{
 					//Set to IR cart register to 0xC1 if receiving signal
-					if(temp_buffer[0] == 1) { mem->ir_signal = 0x01; }
+					if(temp_buffer[0] == 1) { mem->cart.huc_ir_input = 0x01; }
 
 					//Set to IR cart register to 0xC0 if receiving no signal
-					else { mem->ir_signal = 0x00; }
+					else { mem->cart.huc_ir_input = 0x00; }
 				}
 
 				//Send acknowlegdement

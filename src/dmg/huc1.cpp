@@ -76,7 +76,7 @@ u8 DMG_MMU::huc1_read(u16 address)
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Prioritize IR reading if applicable
-		if(ir_trigger) { return 0xC0 | (ir_signal); }
+		if(ir_trigger) { return 0xC0 | (cart.huc_ir_input); }
 
 		//Otherwise read from RAM
 		else if(bank_mode == 0) { return random_access_bank[0][address - 0xA000]; }

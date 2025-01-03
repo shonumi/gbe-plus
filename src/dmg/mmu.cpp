@@ -111,7 +111,9 @@ void DMG_MMU::reset()
 	if(cart.flash_stat != 0x40)
 	{
 		for(u32 x = 0; x < 128; x++) { cart.gb_mem_map[x] = 0xFF; }
-	} 
+	}
+
+	cart.huc_ir_input = 0;
 
 	ir_signal = 0;
 	ir_send = false;

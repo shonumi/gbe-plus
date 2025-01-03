@@ -131,6 +131,9 @@ class DMG_MMU
 
 		//GB Memory Cartridge
 		u8 gb_mem_map[128];
+
+		//HuC-1 + HuC-3
+		u8 huc_ir_input;
 	} cart;
 
 	u8 ir_signal;
