@@ -17,11 +17,15 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 	//Write to External RAM or control IR signal
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Handle IR signals
+		//Handle IR signals via networking
 		if(ir_trigger)
 		{
-			ir_signal = (value & 0x1);
-			ir_send = true;
+			//IR Type must be specified as a HuC IR cart!
+			if(sio_stat->ir_type == HUC_IR_CART)
+			{
+				ir_signal = (value & 0x1);
+				ir_send = true;
+			}
 		}
 
 		//Otherwise write to RAM

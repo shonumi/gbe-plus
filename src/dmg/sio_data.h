@@ -39,6 +39,8 @@ enum ir_types
 	GBC_TV_REMOTE,
 	GBC_LIGHT_SOURCE,
 	GBC_IR_NOISE,
+	HUC_IR_CART,
+	GB_KISS_LINK,
 };
 
 enum printer_state

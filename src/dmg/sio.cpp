@@ -350,6 +350,16 @@ void DMG_SIO::reset()
 			sio_stat.ir_type = GBC_IR_NOISE;
 			break;
 
+		//HuC-1 or HuC-3 Cart
+		case 9:
+			sio_stat.ir_type = HUC_IR_CART;
+			break;
+
+		//GB KISS LINK
+		case 10:
+			sio_stat.ir_type = GB_KISS_LINK;
+			break;
+
 		//Use standard GBC IR port communication as the default (GBE+ will ignore it for DMG games)
 		//Also, any invalid types are ignored
 		default:
@@ -741,7 +751,7 @@ bool DMG_SIO::receive_byte()
 				temp_buffer[1] = 0x41;
 
 				//Handle GBC IR signals
-				if(mem->cart.mbc_type != DMG_MMU::HUC1)
+				if(sio_stat.ir_type != HUC_IR_CART)
 				{
 					//Clear out Bit 1 of RP if receiving signal
 					if(temp_buffer[0] == 1)
