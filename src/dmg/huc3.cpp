@@ -17,11 +17,15 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 	//Write to External RAM
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Handle IR signals
+		//Handle IR signals via networking
 		if(ir_trigger)
 		{
-			ir_signal = (value & 0x1);
-			ir_send = true;
+			//IR Type must be specified as a HuC IR cart!
+			if(sio_stat->ir_type == HUC_IR_CART)
+			{
+				ir_signal = (value & 0x1);
+				ir_send = true;
+			}
 		}
 
 		//Otherwise write to RAM if enabled
@@ -74,7 +78,7 @@ u8 DMG_MMU::huc3_read(u16 address)
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Prioritize IR reading if applicable
-		if(ir_trigger) { return 0xC0 | (ir_signal); }
+		if(ir_trigger) { return 0xC0 | (cart.huc_ir_input); }
 
 		//Otherwise read from RAM
 		else if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
