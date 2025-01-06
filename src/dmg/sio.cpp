@@ -350,13 +350,8 @@ void DMG_SIO::reset()
 			sio_stat.ir_type = GBC_IR_NOISE;
 			break;
 
-		//HuC-1 or HuC-3 Cart
-		case 9:
-			sio_stat.ir_type = HUC_IR_CART;
-			break;
-
 		//GB KISS LINK
-		case 10:
+		case 9:
 			sio_stat.ir_type = GB_KISS_LINK;
 			break;
 
@@ -751,7 +746,7 @@ bool DMG_SIO::receive_byte()
 				temp_buffer[1] = 0x41;
 
 				//Handle GBC IR signals
-				if(sio_stat.ir_type != HUC_IR_CART)
+				if(config::cart_type != DMG_HUC_IR)
 				{
 					//Clear out Bit 1 of RP if receiving signal
 					if(temp_buffer[0] == 1)
@@ -768,7 +763,7 @@ bool DMG_SIO::receive_byte()
 					}
 				}
 
-				//Handle IR signals for HuC-1
+				//Handle IR signals for HuC-1 or HuC-3
 				else
 				{
 					//Set to IR cart register to 0xC1 if receiving signal

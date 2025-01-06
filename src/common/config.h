@@ -55,6 +55,7 @@ enum special_cart_types
 	DMG_MMM01,
 	DMG_MBC30,
 	DMG_GBMEM,
+	DMG_HUC_IR,
 	AGB_RTC,
 	AGB_SOLAR_SENSOR,
 	AGB_RUMBLE,

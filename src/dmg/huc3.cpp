@@ -21,7 +21,7 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 		if(ir_trigger)
 		{
 			//IR Type must be specified as a HuC IR cart!
-			if(sio_stat->ir_type == HUC_IR_CART)
+			if(config::cart_type == DMG_HUC_IR)
 			{
 				ir_signal = (value & 0x1);
 				ir_send = true;
