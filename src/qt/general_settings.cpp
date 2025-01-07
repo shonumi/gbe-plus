@@ -113,6 +113,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	special_cart->addItem("DMG - MMM01");
 	special_cart->addItem("DMG - MBC30");
 	special_cart->addItem("DMG - GB Memory");
+	special_cart->addItem("DMG - HuC IR Cart");
 	special_cart->addItem("AGB - RTC");
 	special_cart->addItem("AGB - Solar Sensor");
 	special_cart->addItem("AGB - Rumble");
@@ -206,6 +207,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	ir_dev->addItem("Zoids CDZ Model");
 	ir_dev->addItem("NTR-027");
 	ir_dev->addItem("IR Noise");
+	ir_dev->addItem("GB KISS LINK");
 
 	config_ir = new QPushButton("Configure");
 
