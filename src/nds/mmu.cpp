@@ -79,6 +79,12 @@ void NTR_MMU::reset()
 			magic_reader.out_data = 0xFB;
 			magic_reader.oid_reset = true;
 			break;
+
+		case 8:
+			current_slot2_device = SLOT2_MEMORY_EXPANSION;
+			mem_pak.data.clear();
+			mem_pak.data.resize(0x800000);
+			break;
 	}	
 
 	memory_map.clear();

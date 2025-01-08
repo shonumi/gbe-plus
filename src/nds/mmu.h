@@ -67,6 +67,7 @@ class NTR_MMU
 		SLOT2_UBISOFT_PEDOMETER,
 		SLOT2_HCV_1000,
 		SLOT2_MAGIC_READER,
+		SLOT2_MEMORY_EXPANSION,
 	};
 
 	backup_types current_save_type;
@@ -257,6 +258,13 @@ class NTR_MMU
 		std::vector <u8> data;
 		std::vector <u8> ir_stream;
 	} ntr_027;
+
+	//Memory Expansion Pak
+	struct memory_expansion_pak
+	{
+		bool is_locked;
+		std::vector <u8> data;
+	} mem_pak;
 
 	//NDS9 3D GX FIFO
 	std::queue <u32> nds9_gx_fifo;

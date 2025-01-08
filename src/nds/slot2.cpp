@@ -82,6 +82,22 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			}
 
 			break;
+
+		case SLOT2_MEMORY_EXPANSION:
+			//Get lock status
+			if(address == 0x8240000)
+			{
+				slot_byte = (mem_pak.is_locked) ? 0x01 : 0x00;
+			}
+
+			//8MB RAM located at 0x9000000
+			else if((address >> 24) == 9)
+			{
+				if(mem_pak.is_locked) { slot_byte = 0x00; }
+				else { slot_byte = mem_pak.data[address & 0x7FFFFF]; }
+			}
+
+			break;
 	}
 
 	return slot_byte;
@@ -115,6 +131,21 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 			{
 				magic_reader.in_data = value;
 				magic_reader_process();
+			}
+
+			break;
+
+		case SLOT2_MEMORY_EXPANSION:
+			//Set lock status
+			if(address == 0x8240000)
+			{
+				mem_pak.is_locked = (value) ? false : true;
+			}
+
+			//8MB RAM located at 0x9000000
+			else if(((address >> 24) == 9) && (!mem_pak.is_locked))
+			{
+				mem_pak.data[address & 0x7FFFFF] = value;
 			}
 
 			break;
