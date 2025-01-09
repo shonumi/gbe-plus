@@ -84,16 +84,31 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			break;
 
 		case SLOT2_MEMORY_EXPANSION:
-			//Get lock status
-			if(address == 0x8240000)
+			slot_byte = 0xFF;
+
+			//Reading these addresses is for detection
+			if((address >= 0x80000B0) && (address <= 0x80000BF))
 			{
-				slot_byte = (mem_pak.is_locked) ? 0x01 : 0x00;
+				u8 detect_map[16] =
+				{
+					0xFF, 0xFF, 0x96, 0x00, 0x00, 0x24, 0x24, 0x24,
+					0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F,
+				};
+
+				slot_byte = detect_map[address & 0x0F];
+			}
+
+			//Get lock status
+			else if((address >= 0x8240000) && (address <= 0x8240003))
+			{
+				if(address & 0x3) { slot_byte = 0x00; }
+				else { slot_byte = (mem_pak.is_locked) ? 0x01 : 0x00; }
 			}
 
 			//8MB RAM located at 0x9000000
 			else if((address >> 24) == 9)
 			{
-				if(mem_pak.is_locked) { slot_byte = 0x00; }
+				if(mem_pak.is_locked) { slot_byte = 0xFF; }
 				else { slot_byte = mem_pak.data[address & 0x7FFFFF]; }
 			}
 

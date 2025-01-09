@@ -83,7 +83,8 @@ void NTR_MMU::reset()
 		case 8:
 			current_slot2_device = SLOT2_MEMORY_EXPANSION;
 			mem_pak.data.clear();
-			mem_pak.data.resize(0x800000);
+			mem_pak.data.resize(0x800000, 0xFF);
+			mem_pak.is_locked = true;
 			break;
 	}	
 
@@ -1635,6 +1636,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			break;
 
 		case 0x8:
+		case 0x9:
 		case 0xA:
 			if((access_mode && ((nds9_exmem & 0x80) == 0)) || (!access_mode && (nds9_exmem & 0x80)))
 			{
