@@ -113,6 +113,16 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			}
 
 			break;
+
+		case SLOT2_MOTION_PACK:
+			//Reading these addresses is for detection
+			if(address < 0x8020000)
+			{
+				u8 data = 0xF0 | ((address & 0x1F) >> 1);
+				slot_byte = (address & 0x1) ? 0xFC : data;
+			}
+
+			break;
 	}
 
 	return slot_byte;
@@ -163,6 +173,9 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 				mem_pak.data[address & 0x7FFFFF] = value;
 			}
 
+			break;
+
+		case SLOT2_MOTION_PACK:
 			break;
 	}
 }

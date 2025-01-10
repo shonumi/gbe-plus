@@ -68,6 +68,7 @@ class NTR_MMU
 		SLOT2_HCV_1000,
 		SLOT2_MAGIC_READER,
 		SLOT2_MEMORY_EXPANSION,
+		SLOT2_MOTION_PACK,
 	};
 
 	backup_types current_save_type;

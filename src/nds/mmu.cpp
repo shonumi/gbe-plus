@@ -86,6 +86,8 @@ void NTR_MMU::reset()
 			mem_pak.data.resize(0x800000, 0xFF);
 			mem_pak.is_locked = true;
 			break;
+
+		case 9: current_slot2_device = SLOT2_MOTION_PACK; break;
 	}	
 
 	memory_map.clear();

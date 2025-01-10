@@ -1224,7 +1224,7 @@ bool parse_ini_file()
 		if(!parse_ini_number(ini_item, "#slot1_device", config::nds_slot1_device, ini_opts, x, 0, 1)) { return false; }
 
 		//Emulated Slot2 device
-		if(!parse_ini_number(ini_item, "#slot2_device", config::nds_slot2_device, ini_opts, x, 0, 8)) { return false; }
+		if(!parse_ini_number(ini_item, "#slot2_device", config::nds_slot2_device, ini_opts, x, 0, 9)) { return false; }
 
 		//Set emulated system type
 		if(!parse_ini_number(ini_item, "#system_type", config::gb_type, ini_opts, x, 0, 7)) { return false; }
