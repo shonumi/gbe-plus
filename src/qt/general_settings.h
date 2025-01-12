@@ -239,6 +239,7 @@ class gen_settings : public QDialog
 	void show_sio_config();
 	void show_ir_config();
 	void show_slot2_config();
+	void set_slot2_gba_file();
 	void set_ogl();
 	void screen_scale_change();
 	void aspect_ratio_change();

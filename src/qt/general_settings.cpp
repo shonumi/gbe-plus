@@ -1849,14 +1849,31 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
-	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 3) || (config::ir_device == 5)) { config_ir->setEnabled(true); }
-	else { config_ir->setEnabled(false); }
+	if((config::ir_device == 1) || (config::ir_device == 2)
+	|| (config::ir_device == 3) || (config::ir_device == 5))
+	{
+		config_ir->setEnabled(true);
+	}
+
+	else
+	{
+		config_ir->setEnabled(false);
+	}
 
 	//Emulated Slot-2 device
 	slot2_dev->setCurrentIndex(config::nds_slot2_device);
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6) || (config::nds_slot2_device == 7)) { config_slot2->setEnabled(true); }
-	else { config_slot2->setEnabled(false); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 4)
+	|| (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6)
+	|| (config::nds_slot2_device == 7)) 
+	{ 
+		config_slot2->setEnabled(true);
+	}
+
+	else
+	{
+		config_slot2->setEnabled(false);
+	}
 
 	//Emulated CPU speed
 	overclock->setCurrentIndex(config::oc_flags);
@@ -2217,8 +2234,16 @@ void gen_settings::ir_dev_change()
 
 	config::ir_device = ir_dev->currentIndex();
 
-	if((config::ir_device == 1) || (config::ir_device == 2) || (config::ir_device == 3) || config::ir_device == 5) { config_ir->setEnabled(true); }
-	else { config_ir->setEnabled(false); }
+	if((config::ir_device == 1) || (config::ir_device == 2)
+	|| (config::ir_device == 3) || (config::ir_device == 5))
+	{
+		config_ir->setEnabled(true);
+	}
+	
+	else
+	{
+		config_ir->setEnabled(false);
+	}
 }
 
 /****** Changes the emulated Slot-2 device ******/
@@ -2226,8 +2251,17 @@ void gen_settings::slot2_dev_change()
 {
 	config::nds_slot2_device = slot2_dev->currentIndex();
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6) || (config::nds_slot2_device == 7)) { config_slot2->setEnabled(true); }
-	else { config_slot2->setEnabled(false); }
+	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 4) 
+	|| (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6)
+	|| (config::nds_slot2_device == 7)) 
+	{
+		config_slot2->setEnabled(true);
+	}
+
+	else
+	{
+		config_slot2->setEnabled(false);
+	}
 }
 
 /****** Changes the emulated CPU speed ******/
@@ -2295,10 +2329,24 @@ void gen_settings::show_slot2_config()
 	switch(config::nds_slot2_device)
 	{
 		case 0x3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
+		case 0x4: set_slot2_gba_file(); break;
 		case 0x5: ubisoft_pedometer_menu->show(); break;
 		case 0x6: qt_gui::draw_surface->set_card_file(); break;
 		case 0x7: magic_reader_menu->show(); break;
 	}
+}
+
+/****** Opens a GBA file for the NDS Slot-2 connectivity feature ******/
+void gen_settings::set_slot2_gba_file()
+{
+	SDL_PauseAudio(1);
+
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("GBA File(*.gba)"));
+	if(filename.isNull()) { SDL_PauseAudio(0); return; }
+
+	config::nds_slot2_file = filename.toStdString();
+
+	SDL_PauseAudio(0);
 }
 
 /****** Toggles enabling or disabling the fragment and vertex shader widgets when setting OpenGL ******/
