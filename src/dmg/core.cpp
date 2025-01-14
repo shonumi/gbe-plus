@@ -252,7 +252,7 @@ void DMG_core::run_core()
 			if(core_cpu.controllers.serial_io.sio_stat.connected)
 			{
 				//Perform syncing operations when hard sync is enabled
-				if(config::netplay_hard_sync)
+				if(core_cpu.controllers.serial_io.sio_stat.use_hard_sync)
 				{
 					core_cpu.controllers.serial_io.sio_stat.sync_counter += (core_cpu.double_speed) ? (core_cpu.cycles >> 1) : core_cpu.cycles;
 
@@ -294,6 +294,11 @@ void DMG_core::run_core()
 					{
 						core_mmu.ir_counter = 0;
 						core_mmu.memory_map[REG_RP] &= ~0x2;
+
+						if(config::cart_type == DMG_HUC_IR)
+						{
+							core_cpu.controllers.serial_io.stop_sync();
+						}
 					}
 				}
 			}
@@ -535,7 +540,7 @@ void DMG_core::step()
 		if(core_cpu.controllers.serial_io.sio_stat.connected)
 		{
 			//Perform syncing operations when hard sync is enabled
-			if(config::netplay_hard_sync)
+			if(core_cpu.controllers.serial_io.sio_stat.use_hard_sync)
 			{
 				core_cpu.controllers.serial_io.sio_stat.sync_counter += (core_cpu.double_speed) ? (core_cpu.cycles >> 1) : core_cpu.cycles;;
 
@@ -577,6 +582,11 @@ void DMG_core::step()
 				{
 					core_mmu.ir_counter = 0;
 					core_mmu.memory_map[REG_RP] &= ~0x2;
+
+					if(config::cart_type == DMG_HUC_IR)
+					{
+						core_cpu.controllers.serial_io.stop_sync();
+					}
 				}
 			}
 		}

@@ -275,6 +275,7 @@ class DMG_SIO
 	bool send_ir_signal();
 	bool receive_byte();
 	bool request_sync();
+	bool stop_sync();
 	void process_network_communication();
 	void suspend_network_connection();
 	void resume_network_connection();

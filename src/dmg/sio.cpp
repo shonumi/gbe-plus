@@ -230,6 +230,10 @@ bool DMG_SIO::init()
 		four_player_sender[x].port = 0;
 	}
 
+	sio_stat.use_hard_sync = config::netplay_hard_sync;
+
+	if(config::cart_type == DMG_HUC_IR) { mem->ir_counter = 0x400000; }
+
 	#endif
 
 	std::cout<<"SIO::Initialized\n";
@@ -684,6 +688,12 @@ bool DMG_SIO::send_ir_signal()
 		mem->ir_send = false;
 	}
 
+	//Reset hard sync if new IR signal sent
+	if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync) && (config::cart_type == DMG_HUC_IR))
+	{
+		sio_stat.use_hard_sync = true;
+	} 
+
 	#endif
 
 	return true;
@@ -716,8 +726,17 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
+			//Stop hard sync for IR signals
+			else if(temp_buffer[1] == 0xF1)
+			{
+				sio_stat.sync = false;
+				sio_stat.use_hard_sync = false;
+				sio_stat.sync_counter = 0;
+				return true;
+			}
+
 			//Stop sync with acknowledgement
-			if(temp_buffer[1] == 0xF0)
+			else if(temp_buffer[1] == 0xF0)
 			{
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
@@ -771,6 +790,15 @@ bool DMG_SIO::receive_byte()
 
 					//Set to IR cart register to 0xC0 if receiving no signal
 					else { mem->cart.huc_ir_input = 0x00; }
+
+					//Start IR hard sync timeout countdown
+					mem->ir_counter = 0x400000;
+
+					//Reset hard sync if new IR signal received
+					if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync) && (config::cart_type == DMG_HUC_IR))
+					{
+						sio_stat.use_hard_sync = true;
+					} 
 				}
 
 				//Send acknowlegdement
@@ -849,6 +877,29 @@ bool DMG_SIO::request_sync()
 	}
 
 	sio_stat.sync = true;
+
+	#endif
+
+	return true;
+}
+
+/****** Temporarily stops syncronization with another system ******/
+bool DMG_SIO::stop_sync()
+{
+	#ifdef GBE_NETPLAY
+	
+	u8 temp_buffer[2];
+	temp_buffer[0] = 0;
+	temp_buffer[1] = 0xF1;
+
+	//Send the stop sync code 0xF1
+	SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+	sio_stat.sync = false;
+	sio_stat.use_hard_sync = false;
+	sio_stat.sync_counter = 0;
+
+	mem->ir_counter = 0;
 
 	#endif
 

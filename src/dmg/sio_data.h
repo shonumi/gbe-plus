@@ -128,6 +128,7 @@ struct dmg_sio_data
 	bool double_speed;
 	bool internal_clock;
 	bool sync;
+	bool use_hard_sync;
 	bool ping_finish;
 	bool send_data;
 	u8 shifts_left;
