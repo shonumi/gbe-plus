@@ -5403,13 +5403,13 @@ Graphics ROM		| Bitmap graphics for menus
 	<a name="cam_fmt"></a>
 	<p class="gray_title">[Campho Advance] : Data Format</p>
 
-	<p>Due to the way the Campho Advance was made (possibly as a result of some flaw in the way it handles addressing) some of the 16-bit values read from or written to the cartridge need to be adjusted in a very specific way. This documentation will refer to this process as &#34;warping&#34; and &#34;unwarping&#34;. The former refers to reading 16-bit values from the Campho Advance and changing them to get the expected binary output. The latter refers to writing 16-bit values to the Campho Advance in a format it expects to receive. The math for warping and unwarping is specified below:</p>
+	<p>Due to the way the Campho Advance was made (possibly as a result of some flaw in the way it handles addressing on the catridge data bus) some of the 16-bit values read from or written to the cartridge need to be adjusted in a very specific way. This documentation will refer to this process as &#34;warping&#34; and &#34;unwarping&#34;. The former refers to reading 16-bit values from the Campho Advance and changing them to get the expected binary output. The latter refers to writing 16-bit values to the Campho Advance in a format it expects to receive. The math for warping and unwarping is specified below:</p>
 
 <pre>//UNWARP - (Read 16-bit value from Campho Advance)
-OUTPUT_16 = ((INPUT_16 LSL 13) OR (INPUT_16 LSR 3))
+OUTPUT_16 = ((INPUT_16 LSL 3) OR (INPUT_16 LSR 13))
 
 //WARP - (Write 16-bit value to Campho Advance)
-OUTPUT_16 = ((INPUT_16 LSL 3) OR (INPUT_16 LSR 13))</pre>
+OUTPUT_16 = ((INPUT_16 LSL 13) OR (INPUT_16 LSR 3))</pre>
 
 	<p>Generally speaking, warping and unwarping are used when dealing with commands, configuration data, contact data, Graphics ROM data, and camera input. This documentation will explain when each case applies. Many of the reads and writes to both ROM_CNT and ROM_STAT involve 2 values: 0x4015 and 0xA00A. These are the 16-bit warped values of 0x55 and 0xAA respectively. For simplicity, warped values are used in this documentation, as they represent the &#34;raw&#34; values the CPU deals with for the Campho Advance&#39;s I/O.</p>
 
