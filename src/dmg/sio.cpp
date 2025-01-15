@@ -232,7 +232,8 @@ bool DMG_SIO::init()
 
 	sio_stat.use_hard_sync = config::netplay_hard_sync;
 
-	if(config::cart_type == DMG_HUC_IR) { mem->ir_counter = 0x400000; }
+	//When using HuC-1/HuC-3 IR, wait until transfers start before using hard sync
+	if(config::cart_type == DMG_HUC_IR) { sio_stat.use_hard_sync = false; }
 
 	#endif
 
