@@ -139,7 +139,8 @@ class DMG_MMU
 	u8 ir_signal;
 	bool ir_send;
 	u8 ir_trigger;
-	s32 ir_counter;
+	s32 ir_fade_counter;
+	s32 ir_halt_counter;
 
 	bool div_reset;
 

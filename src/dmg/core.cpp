@@ -286,19 +286,26 @@ void DMG_core::run_core()
 				core_cpu.controllers.serial_io.receive_byte();
 
 				//Fade IR signal after a certain amount of time
-				if(core_mmu.ir_counter > 0)
+				//End hard sync after a certain amount of time
+				if(core_mmu.ir_halt_counter > 0)
 				{
-					core_mmu.ir_counter -= core_cpu.cycles;
-
-					if(core_mmu.ir_counter <= 0)
+					if(core_mmu.ir_fade_counter > 0)
 					{
-						core_mmu.ir_counter = 0;
-						core_mmu.memory_map[REG_RP] &= ~0x2;
+						core_mmu.ir_fade_counter -= core_cpu.cycles;
 
-						if(config::cart_type == DMG_HUC_IR)
+						if(core_mmu.ir_fade_counter <= 0)
 						{
-							core_cpu.controllers.serial_io.stop_sync();
+							core_mmu.ir_fade_counter = 0;
+							core_mmu.memory_map[REG_RP] &= ~0x2;
 						}
+					}
+
+					core_mmu.ir_halt_counter -= core_cpu.cycles;
+
+					if(core_mmu.ir_halt_counter <= 0)
+					{
+						core_mmu.ir_halt_counter = 0;
+						core_cpu.controllers.serial_io.stop_sync();
 					}
 				}
 			}
@@ -574,19 +581,26 @@ void DMG_core::step()
 			core_cpu.controllers.serial_io.receive_byte();
 
 			//Fade IR signal after a certain amount of time
-			if(core_mmu.ir_counter > 0)
+			//End hard sync after a certain amount of time
+			if(core_mmu.ir_halt_counter > 0)
 			{
-				core_mmu.ir_counter -= core_cpu.cycles;
-
-				if(core_mmu.ir_counter <= 0)
+				if(core_mmu.ir_fade_counter > 0)
 				{
-					core_mmu.ir_counter = 0;
-					core_mmu.memory_map[REG_RP] &= ~0x2;
+					core_mmu.ir_fade_counter -= core_cpu.cycles;
 
-					if(config::cart_type == DMG_HUC_IR)
+					if(core_mmu.ir_fade_counter <= 0)
 					{
-						core_cpu.controllers.serial_io.stop_sync();
+						core_mmu.ir_fade_counter = 0;
+						core_mmu.memory_map[REG_RP] &= ~0x2;
 					}
+				}
+
+				core_mmu.ir_halt_counter -= core_cpu.cycles;
+
+				if(core_mmu.ir_halt_counter <= 0)
+				{
+					core_mmu.ir_halt_counter = 0;
+					core_cpu.controllers.serial_io.stop_sync();
 				}
 			}
 		}

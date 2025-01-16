@@ -233,7 +233,7 @@ bool DMG_SIO::init()
 	sio_stat.use_hard_sync = config::netplay_hard_sync;
 
 	//When using HuC-1/HuC-3 IR, wait until transfers start before using hard sync
-	if(config::cart_type == DMG_HUC_IR) { sio_stat.use_hard_sync = false; }
+	sio_stat.use_hard_sync = false;
 
 	#endif
 
@@ -690,7 +690,7 @@ bool DMG_SIO::send_ir_signal()
 	}
 
 	//Reset hard sync if new IR signal sent
-	if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync) && (config::cart_type == DMG_HUC_IR))
+	if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
 	{
 		sio_stat.use_hard_sync = true;
 	} 
@@ -772,14 +772,14 @@ bool DMG_SIO::receive_byte()
 					if(temp_buffer[0] == 1)
 					{
 						mem->memory_map[REG_RP] &= ~0x2;
-						mem->ir_counter = 12672;
+						mem->ir_fade_counter = 12672;
 					}
 
 					//Set Bit 1 of RP if IR signal is normal
 					else
 					{
 						mem->memory_map[REG_RP] |= 0x2;
-						mem->ir_counter = 0;
+						mem->ir_fade_counter = 0;
 					}
 				}
 
@@ -791,16 +791,17 @@ bool DMG_SIO::receive_byte()
 
 					//Set to IR cart register to 0xC0 if receiving no signal
 					else { mem->cart.huc_ir_input = 0x00; }
-
-					//Start IR hard sync timeout countdown
-					mem->ir_counter = 0x400000;
-
-					//Reset hard sync if new IR signal received
-					if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync) && (config::cart_type == DMG_HUC_IR))
-					{
-						sio_stat.use_hard_sync = true;
-					} 
 				}
+
+				//Start IR hard sync timeout countdown
+				mem->ir_halt_counter = 0x400000;
+
+				//Reset hard sync if new IR signal received
+				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
+				{
+					sio_stat.use_hard_sync = true;
+					
+				} 
 
 				//Send acknowlegdement
 				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
@@ -900,7 +901,7 @@ bool DMG_SIO::stop_sync()
 	sio_stat.use_hard_sync = false;
 	sio_stat.sync_counter = 0;
 
-	mem->ir_counter = 0;
+	mem->ir_halt_counter = 0;
 
 	#endif
 

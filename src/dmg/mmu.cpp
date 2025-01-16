@@ -118,7 +118,8 @@ void DMG_MMU::reset()
 	ir_signal = 0;
 	ir_send = false;
 	ir_trigger = false;
-	ir_counter = 0;
+	ir_fade_counter = 0;
+	ir_halt_counter = 0;
 
 	div_reset = false;
 
