@@ -115,11 +115,11 @@ void DMG_MMU::reset()
 
 	cart.huc_ir_input = 0;
 
-	ir_signal = 0;
-	ir_send = false;
-	ir_trigger = false;
-	ir_fade_counter = 0;
-	ir_halt_counter = 0;
+	ir_stat.signal = 0;
+	ir_stat.send = false;
+	ir_stat.trigger = false;
+	ir_stat.fade_counter = 0;
+	ir_stat.halt_counter = 0;
 
 	div_reset = false;
 
@@ -380,9 +380,9 @@ u8 DMG_MMU::read_u8(u16 address)
 		if(config::gb_type < 2) { return 0x0; }
 
 		//Initiate manual IR transmission (Full Changer, Pokemon Pikachu 2, Pocket Sakura, TV Remote)
-		if(!ir_signal && (ir_trigger == 1))
+		if(!ir_stat.signal && (ir_stat.trigger == 1))
 		{
-			ir_trigger++;
+			ir_stat.trigger++;
 			sio_stat->shift_counter = 0;
 			sio_stat->shift_clock = 0;
 			sio_stat->shifts_left = 1;
@@ -1410,10 +1410,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			value |= 0x3C;
 			memory_map[address] = value;
 
-			ir_signal = (value & 0x1);
+			ir_stat.signal = (value & 0x1);
 			
 			//Send IR signal to another GBC
-			if(ir_signal != old_ir_stat) { ir_send = true; }
+			if(ir_stat.signal != old_ir_stat) { ir_stat.send = true; }
 
 			//Emulate constant IR light source - Static Mode
 			if((sio_stat->ir_type == 5) && (value & 0xC0) && (config::ir_db_index == 0))

@@ -239,12 +239,9 @@ bool DMG_SIO::init()
 		{
 			sio_stat.use_hard_sync = true;
 		}
-	
-		else
-		{
-			sio_stat.use_hard_sync = false;
-		}
 	}
+
+	else { sio_stat.use_hard_sync = false; }
 
 	#endif
 
@@ -681,7 +678,7 @@ bool DMG_SIO::send_ir_signal()
 
 	//For IR signals, flag it properly
 	//1st byte is IR signal data, second byte GBE+'s marker, 0x40
-	temp_buffer[0] = mem->ir_signal;
+	temp_buffer[0] = mem->ir_stat.signal;
 	temp_buffer[1] = 0x40;
 
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
@@ -697,7 +694,7 @@ bool DMG_SIO::send_ir_signal()
 	//This is blocking, will effectively pause GBE+ until it gets something
 	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
 	{
-		mem->ir_send = false;
+		mem->ir_stat.send = false;
 	}
 
 	//Reset hard sync if new IR signal sent
@@ -783,14 +780,14 @@ bool DMG_SIO::receive_byte()
 					if(temp_buffer[0] == 1)
 					{
 						mem->memory_map[REG_RP] &= ~0x2;
-						mem->ir_fade_counter = 12672;
+						mem->ir_stat.fade_counter = 12672;
 					}
 
 					//Set Bit 1 of RP if IR signal is normal
 					else
 					{
 						mem->memory_map[REG_RP] |= 0x2;
-						mem->ir_fade_counter = 0;
+						mem->ir_stat.fade_counter = 0;
 					}
 				}
 
@@ -805,7 +802,7 @@ bool DMG_SIO::receive_byte()
 				}
 
 				//Start IR hard sync timeout countdown
-				mem->ir_halt_counter = 0x400000;
+				mem->ir_stat.halt_counter = 0x400000;
 
 				//Reset hard sync if new IR signal received
 				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
@@ -912,7 +909,7 @@ bool DMG_SIO::stop_sync()
 	sio_stat.use_hard_sync = false;
 	sio_stat.sync_counter = 0;
 
-	mem->ir_halt_counter = 0;
+	mem->ir_stat.halt_counter = 0;
 
 	#endif
 

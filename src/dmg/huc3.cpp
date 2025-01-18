@@ -18,13 +18,13 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Handle IR signals via networking
-		if(ir_trigger)
+		if(ir_stat.trigger)
 		{
 			//IR Type must be specified as a HuC IR cart!
 			if(config::cart_type == DMG_HUC_IR)
 			{
-				ir_signal = (value & 0x1);
-				ir_send = true;
+				ir_stat.signal = (value & 0x1);
+				ir_stat.send = true;
 			}
 		}
 
@@ -38,8 +38,8 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 		if((value & 0xF) == 0xA) { ram_banking_enabled = true; }
 		else { ram_banking_enabled = false; }
 
-		if((value & 0xF) == 0xE) { ir_trigger = 1; }
-		else { ir_trigger = 0; }
+		if((value & 0xF) == 0xE) { ir_stat.trigger = 1; }
+		else { ir_stat.trigger = 0; }
 	}
 
 	//MBC register - Select ROM bank
@@ -78,7 +78,7 @@ u8 DMG_MMU::huc3_read(u16 address)
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Prioritize IR reading if applicable
-		if(ir_trigger) { return 0xC0 | (cart.huc_ir_input); }
+		if(ir_stat.trigger) { return 0xC0 | (cart.huc_ir_input); }
 
 		//Otherwise read from RAM
 		else if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }

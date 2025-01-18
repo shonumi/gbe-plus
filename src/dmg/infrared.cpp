@@ -15,12 +15,12 @@
 void DMG_SIO::full_changer_process()
 {
 	//Initiate Full Changer transmission
-	if(mem->ir_trigger == 2)
+	if(mem->ir_stat.trigger == 2)
 	{
 		//Validate IR database index
 		if(config::ir_db_index > 0x45) { config::ir_db_index = 0; }
 
-		mem->ir_trigger = 0;
+		mem->ir_stat.trigger = 0;
 		full_changer.delay_counter = (config::ir_db_index * 0x24);
 		full_changer.current_state = FULL_CHANGER_SEND_SIGNAL;
 		full_changer.light_on = true;
@@ -93,9 +93,9 @@ bool DMG_SIO::full_changer_load_db(std::string filename)
 void DMG_SIO::tv_remote_process()
 {
 	//Initiate IR transmission
-	if(mem->ir_trigger == 2)
+	if(mem->ir_stat.trigger == 2)
 	{
-		mem->ir_trigger = 0;
+		mem->ir_stat.trigger = 0;
 		tv_remote.current_data = 0;
 		tv_remote.current_state = TV_REMOTE_SEND_SIGNAL;
 		tv_remote.light_on = false;
@@ -169,9 +169,9 @@ bool DMG_SIO::pocket_ir_load_db(std::string filename)
 void DMG_SIO::pocket_ir_process()
 {
 	//Initiate IR device transmission
-	if(mem->ir_trigger == 2)
+	if(mem->ir_stat.trigger == 2)
 	{
-		mem->ir_trigger = 0;
+		mem->ir_stat.trigger = 0;
 		pocket_ir.current_data = pocket_ir.db_step * config::ir_db_index;
 		pocket_ir.current_state = POCKET_IR_SEND_SIGNAL;
 		pocket_ir.light_on = true;

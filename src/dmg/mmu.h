@@ -136,11 +136,14 @@ class DMG_MMU
 		u8 huc_ir_input;
 	} cart;
 
-	u8 ir_signal;
-	bool ir_send;
-	u8 ir_trigger;
-	s32 ir_fade_counter;
-	s32 ir_halt_counter;
+	struct ir_data
+	{
+		u8 signal;
+		bool send;
+		u8 trigger;
+		s32 fade_counter;
+		s32 halt_counter;
+	} ir_stat;
 
 	bool div_reset;
 

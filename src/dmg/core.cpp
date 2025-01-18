@@ -280,31 +280,31 @@ void DMG_core::run_core()
 				}
 
 				//Send IR signal for GBC games
-				if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
+				if(core_mmu.ir_stat.send) { core_cpu.controllers.serial_io.send_ir_signal(); }
 
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
 
 				//Fade IR signal after a certain amount of time
 				//End hard sync after a certain amount of time
-				if(core_mmu.ir_halt_counter > 0)
+				if(core_mmu.ir_stat.halt_counter > 0)
 				{
-					if(core_mmu.ir_fade_counter > 0)
+					if(core_mmu.ir_stat.fade_counter > 0)
 					{
-						core_mmu.ir_fade_counter -= core_cpu.cycles;
+						core_mmu.ir_stat.fade_counter -= core_cpu.cycles;
 
-						if(core_mmu.ir_fade_counter <= 0)
+						if(core_mmu.ir_stat.fade_counter <= 0)
 						{
-							core_mmu.ir_fade_counter = 0;
+							core_mmu.ir_stat.fade_counter = 0;
 							core_mmu.memory_map[REG_RP] &= ~0x2;
 						}
 					}
 
-					core_mmu.ir_halt_counter -= core_cpu.cycles;
+					core_mmu.ir_stat.halt_counter -= core_cpu.cycles;
 
-					if(core_mmu.ir_halt_counter <= 0)
+					if(core_mmu.ir_stat.halt_counter <= 0)
 					{
-						core_mmu.ir_halt_counter = 0;
+						core_mmu.ir_stat.halt_counter = 0;
 						core_cpu.controllers.serial_io.stop_sync();
 					}
 				}
@@ -575,31 +575,31 @@ void DMG_core::step()
 			}
 
 			//Send IR signal for GBC games
-			if(core_mmu.ir_send) { core_cpu.controllers.serial_io.send_ir_signal(); }
+			if(core_mmu.ir_stat.send) { core_cpu.controllers.serial_io.send_ir_signal(); }
 
 			//Receive bytes normally
 			core_cpu.controllers.serial_io.receive_byte();
 
 			//Fade IR signal after a certain amount of time
 			//End hard sync after a certain amount of time
-			if(core_mmu.ir_halt_counter > 0)
+			if(core_mmu.ir_stat.halt_counter > 0)
 			{
-				if(core_mmu.ir_fade_counter > 0)
+				if(core_mmu.ir_stat.fade_counter > 0)
 				{
-					core_mmu.ir_fade_counter -= core_cpu.cycles;
+					core_mmu.ir_stat.fade_counter -= core_cpu.cycles;
 
-					if(core_mmu.ir_fade_counter <= 0)
+					if(core_mmu.ir_stat.fade_counter <= 0)
 					{
-						core_mmu.ir_fade_counter = 0;
+						core_mmu.ir_stat.fade_counter = 0;
 						core_mmu.memory_map[REG_RP] &= ~0x2;
 					}
 				}
 
-				core_mmu.ir_halt_counter -= core_cpu.cycles;
+				core_mmu.ir_stat.halt_counter -= core_cpu.cycles;
 
-				if(core_mmu.ir_halt_counter <= 0)
+				if(core_mmu.ir_stat.halt_counter <= 0)
 				{
-					core_mmu.ir_halt_counter = 0;
+					core_mmu.ir_stat.halt_counter = 0;
 					core_cpu.controllers.serial_io.stop_sync();
 				}
 			}
@@ -1075,19 +1075,19 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			//Full Changer - Draw Cosmic Character
 			case GBC_FULL_CHANGER:
 				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
-				core_mmu.ir_trigger = 1;
+				core_mmu.ir_stat.trigger = 1;
 				break;
 
 			//Pokemon Pikachu 2 - Send Watts
 			//Pocket Sakura - Send Points
 			case GBC_POKEMON_PIKACHU_2:
 			case GBC_POCKET_SAKURA:
-				core_mmu.ir_trigger = 1;
+				core_mmu.ir_stat.trigger = 1;
 				break;
 
 			//TV Remote - Send signal
 			case GBC_TV_REMOTE:
-				core_mmu.ir_trigger = 1;
+				core_mmu.ir_stat.trigger = 1;
 				break;
 		}
 	}
@@ -1168,19 +1168,19 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 			//Full Changer draw Cosmic Character
 			case GBC_FULL_CHANGER:
 				core_cpu.controllers.serial_io.full_changer.delay_counter = (core_cpu.controllers.serial_io.full_changer.current_character * 72);
-				core_mmu.ir_trigger = 1;
+				core_mmu.ir_stat.trigger = 1;
 				break;
 
 			//Pokemon Pikachu 2 - Send Watts
 			//Pocket Sakura - Send Points
 			case GBC_POKEMON_PIKACHU_2:
 			case GBC_POCKET_SAKURA:
-				core_mmu.ir_trigger = 1;
+				core_mmu.ir_stat.trigger = 1;
 				break;
 
 			//TV Remote - Send signal
 			case GBC_TV_REMOTE:
-				core_mmu.ir_trigger = 1;
+				core_mmu.ir_stat.trigger = 1;
 				break;
 		}
 	}
