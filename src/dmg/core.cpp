@@ -1046,6 +1046,28 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//TV Remote - Send signal
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
+		//HuC-1/HuC-3 - Switch IR connection
+		if(config::cart_type == DMG_HUC_IR)
+		{
+			core_mmu.ir_stat.network_id++;
+			core_mmu.ir_stat.network_id &= 0x0F;
+
+			//OSD
+			if(core_mmu.ir_stat.network_id != config::netplay_id)
+			{
+				config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+				core_cpu.controllers.serial_io.set_huc_ir_connection();
+			}
+
+			else
+			{
+				config::osd_message = "NO LINK";
+				core_cpu.controllers.serial_io.reset();
+			}
+
+			config::osd_count = 180;
+		}
+
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
 		{
 

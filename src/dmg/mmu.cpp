@@ -120,6 +120,9 @@ void DMG_MMU::reset()
 	ir_stat.trigger = false;
 	ir_stat.fade_counter = 0;
 	ir_stat.halt_counter = 0;
+	ir_stat.network_id = 0;
+
+	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }
 
 	div_reset = false;
 

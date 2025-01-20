@@ -279,6 +279,7 @@ class DMG_SIO
 	void process_network_communication();
 	void suspend_network_connection();
 	void resume_network_connection();
+	void set_huc_ir_connection();
 
 	void printer_process();
 	void printer_execute_command();

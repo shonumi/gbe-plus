@@ -140,9 +140,11 @@ class DMG_MMU
 	{
 		u8 signal;
 		bool send;
+		bool connected[10];
 		u8 trigger;
 		s32 fade_counter;
 		s32 halt_counter;
+		u8 network_id;
 	} ir_stat;
 
 	bool div_reset;

@@ -64,7 +64,6 @@ DMG_SIO::~DMG_SIO()
 			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
 			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
-
 	}
 
 	server.connected = false;
@@ -176,6 +175,13 @@ bool DMG_SIO::init()
 	sender.connected = false;
 	sender.port = config::netplay_client_port;
 
+	//Use special port configuration for HuC-1/HuC-3 IR communications
+	if(config::cart_type == DMG_HUC_IR)
+	{
+		server.port = config::netplay_server_port + (16 * config::netplay_id) + mem->ir_stat.network_id;
+		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
+	}
+
 	//Abort initialization if server and client ports are the same
 	if(config::netplay_server_port == config::netplay_client_port)
 	{
@@ -267,7 +273,7 @@ void DMG_SIO::reset()
 	sio_stat.sync = false;
 	sio_stat.transfer_byte = 0;
 	sio_stat.last_transfer = 0;
-	sio_stat.network_id = 0;
+	sio_stat.network_id = config::netplay_id;
 	sio_stat.ping_count = 0;
 	sio_stat.ping_finish = false;
 	sio_stat.send_data = false;
@@ -1021,7 +1027,90 @@ void DMG_SIO::resume_network_connection()
 	SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
 
 	#endif
+}
 
+/****** Sets a new network connection for HuC-1/HuC-3 IR connections ******/
+void DMG_SIO::set_huc_ir_connection()
+{
+	#ifdef GBE_NETPLAY
+
+	if(network_init)
+	{
+		//Close SDL_net and any current connections
+		if(server.host_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
+			SDLNet_TCP_Close(server.host_socket);
+		}
+
+		if(server.remote_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
+			SDLNet_TCP_Close(server.remote_socket);
+		}
+
+		if(sender.host_socket != NULL)
+		{
+			//Send disconnect byte to another system
+			u8 temp_buffer[2];
+			temp_buffer[0] = 0;
+			temp_buffer[1] = 0x80;
+		
+			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+			SDLNet_TCP_Close(sender.host_socket);
+		}
+
+		//Server info
+		server.host_socket = NULL;
+		server.host_init = false;
+		server.remote_socket = NULL;
+		server.remote_init = false;
+		server.connected = false;
+		server.port = config::netplay_server_port + (16 * config::netplay_id) + mem->ir_stat.network_id;
+
+		//Client info
+		sender.host_socket = NULL;
+		sender.host_init = false;
+		sender.connected = false;
+		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
+
+		//Abort initialization if server and client ports are the same
+		if(config::netplay_server_port == config::netplay_client_port)
+		{
+			std::cout<<"SIO::Error - Server and client ports are the same. Could not change IR network connection.\n";
+			return;
+		}
+
+		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+		if(SDLNet_ResolveHost(&server.host_ip, NULL, server.port) < 0)
+		{
+			std::cout<<"SIO::Error - Server could not resolve hostname\n";
+			return;
+		}
+
+		//Open a connection to listen on host's port
+		if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
+		{
+			std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
+			return;
+		}
+
+		server.host_init = true;
+
+		//Setup client, listen on another port
+		if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
+		{
+			std::cout<<"SIO::Error - Client could not resolve hostname\n";
+			return;
+		}
+
+		//Create sockets sets
+		tcp_sockets = SDLNet_AllocSocketSet(3);
+	}
+
+	#endif
 }
 
 /****** Processes data sent to the GB Printer ******/
