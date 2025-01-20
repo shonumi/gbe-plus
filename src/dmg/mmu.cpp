@@ -121,6 +121,7 @@ void DMG_MMU::reset()
 	ir_stat.fade_counter = 0;
 	ir_stat.halt_counter = 0;
 	ir_stat.network_id = 0;
+	ir_stat.try_connection = false;
 
 	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }
 

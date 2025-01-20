@@ -243,6 +243,9 @@ void DMG_core::run_core()
 
 			//Perform reset for GB Memory Cartridge
 			if((config::cart_type == DMG_GBMEM) && (core_mmu.cart.flash_stat == 0xF0)) { reset(); }
+
+			//Check for new IR connection of HuC carts
+			if(core_mmu.ir_stat.try_connection) { core_cpu.controllers.serial_io.process_network_communication(); }
 		}
 
 		//Run the CPU
@@ -1062,9 +1065,8 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			else
 			{
 				config::osd_message = "NO LINK";
-				core_cpu.controllers.serial_io.reset();
 			}
-
+			
 			config::osd_count = 180;
 		}
 

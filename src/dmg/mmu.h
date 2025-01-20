@@ -141,6 +141,7 @@ class DMG_MMU
 		u8 signal;
 		bool send;
 		bool connected[10];
+		bool try_connection;
 		u8 trigger;
 		s32 fade_counter;
 		s32 halt_counter;

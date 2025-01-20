@@ -176,40 +176,45 @@ bool DMG_SIO::init()
 	sender.port = config::netplay_client_port;
 
 	//Use special port configuration for HuC-1/HuC-3 IR communications
+	//Network connections are set up by set_huc_ir_connection()
 	if(config::cart_type == DMG_HUC_IR)
 	{
 		server.port = config::netplay_server_port + (16 * config::netplay_id) + mem->ir_stat.network_id;
 		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
 	}
 
-	//Abort initialization if server and client ports are the same
-	if(config::netplay_server_port == config::netplay_client_port)
+	//Otherwise, set up networking normally
+	else
 	{
-		std::cout<<"SIO::Error - Server and client ports are the same. Could not initialize SDL_net\n";
-		return false;
-	}
+		//Abort initialization if server and client ports are the same
+		if(server.port == sender.port)
+		{
+			std::cout<<"SIO::Error - Server and client ports are the same. Could not initialize SDL_net\n";
+			return false;
+		}
 
-	//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
-	if(SDLNet_ResolveHost(&server.host_ip, NULL, server.port) < 0)
-	{
-		std::cout<<"SIO::Error - Server could not resolve hostname\n";
-		return false;
-	}
+		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+		if(SDLNet_ResolveHost(&server.host_ip, NULL, server.port) < 0)
+		{
+			std::cout<<"SIO::Error - Server could not resolve hostname\n";
+			return false;
+		}
 
-	//Open a connection to listen on host's port
-	if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
-	{
-		std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
-		return false;
-	}
+		//Open a connection to listen on host's port
+		if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
+		{
+			std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
+			return false;
+		}
 
-	server.host_init = true;
+		server.host_init = true;
 
-	//Setup client, listen on another port
-	if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
-	{
-		std::cout<<"SIO::Error - Client could not resolve hostname\n";
-		return false;
+		//Setup client, listen on another port
+		if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
+		{
+			std::cout<<"SIO::Error - Client could not resolve hostname\n";
+			return false;
+		}
 	}
 
 	//Create sockets sets
@@ -771,6 +776,9 @@ bool DMG_SIO::receive_byte()
 				sio_stat.connected = false;
 				sio_stat.sync = false;
 				sio_stat.sync_counter = 0;
+
+				if(config::cart_type == DMG_HUC_IR) { set_huc_ir_connection(); }
+
 				return true;
 			}
 
@@ -966,6 +974,7 @@ void DMG_SIO::process_network_communication()
 		if((server.connected) && (sender.connected))
 		{
 			sio_stat.connected = true;
+			mem->ir_stat.try_connection = false;
 
 			//Set the emulated SIO device type
 			if((sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER) && (sio_stat.sio_type != NO_GB_DEVICE)) { sio_stat.sio_type = GB_LINK; }
@@ -1076,8 +1085,11 @@ void DMG_SIO::set_huc_ir_connection()
 		sender.connected = false;
 		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
 
+		mem->ir_stat.try_connection = true;
+		sio_stat.connected = false;
+
 		//Abort initialization if server and client ports are the same
-		if(config::netplay_server_port == config::netplay_client_port)
+		if(server.port == sender.port)
 		{
 			std::cout<<"SIO::Error - Server and client ports are the same. Could not change IR network connection.\n";
 			return;
@@ -1105,9 +1117,6 @@ void DMG_SIO::set_huc_ir_connection()
 			std::cout<<"SIO::Error - Client could not resolve hostname\n";
 			return;
 		}
-
-		//Create sockets sets
-		tcp_sockets = SDLNet_AllocSocketSet(3);
 	}
 
 	#endif
