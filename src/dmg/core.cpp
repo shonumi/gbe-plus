@@ -1117,7 +1117,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	}
 }
 
-/****** Process hotkey input - Use exsternally when not using SDL ******/
+/****** Process hotkey input - Use externally when not using SDL ******/
 void DMG_core::handle_hotkey(int input, bool pressed)
 {
 	//Toggle turbo on
@@ -1163,9 +1163,29 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 	//TV Remote - Send Signal
 	else if((input == SDLK_F3) && (pressed))
 	{
+		//HuC-1/HuC-3 - Switch IR connection
+		if(config::cart_type == DMG_HUC_IR)
+		{
+			core_mmu.ir_stat.network_id++;
+			core_mmu.ir_stat.network_id &= 0x0F;
+
+			//OSD
+			if(core_mmu.ir_stat.network_id != config::netplay_id)
+			{
+				config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+				core_cpu.controllers.serial_io.set_huc_ir_connection();
+			}
+
+			else
+			{
+				config::osd_message = "NO LINK";
+			}
+			
+			config::osd_count = 180;
+		}
+
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
 		{
-
 			//Bardigun reswipe card
 			case GB_BARDIGUN_SCANNER:
 				core_cpu.controllers.serial_io.bardigun_scanner.current_state = BARDIGUN_INACTIVE;
