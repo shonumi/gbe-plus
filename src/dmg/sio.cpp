@@ -246,7 +246,12 @@ bool DMG_SIO::init()
 	//Hard sync is *always* on for the 4-Player Adapter (this probably won't change)
 	if(config::netplay_hard_sync)
 	{
-		if((config::sio_device == 1) || (config::sio_device == 6))
+		if(config::cart_type == DMG_HUC_IR)
+		{
+			sio_stat.use_hard_sync = false;
+		}
+
+		else if((config::sio_device == 1) || (config::sio_device == 6))
 		{
 			sio_stat.use_hard_sync = true;
 		}
@@ -1084,6 +1089,12 @@ void DMG_SIO::set_huc_ir_connection()
 		sender.host_init = false;
 		sender.connected = false;
 		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
+
+		//Clear up any syncing when the instance doing the switching suspends a network connection
+		sio_stat.sync = false;
+		sio_stat.sync_counter = 0;
+
+		if(sio_stat.connected) { std::cout<<"SIO::Netplay connection suspended.\n"; }
 
 		mem->ir_stat.try_connection = true;
 		sio_stat.connected = false;
