@@ -179,6 +179,9 @@ bool DMG_SIO::init()
 	//Network connections are set up by set_huc_ir_connection()
 	if(config::cart_type == DMG_HUC_IR)
 	{
+		config::netplay_id &= 0x0F;
+		mem->ir_stat.network_id &= 0x0F;
+
 		server.port = config::netplay_server_port + (16 * config::netplay_id) + mem->ir_stat.network_id;
 		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
 	}
@@ -1075,6 +1078,9 @@ void DMG_SIO::set_huc_ir_connection()
 			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
 			SDLNet_TCP_Close(sender.host_socket);
 		}
+
+		config::netplay_id &= 0x0F;
+		mem->ir_stat.network_id &= 0x0F;
 
 		//Server info
 		server.host_socket = NULL;
