@@ -1336,6 +1336,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	client_port_layout->addWidget(client_port);
 	client_port_set->setLayout(client_port_layout);
 
+	//Netplay - Netplay ID
+	QWidget* netplay_id_set = new QWidget(netplay);
+	QLabel* netplay_id_label = new QLabel("Netplay ID : ");
+	netplay_id = new QSpinBox(netplay);
+	netplay_id->setMinimum(0);
+	netplay_id->setMaximum(0xFF);
+	netplay_id->setToolTip("Netplay ID. Determines if this instance of GBE+ is Player 1, Player 2, etc.\nOnly used in situations with 3 or more players.");
+
+	QHBoxLayout* netplay_id_layout = new QHBoxLayout;
+	netplay_id_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	netplay_id_layout->addWidget(netplay_id_label);
+	netplay_id_layout->addWidget(netplay_id);
+	netplay_id_set->setLayout(netplay_id_layout);
+
 	//Netplay - Client IP address
 	QWidget* ip_address_set = new QWidget(netplay);
 	QLabel* ip_address_label = new QLabel("Client IP Address : ");
@@ -1373,6 +1387,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	netplay_layout->addWidget(sync_threshold_set);
 	netplay_layout->addWidget(server_port_set);
 	netplay_layout->addWidget(client_port_set);
+	netplay_layout->addWidget(netplay_id_set);
 	netplay_layout->addWidget(ip_address_set);
 	netplay_layout->addWidget(gbma_address_set);
 	netplay->setLayout(netplay_layout);
@@ -1550,6 +1565,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sync_threshold, SIGNAL(valueChanged(int)), this, SLOT(update_sync_threshold()));
 	connect(server_port, SIGNAL(valueChanged(int)), this, SLOT(update_server_port()));
 	connect(client_port, SIGNAL(valueChanged(int)), this, SLOT(update_client_port()));
+	connect(netplay_id, SIGNAL(valueChanged(int)), this, SLOT(update_netplay_id()));
 	connect(ip_update, SIGNAL(clicked()), this, SLOT(update_ip_addr()));
 	connect(gbma_update, SIGNAL(clicked()), this, SLOT(update_gbma_addr()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
@@ -2872,6 +2888,12 @@ void gen_settings::update_server_port()
 void gen_settings::update_client_port()
 {
 	config::netplay_client_port = client_port->value();
+}
+
+/****** Sets the netplay ID ******/
+void gen_settings::update_netplay_id()
+{
+	config::netplay_id = netplay_id->value();
 }
 
 /****** Sets the client IP address ******/
