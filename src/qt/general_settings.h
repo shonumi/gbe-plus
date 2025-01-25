@@ -199,6 +199,7 @@ class gen_settings : public QDialog
 	QSpinBox* sync_threshold;
 	QSpinBox* server_port;
 	QSpinBox* client_port;
+	QSpinBox* netplay_id;
 	QLineEdit* ip_address;
 	QPushButton* ip_update;
 	QLineEdit* gbma_address;
@@ -270,6 +271,7 @@ class gen_settings : public QDialog
 	void update_sync_threshold();
 	void update_server_port();
 	void update_client_port();
+	void update_netplay_id();
 	void update_ip_addr();
 	void update_gbma_addr();
 	void configure_button(int button);

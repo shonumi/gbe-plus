@@ -2180,6 +2180,7 @@ void gen_settings::set_ini_options()
 	sync_threshold->setValue(config::netplay_sync_threshold);
 	server_port->setValue(config::netplay_server_port);
 	client_port->setValue(config::netplay_client_port);
+	netplay_id->setValue(config::netplay_id);
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
 	gbma_address->setText(QString::fromStdString(config::gbma_server));
 
