@@ -24,7 +24,9 @@ void AGB_core::debug_step()
 	if((config::auto_gen_am3_id) && (core_cpu.reg.r15 == 0x02002140))
 	{
 		u8 id[0x10];
-		for(u32 x = 0; x < 0x10; x++) { id[x] = core_mmu.memory_map[0x03007D84 + x]; }
+		u32 offset = core_cpu.reg.r1 & 0xFFFFFFF;
+
+		for(u32 x = 0; x < 0x10; x++) { id[x] = core_mmu.memory_map[offset + x]; }
 
 		std::string smid_file = config::rom_file + ".smid";
 		std::ofstream gen_file(smid_file.c_str());
