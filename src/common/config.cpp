@@ -986,7 +986,12 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--auto-gen-smid") { config::auto_gen_am3_id = true; }
 
 			//Use AM3 Folder
-			else if(config::cli_args[x] == "--am3-folder") { config::use_am3_folder = true; }
+			//Automatically sets cart type to AM3
+			else if(config::cli_args[x] == "--am3-folder")
+			{
+				config::use_am3_folder = true;
+				config::cart_type = AGB_AM3;
+			}
 
 			//Use legacy save size for DMG/GBC games if necessary
 			else if(config::cli_args[x] == "--use-legacy-save-size") { config::use_legacy_save_size = true; }
