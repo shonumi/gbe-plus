@@ -28,7 +28,11 @@ void AGB_core::debug_step()
 
 		for(u32 x = 0; x < 0x10; x++) { id[x] = core_mmu.memory_map[offset + x]; }
 
-		std::string smid_file = config::rom_file + ".smid";
+		std::string smid_file = "";
+
+		if(config::use_am3_folder) { smid_file = config::rom_file + "/SMID.KEY"; }
+		else { smid_file = config::rom_file + ".smid"; }
+
 		std::ofstream gen_file(smid_file.c_str());
 
 		if(gen_file.is_open())

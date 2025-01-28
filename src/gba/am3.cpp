@@ -454,11 +454,18 @@ bool AGB_MMU::am3_load_folder(std::string folder)
 		return false;
 	}
 
-	//Abort if smid.key not found
-	if(!smid_file_found)
+	//Abort if smid.key not found and smid.key is not auto-generated
+	if(!smid_file_found && !config::auto_gen_am3_id)
 	{
 		std::cout<<"AM3::Error - No SMID.KEY file found in folder " << folder << "\n";
 		return false;
+	}
+
+	//Setup dummy data for SMID if auto-generating
+	else if(config::auto_gen_am3_id)
+	{
+		am3.smid.clear();
+		am3.smid.resize(16, 0x00);
 	}
 
 	//Open up INFO.AM3 to grab list of relevant files
