@@ -254,6 +254,8 @@ bool AGB_MMU::check_am3_fat()
 	std::vector<u32> temp_size_list;
 	std::string current_file = "";
 
+	bool is_frag_detected = false;
+
 	//Grab filenames, size, and location from Root Directory
 	while(t_addr < (data_region_addr + region_limit))
 	{
@@ -286,6 +288,16 @@ bool AGB_MMU::check_am3_fat()
 				temp_addr_list.push_back(f_pos);
 
 				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << "\n";
+
+				//Add warning if file appear fragmented
+				if(temp_file_list.size() >= 2)
+				{
+					s32 current_addr = f_pos;
+					s32 last_addr = temp_addr_list[temp_addr_list.size() - 2];
+					s32 last_size = temp_size_list[temp_size_list.size() - 2];
+
+					if((current_addr - last_addr) < last_size) { is_frag_detected = true; }
+				}
 
 				t_addr += 0x20;
 			}
@@ -324,6 +336,12 @@ bool AGB_MMU::check_am3_fat()
 	{
 		std::cout<<"Error - AM3 FAT has no INFO.AM3 file\n";
 		return false;
+	}
+
+	if(is_frag_detected)
+	{
+		std::cout<<"MMU::Warning - Possible file fragmentation detected in AM3 SmartMedia image\n";
+		std::cout<<"MMU::Warning - Recommended to extract or mount SmartCard image to a folder\n";
 	}
 
 	u32 info_table = t_addr;
