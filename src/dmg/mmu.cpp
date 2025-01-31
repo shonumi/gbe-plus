@@ -68,7 +68,7 @@ void DMG_MMU::reset()
 	cart.mbc_type = ROM_ONLY;
 	cart.battery = false;
 	cart.ram = false;
-	cart.multicart = ((config::cart_type == DMG_MBC1M) || (config::cart_type == DMG_MMM01));
+	cart.multicart = ((config::cart_type == DMG_MBC1M) || (config::cart_type == DMG_MMM01) || (config::cart_type == DMG_M161));
 	cart.sonar = (config::cart_type == DMG_MBC1S);
 	cart.rumble = false;
 
@@ -1485,6 +1485,10 @@ u8 DMG_MMU::mbc_read(u16 address)
 			return mmm01_read(address);
 			break;
 
+		case M161:
+			return m161_read(address);
+			break;
+
 		case GB_CAMERA:
 			return cam_read(address);
 			break;
@@ -1538,6 +1542,10 @@ void DMG_MMU::mbc_write(u16 address, u8 value)
 
 		case MMM01:
 			mmm01_write(address, value);
+			break;
+
+		case M161:
+			m161_write(address, value);
 			break;
 
 		case GB_CAMERA:
@@ -1982,6 +1990,17 @@ bool DMG_MMU::read_file(std::string filename)
 
 	//Let MBC1S access cart RAM area for MBC registers
 	if(cart.sonar) { cart.ram = true; }
+
+	//Force M161 cart type if necessary
+	if(config::cart_type == DMG_M161)
+	{
+		cart.mbc_type = M161;
+		cart.ram = false;
+		cart.battery = false;
+		rom_bank = 0;
+
+		std::cout<<"ROM BANK \n";
+	}
 
 	//Calculate 8-bit checksum
 	u8 checksum = 0;

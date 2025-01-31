@@ -53,6 +53,7 @@ enum special_cart_types
 	DMG_MBC1M,
 	DMG_MBC1S,
 	DMG_MMM01,
+	DMG_M161,
 	DMG_MBC30,
 	DMG_GBMEM,
 	DMG_HUC_IR,

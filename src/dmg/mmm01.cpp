@@ -4,10 +4,10 @@
 
 // File : mmm01.cpp
 // Date : December 14, 2016
-// Description : Game Boy MMM01 I/O handling
+// Description : Game Boy MMM01 + M161 I/O handling
 //
-// Handles reading and writing bytes to memory locations for MMM01
-// Used to switch ROM and RAM banks in MMM01
+// Handles reading and writing bytes to memory locations for MMM01 or M161
+// Used to switch ROM and RAM banks in MMM01 or M161
 
 #include "mmu.h"
 
@@ -94,6 +94,46 @@ u8 DMG_MMU::mmm01_read(u16 address)
 	{
 		if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
 		else { return 0x00; }
+	}
+
+	//For all unhandled reads, attempt to return the value from the memory map
+	return memory_map[address];
+}
+
+/****** Performs write operations specific to the M161 ******/
+void DMG_MMU::m161_write(u16 address, u8 value)
+{
+	//MBC register - Select ROM bank
+	if((address <= 0x7FFF) && (rom_bank == 0)) 
+	{
+		rom_bank = value & 0x07;
+	}
+}
+
+/****** Performs read operations specific to the MMM01 ******/
+u8 DMG_MMU::m161_read(u16 address)
+{
+	//Read using ROM Banking - 32KB banks translated to 16KB banks GBE+ normally expects
+	if(address <= 0x3FFF)
+	{
+		u8 real_bank = (rom_bank << 1) - 2;
+
+		if(rom_bank == 0) { return memory_map[address]; }
+		else { return read_only_bank[real_bank][address]; }
+	}
+
+	else if((address >= 0x4000) && (address <= 0x7FFF))
+	{
+		u8 real_bank = (rom_bank << 1) - 1;
+
+		if(rom_bank == 0) { return memory_map[address]; }
+		else { return read_only_bank[real_bank][address - 0x4000]; }
+	}
+
+	//M161 does not have RAM
+	else if((address >= 0xA000) && (address <= 0xBFFF))
+	{
+		return 0x00;
 	}
 
 	//For all unhandled reads, attempt to return the value from the memory map

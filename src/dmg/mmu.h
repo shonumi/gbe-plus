@@ -40,6 +40,7 @@ class DMG_MMU
 		HUC1,
 		HUC3,
 		MMM01,
+		M161,
 		GB_CAMERA,
 		TAMA5,
 	};
@@ -226,6 +227,9 @@ class DMG_MMU
 
 	void mmm01_write(u16 address, u8 value);
 	u8 mmm01_read(u16 address);
+
+	void m161_write(u16 address, u8 value);
+	u8 m161_read(u16 address);
 
 	void cam_write(u16 address, u8 value);
 	u8 cam_read(u16 address);

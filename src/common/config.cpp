@@ -854,6 +854,9 @@ bool parse_cli_args()
 			//Use MMM01 multicart mode if applicable for a given ROM
 			else if(config::cli_args[x] == "--mmm01") { config::cart_type = DMG_MMM01; }
 
+			//Use M161 multicart mode if applicable for a given ROM
+			else if(config::cli_args[x] == "--m161") { config::cart_type = DMG_M161; }
+
 			//Use MBC30 (double SRAM) for Pocket Monsters Crystal
 			else if(config::cli_args[x] == "--mbc30") { config::cart_type = DMG_MBC30; }
 
@@ -1008,6 +1011,7 @@ bool parse_cli_args()
 				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
 				std::cout<<"--mbc1m \t\t\t\t Use MBC1M multicart mode if applicable\n";
 				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
+				std::cout<<"--m161 \t\t\t\t Use M161 multicart mode if applicable\n";
 				std::cout<<"--mbc1s \t\t\t\t Use MBC1S sonar cart\n";
 				std::cout<<"--mbc30 \t\t\t\t Use MBC30 for Pocket Monsters Crystal\n";
 				std::cout<<"--gbmem \t\t\t\t Use GB Memory Cartridge mapper\n";
