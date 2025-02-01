@@ -111,6 +111,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	special_cart->addItem("DMG - MBC1M");
 	special_cart->addItem("DMG - MBC1S");
 	special_cart->addItem("DMG - MMM01");
+	special_cart->addItem("DMG - M161");
 	special_cart->addItem("DMG - MBC30");
 	special_cart->addItem("DMG - GB Memory");
 	special_cart->addItem("DMG - HuC IR Cart");

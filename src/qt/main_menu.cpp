@@ -446,7 +446,7 @@ void main_menu::open_am3_fldr()
 
 	config::use_am3_folder = true;
 	config::cart_type = AGB_AM3;
-	settings->special_cart->setCurrentIndex(0x0D);
+	settings->special_cart->setCurrentIndex(0x0E);
 
 	config::rom_file = folder_name.toStdString();
 
@@ -791,22 +791,23 @@ void main_menu::boot_game()
 		case 0x1: config::cart_type = DMG_MBC1M; break;
 		case 0x2: config::cart_type = DMG_MBC1S; break;
 		case 0x3: config::cart_type = DMG_MMM01; break;
-		case 0x4: config::cart_type = DMG_MBC30; break;
-		case 0x5: config::cart_type = DMG_GBMEM; break;
-		case 0x6: config::cart_type = DMG_HUC_IR; break;
-		case 0x7: config::cart_type = AGB_RTC; break;
-		case 0x8: config::cart_type = AGB_SOLAR_SENSOR; break;
-		case 0x9: config::cart_type = AGB_RUMBLE; break;
-		case 0xA: config::cart_type = AGB_GYRO_SENSOR; break;
-		case 0xB: config::cart_type = AGB_TILT_SENSOR; break;
-		case 0xC: config::cart_type = AGB_8M_DACS; break;
-		case 0xD: config::cart_type = AGB_AM3; break;
-		case 0xE: config::cart_type = AGB_JUKEBOX; break;
-		case 0xF: config::cart_type = AGB_PLAY_YAN; break;
-		case 0x10: config::cart_type = AGB_CAMPHO; break;
-		case 0x11: config::cart_type = AGB_GLUCOBOY; break;
-		case 0x12: config::cart_type = AGB_TV_TUNER; break;
-		case 0x13: config::cart_type = NDS_IR_CART; break;
+		case 0x4: config::cart_type = DMG_M161; break;
+		case 0x5: config::cart_type = DMG_MBC30; break;
+		case 0x6: config::cart_type = DMG_GBMEM; break;
+		case 0x7: config::cart_type = DMG_HUC_IR; break;
+		case 0x8: config::cart_type = AGB_RTC; break;
+		case 0x9: config::cart_type = AGB_SOLAR_SENSOR; break;
+		case 0xA: config::cart_type = AGB_RUMBLE; break;
+		case 0xB: config::cart_type = AGB_GYRO_SENSOR; break;
+		case 0xC: config::cart_type = AGB_TILT_SENSOR; break;
+		case 0xD: config::cart_type = AGB_8M_DACS; break;
+		case 0xE: config::cart_type = AGB_AM3; break;
+		case 0xF: config::cart_type = AGB_JUKEBOX; break;
+		case 0x10: config::cart_type = AGB_PLAY_YAN; break;
+		case 0x11: config::cart_type = AGB_CAMPHO; break;
+		case 0x12: config::cart_type = AGB_GLUCOBOY; break;
+		case 0x13: config::cart_type = AGB_TV_TUNER; break;
+		case 0x14: config::cart_type = NDS_IR_CART; break;
 	}
 
 	//Check rumble status
