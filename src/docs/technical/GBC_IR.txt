@@ -33,7 +33,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Austin Powers: Oh Behave!				Trade items and messages		
 - Austin Powers: Welcome to My Underground Lair!	Trade items and messages
 - Bakuten Shoot Beyblade				Engage in 1-on-1 battles
-- Beyblade: Fighting Tournament				???
+- Beyblade: Fighting Tournament				Trade Beyblades + parts. Engage in 1-on-1 battles
 - Boku no Camp-jou					Exchange money earned from hunting and fishing
 - Bomberman B-Daman Bakugaiden V: Final Mega Tune	Obtain different armor from TV remote signals	
 - Bomberman Max: Blue Champion				Combine Charaboms/Trade completed levels/Unlock hidden areas
@@ -64,7 +64,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Hunter x Hunter: Hunter no Keifu			Use "D-Trans" from Yu-Gi-Oh to meet Card Hunter Augu and unlock a hidden "Muuou" scenario
 - Hype: The Time Quest					Ubi Key -> Unlocks a bonus level
 - Inspector Gadget: Operation Madkactus			Ubi Key -> Unlocks a bonus level
-- Jisedai Begoma Battle Beyblade			Trade Beyblades
+- Jisedai Begoma Battle Beyblade			Trade Beyblades. "IR Kiss" functionality that copies "GB Kiss"
 - Kaijin Zona						Receive randomized puzzles via IR signals
 - Kakurenbo Battle Monster Tactics			Send/Receive Montaku. Wager Montaku via "takupon" game against another player
 - Konchuu Hakase 2					Exchange collectible insects 
@@ -77,7 +77,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Love Hina Pocket					Trade custom-made stickers
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks a secret race track in Mickey's Speedway USA
-- Mickey's Speedway USA					???
+- Mickey's Speedway USA					Communicates with Mickey's Racing Adventure to unlock a secret race track
 - Mission Impossible					Send and receive messages, notes, addresses + custom TV remote
 - NHL Blades of Steel					Trade individual hockey players
 - NHL Blades of Steel 2000				Trade individual hockey players
