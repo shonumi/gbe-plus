@@ -53,7 +53,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Flipper & Lopaka					Ubi Key -> Unlocks a bonus "Ubi Key Level"
 - Game Boy Wars 3					Wireless multiplayer
 - GB Harobots						Create new Robo Data via infrared signals
-- Gran Duel: Shinki Dungeon no Hihou			???
+- Gran Duel: Shinki Dungeon no Hihou			Trade cards
 - Gyouten Ningen Batseelor: Dakutoru Gai no Yabo	Exchange collectible stickers
 - Hamster Paradise 3 (Churi)				Exchange e-mail
 - Hamster Paradise 4					Exchange hamsters
@@ -74,7 +74,7 @@ The North American version of Disney's Aladdin claims to have infrared support o
 - Lode Runner: Dom Dom no Yabou				Exchange custom-made levels
 - Looney Tunes Collector: Alert!			Wireless multiplayer for 3 minigames
 - Looney Tunes: Marvin Strikes Back!			Wireless multiplayer for 3 minigames
-- Love Hina Pocket					???
+- Love Hina Pocket					Trade custom-made stickers
 - Mary-Kate and Ashley Pocket Planner			Send and receive "G-mail" messages
 - Mickey's Racing Adventure				Send and receive messages. Unlocks a secret race track in Mickey's Speedway USA
 - Mickey's Speedway USA					???
