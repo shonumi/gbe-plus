@@ -121,6 +121,8 @@ The North American version of Disney's Aladdin claims to have infrared support o
 
 It should be noted that at least one game that uses the HuC-3 MBC, Pocket Family GB 2, is not in fact a "GB KISS" game. Instead, it uses the GBC's built-in IR hardware. A similar phenomenon can be seen with the Japanese release of Pokemon TCG (which used the HuC-1) versus releases for any other region (which use the GBC's native IR). Pocket Family GB 2 abandons the IR diodes on the HuC-3 PCB. At this point in time, Hudson may have finally decided to abandon GB KISS and the HuC-1 and HuC-3's IR features as they were redundant, especially for games designed to run exclusively on the GBC.
 
+Although Hudson eventually adopted the GBC's native IR functionality over the HuC-1 and HuC-3, one of their games continued to offer GB KISS-like features. Jisedai Begoma Battle Beyblade calls its version "IR Kiss", however, it's mostly an exact copy of the standard GB KISS interface capable of sending and receiving files or messages. This remains incompatible with previous GB KISS titles due to the different positioning of the IR diodes in the GBC and HuC-1/HuC-3. As far as it is known, Hudson never developed IR Kiss after Jisedai Begoma Battle Beyblade.
+
 
 ***************************************************
 4. IR Communication Types
