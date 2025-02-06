@@ -205,3 +205,32 @@ void DMG_SIO::pocket_ir_process()
 
 	else { pocket_ir.current_state = POCKET_IR_INACTIVE; }
 }
+
+/****** Converts incoming IR pulses into bytes for the GB KISS LINK ******/
+void DMG_MMU::gb_kiss_link_get_bytes()
+{
+
+}
+
+/****** Converts byte data into IR pulses for the GB KISS LINK ******/
+void DMG_MMU::gb_kiss_link_set_signal(u8 input)
+{
+	u8 mask = 0x80;
+
+	while(mask)
+	{
+		//Long Pulse, Bit = 1 : ~720 CPU cycles
+		if(input & mask)
+		{
+			kiss_link.output_signals.push_back(720);
+		}
+
+		//Short Pulse, Bit = 0 : ~460 CPU cycles
+		else
+		{
+			kiss_link.output_signals.push_back(460);
+		}
+
+		mask >>= 1;
+	}
+}

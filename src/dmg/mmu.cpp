@@ -123,6 +123,12 @@ void DMG_MMU::reset()
 	ir_stat.network_id = 0;
 	ir_stat.try_connection = false;
 
+	kiss_link.cycles = 0;
+	kiss_link.input_signals.clear();
+	kiss_link.output_signals.clear();
+	kiss_link.gbf_data.clear();
+	kiss_link.data.clear();
+
 	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }
 
 	div_reset = false;

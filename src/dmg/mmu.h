@@ -149,6 +149,15 @@ class DMG_MMU
 		u8 network_id;
 	} ir_stat;
 
+	struct gb_kiss_link_data
+	{
+		u32 cycles;
+		std::vector<u32> input_signals;
+		std::vector<u32> output_signals;
+		std::vector<u8> gbf_data;
+		std::vector<u8> data;
+	} kiss_link;
+
 	bool div_reset;
 
 	dmg_core_pad* g_pad;
@@ -242,6 +251,9 @@ class DMG_MMU
 	void gb_mem_remap();
 	bool gb_mem_read_map(std::string filename);
 	void gb_mem_format_save(std::string filename);
+
+	void gb_kiss_link_get_bytes();
+	void gb_kiss_link_set_signal(u8 input);
 
 	void set_gs_cheats();
 	void set_gg_cheats();
