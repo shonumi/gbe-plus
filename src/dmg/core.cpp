@@ -520,6 +520,30 @@ void DMG_core::run_core()
 							case GBC_TV_REMOTE:
 								core_cpu.controllers.serial_io.tv_remote_process();
 								break;
+
+							//Process GB KISS LINK communications
+							case GB_KISS_LINK:
+								core_mmu.kiss_link.cycles += core_cpu.cycles;
+
+								//Continue gathering cycle count or abort after 1 second
+								if(core_mmu.kiss_link.cycles < 0x400000)
+								{
+									core_cpu.controllers.serial_io.sio_stat.shifts_left = 1;
+									core_cpu.controllers.serial_io.sio_stat.shift_counter = 1;
+									core_cpu.controllers.serial_io.sio_stat.shift_clock = 0;
+								}
+
+								else
+								{
+									core_mmu.kiss_link.input_signals.push_back(core_mmu.kiss_link.cycles);
+									core_mmu.kiss_link.cycles = 0;
+
+									core_cpu.controllers.serial_io.sio_stat.shifts_left = 0;
+									core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
+									core_cpu.controllers.serial_io.sio_stat.shift_clock = 0;
+								}
+
+								break;
 						}
 					}
 				}
