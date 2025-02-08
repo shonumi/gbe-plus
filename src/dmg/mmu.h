@@ -156,6 +156,7 @@ class DMG_MMU
 		std::vector<u32> output_signals;
 		std::vector<u8> gbf_data;
 		std::vector<u8> data;
+		gb_kiss_link_state state;
 	} kiss_link;
 
 	bool div_reset;
@@ -254,6 +255,7 @@ class DMG_MMU
 
 	void gb_kiss_link_get_bytes();
 	void gb_kiss_link_set_signal(u8 input);
+	void gb_kiss_link_process();
 
 	void set_gs_cheats();
 	void set_gg_cheats();

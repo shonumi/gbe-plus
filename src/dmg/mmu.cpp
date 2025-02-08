@@ -128,6 +128,7 @@ void DMG_MMU::reset()
 	kiss_link.output_signals.clear();
 	kiss_link.gbf_data.clear();
 	kiss_link.data.clear();
+	kiss_link.state = GKL_INACTIVE;
 
 	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }
 

@@ -206,6 +206,28 @@ void DMG_SIO::pocket_ir_process()
 	else { pocket_ir.current_state = POCKET_IR_INACTIVE; }
 }
 
+/****** Processes IR communication protocol for GB KISS LINK *****/
+void DMG_MMU::gb_kiss_link_process()
+{
+	//Continue gathering cycle count or abort after 1 second
+	if(kiss_link.cycles < 0x400000)
+	{
+		sio_stat->shifts_left = 1;
+		sio_stat->shift_counter = 1;
+		sio_stat->shift_clock = 0;
+	}
+
+	else
+	{
+		kiss_link.input_signals.push_back(kiss_link.cycles);
+		kiss_link.cycles = 0;
+
+		sio_stat->shifts_left = 0;
+		sio_stat->shift_counter = 0;
+		sio_stat->shift_clock = 0;
+	}
+}
+
 /****** Converts incoming IR pulses into bytes for the GB KISS LINK ******/
 void DMG_MMU::gb_kiss_link_get_bytes()
 {

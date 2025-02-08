@@ -25,6 +25,17 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 			{
 				ir_stat.signal = (value & 0x1);
 				ir_stat.send = true;
+
+				//Start cycle counting if using GB KISS LINK
+				if((ir_stat.signal) && (sio_stat->ir_type == GB_KISS_LINK))
+				{
+					kiss_link.input_signals.push_back(kiss_link.cycles);
+					kiss_link.cycles = 0;
+
+					sio_stat->shifts_left = 1;
+					sio_stat->shift_counter = 1;
+					sio_stat->shift_clock = 0;
+				}
 			}
 		}
 

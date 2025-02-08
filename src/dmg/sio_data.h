@@ -121,6 +121,13 @@ enum pocket_ir_state
 	POCKET_IR_SEND_SIGNAL,
 };
 
+enum gb_kiss_link_state
+{
+	GKL_INACTIVE,
+	GKL_RECV,
+	GKL_SEND,
+};
+
 struct dmg_sio_data
 {
 	bool connected;
