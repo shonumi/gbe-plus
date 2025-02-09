@@ -14,7 +14,7 @@
 /****** Performs write operations specific to the HuC-3 ******/
 void DMG_MMU::huc3_write(u16 address, u8 value)
 {
-	//Write to External RAM
+	//Write to External RAM or control IR signal
 	if((address >= 0xA000) && (address <= 0xBFFF))
 	{
 		//Handle IR signals via networking
@@ -31,9 +31,10 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 				{
 					kiss_link.input_signals.push_back(kiss_link.cycles);
 					kiss_link.cycles = 0;
+					kiss_link.state = GKL_RECV;
 
 					sio_stat->shifts_left = 1;
-					sio_stat->shift_counter = 1;
+					sio_stat->shift_counter = 0;
 					sio_stat->shift_clock = 0;
 				}
 			}

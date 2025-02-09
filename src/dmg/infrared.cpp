@@ -209,22 +209,55 @@ void DMG_SIO::pocket_ir_process()
 /****** Processes IR communication protocol for GB KISS LINK *****/
 void DMG_MMU::gb_kiss_link_process()
 {
-	//Continue gathering cycle count or abort after 1 second
-	if(kiss_link.cycles < 0x400000)
+	switch(kiss_link.state)
 	{
-		sio_stat->shifts_left = 1;
-		sio_stat->shift_counter = 1;
-		sio_stat->shift_clock = 0;
-	}
+		GKL_SEND:
+			//Set HuC IR ON/OFF
+			if(kiss_link.output_signals.back() == 200) { cart.huc_ir_input = 0x01; }
+			else { cart.huc_ir_input = 0x00; }
 
-	else
-	{
-		kiss_link.input_signals.push_back(kiss_link.cycles);
-		kiss_link.cycles = 0;
+			kiss_link.output_signals.pop_back();
 
-		sio_stat->shifts_left = 0;
-		sio_stat->shift_counter = 0;
-		sio_stat->shift_clock = 0;
+			if(!kiss_link.output_signals.empty())
+			{
+				sio_stat->shifts_left = 1;
+				sio_stat->shift_counter = 0;
+				sio_stat->shift_clock = kiss_link.output_signals.back();
+			}
+
+			else
+			{
+				kiss_link.cycles = 0;
+				kiss_link.state = GKL_INACTIVE;
+
+				sio_stat->shifts_left = 0;
+				sio_stat->shift_counter = 0;
+				sio_stat->shift_clock = 0;
+			}
+
+			break;
+
+		GKL_RECV:
+			//Continue gathering cycle count until STOP signal is sent
+			if(kiss_link.cycles < 1200)
+			{
+				sio_stat->shifts_left = 1;
+				sio_stat->shift_counter = 0;
+				sio_stat->shift_clock = 0;
+			}
+
+			else
+			{
+				kiss_link.input_signals.push_back(kiss_link.cycles);
+				kiss_link.cycles = 0;
+				kiss_link.state = GKL_INACTIVE;
+
+				sio_stat->shifts_left = 0;
+				sio_stat->shift_counter = 0;
+				sio_stat->shift_clock = 0;
+			}
+
+			break;
 	}
 }
 
@@ -237,22 +270,28 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
 void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 {
-	u8 mask = 0x80;
+	u8 mask = 0x01;
 
+	//Data is converted and stored as pulses little-endian first
+	//Data is transmitted big-endian first using back()
 	while(mask)
 	{
 		//Long Pulse, Bit = 1 : ~720 CPU cycles
+		//200 on, 520 off
 		if(input & mask)
 		{
-			kiss_link.output_signals.push_back(720);
+			kiss_link.output_signals.push_back(200);
+			kiss_link.output_signals.push_back(520);
 		}
 
 		//Short Pulse, Bit = 0 : ~460 CPU cycles
+		//200 on, 260 off
 		else
 		{
-			kiss_link.output_signals.push_back(460);
+			kiss_link.output_signals.push_back(200);
+			kiss_link.output_signals.push_back(260);
 		}
 
-		mask >>= 1;
+		mask <<= 1;
 	}
 }
