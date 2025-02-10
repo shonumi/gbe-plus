@@ -811,6 +811,12 @@ void DMG_core::step()
 						case GBC_TV_REMOTE:
 							core_cpu.controllers.serial_io.tv_remote_process();
 							break;
+
+						//Process GB KISS LINK communications
+						case GB_KISS_LINK:
+							core_mmu.kiss_link.cycles += core_cpu.cycles;
+							core_mmu.gb_kiss_link_process();
+							break;
 					}
 				}
 			}
@@ -1056,7 +1062,8 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F3))
 	{
 		//HuC-1/HuC-3 - Switch IR connection
-		if(config::cart_type == DMG_HUC_IR)
+		if((config::cart_type == DMG_HUC_IR)
+		&& (core_cpu.controllers.serial_io.sio_stat.ir_type != GB_KISS_LINK))
 		{
 			core_mmu.ir_stat.network_id++;
 			core_mmu.ir_stat.network_id &= 0x0F;
@@ -1119,6 +1126,11 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			case GBC_TV_REMOTE:
 				core_mmu.ir_stat.trigger = 1;
 				break;
+
+			//GB KISS LINK - Start GBF file transfer
+			case GB_KISS_LINK:
+				core_mmu.gb_kiss_link_start_transfer();
+				break;
 		}
 	}
 }
@@ -1170,7 +1182,8 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 	else if((input == SDLK_F3) && (pressed))
 	{
 		//HuC-1/HuC-3 - Switch IR connection
-		if(config::cart_type == DMG_HUC_IR)
+		if((config::cart_type == DMG_HUC_IR)
+		&& (core_cpu.controllers.serial_io.sio_stat.ir_type != GB_KISS_LINK))
 		{
 			core_mmu.ir_stat.network_id++;
 			core_mmu.ir_stat.network_id &= 0x0F;
@@ -1231,6 +1244,11 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 			//TV Remote - Send signal
 			case GBC_TV_REMOTE:
 				core_mmu.ir_stat.trigger = 1;
+				break;
+
+			//GB KISS LINK - Start GBF file transfer
+			case GB_KISS_LINK:
+				core_mmu.gb_kiss_link_start_transfer();
 				break;
 		}
 	}

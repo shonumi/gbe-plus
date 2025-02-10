@@ -211,10 +211,13 @@ void DMG_MMU::gb_kiss_link_process()
 {
 	switch(kiss_link.state)
 	{
-		GKL_SEND:
-			//Set HuC IR ON/OFF
-			if(kiss_link.output_signals.back() == 200) { cart.huc_ir_input = 0x01; }
+		case GKL_SEND:
+		case GKL_SEND_HANDSHAKE_AA:
+			//Set HuC IR ON or OFF
+			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
+
+			//std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
 
 			kiss_link.output_signals.pop_back();
 
@@ -222,22 +225,28 @@ void DMG_MMU::gb_kiss_link_process()
 			{
 				sio_stat->shifts_left = 1;
 				sio_stat->shift_counter = 0;
-				sio_stat->shift_clock = kiss_link.output_signals.back();
+				sio_stat->shift_clock = (kiss_link.output_signals.back() & 0xFFFFFFFE);
 			}
 
 			else
 			{
 				kiss_link.cycles = 0;
-				kiss_link.state = GKL_INACTIVE;
+				kiss_link.input_signals.clear();
 
-				sio_stat->shifts_left = 0;
 				sio_stat->shift_counter = 0;
 				sio_stat->shift_clock = 0;
+
+				if(kiss_link.state == GKL_SEND_HANDSHAKE_AA)
+				{
+					kiss_link.state = GKL_RECV_HANDSHAKE_55;
+					sio_stat->shifts_left = 1;
+				}
 			}
 
 			break;
 
-		GKL_RECV:
+		case GKL_RECV:
+		case GKL_RECV_HANDSHAKE_55:
 			//Continue gathering cycle count until STOP signal is sent
 			if(kiss_link.cycles < 1200)
 			{
@@ -248,6 +257,8 @@ void DMG_MMU::gb_kiss_link_process()
 
 			else
 			{
+				//std::cout<<"RECV SIGNAL -> " << std::dec << kiss_link.cycles << "\n";
+
 				kiss_link.input_signals.push_back(kiss_link.cycles);
 				kiss_link.cycles = 0;
 				kiss_link.state = GKL_INACTIVE;
@@ -280,18 +291,45 @@ void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 		//200 on, 520 off
 		if(input & mask)
 		{
-			kiss_link.output_signals.push_back(200);
 			kiss_link.output_signals.push_back(520);
+			kiss_link.output_signals.push_back(201);
 		}
 
 		//Short Pulse, Bit = 0 : ~460 CPU cycles
 		//200 on, 260 off
 		else
 		{
-			kiss_link.output_signals.push_back(200);
 			kiss_link.output_signals.push_back(260);
+			kiss_link.output_signals.push_back(201);
 		}
 
 		mask <<= 1;
 	}
+}
+
+/****** Initiates a transfer from the emulated GB KISS LINK to the emulated Game Boy ******/
+void DMG_MMU::gb_kiss_link_start_transfer()
+{
+	kiss_link.cycles = 0;
+	kiss_link.input_signals.clear();
+	kiss_link.output_signals.clear();
+	kiss_link.data.clear();
+	kiss_link.state = GKL_SEND_HANDSHAKE_AA;
+
+	//Handshake STOP
+	kiss_link.output_signals.push_back(100);
+	kiss_link.output_signals.push_back(201);
+	kiss_link.output_signals.push_back(1000);
+	kiss_link.output_signals.push_back(201);
+
+	//Handshake data
+	gb_kiss_link_set_signal(0xAA);
+
+	//Handshake zero bit
+	kiss_link.output_signals.push_back(260);
+	kiss_link.output_signals.push_back(201);
+
+	sio_stat->shifts_left = 1;
+	sio_stat->shift_counter = 0;
+	sio_stat->shift_clock = kiss_link.output_signals.back();
 }

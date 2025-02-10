@@ -255,6 +255,7 @@ class DMG_MMU
 
 	void gb_kiss_link_get_bytes();
 	void gb_kiss_link_set_signal(u8 input);
+	void gb_kiss_link_start_transfer();
 	void gb_kiss_link_process();
 
 	void set_gs_cheats();

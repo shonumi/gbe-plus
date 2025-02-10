@@ -125,7 +125,9 @@ enum gb_kiss_link_state
 {
 	GKL_INACTIVE,
 	GKL_RECV,
+	GKL_RECV_HANDSHAKE_55,
 	GKL_SEND,
+	GKL_SEND_HANDSHAKE_AA,
 };
 
 struct dmg_sio_data
