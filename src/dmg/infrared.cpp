@@ -209,6 +209,8 @@ void DMG_SIO::pocket_ir_process()
 /****** Processes IR communication protocol for GB KISS LINK *****/
 void DMG_MMU::gb_kiss_link_process()
 {
+	u32 op_id = kiss_link.cycles / 100;
+
 	switch(kiss_link.state)
 	{
 		case GKL_SEND:
@@ -233,13 +235,13 @@ void DMG_MMU::gb_kiss_link_process()
 				kiss_link.cycles = 0;
 				kiss_link.input_signals.clear();
 
+				sio_stat->shifts_left = 0;
 				sio_stat->shift_counter = 0;
 				sio_stat->shift_clock = 0;
 
 				if(kiss_link.state == GKL_SEND_HANDSHAKE_AA)
 				{
 					kiss_link.state = GKL_RECV_HANDSHAKE_55;
-					sio_stat->shifts_left = 1;
 				}
 			}
 
@@ -247,15 +249,8 @@ void DMG_MMU::gb_kiss_link_process()
 
 		case GKL_RECV:
 		case GKL_RECV_HANDSHAKE_55:
-			//Continue gathering cycle count until STOP signal is sent
-			if(kiss_link.cycles < 1200)
-			{
-				sio_stat->shifts_left = 1;
-				sio_stat->shift_counter = 0;
-				sio_stat->shift_clock = 0;
-			}
-
-			else
+			//End handshake - ~1200 cycles pulse
+			if(op_id == 12)
 			{
 				//std::cout<<"RECV SIGNAL -> " << std::dec << kiss_link.cycles << "\n";
 
@@ -264,6 +259,16 @@ void DMG_MMU::gb_kiss_link_process()
 				kiss_link.state = GKL_INACTIVE;
 
 				sio_stat->shifts_left = 0;
+				sio_stat->shift_counter = 0;
+				sio_stat->shift_clock = 0;
+
+				gb_kiss_link_get_bytes();
+			}
+
+			//Continue gathering cycle counts for incoming signals
+			else
+			{
+				sio_stat->shifts_left = 1;
 				sio_stat->shift_counter = 0;
 				sio_stat->shift_clock = 0;
 			}
@@ -275,7 +280,25 @@ void DMG_MMU::gb_kiss_link_process()
 /****** Converts incoming IR pulses into bytes for the GB KISS LINK ******/
 void DMG_MMU::gb_kiss_link_get_bytes()
 {
+	kiss_link.data.clear();
 
+	u32 size = kiss_link.input_signals.size();
+	u32 op_id = 0;
+	u32 index = 1;
+
+	u8 mask = 0x80;
+	u8 result = 0;
+
+	while(index < size)
+	{
+		op_id = kiss_link.input_signals[index++] / 100;
+		if(op_id == 7) { result |= mask; }
+		mask >>= 1;
+	}
+
+	kiss_link.data.push_back(result);
+
+	//std::cout<<"BYTE -> 0x" << std::hex << (u32)result << "\n";
 }
 
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
@@ -291,16 +314,16 @@ void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 		//200 on, 520 off
 		if(input & mask)
 		{
-			kiss_link.output_signals.push_back(520);
-			kiss_link.output_signals.push_back(201);
+			kiss_link.output_signals.push_back(GKL_OFF_LONG);
+			kiss_link.output_signals.push_back(GKL_ON);
 		}
 
 		//Short Pulse, Bit = 0 : ~460 CPU cycles
 		//200 on, 260 off
 		else
 		{
-			kiss_link.output_signals.push_back(260);
-			kiss_link.output_signals.push_back(201);
+			kiss_link.output_signals.push_back(GKL_OFF_SHORT);
+			kiss_link.output_signals.push_back(GKL_ON);
 		}
 
 		mask <<= 1;
@@ -317,17 +340,17 @@ void DMG_MMU::gb_kiss_link_start_transfer()
 	kiss_link.state = GKL_SEND_HANDSHAKE_AA;
 
 	//Handshake STOP
-	kiss_link.output_signals.push_back(100);
-	kiss_link.output_signals.push_back(201);
-	kiss_link.output_signals.push_back(1000);
-	kiss_link.output_signals.push_back(201);
+	kiss_link.output_signals.push_back(GKL_OFF_END);
+	kiss_link.output_signals.push_back(GKL_ON);
+	kiss_link.output_signals.push_back(GKL_OFF_STOP);
+	kiss_link.output_signals.push_back(GKL_ON);
 
 	//Handshake data
 	gb_kiss_link_set_signal(0xAA);
 
 	//Handshake zero bit
-	kiss_link.output_signals.push_back(260);
-	kiss_link.output_signals.push_back(201);
+	kiss_link.output_signals.push_back(GKL_OFF_SHORT);
+	kiss_link.output_signals.push_back(GKL_ON);
 
 	sio_stat->shifts_left = 1;
 	sio_stat->shift_counter = 0;

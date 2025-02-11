@@ -128,6 +128,12 @@ enum gb_kiss_link_state
 	GKL_RECV_HANDSHAKE_55,
 	GKL_SEND,
 	GKL_SEND_HANDSHAKE_AA,
+	
+	GKL_ON = 201,
+	GKL_OFF_SHORT = 260,
+	GKL_OFF_LONG = 520,
+	GKL_OFF_STOP = 1000,
+	GKL_OFF_END = 100,
 };
 
 struct dmg_sio_data
