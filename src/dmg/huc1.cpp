@@ -27,8 +27,7 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 				ir_stat.send = true;
 
 				//Start cycle counting if using GB KISS LINK
-				if((ir_stat.signal) && (sio_stat->ir_type == GB_KISS_LINK)
-				&& (kiss_link.state != GKL_INACTIVE))
+				if((ir_stat.signal) && (sio_stat->ir_type == GB_KISS_LINK) && (!kiss_link.is_locked))
 				{
 					kiss_link.input_signals.push_back(kiss_link.cycles);
 					kiss_link.cycles = 0;

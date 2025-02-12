@@ -157,6 +157,7 @@ class DMG_MMU
 		std::vector<u8> gbf_data;
 		std::vector<u8> data;
 		gb_kiss_link_state state;
+		bool is_locked;
 	} kiss_link;
 
 	bool div_reset;
@@ -255,7 +256,7 @@ class DMG_MMU
 
 	void gb_kiss_link_get_bytes();
 	void gb_kiss_link_set_signal(u8 input);
-	void gb_kiss_link_start_transfer();
+	void gb_kiss_link_handshake(u8 input);
 	void gb_kiss_link_process();
 
 	void set_gs_cheats();
