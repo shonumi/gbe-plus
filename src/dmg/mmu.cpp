@@ -129,6 +129,7 @@ void DMG_MMU::reset()
 	kiss_link.gbf_data.clear();
 	kiss_link.data.clear();
 	kiss_link.state = GKL_INACTIVE;
+	kiss_link.stage = GKL_INIT;
 	kiss_link.is_locked = false;
 
 	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }

@@ -214,13 +214,14 @@ void DMG_MMU::gb_kiss_link_process()
 	switch(kiss_link.state)
 	{
 		case GKL_SEND:
+		case GKL_SEND_PING:
 		case GKL_SEND_HANDSHAKE_AA:
 		case GKL_SEND_HANDSHAKE_C3:
 			//Set HuC IR ON or OFF
 			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
 
-			//std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
+			std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
 
 			kiss_link.output_signals.pop_back();
 
@@ -251,17 +252,24 @@ void DMG_MMU::gb_kiss_link_process()
 					kiss_link.state = GKL_RECV_HANDSHAKE_3C;
 					kiss_link.is_locked = false;
 				}
+
+				else if(kiss_link.state == GKL_SEND_PING)
+				{
+					kiss_link.state = GKL_RECV_PING;
+					kiss_link.is_locked = false;
+				}
 			}
 
 			break;
 
 		case GKL_RECV:
+		case GKL_RECV_PING:
 		case GKL_RECV_HANDSHAKE_55:
 		case GKL_RECV_HANDSHAKE_3C:
 			//End handshake - ~1200 cycles pulse
 			if(op_id == 12)
 			{
-				//std::cout<<"RECV SIGNAL -> " << std::dec << kiss_link.cycles << "\n";
+				std::cout<<"RECV SIGNAL -> " << std::dec << kiss_link.cycles << "\n";
 
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
@@ -272,6 +280,18 @@ void DMG_MMU::gb_kiss_link_process()
 				if((kiss_link.data.back() == 0x55) && (data_size == 1))
 				{
 					gb_kiss_link_handshake(0xC3);
+				}
+
+				//End handshake, move onto next command
+				else if((kiss_link.data.back() == 0x3C) && (data_size == 2))
+				{
+					//Read RAM -> Receiver ID
+					if(kiss_link.stage == GKL_INIT)
+					{
+						kiss_link.stage = GKL_REQUEST_ID;
+						gb_kiss_link_send_command(0x08);
+						std::cout<<"CMD -> 0x8\n";
+					}
 				}
 
 				//End IR transmission
@@ -285,6 +305,12 @@ void DMG_MMU::gb_kiss_link_process()
 					sio_stat->shift_counter = 0;
 					sio_stat->shift_clock = 0;
 				}
+			}
+
+			//End ping
+			else if((op_id == 1) && (kiss_link.state == GKL_RECV_PING))
+			{
+				std::cout<<"PING DONE\n";
 			}
 
 			//Continue gathering cycle counts for incoming signals
@@ -318,7 +344,7 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 
 	kiss_link.data.push_back(result);
 
-	//std::cout<<"BYTE -> 0x" << std::hex << (u32)result << "\n";
+	std::cout<<"BYTE -> 0x" << std::hex << (u32)result << "\n";
 }
 
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
@@ -350,7 +376,7 @@ void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 	}
 }
 
-/****** Initiates a handshake from the emulated GB KISS LINK to the emulated Game Boy ******/
+/****** Initiates a handshake from the GB KISS LINK to the Game Boy ******/
 void DMG_MMU::gb_kiss_link_handshake(u8 input)
 {
 	kiss_link.output_signals.clear();
@@ -373,6 +399,53 @@ void DMG_MMU::gb_kiss_link_handshake(u8 input)
 	gb_kiss_link_set_signal(input);
 
 	//Handshake zero bit
+	kiss_link.output_signals.push_back(GKL_OFF_SHORT);
+	kiss_link.output_signals.push_back(GKL_ON);
+
+	sio_stat->shifts_left = 1;
+	sio_stat->shift_counter = 0;
+	sio_stat->shift_clock = kiss_link.output_signals.back();
+}
+
+/****** Sends commands from the GB KISS LINK to the Game Boy ******/
+void DMG_MMU::gb_kiss_link_send_command(u8 input)
+{
+	kiss_link.data.clear();
+	kiss_link.output_signals.clear();
+	kiss_link.cycles = 0;
+	kiss_link.is_locked = true;
+
+	switch(input)
+	{
+		//Request ID - Stored in 0xCE00 to 0xCE10 in Game Boy's RAM
+		case 0x08:
+			//"Hu0" string
+			kiss_link.data.push_back(0x48);
+			kiss_link.data.push_back(0x75);
+			kiss_link.data.push_back(0x30);
+
+			//Command 0x8000
+			kiss_link.data.push_back(0x08);
+			kiss_link.data.push_back(0x00);
+
+			//Address start + end
+			kiss_link.data.push_back(0xCE);
+			kiss_link.data.push_back(0x00);
+			kiss_link.data.push_back(0xCE);
+			kiss_link.data.push_back(0x10);
+
+			//Unknown data
+			kiss_link.data.push_back(0x00);
+			kiss_link.data.push_back(0x0E);
+
+			break;
+	}
+
+	kiss_link.state = GKL_SEND_PING;
+
+	//Ping pulse
+	kiss_link.output_signals.push_back(GKL_OFF_END);
+	kiss_link.output_signals.push_back(GKL_ON);
 	kiss_link.output_signals.push_back(GKL_OFF_SHORT);
 	kiss_link.output_signals.push_back(GKL_ON);
 

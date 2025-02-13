@@ -125,9 +125,11 @@ enum gb_kiss_link_state
 {
 	GKL_INACTIVE,
 	GKL_RECV,
+	GKL_RECV_PING,
 	GKL_RECV_HANDSHAKE_55,
 	GKL_RECV_HANDSHAKE_3C,
 	GKL_SEND,
+	GKL_SEND_PING,
 	GKL_SEND_HANDSHAKE_AA,
 	GKL_SEND_HANDSHAKE_C3,
 	
@@ -136,6 +138,12 @@ enum gb_kiss_link_state
 	GKL_OFF_LONG = 520,
 	GKL_OFF_STOP = 1000,
 	GKL_OFF_END = 100,
+};
+
+enum gb_kiss_link_stage
+{
+	GKL_INIT,
+	GKL_REQUEST_ID,
 };
 
 struct dmg_sio_data
