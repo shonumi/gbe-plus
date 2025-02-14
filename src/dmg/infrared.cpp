@@ -209,11 +209,10 @@ void DMG_SIO::pocket_ir_process()
 /****** Processes IR communication protocol for GB KISS LINK *****/
 void DMG_MMU::gb_kiss_link_process()
 {
-	u32 op_id = kiss_link.cycles / 100;
-
 	switch(kiss_link.state)
 	{
 		case GKL_SEND:
+		case GKL_SEND_CMD:
 		case GKL_SEND_PING:
 		case GKL_SEND_HANDSHAKE_AA:
 		case GKL_SEND_HANDSHAKE_C3:
@@ -225,6 +224,7 @@ void DMG_MMU::gb_kiss_link_process()
 
 			kiss_link.output_signals.pop_back();
 
+			//Continue sending signals
 			if(!kiss_link.output_signals.empty())
 			{
 				sio_stat->shifts_left = 1;
@@ -232,10 +232,12 @@ void DMG_MMU::gb_kiss_link_process()
 				sio_stat->shift_clock = (kiss_link.output_signals.back() & 0xFFFFFFFE);
 			}
 
+			//End of sent signals - Process next state
 			else
 			{
 				kiss_link.cycles = 0;
 				kiss_link.input_signals.clear();
+				kiss_link.input_data.clear();
 
 				sio_stat->shifts_left = 0;
 				sio_stat->shift_counter = 0;
@@ -253,10 +255,44 @@ void DMG_MMU::gb_kiss_link_process()
 					kiss_link.is_locked = false;
 				}
 
-				else if(kiss_link.state == GKL_SEND_PING)
+				else if((kiss_link.state == GKL_SEND_PING) || (GKL_SEND_CMD))
 				{
-					kiss_link.state = GKL_RECV_PING;
-					kiss_link.is_locked = false;
+					//Send next ping
+					if(kiss_link.state == GKL_SEND_CMD)
+					{
+						gb_kiss_link_send_ping();
+					}
+
+					//Send next byte in command
+					else
+					{
+						if(!kiss_link.output_data.empty())
+						{
+							kiss_link.state = GKL_SEND_CMD;
+							kiss_link.output_signals.clear();
+							kiss_link.cycles = 0;
+							kiss_link.is_locked = true;
+
+							std::cout<<"SENDING BYTE -> 0x" << std::hex << (u32)kiss_link.output_data.front() << "\n";
+
+							//Dummy zero pulse
+							kiss_link.output_signals.push_back(GKL_OFF_SHORT);
+							kiss_link.output_signals.push_back(GKL_ON);
+
+							//Data byte pulses
+							gb_kiss_link_set_signal(kiss_link.output_data.front());
+							kiss_link.output_data.erase(kiss_link.output_data.begin());
+
+							sio_stat->shifts_left = 1;
+							sio_stat->shift_counter = 0;
+							sio_stat->shift_clock = (kiss_link.output_signals.back() & 0xFFFFFFFE);
+						}
+
+						else
+						{
+							std::cout<<"CMD DONE\n";
+						}
+					}
 				}
 			}
 
@@ -266,31 +302,35 @@ void DMG_MMU::gb_kiss_link_process()
 		case GKL_RECV_PING:
 		case GKL_RECV_HANDSHAKE_55:
 		case GKL_RECV_HANDSHAKE_3C:
-			//End handshake - ~1200 cycles pulse
-			if(op_id == 12)
+	
+			//End handshake
+			if(((kiss_link.state == GKL_RECV_HANDSHAKE_55) || (kiss_link.state == GKL_RECV_HANDSHAKE_3C))
+			&& (kiss_link.input_signals.size() == 9))
 			{
-				std::cout<<"RECV SIGNAL -> " << std::dec << kiss_link.cycles << "\n";
-
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
 
-				u32 data_size = kiss_link.data.size();
-
 				//Do next handshake 0xAA -> 0xC3
-				if((kiss_link.data.back() == 0x55) && (data_size == 1))
+				if(kiss_link.state == GKL_RECV_HANDSHAKE_55)
 				{
 					gb_kiss_link_handshake(0xC3);
 				}
 
 				//End handshake, move onto next command
-				else if((kiss_link.data.back() == 0x3C) && (data_size == 2))
+				else if(kiss_link.state == GKL_RECV_HANDSHAKE_3C)
 				{
-					//Read RAM -> Receiver ID
+					//Read RAM -> Receiver ID String
 					if(kiss_link.stage == GKL_INIT)
 					{
 						kiss_link.stage = GKL_REQUEST_ID;
-						gb_kiss_link_send_command(0x08);
-						std::cout<<"CMD -> 0x8\n";
+
+						kiss_link.cmd = 0x08;
+						kiss_link.local_addr = 0xCE00;
+						kiss_link.remote_addr = 0xCE00;
+						kiss_link.len = 0x10;
+						kiss_link.param = 0;
+
+						gb_kiss_link_send_command();
 					}
 				}
 
@@ -307,12 +347,6 @@ void DMG_MMU::gb_kiss_link_process()
 				}
 			}
 
-			//End ping
-			else if((op_id == 1) && (kiss_link.state == GKL_RECV_PING))
-			{
-				std::cout<<"PING DONE\n";
-			}
-
 			//Continue gathering cycle counts for incoming signals
 			else
 			{
@@ -320,6 +354,7 @@ void DMG_MMU::gb_kiss_link_process()
 				sio_stat->shift_counter = 0;
 				sio_stat->shift_clock = 0;
 			}
+
 
 			break;
 	}
@@ -330,7 +365,7 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 {
 	u32 size = kiss_link.input_signals.size();
 	u32 op_id = 0;
-	u32 index = 1;
+	u32 index = 0;
 
 	u8 mask = 0x80;
 	u8 result = 0;
@@ -342,7 +377,7 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 		mask >>= 1;
 	}
 
-	kiss_link.data.push_back(result);
+	kiss_link.input_data.push_back(result);
 
 	std::cout<<"BYTE -> 0x" << std::hex << (u32)result << "\n";
 }
@@ -408,48 +443,63 @@ void DMG_MMU::gb_kiss_link_handshake(u8 input)
 }
 
 /****** Sends commands from the GB KISS LINK to the Game Boy ******/
-void DMG_MMU::gb_kiss_link_send_command(u8 input)
+void DMG_MMU::gb_kiss_link_send_command()
 {
-	kiss_link.data.clear();
-	kiss_link.output_signals.clear();
-	kiss_link.cycles = 0;
-	kiss_link.is_locked = true;
+	kiss_link.output_data.clear();
 
-	switch(input)
+	switch(kiss_link.cmd)
 	{
-		//Request ID - Stored in 0xCE00 to 0xCE10 in Game Boy's RAM
+		//Read RAM
 		case 0x08:
 			//"Hu0" string
-			kiss_link.data.push_back(0x48);
-			kiss_link.data.push_back(0x75);
-			kiss_link.data.push_back(0x30);
+			kiss_link.output_data.push_back(0x48);
+			kiss_link.output_data.push_back(0x75);
+			kiss_link.output_data.push_back(0x30);
 
-			//Command 0x8000
-			kiss_link.data.push_back(0x08);
-			kiss_link.data.push_back(0x00);
+			//Command 0x08
+			kiss_link.output_data.push_back(kiss_link.cmd);
 
-			//Address start + end
-			kiss_link.data.push_back(0xCE);
-			kiss_link.data.push_back(0x00);
-			kiss_link.data.push_back(0xCE);
-			kiss_link.data.push_back(0x10);
+			//Local Addr + Remote Addr
+			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
+			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.remote_addr >> 8);
+			kiss_link.output_data.push_back(kiss_link.remote_addr & 0xFF);
 
-			//Unknown data
-			kiss_link.data.push_back(0x00);
-			kiss_link.data.push_back(0x0E);
+			//Length
+			kiss_link.output_data.push_back(kiss_link.len);
+
+			//Unknown parameter
+			kiss_link.output_data.push_back(kiss_link.param);
+
+			//Checksum
+			for(u32 x = 2; x < kiss_link.output_data.size(); x++) { kiss_link.checksum += kiss_link.output_data[x]; }
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+
+			std::cout<<"Read RAM -> 0x" << kiss_link.remote_addr << "\n";
 
 			break;
 	}
 
+	gb_kiss_link_send_ping();
+}
+
+/****** Sends ping signal for command bytes ******/
+void DMG_MMU::gb_kiss_link_send_ping()
+{
+	kiss_link.output_signals.clear();
+	kiss_link.cycles = 0;
+	kiss_link.is_locked = true;
+
 	kiss_link.state = GKL_SEND_PING;
 
 	//Ping pulse
-	kiss_link.output_signals.push_back(GKL_OFF_END);
-	kiss_link.output_signals.push_back(GKL_ON);
-	kiss_link.output_signals.push_back(GKL_OFF_SHORT);
-	kiss_link.output_signals.push_back(GKL_ON);
+	kiss_link.output_signals.push_back(200);
+	kiss_link.output_signals.push_back(GKL_ON + 300);
 
 	sio_stat->shifts_left = 1;
 	sio_stat->shift_counter = 0;
 	sio_stat->shift_clock = kiss_link.output_signals.back();
+
+	std::cout<<"PING START\n";
 }

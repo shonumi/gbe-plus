@@ -155,10 +155,18 @@ class DMG_MMU
 		std::vector<u32> input_signals;
 		std::vector<u32> output_signals;
 		std::vector<u8> gbf_data;
-		std::vector<u8> data;
+		std::vector<u8> input_data;
+		std::vector<u8> output_data;
 		gb_kiss_link_state state;
 		gb_kiss_link_stage stage;
 		bool is_locked;
+
+		u8 cmd;
+		u8 checksum;
+		u8 param;
+		u8 len;
+		u16 remote_addr;
+		u16 local_addr;
 	} kiss_link;
 
 	bool div_reset;
@@ -258,7 +266,8 @@ class DMG_MMU
 	void gb_kiss_link_get_bytes();
 	void gb_kiss_link_set_signal(u8 input);
 	void gb_kiss_link_handshake(u8 input);
-	void gb_kiss_link_send_command(u8 input);
+	void gb_kiss_link_send_command();
+	void gb_kiss_link_send_ping();
 	void gb_kiss_link_process();
 
 	void set_gs_cheats();

@@ -1132,7 +1132,8 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 				core_mmu.kiss_link.cycles = 0;
 				core_mmu.kiss_link.input_signals.clear();
 				core_mmu.kiss_link.output_signals.clear();
-				core_mmu.kiss_link.data.clear();
+				core_mmu.kiss_link.input_data.clear();
+				core_mmu.kiss_link.output_data.clear();
 				core_mmu.kiss_link.stage = GKL_INIT;
 				core_mmu.gb_kiss_link_handshake(0xAA);
 				break;
@@ -1256,7 +1257,8 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 				core_mmu.kiss_link.cycles = 0;
 				core_mmu.kiss_link.input_signals.clear();
 				core_mmu.kiss_link.output_signals.clear();
-				core_mmu.kiss_link.data.clear();
+				core_mmu.kiss_link.input_data.clear();
+				core_mmu.kiss_link.output_data.clear();
 				core_mmu.kiss_link.stage = GKL_INIT;
 				core_mmu.gb_kiss_link_handshake(0xAA);
 				break;
