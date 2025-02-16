@@ -260,7 +260,20 @@ void DMG_MMU::gb_kiss_link_process()
 				//Send next ping
 				else if(kiss_link.state == GKL_SEND_CMD)
 				{
-					gb_kiss_link_send_ping();
+					if(!kiss_link.output_data.empty())
+					{
+						gb_kiss_link_send_ping();
+					}
+
+					else
+					{
+						//Receive ID data from RAM
+						if(kiss_link.stage == GKL_REQUEST_ID)
+						{
+							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
+							kiss_link.is_locked = false;
+						}
+					}
 				}
 
 				//Send next byte in command
@@ -287,11 +300,6 @@ void DMG_MMU::gb_kiss_link_process()
 						sio_stat->shift_counter = 0;
 						sio_stat->shift_clock = (kiss_link.output_signals.back() & 0xFFFFFFFE);
 					}
-
-					else
-					{
-							std::cout<<"CMD DONE\n";
-					}
 				}
 			}
 
@@ -301,20 +309,28 @@ void DMG_MMU::gb_kiss_link_process()
 		case GKL_RECV_PING:
 		case GKL_RECV_HANDSHAKE_55:
 		case GKL_RECV_HANDSHAKE_3C:
+		case GKL_RECV_HANDSHAKE_AA:
 			//End handshake
-			if(((kiss_link.state == GKL_RECV_HANDSHAKE_55) || (kiss_link.state == GKL_RECV_HANDSHAKE_3C))
+			if(((kiss_link.state == GKL_RECV_HANDSHAKE_55) || (kiss_link.state == GKL_RECV_HANDSHAKE_3C)
+			|| (kiss_link.state == GKL_RECV_HANDSHAKE_AA) || (kiss_link.state == GKL_RECV_HANDSHAKE_C3))
 			&& (kiss_link.input_signals.size() == 9))
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
 
-				//Finish first phase of handshake
+				//Finish first phase of sender handshake
 				if(kiss_link.state == GKL_RECV_HANDSHAKE_55)
 				{
 					gb_kiss_link_handshake(0xC3);
 				}
 
-				//Finish last phase of handshake, move onto next command
+				//Finish first phase of receiver handshake
+				else if(kiss_link.state == GKL_RECV_HANDSHAKE_AA)
+				{
+					gb_kiss_link_handshake(0x55);
+				}
+
+				//Finish last phase of sender handshake, move onto next command
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_3C)
 				{
 					//Read RAM -> Receiver ID String
@@ -330,6 +346,12 @@ void DMG_MMU::gb_kiss_link_process()
 
 						gb_kiss_link_send_command();
 					}
+				}
+
+				//Finish first phase of receiver handshake
+				else if(kiss_link.state == GKL_RECV_HANDSHAKE_AA)
+				{
+					gb_kiss_link_handshake(0x55);
 				}
 
 				//End IR transmission
@@ -417,8 +439,11 @@ void DMG_MMU::gb_kiss_link_handshake(u8 input)
 
 	switch(input)
 	{
+		case 0x3C: kiss_link.state = GKL_SEND_HANDSHAKE_3C; break;
+		case 0x55: kiss_link.state = GKL_SEND_HANDSHAKE_55; break;
 		case 0xAA: kiss_link.state = GKL_SEND_HANDSHAKE_AA; break;
 		case 0xC3: kiss_link.state = GKL_SEND_HANDSHAKE_C3; break;
+		default: return;
 	}
 
 	//Handshake STOP
@@ -471,6 +496,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 			//Checksum
 			for(u32 x = 2; x < kiss_link.output_data.size(); x++) { kiss_link.checksum += kiss_link.output_data[x]; }
 			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
 			kiss_link.output_data.push_back(kiss_link.checksum);
 
 			std::cout<<"Read RAM -> 0x" << kiss_link.remote_addr << "\n";

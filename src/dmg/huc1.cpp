@@ -32,12 +32,14 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 					if(kiss_link.cycles)
 					{
 						kiss_link.input_signals.push_back(kiss_link.cycles);
+						std::cout<<"PULSE -> " << std::dec << kiss_link.cycles << "\n";
 					}
 
 					kiss_link.cycles = 0;
 
 					//Set generic RECV state if necessary
 					if((kiss_link.state != GKL_RECV_HANDSHAKE_55) && (kiss_link.state != GKL_RECV_HANDSHAKE_3C)
+					&& (kiss_link.state != GKL_RECV_HANDSHAKE_AA) && (kiss_link.state != GKL_RECV_HANDSHAKE_C3)
 					&& (kiss_link.state != GKL_RECV_PING))
 					{
 						kiss_link.state = GKL_RECV;
