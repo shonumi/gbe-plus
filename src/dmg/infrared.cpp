@@ -216,6 +216,8 @@ void DMG_MMU::gb_kiss_link_process()
 		case GKL_SEND_PING:
 		case GKL_SEND_HANDSHAKE_AA:
 		case GKL_SEND_HANDSHAKE_C3:
+		case GKL_SEND_HANDSHAKE_55:
+		case GKL_SEND_HANDSHAKE_3C:
 			//Set HuC IR ON or OFF
 			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
@@ -243,17 +245,31 @@ void DMG_MMU::gb_kiss_link_process()
 				sio_stat->shift_counter = 0;
 				sio_stat->shift_clock = 0;
 
-				//Move onto next phase of handshake
+				//Move to next phase of sender handshake
 				if(kiss_link.state == GKL_SEND_HANDSHAKE_AA)
 				{
 					kiss_link.state = GKL_RECV_HANDSHAKE_55;
 					kiss_link.is_locked = false;
 				}
 
-				//Move to last phase of handshake
+				//Move to last phase of sender handshake
 				else if(kiss_link.state == GKL_SEND_HANDSHAKE_C3)
 				{
 					kiss_link.state = GKL_RECV_HANDSHAKE_3C;
+					kiss_link.is_locked = false;
+				}
+
+				//Move to next phase of receiver handshake
+				else if(kiss_link.state == GKL_SEND_HANDSHAKE_55)
+				{
+					kiss_link.state = GKL_RECV_HANDSHAKE_C3;
+					kiss_link.is_locked = false;
+				}
+
+				//Move to last phase of receiver handshake
+				else if(kiss_link.state == GKL_SEND_HANDSHAKE_3C)
+				{
+					std::cout<<"DONE\n";
 					kiss_link.is_locked = false;
 				}
 
@@ -310,6 +326,7 @@ void DMG_MMU::gb_kiss_link_process()
 		case GKL_RECV_HANDSHAKE_55:
 		case GKL_RECV_HANDSHAKE_3C:
 		case GKL_RECV_HANDSHAKE_AA:
+		case GKL_RECV_HANDSHAKE_C3:
 			//End handshake
 			if(((kiss_link.state == GKL_RECV_HANDSHAKE_55) || (kiss_link.state == GKL_RECV_HANDSHAKE_3C)
 			|| (kiss_link.state == GKL_RECV_HANDSHAKE_AA) || (kiss_link.state == GKL_RECV_HANDSHAKE_C3))
@@ -328,6 +345,12 @@ void DMG_MMU::gb_kiss_link_process()
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_AA)
 				{
 					gb_kiss_link_handshake(0x55);
+				}
+
+				//Finish last phase of receiver handshake
+				else if(kiss_link.state == GKL_RECV_HANDSHAKE_C3)
+				{
+					gb_kiss_link_handshake(0x3C);
 				}
 
 				//Finish last phase of sender handshake, move onto next command
