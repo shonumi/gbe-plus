@@ -222,7 +222,7 @@ void DMG_MMU::gb_kiss_link_process()
 			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
 
-			std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
+			//std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
 
 			kiss_link.output_signals.pop_back();
 
@@ -239,7 +239,6 @@ void DMG_MMU::gb_kiss_link_process()
 			{
 				kiss_link.cycles = 0;
 				kiss_link.input_signals.clear();
-				kiss_link.input_data.clear();
 
 				sio_stat->shifts_left = 0;
 				sio_stat->shift_counter = 0;
@@ -269,8 +268,14 @@ void DMG_MMU::gb_kiss_link_process()
 				//Move to last phase of receiver handshake
 				else if(kiss_link.state == GKL_SEND_HANDSHAKE_3C)
 				{
-					std::cout<<"DONE\n";
 					kiss_link.is_locked = false;
+
+					//Receive data
+					if(kiss_link.cmd == 0x08)
+					{
+						kiss_link.output_data.clear();
+						gb_kiss_link_send_ping();
+					}
 				}
 
 				//Send next ping
@@ -292,9 +297,9 @@ void DMG_MMU::gb_kiss_link_process()
 					}
 				}
 
-				//Send next byte in command
 				else if(kiss_link.state == GKL_SEND_PING)
 				{
+					//Send next byte in command
 					if(!kiss_link.output_data.empty())
 					{
 						kiss_link.state = GKL_SEND_CMD;
@@ -316,6 +321,13 @@ void DMG_MMU::gb_kiss_link_process()
 						sio_stat->shift_counter = 0;
 						sio_stat->shift_clock = (kiss_link.output_signals.back() & 0xFFFFFFFE);
 					}
+
+					//Receive next byte for command response
+					else
+					{
+						kiss_link.is_locked = false;
+						kiss_link.state = GKL_RECV_DATA;
+					}
 				}
 			}
 
@@ -323,6 +335,7 @@ void DMG_MMU::gb_kiss_link_process()
 
 		case GKL_RECV:
 		case GKL_RECV_PING:
+		case GKL_RECV_DATA:
 		case GKL_RECV_HANDSHAKE_55:
 		case GKL_RECV_HANDSHAKE_3C:
 		case GKL_RECV_HANDSHAKE_AA:
@@ -351,6 +364,7 @@ void DMG_MMU::gb_kiss_link_process()
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_C3)
 				{
 					gb_kiss_link_handshake(0x3C);
+					kiss_link.input_data.clear();
 				}
 
 				//Finish last phase of sender handshake, move onto next command
@@ -388,6 +402,22 @@ void DMG_MMU::gb_kiss_link_process()
 					sio_stat->shift_counter = 0;
 					sio_stat->shift_clock = 0;
 				}
+			}
+
+			//Receive data from commands
+			else if((kiss_link.state == GKL_RECV_DATA) && (kiss_link.input_signals.size() == 9))
+			{
+				gb_kiss_link_get_bytes();
+				kiss_link.input_signals.clear();
+				gb_kiss_link_send_ping();
+			}
+
+			//Finish receiving data from commands
+			else if((kiss_link.state == GKL_RECV_DATA) && (kiss_link.input_signals.size() == 8)
+			&& (kiss_link.input_data.size() == kiss_link.len))
+			{
+				gb_kiss_link_get_bytes();
+				kiss_link.input_signals.clear();
 			}
 
 			//Continue gathering cycle counts for incoming signals
@@ -505,10 +535,10 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.output_data.push_back(kiss_link.cmd);
 
 			//Local Addr + Remote Addr
-			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
-			kiss_link.output_data.push_back(kiss_link.remote_addr >> 8);
+			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
 			kiss_link.output_data.push_back(kiss_link.remote_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.remote_addr >> 8);
 
 			//Length
 			kiss_link.output_data.push_back(kiss_link.len);
@@ -547,5 +577,5 @@ void DMG_MMU::gb_kiss_link_send_ping()
 	sio_stat->shift_counter = 0;
 	sio_stat->shift_clock = kiss_link.output_signals.back();
 
-	std::cout<<"PING START\n";
+	//std::cout<<"PING START\n";
 }
