@@ -294,6 +294,13 @@ void DMG_MMU::gb_kiss_link_process()
 							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 							kiss_link.is_locked = false;
 						}
+
+						//Receive echo of checksum after RAM write
+						else if(kiss_link.stage == GKL_WRITE_ID)
+						{
+							kiss_link.is_locked = false;
+							std::cout<<"DONE\n";
+						}
 					}
 				}
 
@@ -383,24 +390,27 @@ void DMG_MMU::gb_kiss_link_process()
 
 						gb_kiss_link_send_command();
 					}
+
+					//Write RAM -> Receiver ID
+					else if(kiss_link.stage == GKL_WRITE_ID)
+					{
+						kiss_link.cmd = 0x0B;
+						kiss_link.local_addr = 0xCE00;
+						kiss_link.remote_addr = 0xCE00;
+						kiss_link.len = 0x01;
+						kiss_link.param = 0;
+
+						kiss_link.input_data.clear();
+						kiss_link.input_data.push_back(0x01);
+
+						gb_kiss_link_send_command();
+					}
 				}
 
 				//Finish first phase of receiver handshake
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_AA)
 				{
 					gb_kiss_link_handshake(0x55);
-				}
-
-				//End IR transmission
-				else
-				{
-					kiss_link.input_signals.push_back(kiss_link.cycles);
-					kiss_link.cycles = 0;
-					kiss_link.state = GKL_INACTIVE;
-
-					sio_stat->shifts_left = 0;
-					sio_stat->shift_counter = 0;
-					sio_stat->shift_clock = 0;
 				}
 			}
 
@@ -418,6 +428,13 @@ void DMG_MMU::gb_kiss_link_process()
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
+
+				//Move onto next state, stage, and command
+				if(kiss_link.stage == GKL_REQUEST_ID)
+				{
+					kiss_link.stage = GKL_WRITE_ID;
+					gb_kiss_link_handshake(0xAA);
+				}
 			}
 
 			//Continue gathering cycle counts for incoming signals
@@ -521,19 +538,20 @@ void DMG_MMU::gb_kiss_link_handshake(u8 input)
 void DMG_MMU::gb_kiss_link_send_command()
 {
 	kiss_link.output_data.clear();
+	kiss_link.checksum = 0;
+
+	//"Hu0" string
+	kiss_link.output_data.push_back(0x48);
+	kiss_link.output_data.push_back(0x75);
+	kiss_link.output_data.push_back(0x30);
+
+	//Command
+	kiss_link.output_data.push_back(kiss_link.cmd);
 
 	switch(kiss_link.cmd)
 	{
 		//Read RAM
 		case 0x08:
-			//"Hu0" string
-			kiss_link.output_data.push_back(0x48);
-			kiss_link.output_data.push_back(0x75);
-			kiss_link.output_data.push_back(0x30);
-
-			//Command 0x08
-			kiss_link.output_data.push_back(kiss_link.cmd);
-
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
@@ -553,6 +571,43 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.output_data.push_back(kiss_link.checksum);
 
 			std::cout<<"Read RAM -> 0x" << kiss_link.remote_addr << "\n";
+
+			break;
+
+		//Write RAM
+		case 0x0B:
+			//Local Addr + Remote Addr
+			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
+			kiss_link.output_data.push_back(kiss_link.remote_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.remote_addr >> 8);
+
+			//Length
+			kiss_link.output_data.push_back(kiss_link.len);
+
+			//Unknown parameter
+			kiss_link.output_data.push_back(kiss_link.param);
+
+			//Checksum
+			for(u32 x = 2; x < kiss_link.output_data.size(); x++) { kiss_link.checksum += kiss_link.output_data[x]; }
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+
+			//Data bytes and data checksum - Uses input_data
+			kiss_link.checksum = 0;
+
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				kiss_link.output_data.push_back(kiss_link.input_data[x]);
+				kiss_link.checksum += kiss_link.input_data[x];
+			}
+
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+
+			std::cout<<"Write RAM -> 0x" << kiss_link.remote_addr << "\n";
 
 			break;
 	}
