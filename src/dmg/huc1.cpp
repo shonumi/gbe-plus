@@ -40,7 +40,7 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 					//Set generic RECV state if necessary
 					if((kiss_link.state != GKL_RECV_HANDSHAKE_55) && (kiss_link.state != GKL_RECV_HANDSHAKE_3C)
 					&& (kiss_link.state != GKL_RECV_HANDSHAKE_AA) && (kiss_link.state != GKL_RECV_HANDSHAKE_C3)
-					&& (kiss_link.state != GKL_RECV_PING))
+					&& (kiss_link.state != GKL_RECV_PING) && (kiss_link.state != GKL_RECV_DATA))
 					{
 						kiss_link.state = GKL_RECV;
 					}

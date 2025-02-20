@@ -634,3 +634,31 @@ void DMG_MMU::gb_kiss_link_send_ping()
 
 	//std::cout<<"PING START\n";
 }
+
+/****** Loads a GBF file for the GB KISS LINK *****/
+bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
+{
+	if(filename.empty()) { return false; }
+
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{ 
+		std::cout<<"MMU::GBF file could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	kiss_link.gbf_data.resize(file_size, 0x00);
+	u8* ex_mem = &kiss_link.gbf_data[0];
+	file.read((char*)ex_mem, file_size);
+
+	file.close();
+
+	std::cout<<"MMU::Loaded GBF file " << filename << "\n";
+	return true;
+}

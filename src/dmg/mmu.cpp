@@ -140,6 +140,11 @@ void DMG_MMU::reset()
 	kiss_link.local_addr = 0;
 	kiss_link.remote_addr = 0;
 
+	if(config::ir_device == 9)
+	{
+		gb_kiss_link_load_file(config::external_data_file);
+	}
+
 	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }
 
 	div_reset = false;
