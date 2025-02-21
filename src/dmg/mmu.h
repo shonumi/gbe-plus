@@ -160,11 +160,13 @@ class DMG_MMU
 		gb_kiss_link_state state;
 		gb_kiss_link_stage stage;
 		bool is_locked;
+		bool is_ping_delayed;
 
 		u8 cmd;
 		u8 checksum;
 		u8 param;
-		u8 len;
+		u16 len;
+		u16 data_len;
 		u16 remote_addr;
 		u16 local_addr;
 	} kiss_link;

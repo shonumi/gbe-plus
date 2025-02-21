@@ -222,7 +222,7 @@ void DMG_MMU::gb_kiss_link_process()
 			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
 
-			//std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
+			std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
 
 			kiss_link.output_signals.pop_back();
 
@@ -283,6 +283,14 @@ void DMG_MMU::gb_kiss_link_process()
 				{
 					if(!kiss_link.output_data.empty())
 					{
+						//When sending data bytes after a command, the ping is slightly delayed.
+						if(kiss_link.output_data.size() == kiss_link.data_len)
+						{
+							std::cout<<"DATA SEND START\n";
+							kiss_link.is_ping_delayed = true;
+							memory_map[0xFE00] = 0x1;
+						}
+
 						gb_kiss_link_send_ping();
 					}
 
@@ -539,6 +547,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 {
 	kiss_link.output_data.clear();
 	kiss_link.checksum = 0;
+	kiss_link.data_len = 0;
 
 	//"Hu0" string
 	kiss_link.output_data.push_back(0x48);
@@ -601,11 +610,13 @@ void DMG_MMU::gb_kiss_link_send_command()
 			{
 				kiss_link.output_data.push_back(kiss_link.input_data[x]);
 				kiss_link.checksum += kiss_link.input_data[x];
+				kiss_link.data_len++;
 			}
 
 			kiss_link.checksum = ~kiss_link.checksum;
 			kiss_link.checksum++;
 			kiss_link.output_data.push_back(kiss_link.checksum);
+			kiss_link.data_len++;
 
 			std::cout<<"Write RAM -> 0x" << kiss_link.remote_addr << "\n";
 
@@ -627,6 +638,13 @@ void DMG_MMU::gb_kiss_link_send_ping()
 	//Ping pulse
 	kiss_link.output_signals.push_back(GKL_OFF_PING);
 	kiss_link.output_signals.push_back(GKL_ON_PING);
+
+	//Ping delay - Used for data bytes that follow a command
+	if(kiss_link.is_ping_delayed)
+	{
+		kiss_link.output_signals[1] = 741;
+		kiss_link.is_ping_delayed = false;
+	}
 
 	sio_stat->shifts_left = 1;
 	sio_stat->shift_counter = 0;

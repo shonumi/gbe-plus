@@ -132,11 +132,13 @@ void DMG_MMU::reset()
 	kiss_link.state = GKL_INACTIVE;
 	kiss_link.stage = GKL_INIT;
 	kiss_link.is_locked = false;
+	kiss_link.is_ping_delayed = false;
 
 	kiss_link.cmd = 0;
 	kiss_link.checksum = 0;
 	kiss_link.param = 0;
 	kiss_link.len = 0;
+	kiss_link.data_len = 0;
 	kiss_link.local_addr = 0;
 	kiss_link.remote_addr = 0;
 
