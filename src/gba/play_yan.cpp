@@ -26,7 +26,7 @@ void AGB_MMU::play_yan_reset()
 	play_yan.card_data.resize(0x10000, 0x00);
 	play_yan.card_addr = 0;
 
-	play_yan.video_data.resize(0x12C00, 0x3C);
+	play_yan.video_data.resize(0x12C00, 0x00);
 
 	play_yan.firmware.clear();
 	play_yan.firmware.resize(0x100000, 0x00);
@@ -1080,6 +1080,9 @@ void AGB_MMU::process_play_yan_cmd()
 
 		for(u32 x = 0; x < 8; x++) { play_yan.irq_data[x] = 0; }
 		play_yan.irq_data[0] = PLAY_YAN_STOP_VIDEO | 0x40000000;
+
+		play_yan.video_data.clear();
+		play_yan.video_data.resize(0x12C00, 0x00);
 	}
 
 	//Trigger Game Pak IRQ for playing sound effects
