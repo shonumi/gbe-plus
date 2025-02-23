@@ -155,6 +155,7 @@ enum gb_kiss_link_stage
 	GKL_INIT,
 	GKL_REQUEST_ID,
 	GKL_WRITE_ID,
+	GKL_CMD_ZERO,
 };
 
 struct dmg_sio_data

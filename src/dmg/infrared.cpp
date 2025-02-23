@@ -286,9 +286,7 @@ void DMG_MMU::gb_kiss_link_process()
 						//When sending data bytes after a command, the ping is slightly delayed.
 						if(kiss_link.output_data.size() == kiss_link.data_len)
 						{
-							std::cout<<"DATA SEND START\n";
 							kiss_link.is_ping_delayed = true;
-							memory_map[0xFE00] = 0x1;
 						}
 
 						gb_kiss_link_send_ping();
@@ -306,8 +304,7 @@ void DMG_MMU::gb_kiss_link_process()
 						//Receive echo of checksum after RAM write
 						else if(kiss_link.stage == GKL_WRITE_ID)
 						{
-							kiss_link.is_locked = false;
-							std::cout<<"DONE\n";
+							gb_kiss_link_send_ping();
 						}
 					}
 				}
@@ -396,6 +393,8 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.len = 0x10;
 						kiss_link.param = 0;
 
+						kiss_link.input_data.clear();
+
 						gb_kiss_link_send_command();
 					}
 
@@ -408,8 +407,23 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.len = 0x01;
 						kiss_link.param = 0;
 
+						//Command Data
 						kiss_link.input_data.clear();
 						kiss_link.input_data.push_back(0x01);
+
+						gb_kiss_link_send_command();
+					}
+
+					//Unknown Command
+					else if(kiss_link.stage == GKL_CMD_ZERO)
+					{
+						kiss_link.cmd = 0x00;
+						kiss_link.local_addr = 0xCE00;
+						kiss_link.remote_addr = 0xCE00;
+						kiss_link.len = 0x01;
+						kiss_link.param = 0;
+
+						kiss_link.input_data.clear();
 
 						gb_kiss_link_send_command();
 					}
@@ -441,6 +455,12 @@ void DMG_MMU::gb_kiss_link_process()
 				if(kiss_link.stage == GKL_REQUEST_ID)
 				{
 					kiss_link.stage = GKL_WRITE_ID;
+					gb_kiss_link_handshake(0xAA);
+				}
+
+				else if(kiss_link.stage == GKL_WRITE_ID)
+				{
+					kiss_link.stage = GKL_CMD_ZERO;
 					gb_kiss_link_handshake(0xAA);
 				}
 			}
@@ -559,6 +579,30 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 	switch(kiss_link.cmd)
 	{
+		//Unknown Command - Start Session???
+		case 0x00:
+			//Local Addr + Remote Addr
+			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
+			kiss_link.output_data.push_back(kiss_link.remote_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.remote_addr >> 8);
+
+			//Length
+			kiss_link.output_data.push_back(kiss_link.len);
+
+			//Unknown parameter
+			kiss_link.output_data.push_back(kiss_link.param);
+
+			//Checksum
+			for(u32 x = 2; x < kiss_link.output_data.size(); x++) { kiss_link.checksum += kiss_link.output_data[x]; }
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+
+			std::cout<<"Unknown Command -> 0x" << kiss_link.remote_addr << "\n";
+
+			break;
+
 		//Read RAM
 		case 0x08:
 			//Local Addr + Remote Addr
