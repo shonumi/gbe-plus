@@ -142,6 +142,10 @@ void DMG_MMU::reset()
 	kiss_link.local_addr = 0;
 	kiss_link.remote_addr = 0;
 
+	kiss_link.gbf_file_size = 0;
+	kiss_link.gbf_title_icon_size = 0;
+	kiss_link.gbf_flags = 0;
+
 	if(config::ir_device == 9)
 	{
 		gb_kiss_link_load_file(config::external_data_file);

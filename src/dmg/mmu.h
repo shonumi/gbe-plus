@@ -169,6 +169,10 @@ class DMG_MMU
 		u16 data_len;
 		u16 remote_addr;
 		u16 local_addr;
+
+		u16 gbf_file_size;
+		u8 gbf_title_icon_size;
+		u8 gbf_flags;
 	} kiss_link;
 
 	bool div_reset;

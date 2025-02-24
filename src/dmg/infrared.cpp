@@ -222,7 +222,7 @@ void DMG_MMU::gb_kiss_link_process()
 			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
 
-			std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
+			std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
 
 			kiss_link.output_signals.pop_back();
 
@@ -292,6 +292,7 @@ void DMG_MMU::gb_kiss_link_process()
 						gb_kiss_link_send_ping();
 					}
 
+					//At end of ping, move onto next state, stage, or command
 					else
 					{
 						//Receive ID data from RAM
@@ -305,6 +306,14 @@ void DMG_MMU::gb_kiss_link_process()
 						else if(kiss_link.stage == GKL_WRITE_ID)
 						{
 							gb_kiss_link_send_ping();
+						}
+
+						//Send icon data - Ping is super long due to client-side processing
+						else if(kiss_link.stage == GKL_START_SESSION)
+						{
+							kiss_link.output_data.clear();
+							gb_kiss_link_send_ping();
+							kiss_link.output_signals[0] = 1078400;
 						}
 					}
 				}
@@ -337,8 +346,18 @@ void DMG_MMU::gb_kiss_link_process()
 					//Receive next byte for command response
 					else
 					{
-						kiss_link.is_locked = false;
-						kiss_link.state = GKL_RECV_DATA;
+						//Send icon data after long ping
+						if(kiss_link.stage == GKL_START_SESSION)
+						{
+							kiss_link.stage = GKL_SEND_ICON;
+							gb_kiss_link_handshake(0xAA);
+						}
+
+						else
+						{
+							kiss_link.is_locked = false;
+							kiss_link.state = GKL_RECV_DATA;
+						}
 					}
 				}
 			}
@@ -394,7 +413,6 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.param = 0;
 
 						kiss_link.input_data.clear();
-
 						gb_kiss_link_send_command();
 					}
 
@@ -407,15 +425,15 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.len = 0x01;
 						kiss_link.param = 0;
 
-						//Command Data
+						//Command data
 						kiss_link.input_data.clear();
 						kiss_link.input_data.push_back(0x01);
 
 						gb_kiss_link_send_command();
 					}
 
-					//Unknown Command
-					else if(kiss_link.stage == GKL_CMD_ZERO)
+					//Start Session
+					else if(kiss_link.stage == GKL_START_SESSION)
 					{
 						kiss_link.cmd = 0x00;
 						kiss_link.local_addr = 0xCE00;
@@ -424,8 +442,23 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.param = 0;
 
 						kiss_link.input_data.clear();
-
 						gb_kiss_link_send_command();
+					}
+
+					//Send Icon
+					else if(kiss_link.stage == GKL_SEND_ICON)
+					{
+						/*
+						kiss_link.cmd = 0x02;
+						kiss_link.local_addr = 0xC700;
+						kiss_link.remote_addr = 0xC50C;
+						kiss_link.len = 0xC6;
+						kiss_link.param = 0;
+
+						//Command data
+						kiss_link.input_data.clear();
+						gb_kiss_link_send_command();
+						*/
 					}
 				}
 
@@ -460,7 +493,7 @@ void DMG_MMU::gb_kiss_link_process()
 
 				else if(kiss_link.stage == GKL_WRITE_ID)
 				{
-					kiss_link.stage = GKL_CMD_ZERO;
+					kiss_link.stage = GKL_START_SESSION;
 					gb_kiss_link_handshake(0xAA);
 				}
 			}
@@ -579,7 +612,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 	switch(kiss_link.cmd)
 	{
-		//Unknown Command - Start Session???
+		//Start Session
 		case 0x00:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
@@ -599,7 +632,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.checksum++;
 			kiss_link.output_data.push_back(kiss_link.checksum);
 
-			std::cout<<"Unknown Command -> 0x" << kiss_link.remote_addr << "\n";
+			std::cout<<"Start Session -> 0x" << kiss_link.remote_addr << "\n";
 
 			break;
 
