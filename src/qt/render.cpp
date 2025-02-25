@@ -57,7 +57,7 @@ void render_screen_hw(SDL_Surface* image)
 
 	qt_gui::final_screen = image;
 
-	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->hw_screen->updateGL(); }
+	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->hw_screen->update(); }
 
 	QApplication::processEvents();
 }

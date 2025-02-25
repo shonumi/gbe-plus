@@ -80,11 +80,11 @@ void soft_screen::resizeEvent(QResizeEvent* event)
 }
 
 /****** Hardware screen constructor ******/
-hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent)
+hard_screen::hard_screen(QWidget *parent) : QOpenGLWidget(parent)
 {
 	//Set up Qt to use OpenGL 3.3
 	screen_format.setVersion(3, 3);
-	screen_format.setProfile(QGLFormat::CoreProfile);
+	screen_format.setProfile(QSurfaceFormat::CoreProfile);
 	screen_format.setSwapInterval(0);
 	setFormat(screen_format);
 
@@ -219,6 +219,8 @@ void hard_screen::resizeEvent(QResizeEvent* event)
 
 	gwin.resize(width(), height());
 	calculate_screen_size();
+
+	QOpenGLWidget::resizeEvent(event);
 }
 
 /****** Reloads fragment and vertex shaders ******/
