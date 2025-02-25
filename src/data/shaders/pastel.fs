@@ -132,6 +132,7 @@ void hsl_to_rgb(in vec4 hsl_values, out vec4 output_color)
 	output_color.r = r;
 	output_color.g = g;
 	output_color.b = b;
+	output_color.a = 1.0;
 }
 
 void main()

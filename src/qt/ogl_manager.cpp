@@ -127,7 +127,7 @@ void ogl_manager::paint()
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-    	glClearColor(0,0,0,0);
+    	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     	glClear(GL_COLOR_BUFFER_BIT);
 
 	//Use shader
