@@ -157,6 +157,7 @@ enum gb_kiss_link_stage
 	GKL_WRITE_ID,
 	GKL_START_SESSION,
 	GKL_SEND_ICON,
+	GKL_UNK_WRITE_1,
 };
 
 struct dmg_sio_data

@@ -222,7 +222,7 @@ void DMG_MMU::gb_kiss_link_process()
 			if(kiss_link.output_signals.back() & 0x01) { cart.huc_ir_input = 0x01; }
 			else { cart.huc_ir_input = 0x00; }
 
-			std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
+			//std::cout<<"SENT SIGNAL -> " << std::dec << (kiss_link.output_signals.back() & 0xFFFFFFE) << " :: " << u32(cart.huc_ir_input) << "\n";
 
 			kiss_link.output_signals.pop_back();
 
@@ -271,10 +271,14 @@ void DMG_MMU::gb_kiss_link_process()
 					kiss_link.is_locked = false;
 
 					//Receive data
-					if(kiss_link.cmd == 0x08)
+					if((kiss_link.cmd == 0x08) || (kiss_link.cmd == 0x02))
 					{
 						kiss_link.output_data.clear();
 						gb_kiss_link_send_ping();
+
+						//Some commands require receiving different lengths than they send
+						//Adjust length here as needed in these cases
+						if(kiss_link.cmd == 0x02) { kiss_link.len = 265; }
 					}
 				}
 
@@ -296,7 +300,8 @@ void DMG_MMU::gb_kiss_link_process()
 					else
 					{
 						//Receive ID data from RAM
-						if(kiss_link.stage == GKL_REQUEST_ID)
+						//Receive Icon Data echo
+						if((kiss_link.stage == GKL_REQUEST_ID) || (kiss_link.stage == GKL_SEND_ICON))
 						{
 							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 							kiss_link.is_locked = false;
@@ -448,17 +453,22 @@ void DMG_MMU::gb_kiss_link_process()
 					//Send Icon
 					else if(kiss_link.stage == GKL_SEND_ICON)
 					{
-						/*
 						kiss_link.cmd = 0x02;
 						kiss_link.local_addr = 0xC700;
 						kiss_link.remote_addr = 0xC50C;
-						kiss_link.len = 0xC6;
+						kiss_link.len = kiss_link.gbf_title_icon_size;
 						kiss_link.param = 0;
 
 						//Command data
 						kiss_link.input_data.clear();
+						u32 size = (kiss_link.gbf_title_icon_size + 5);
+						
+						for(u32 x = 5; x < size; x++)
+						{
+							kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
+						}
+
 						gb_kiss_link_send_command();
-						*/
 					}
 				}
 
@@ -495,6 +505,12 @@ void DMG_MMU::gb_kiss_link_process()
 				{
 					kiss_link.stage = GKL_START_SESSION;
 					gb_kiss_link_handshake(0xAA);
+				}
+
+				if(kiss_link.stage == GKL_SEND_ICON)
+				{
+
+
 				}
 			}
 
@@ -660,7 +676,9 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			break;
 
+		//Send Icon
 		//Write RAM
+		case 0x02:
 		case 0x0B:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
@@ -695,7 +713,8 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.output_data.push_back(kiss_link.checksum);
 			kiss_link.data_len++;
 
-			std::cout<<"Write RAM -> 0x" << kiss_link.remote_addr << "\n";
+			if(kiss_link.cmd == 0x02) { std::cout<<"Send Icon -> 0x" << kiss_link.remote_addr << "\n"; }
+			else { std::cout<<"Write RAM -> 0x" << kiss_link.remote_addr << "\n"; }
 
 			break;
 	}
@@ -753,6 +772,13 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 	file.read((char*)ex_mem, file_size);
 
 	file.close();
+
+	if(file_size >= 5)
+	{
+		kiss_link.gbf_file_size = file_size;
+		kiss_link.gbf_title_icon_size = kiss_link.gbf_data[0x04];
+		kiss_link.gbf_flags = kiss_link.gbf_data[0x02];
+	}
 
 	std::cout<<"MMU::Loaded GBF file " << filename << "\n";
 	return true;
