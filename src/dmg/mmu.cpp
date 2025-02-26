@@ -129,6 +129,7 @@ void DMG_MMU::reset()
 	kiss_link.gbf_data.clear();
 	kiss_link.input_data.clear();
 	kiss_link.output_data.clear();
+	kiss_link.file_search_data.clear();
 	kiss_link.state = GKL_INACTIVE;
 	kiss_link.stage = GKL_INIT;
 	kiss_link.is_locked = false;

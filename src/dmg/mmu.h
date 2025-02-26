@@ -157,6 +157,7 @@ class DMG_MMU
 		std::vector<u8> gbf_data;
 		std::vector<u8> input_data;
 		std::vector<u8> output_data;
+		std::vector<u8> file_search_data;
 		gb_kiss_link_state state;
 		gb_kiss_link_stage stage;
 		bool is_locked;

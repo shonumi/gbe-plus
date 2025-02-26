@@ -509,8 +509,24 @@ void DMG_MMU::gb_kiss_link_process()
 
 				if(kiss_link.stage == GKL_SEND_ICON)
 				{
+					kiss_link.file_search_data.clear();
 
+					//Grab input used for file search
+					if(kiss_link.input_data.size() == 266)
+					{
+						for(u32 x = 0; x < 256; x++)
+						{
+							kiss_link.file_search_data.push_back(kiss_link.input_data[9 + x]);
+						}
 
+						kiss_link.stage = GKL_UNK_WRITE_1;
+						gb_kiss_link_handshake(0xAA);
+					}
+
+					else
+					{
+						std::cout<<"MMU::Warning - GB KISS LINK File Search Data is incorrect size\n";
+					}
 				}
 			}
 
