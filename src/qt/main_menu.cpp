@@ -310,9 +310,6 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	warning_box->setIcon(QMessageBox::Warning);
 	warning_box->hide();
 
-	display_width = QApplication::desktop()->screenGeometry().width();
-	display_height = QApplication::desktop()->screenGeometry().height();
-
 	fullscreen_mode = false;
 	is_sgb_core = false;
 }
@@ -943,7 +940,7 @@ void main_menu::boot_game()
 
 	findChild<QAction*>("pause_action")->setChecked(false);
 
-	menu_height = menu_bar->height();
+	int menu_height = menu_bar->height();
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA and NDS types here
@@ -1126,6 +1123,7 @@ void main_menu::paintEvent(QPaintEvent* event)
 {
 	if(qt_gui::screen != NULL)
 	{
+		int menu_height = menu_bar->height();
 		//Check for resize
 		if(settings->resize_screen)
 		{

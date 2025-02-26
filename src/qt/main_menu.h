@@ -40,12 +40,6 @@ class main_menu : public QWidget
 
 	soft_screen* sw_screen;
 	hard_screen* hw_screen;
-	
-	u32 screen_height;
-	u32 screen_width;
-	u32 display_height;
-	u32 display_width;
-	int menu_height;
 
 	bool fullscreen_mode;
 	bool is_sgb_core;
