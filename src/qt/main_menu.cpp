@@ -1128,6 +1128,7 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 
 				//Fullscreen
 				case SDLK_F12:
+				case SDLK_ESCAPE:
 					findChild<QAction*>("fullscreen_action")->setChecked(false);
 					fullscreen();
 					break;
