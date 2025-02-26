@@ -167,7 +167,7 @@ namespace config
 	s8 resize_mode = 0;
 
 	//Aspect ratio
-	bool maintain_aspect_ratio = false;
+	bool maintain_aspect_ratio = true;
 
 	//LCD configuration (NDS primarily)
 	u8 lcd_config = 0;
