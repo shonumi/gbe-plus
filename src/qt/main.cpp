@@ -18,7 +18,6 @@ int main(int argc, char* args[])
 
 	config::use_external_interfaces = true;
 
-	QApplication::setAttribute(Qt::AA_X11InitThreads);
 	QApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 	QApplication app(argc, args);
 

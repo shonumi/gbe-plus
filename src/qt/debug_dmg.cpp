@@ -905,7 +905,7 @@ dmg_debug::dmg_debug(QWidget *parent) : QDialog(parent)
 	mem_values->setReadOnly(true);
 	mem_values->setFixedWidth(500);
 	mem_values->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	mem_values->setTabStopWidth(28);
+	mem_values->setTabStopDistance(28);
 	mem_values->setFont(mono_font);
 
 	mem_ascii = new QTextEdit(mem_set);
