@@ -29,7 +29,6 @@ class soft_screen : public QWidget
 
 	protected:
 	void paintEvent(QPaintEvent* event);
-	void resizeEvent(QResizeEvent* event);
 };
 
 class hard_screen : public QOpenGLWidget
@@ -53,7 +52,7 @@ class hard_screen : public QOpenGLWidget
 	protected:
 	void initializeGL();
 	void paintGL();
-	void resizeEvent(QResizeEvent* event);
+	void resizeGL(int width, int height);
 };
 
 #endif //SCREENS_GBE_QT 
