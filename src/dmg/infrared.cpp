@@ -271,14 +271,18 @@ void DMG_MMU::gb_kiss_link_process()
 					kiss_link.is_locked = false;
 
 					//Receive data
-					if((kiss_link.cmd == 0x08) || (kiss_link.cmd == 0x02))
+					if((kiss_link.cmd == 0x02) || (kiss_link.cmd == 0x03)
+					|| (kiss_link.cmd == 0x08))
 					{
 						kiss_link.output_data.clear();
 						gb_kiss_link_send_ping();
 
 						//Some commands require receiving different lengths than they send
 						//Adjust length here as needed in these cases
-						if(kiss_link.cmd == 0x02) { kiss_link.len = 265; }
+						if((kiss_link.cmd == 0x02) || (kiss_link.cmd == 0x03))
+						{
+							kiss_link.len = 265;
+						}
 					}
 				}
 
@@ -300,15 +304,17 @@ void DMG_MMU::gb_kiss_link_process()
 					else
 					{
 						//Receive ID data from RAM
-						//Receive Icon Data echo
-						if((kiss_link.stage == GKL_REQUEST_ID) || (kiss_link.stage == GKL_SEND_ICON))
+						//Receive Icon Data echo (File Search Data)
+						//Receive File Search results
+						if((kiss_link.stage == GKL_REQUEST_ID) || (kiss_link.stage == GKL_SEND_ICON)
+						|| (kiss_link.stage == GKL_FILE_SEARCH))
 						{
 							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 							kiss_link.is_locked = false;
 						}
 
 						//Receive echo of checksum after RAM write
-						else if(kiss_link.stage == GKL_WRITE_ID)
+						else if((kiss_link.stage == GKL_WRITE_ID) || (kiss_link.stage == GKL_UNK_WRITE_1))
 						{
 							gb_kiss_link_send_ping();
 						}
@@ -470,6 +476,37 @@ void DMG_MMU::gb_kiss_link_process()
 
 						gb_kiss_link_send_command();
 					}
+
+					//Unknown RAM Write #1
+					else if(kiss_link.stage == GKL_UNK_WRITE_1)
+					{
+						kiss_link.cmd = 0x0B;
+						kiss_link.local_addr = 0xCE00;
+						kiss_link.remote_addr = 0xCE00;
+						kiss_link.len = 0x01;
+						kiss_link.param = 0x2;
+
+						//Command data
+						kiss_link.input_data.clear();
+						kiss_link.input_data.push_back(0x05);
+
+						gb_kiss_link_send_command();
+					}
+
+					//File Search
+					else if(kiss_link.stage == GKL_FILE_SEARCH)
+					{
+						kiss_link.cmd = 0x03;
+						kiss_link.local_addr = 0xC700;
+						kiss_link.param = 0x1D;
+
+						//Command data
+						kiss_link.input_data.clear();
+
+						gb_kiss_link_send_command();
+
+						memory_map[0xFE00] = 0x1;
+					}
 				}
 
 				//Finish first phase of receiver handshake
@@ -507,7 +544,7 @@ void DMG_MMU::gb_kiss_link_process()
 					gb_kiss_link_handshake(0xAA);
 				}
 
-				if(kiss_link.stage == GKL_SEND_ICON)
+				else if(kiss_link.stage == GKL_SEND_ICON)
 				{
 					kiss_link.file_search_data.clear();
 
@@ -527,6 +564,12 @@ void DMG_MMU::gb_kiss_link_process()
 					{
 						std::cout<<"MMU::Warning - GB KISS LINK File Search Data is incorrect size\n";
 					}
+				}
+
+				else if(kiss_link.stage == GKL_UNK_WRITE_1)
+				{
+					kiss_link.stage = GKL_FILE_SEARCH;
+					gb_kiss_link_handshake(0xAA);
 				}
 			}
 
@@ -665,6 +708,53 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.output_data.push_back(kiss_link.checksum);
 
 			std::cout<<"Start Session -> 0x" << kiss_link.remote_addr << "\n";
+
+			break;
+
+		//File Search
+		case 0x03:
+			//Local Addr
+			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
+
+			//Raw File Size (Total GBF file size - Icon + Title + History size)
+			{
+				u16 raw_size = kiss_link.gbf_title_icon_size + 0x05;
+				if(kiss_link.gbf_flags & 0x1) { raw_size += 0x2E; }
+				raw_size = kiss_link.gbf_file_size - raw_size;
+
+				kiss_link.output_data.push_back(raw_size & 0xFF);
+				kiss_link.output_data.push_back(raw_size >> 8);
+			}
+
+			//???
+			kiss_link.output_data.push_back(0x02);
+
+			//Unknown parameter
+			kiss_link.output_data.push_back(kiss_link.param);
+
+			//Checksum
+			for(u32 x = 2; x < kiss_link.output_data.size(); x++) { kiss_link.checksum += kiss_link.output_data[x]; }
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+
+			//Data bytes and data checksum - Uses file_search_data
+			kiss_link.checksum = 0;
+
+			for(u32 x = 0; x < kiss_link.file_search_data.size(); x++)
+			{
+				kiss_link.output_data.push_back(kiss_link.file_search_data[x]);
+				kiss_link.checksum += kiss_link.file_search_data[x];
+				kiss_link.data_len++;
+			}
+
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+			kiss_link.data_len++;
+
+			std::cout<<"File Search -> 0x" << kiss_link.remote_addr << "\n";
 
 			break;
 

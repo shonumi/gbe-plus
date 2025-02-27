@@ -158,6 +158,7 @@ enum gb_kiss_link_stage
 	GKL_START_SESSION,
 	GKL_SEND_ICON,
 	GKL_UNK_WRITE_1,
+	GKL_FILE_SEARCH,
 };
 
 struct dmg_sio_data
