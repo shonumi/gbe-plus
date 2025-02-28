@@ -272,7 +272,8 @@ void DMG_MMU::gb_kiss_link_process()
 
 					//Receive data
 					if((kiss_link.cmd == 0x02) || (kiss_link.cmd == 0x03)
-					|| (kiss_link.cmd == 0x08))
+					|| (kiss_link.cmd == 0x04) || (kiss_link.cmd == 0x08)
+					|| (kiss_link.cmd == 0x0A))
 					{
 						kiss_link.output_data.clear();
 						gb_kiss_link_send_ping();
@@ -282,6 +283,16 @@ void DMG_MMU::gb_kiss_link_process()
 						if((kiss_link.cmd == 0x02) || (kiss_link.cmd == 0x03))
 						{
 							kiss_link.len = 265;
+						}
+
+						else if(kiss_link.cmd == 0x04)
+						{
+							kiss_link.len = 8;
+						}
+
+						else if((kiss_link.cmd == 0x0A) && (kiss_link.stage == GKL_SEND_HISTORY))
+						{
+							kiss_link.len = 8;
 						}
 					}
 				}
@@ -306,8 +317,11 @@ void DMG_MMU::gb_kiss_link_process()
 						//Receive ID data from RAM
 						//Receive Icon Data echo (File Search Data)
 						//Receive File Search results
+						//Receive Prep Upload results
+						//Receive Send History echo
 						if((kiss_link.stage == GKL_REQUEST_ID) || (kiss_link.stage == GKL_SEND_ICON)
-						|| (kiss_link.stage == GKL_FILE_SEARCH))
+						|| (kiss_link.stage == GKL_FILE_SEARCH) || (kiss_link.stage == GKL_UNK_READ_1)
+						|| (kiss_link.stage == GKL_PREP_UPLOAD) || (kiss_link.stage == GKL_SEND_HISTORY))
 						{
 							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 							kiss_link.is_locked = false;
@@ -339,7 +353,7 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.cycles = 0;
 						kiss_link.is_locked = true;
 
-						std::cout<<"SENDING BYTE -> 0x" << std::hex << (u32)kiss_link.output_data.front() << "\n";
+						std::cout<<"SENDING BYTE -> 0x" << std::hex << (u32)kiss_link.output_data.front() << " :: 0x" << kiss_link.output_data.size() << "\n";
 
 						//Dummy zero pulse
 						kiss_link.output_signals.push_back(GKL_OFF_SHORT);
@@ -484,7 +498,7 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.local_addr = 0xCE00;
 						kiss_link.remote_addr = 0xCE00;
 						kiss_link.len = 0x01;
-						kiss_link.param = 0x2;
+						kiss_link.param = 0x02;
 
 						//Command data
 						kiss_link.input_data.clear();
@@ -504,8 +518,53 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.input_data.clear();
 
 						gb_kiss_link_send_command();
+					}
 
-						memory_map[0xFE00] = 0x1;
+					//Unknown RAM Read #1
+					else if(kiss_link.stage == GKL_UNK_READ_1)
+					{
+						kiss_link.cmd = 0x08;
+						kiss_link.local_addr = 0xCE00;
+						kiss_link.remote_addr = 0xDFFC;
+						kiss_link.len = 0x02;
+						kiss_link.param = 0x76;
+
+						kiss_link.input_data.clear();
+						gb_kiss_link_send_command();
+					}
+
+					//Prep file upload from GB KISS LINK
+					else if(kiss_link.stage == GKL_PREP_UPLOAD)
+					{
+						kiss_link.cmd = 0x4;
+						kiss_link.local_addr = 0xC500;
+						kiss_link.remote_addr = 0xFFD2;
+						kiss_link.param = 0x0;
+
+						kiss_link.input_data.clear();
+						gb_kiss_link_send_command();
+					}
+
+					//Send History
+					else if(kiss_link.stage == GKL_SEND_HISTORY)
+					{
+						kiss_link.cmd = 0x0A;
+						kiss_link.local_addr = 0xC500;
+						kiss_link.remote_addr = 0xC600;
+						kiss_link.len = 0x2E;
+						kiss_link.param = 0;
+
+						//Command data
+						kiss_link.input_data.clear();
+						u32 start = (kiss_link.gbf_title_icon_size + 5);
+						u32 end = start + 0x2E;
+						
+						for(u32 x = start; x < end; x++)
+						{
+							kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
+						}
+
+						gb_kiss_link_send_command();
 					}
 				}
 
@@ -570,6 +629,31 @@ void DMG_MMU::gb_kiss_link_process()
 				{
 					kiss_link.stage = GKL_FILE_SEARCH;
 					gb_kiss_link_handshake(0xAA);
+				}
+
+				else if(kiss_link.stage == GKL_FILE_SEARCH)
+				{
+					kiss_link.stage = GKL_UNK_READ_1;
+					gb_kiss_link_handshake(0xAA);
+				}
+
+				else if(kiss_link.stage == GKL_UNK_READ_1)
+				{
+					kiss_link.stage = GKL_PREP_UPLOAD;
+					gb_kiss_link_handshake(0xAA);
+				}
+
+				else if(kiss_link.stage == GKL_PREP_UPLOAD)
+				{
+					//TODO - This should probably be optional if GBF file does not have history
+					//In that case, it would skip to the next stage? Needs more research
+					kiss_link.stage = GKL_SEND_HISTORY;
+					gb_kiss_link_handshake(0xAA);
+				}
+
+				else if(kiss_link.stage == GKL_SEND_HISTORY)
+				{
+					std::cout<<"DONE\n";
 				}
 			}
 
@@ -758,6 +842,33 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			break;
 
+		//Prep Upload
+		case 0x04:
+			//Local Addr + Remote Addr
+			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
+			kiss_link.output_data.push_back(kiss_link.remote_addr & 0xFF);
+			kiss_link.output_data.push_back(kiss_link.remote_addr >> 8);
+
+			//??? - Looks like the length of history data
+			kiss_link.output_data.push_back(0x2E);
+
+			//Unknown parameter
+			kiss_link.output_data.push_back(kiss_link.param);
+
+			//Checksum
+			for(u32 x = 2; x < kiss_link.output_data.size(); x++) { kiss_link.checksum += kiss_link.output_data[x]; }
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
+
+			//Data bytes and data checksum - Uses file_search_data
+			kiss_link.checksum = 0;
+
+			std::cout<<"Prep Upload -> 0x" << kiss_link.remote_addr << "\n";
+
+			break;
+
 		//Read RAM
 		case 0x08:
 			//Local Addr + Remote Addr
@@ -783,8 +894,10 @@ void DMG_MMU::gb_kiss_link_send_command()
 			break;
 
 		//Send Icon
+		//Send History / File Data
 		//Write RAM
 		case 0x02:
+		case 0x0A:
 		case 0x0B:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
@@ -820,6 +933,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.data_len++;
 
 			if(kiss_link.cmd == 0x02) { std::cout<<"Send Icon -> 0x" << kiss_link.remote_addr << "\n"; }
+			else if(kiss_link.cmd == 0x0A) { std::cout<<"Send History -> 0x" << kiss_link.remote_addr << "\n"; }
 			else { std::cout<<"Write RAM -> 0x" << kiss_link.remote_addr << "\n"; }
 
 			break;
