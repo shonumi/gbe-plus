@@ -163,6 +163,11 @@ enum gb_kiss_link_stage
 	GKL_PREP_UPLOAD,
 	GKL_SEND_HISTORY,
 	GKL_SEND_FILE,
+	GKL_END_UPLOAD,
+	GKL_CLOSE_FILE,
+	GKL_UNK_WRITE_2,
+	GKL_END_SESSION,
+	GKL_FINISHED,
 };
 
 struct dmg_sio_data

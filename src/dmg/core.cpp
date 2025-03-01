@@ -1129,6 +1129,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 
 			//GB KISS LINK - Start GBF file transfer
 			case GB_KISS_LINK:
+				std::cout<<"GB KISS LINK Transfer Started\n";
 				core_mmu.kiss_link.cycles = 0;
 				core_mmu.kiss_link.input_signals.clear();
 				core_mmu.kiss_link.output_signals.clear();
@@ -1254,6 +1255,7 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 
 			//GB KISS LINK - Start GBF file transfer
 			case GB_KISS_LINK:
+				std::cout<<"GB KISS LINK Transfer Started\n";
 				core_mmu.kiss_link.cycles = 0;
 				core_mmu.kiss_link.input_signals.clear();
 				core_mmu.kiss_link.output_signals.clear();

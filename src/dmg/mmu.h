@@ -162,6 +162,7 @@ class DMG_MMU
 		gb_kiss_link_stage stage;
 		bool is_locked;
 		bool is_ping_delayed;
+		bool is_upload_done;
 
 		u8 cmd;
 		u8 checksum;
@@ -171,7 +172,9 @@ class DMG_MMU
 		u16 remote_addr;
 		u16 local_addr;
 
+		u32 gbf_index;
 		u16 gbf_file_size;
+		u16 gbf_raw_size;
 		u8 gbf_title_icon_size;
 		u8 gbf_flags;
 	} kiss_link;

@@ -134,6 +134,7 @@ void DMG_MMU::reset()
 	kiss_link.stage = GKL_INIT;
 	kiss_link.is_locked = false;
 	kiss_link.is_ping_delayed = false;
+	kiss_link.is_upload_done = true;
 
 	kiss_link.cmd = 0;
 	kiss_link.checksum = 0;
@@ -143,7 +144,9 @@ void DMG_MMU::reset()
 	kiss_link.local_addr = 0;
 	kiss_link.remote_addr = 0;
 
+	kiss_link.gbf_index = 0;
 	kiss_link.gbf_file_size = 0;
+	kiss_link.gbf_raw_size = 0;
 	kiss_link.gbf_title_icon_size = 0;
 	kiss_link.gbf_flags = 0;
 
