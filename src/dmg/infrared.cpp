@@ -1115,3 +1115,37 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 	std::cout<<"MMU::Loaded GBF file " << filename << "\n";
 	return true;
 }
+
+
+/****** Resets all data for emulated GB KISS LINK - Optionally resets GBF data ******/
+void DMG_MMU::gb_kiss_link_reset(bool reset_gbf)
+{
+	kiss_link.cycles = 0;
+	kiss_link.input_signals.clear();
+	kiss_link.output_signals.clear();
+	kiss_link.input_data.clear();
+	kiss_link.output_data.clear();
+	kiss_link.file_search_data.clear();
+	kiss_link.state = GKL_INACTIVE;
+	kiss_link.stage = GKL_INIT;
+	kiss_link.is_locked = false;
+	kiss_link.is_ping_delayed = false;
+	kiss_link.is_upload_done = true;
+
+	kiss_link.cmd = 0;
+	kiss_link.checksum = 0;
+	kiss_link.param = 0;
+	kiss_link.len = 0;
+	kiss_link.data_len = 0;
+	kiss_link.local_addr = 0;
+	kiss_link.remote_addr = 0;
+
+	if(reset_gbf)
+	{
+		kiss_link.gbf_index = 0;
+		kiss_link.gbf_file_size = 0;
+		kiss_link.gbf_raw_size = 0;
+		kiss_link.gbf_title_icon_size = 0;
+		kiss_link.gbf_flags = 0;
+	}
+}

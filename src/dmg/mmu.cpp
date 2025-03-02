@@ -123,32 +123,8 @@ void DMG_MMU::reset()
 	ir_stat.network_id = 0;
 	ir_stat.try_connection = false;
 
-	kiss_link.cycles = 0;
-	kiss_link.input_signals.clear();
-	kiss_link.output_signals.clear();
+	gb_kiss_link_reset(true);
 	kiss_link.gbf_data.clear();
-	kiss_link.input_data.clear();
-	kiss_link.output_data.clear();
-	kiss_link.file_search_data.clear();
-	kiss_link.state = GKL_INACTIVE;
-	kiss_link.stage = GKL_INIT;
-	kiss_link.is_locked = false;
-	kiss_link.is_ping_delayed = false;
-	kiss_link.is_upload_done = true;
-
-	kiss_link.cmd = 0;
-	kiss_link.checksum = 0;
-	kiss_link.param = 0;
-	kiss_link.len = 0;
-	kiss_link.data_len = 0;
-	kiss_link.local_addr = 0;
-	kiss_link.remote_addr = 0;
-
-	kiss_link.gbf_index = 0;
-	kiss_link.gbf_file_size = 0;
-	kiss_link.gbf_raw_size = 0;
-	kiss_link.gbf_title_icon_size = 0;
-	kiss_link.gbf_flags = 0;
 
 	if(config::ir_device == 9)
 	{

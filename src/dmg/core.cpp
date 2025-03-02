@@ -1130,12 +1130,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			//GB KISS LINK - Start GBF file transfer
 			case GB_KISS_LINK:
 				std::cout<<"GB KISS LINK Transfer Started\n";
-				core_mmu.kiss_link.cycles = 0;
-				core_mmu.kiss_link.input_signals.clear();
-				core_mmu.kiss_link.output_signals.clear();
-				core_mmu.kiss_link.input_data.clear();
-				core_mmu.kiss_link.output_data.clear();
-				core_mmu.kiss_link.stage = GKL_INIT;
+				core_mmu.gb_kiss_link_reset(false);
 				core_mmu.gb_kiss_link_handshake(0xAA);
 				break;
 		}
@@ -1256,12 +1251,8 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 			//GB KISS LINK - Start GBF file transfer
 			case GB_KISS_LINK:
 				std::cout<<"GB KISS LINK Transfer Started\n";
-				core_mmu.kiss_link.cycles = 0;
-				core_mmu.kiss_link.input_signals.clear();
-				core_mmu.kiss_link.output_signals.clear();
-				core_mmu.kiss_link.input_data.clear();
-				core_mmu.kiss_link.output_data.clear();
-				core_mmu.kiss_link.stage = GKL_INIT;
+				core_mmu.gb_kiss_link_reset(true);
+				core_mmu.gb_kiss_link_load_file(config::external_data_file);
 				core_mmu.gb_kiss_link_handshake(0xAA);
 				break;
 		}
@@ -1404,13 +1395,13 @@ u32 DMG_core::get_core_data(u32 core_index)
 	switch(core_index & 0xFF)
 	{
 		//Joypad state
-		case 0x0:
+		case 0x00:
 			result = ~((core_pad.p15 << 4) | core_pad.p14);
 			result &= 0xFF;
 			break;
 
 		//Load card data
-		case 0x1:
+		case 0x01:
 			if(core_cpu.controllers.serial_io.sio_stat.sio_type == GB_BARDIGUN_SCANNER)
 			{
 				bool card_result = core_cpu.controllers.serial_io.bardigun_load_barcode(config::external_card_file);
@@ -1426,48 +1417,48 @@ u32 DMG_core::get_core_data(u32 core_index)
 			break;
 
 		//Grab current scanline pixel
-		case 0x3:
+		case 0x03:
 			//Use bits 8-15 as index
 			result = core_cpu.controllers.video.get_scanline_pixel((core_index >> 8) & 0xFF);
 			break;
 
 		//Render DMG BG Scanline
-		case 0x4:
+		case 0x04:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 0);
 			result = 1;
 			break;
 
 		//Render DMG Window Scanline
-		case 0x5:
+		case 0x05:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 1);
 			result = 1;
 			break;
 
 		//Render DMG OBJ Scanline
-		case 0x6:
+		case 0x06:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 2);
 			result = 1;
 			break;
 
 		//Render GBC BG Scanline
-		case 0x7:
+		case 0x07:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 3);
 			result = 1;
 			break;
 
 		//Render GBC Window Scanline
-		case 0x8:
+		case 0x08:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 4);
 			result = 1;
 			break;
 
 		//Render GBC OBJ Scanline
-		case 0x9:
+		case 0x09:
 			//Use bits 8-15 as index
 			core_cpu.controllers.video.render_scanline(((core_index >> 8) & 0xFF), 5);
 			result = 1;

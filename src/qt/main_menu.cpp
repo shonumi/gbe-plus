@@ -595,7 +595,7 @@ void main_menu::select_data_file()
 {
 	SDL_PauseAudio(1);
 
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("Binary File(*.bin)"));
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("Binary File(*.bin);;GB KISS File(*.gbf)"));
 	if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 	//Automatically save Soul Doll data when switching
