@@ -52,7 +52,6 @@ void DMG_MMU::huc1_write(u16 address, u8 value)
 		}
 
 		//Otherwise write to RAM
-		else if(bank_mode == 0) { random_access_bank[0][address - 0xA000] = value; }
 		else { random_access_bank[bank_bits][address - 0xA000] = value; }
 	}
 
@@ -106,7 +105,6 @@ u8 DMG_MMU::huc1_read(u16 address)
 		if(ir_stat.trigger) { return 0xC0 | (cart.huc_ir_input); }
 
 		//Otherwise read from RAM
-		else if(bank_mode == 0) { return random_access_bank[0][address - 0xA000]; }
 		else { return random_access_bank[bank_bits][address - 0xA000]; }
 	}
 
