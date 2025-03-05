@@ -22,6 +22,7 @@ set(SRCS
 	dmg07.cpp
 	gbma.cpp
 	debug.cpp
+	gb_kiss_link.cpp
 	)
 
 set(HEADERS
