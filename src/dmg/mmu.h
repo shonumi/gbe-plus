@@ -167,6 +167,7 @@ class DMG_MMU
 		u8 cmd;
 		u8 checksum;
 		u8 param;
+		u8 slot;
 		u16 len;
 		u16 data_len;
 		u16 remote_addr;

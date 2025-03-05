@@ -498,7 +498,7 @@ void DMG_MMU::gb_kiss_link_process()
 						kiss_link.local_addr = 0xCE00;
 						kiss_link.remote_addr = 0xCE00;
 						kiss_link.len = 0x01;
-						kiss_link.param = 0x02;
+						kiss_link.param = kiss_link.slot;
 
 						//Command data
 						kiss_link.input_data.clear();
@@ -672,6 +672,8 @@ void DMG_MMU::gb_kiss_link_process()
 				{
 					kiss_link.stage = GKL_WRITE_ID;
 					gb_kiss_link_handshake(0xAA);
+
+					kiss_link.slot = kiss_link.input_data[kiss_link.input_data.size() - 2];
 				}
 
 				else if(kiss_link.stage == GKL_WRITE_ID)
@@ -922,8 +924,8 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			kiss_link.gbf_index = kiss_link.gbf_file_size - kiss_link.gbf_raw_size;
 
-			//???
-			kiss_link.output_data.push_back(0x02);
+			//GBF Destination File Slot
+			kiss_link.output_data.push_back(kiss_link.slot);
 
 			//GBF File Flags
 			kiss_link.output_data.push_back(kiss_link.param);
@@ -1135,6 +1137,7 @@ void DMG_MMU::gb_kiss_link_reset(bool reset_gbf)
 	kiss_link.cmd = 0;
 	kiss_link.checksum = 0;
 	kiss_link.param = 0;
+	kiss_link.slot = 0;
 	kiss_link.len = 0;
 	kiss_link.data_len = 0;
 	kiss_link.local_addr = 0;
