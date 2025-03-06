@@ -232,224 +232,7 @@ void DMG_MMU::gb_kiss_link_process()
 				//Finish last phase of sender handshake, move onto next command
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_3C)
 				{
-					//Read RAM -> Receiver ID String
-					if(kiss_link.stage == GKL_INIT)
-					{
-						kiss_link.stage = GKL_REQUEST_ID;
-
-						kiss_link.cmd = 0x08;
-						kiss_link.local_addr = 0xCE00;
-						kiss_link.remote_addr = 0xCE00;
-						kiss_link.len = 0x10;
-						kiss_link.param = 0;
-
-						kiss_link.input_data.clear();
-						gb_kiss_link_send_command();
-					}
-
-					//Write RAM -> Receiver ID
-					else if(kiss_link.stage == GKL_WRITE_ID)
-					{
-						kiss_link.cmd = 0x0B;
-						kiss_link.local_addr = 0xCE00;
-						kiss_link.remote_addr = 0xCE00;
-						kiss_link.len = 0x01;
-						kiss_link.param = 0;
-
-						//Command data
-						kiss_link.input_data.clear();
-						kiss_link.input_data.push_back(0x01);
-
-						gb_kiss_link_send_command();
-					}
-
-					//Start Session
-					//End Session
-					else if((kiss_link.stage == GKL_START_SESSION) || (kiss_link.stage == GKL_END_SESSION))
-					{
-						kiss_link.cmd = 0x00;
-						kiss_link.local_addr = 0xCE00;
-						kiss_link.remote_addr = 0xCE00;
-						kiss_link.len = 0x01;
-						kiss_link.param = 0;
-
-						kiss_link.input_data.clear();
-						gb_kiss_link_send_command();
-					}
-
-					//Send Icon
-					else if(kiss_link.stage == GKL_SEND_ICON)
-					{
-						kiss_link.cmd = 0x02;
-						kiss_link.local_addr = 0xC700;
-						kiss_link.remote_addr = 0xC50C;
-						kiss_link.len = kiss_link.gbf_title_icon_size;
-						kiss_link.param = 0;
-
-						//Command data
-						kiss_link.input_data.clear();
-						u32 size = (kiss_link.gbf_title_icon_size + 5);
-						
-						for(u32 x = 5; x < size; x++)
-						{
-							kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
-						}
-
-						gb_kiss_link_send_command();
-					}
-
-					//Unknown RAM Write #1
-					else if(kiss_link.stage == GKL_UNK_WRITE_1)
-					{
-						kiss_link.cmd = 0x0B;
-						kiss_link.local_addr = 0xCE00;
-						kiss_link.remote_addr = 0xCE00;
-						kiss_link.len = 0x01;
-						kiss_link.param = kiss_link.slot;
-
-						//Command data
-						kiss_link.input_data.clear();
-						kiss_link.input_data.push_back(0x05);
-
-						gb_kiss_link_send_command();
-					}
-
-					//File Search
-					else if(kiss_link.stage == GKL_FILE_SEARCH)
-					{
-						kiss_link.cmd = 0x03;
-						kiss_link.local_addr = 0xC700;
-						kiss_link.param = kiss_link.gbf_flags;
-
-						//Command data
-						kiss_link.input_data.clear();
-
-						gb_kiss_link_send_command();
-					}
-
-					//Unknown RAM Read #1
-					else if(kiss_link.stage == GKL_UNK_READ_1)
-					{
-						kiss_link.cmd = 0x08;
-						kiss_link.local_addr = 0xCE00;
-						kiss_link.remote_addr = 0xDFFC;
-						kiss_link.len = 0x02;
-						kiss_link.param = 0x76;
-
-						kiss_link.input_data.clear();
-						gb_kiss_link_send_command();
-					}
-
-					//Prep file upload from GB KISS LINK
-					else if(kiss_link.stage == GKL_PREP_UPLOAD)
-					{
-						kiss_link.cmd = 0x4;
-						kiss_link.local_addr = 0xC500;
-						kiss_link.remote_addr = 0xFFD2;
-						kiss_link.param = 0x0;
-
-						kiss_link.input_data.clear();
-						gb_kiss_link_send_command();
-					}
-
-					//Send History
-					else if(kiss_link.stage == GKL_SEND_HISTORY)
-					{
-						kiss_link.cmd = 0x0A;
-						kiss_link.local_addr = 0xC500;
-						kiss_link.remote_addr = 0xC600;
-						kiss_link.len = 0x2E;
-						kiss_link.param = 0;
-
-						//Command data
-						kiss_link.input_data.clear();
-						u32 start = (kiss_link.gbf_title_icon_size + 5);
-						u32 end = start + 0x2E;
-						
-						for(u32 x = start; x < end; x++)
-						{
-							kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
-						}
-
-						gb_kiss_link_send_command();
-					}
-
-					//Send File
-					else if(kiss_link.stage == GKL_SEND_FILE)
-					{
-						kiss_link.cmd = 0x0A;
-						kiss_link.local_addr = 0xC500;
-						kiss_link.remote_addr = 0xC600;
-						kiss_link.len = 0;
-						kiss_link.param = 1;
-
-						//Command data
-						kiss_link.input_data.clear();
-						u32 start = kiss_link.gbf_index;
-						u32 end = start + 256;
-
-						//End of file reached on this command
-						if(end > kiss_link.gbf_file_size)
-						{
-							end = kiss_link.gbf_file_size;
-							kiss_link.len = kiss_link.gbf_file_size - start;
-							kiss_link.param = 0;
-							kiss_link.is_upload_done = true;
-						} 
-						
-						for(u32 x = start; x < end; x++)
-						{
-							kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
-							kiss_link.gbf_index++;
-						}
-
-						gb_kiss_link_send_command();
-					}
-
-					//Finish Upload
-					else if(kiss_link.stage == GKL_END_UPLOAD)
-					{
-						kiss_link.cmd = 0x04;
-						kiss_link.local_addr = 0xC50B;
-						kiss_link.remote_addr = 0x3 - (kiss_link.gbf_file_size - kiss_link.gbf_raw_size);
-						kiss_link.len = 0;
-						kiss_link.param = 0;
-
-						kiss_link.input_data.clear();
-						gb_kiss_link_send_command();
-					}
-
-					//Close File
-					else if(kiss_link.stage == GKL_CLOSE_FILE)
-					{
-						kiss_link.cmd = 0x0A;
-						kiss_link.local_addr = 0xC500;
-						kiss_link.remote_addr = 0xC50B;
-						kiss_link.len = 0x1;
-						kiss_link.param = 0;
-
-						//Command data
-						kiss_link.input_data.clear();
-						kiss_link.input_data.push_back(0x00);
-
-						gb_kiss_link_send_command();
-					}
-
-					//Unknown RAM Write #2
-					else if(kiss_link.stage == GKL_UNK_WRITE_2)
-					{
-						kiss_link.cmd = 0x0B;
-						kiss_link.local_addr = 0xCE00;
-						kiss_link.remote_addr = 0xCE00;
-						kiss_link.len = 0x01;
-						kiss_link.param = 0x00;
-
-						//Command data
-						kiss_link.input_data.clear();
-						kiss_link.input_data.push_back(0x02);
-
-						gb_kiss_link_send_command();
-					}
+					gb_kiss_link_process_command();
 				}
 
 				//Finish first phase of receiver handshake
@@ -587,6 +370,237 @@ void DMG_MMU::gb_kiss_link_process()
 				sio_stat->shift_clock = 0;
 			}
 
+			break;
+	}
+}
+
+/****** Sets up various commands to be sent via IR ******/
+void DMG_MMU::gb_kiss_link_process_command()
+{
+	u32 size = 0;
+	u32 start = 0;
+	u32 end = 0;
+
+	switch(kiss_link.stage)
+	{
+		//Read RAM -> Receiver ID String
+		case GKL_INIT:
+			kiss_link.stage = GKL_REQUEST_ID;
+
+			kiss_link.cmd = 0x08;
+			kiss_link.local_addr = 0xCE00;
+			kiss_link.remote_addr = 0xCE00;
+			kiss_link.len = 0x10;
+			kiss_link.param = 0;
+
+			kiss_link.input_data.clear();
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//Write RAM -> Receiver ID
+		case GKL_WRITE_ID:
+			kiss_link.cmd = 0x0B;
+			kiss_link.local_addr = 0xCE00;
+			kiss_link.remote_addr = 0xCE00;
+			kiss_link.len = 0x01;
+			kiss_link.param = 0;
+
+			//Command data
+			kiss_link.input_data.clear();
+			kiss_link.input_data.push_back(0x01);
+
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//Start Session
+		//End Session
+		case GKL_START_SESSION:
+		case GKL_END_SESSION:
+			kiss_link.cmd = 0x00;
+			kiss_link.local_addr = 0xCE00;
+			kiss_link.remote_addr = 0xCE00;
+			kiss_link.len = 0x01;
+			kiss_link.param = 0;
+
+			kiss_link.input_data.clear();
+			gb_kiss_link_send_command();
+
+			break;
+
+		//Send Icon
+		case GKL_SEND_ICON:
+			kiss_link.cmd = 0x02;
+			kiss_link.local_addr = 0xC700;
+			kiss_link.remote_addr = 0xC50C;
+			kiss_link.len = kiss_link.gbf_title_icon_size;
+			kiss_link.param = 0;
+
+			//Command data
+			kiss_link.input_data.clear();
+			size = (kiss_link.gbf_title_icon_size + 5);
+						
+			for(u32 x = 5; x < size; x++)
+			{
+				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
+			}
+
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//Unknown RAM Write #1
+		case GKL_UNK_WRITE_1:
+			kiss_link.cmd = 0x0B;
+			kiss_link.local_addr = 0xCE00;
+			kiss_link.remote_addr = 0xCE00;
+			kiss_link.len = 0x01;
+			kiss_link.param = kiss_link.slot;
+
+			//Command data
+			kiss_link.input_data.clear();
+			kiss_link.input_data.push_back(0x05);
+
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//File Search
+		case GKL_FILE_SEARCH:
+			kiss_link.cmd = 0x03;
+			kiss_link.local_addr = 0xC700;
+			kiss_link.param = kiss_link.gbf_flags;
+
+			//Command data
+			kiss_link.input_data.clear();
+
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//Unknown RAM Read #1
+		case GKL_UNK_READ_1:
+			kiss_link.cmd = 0x08;
+			kiss_link.local_addr = 0xCE00;
+			kiss_link.remote_addr = 0xDFFC;
+			kiss_link.len = 0x02;
+			kiss_link.param = 0x76;
+
+			kiss_link.input_data.clear();
+			gb_kiss_link_send_command();
+
+			break;
+
+		//Prep file upload from GB KISS LINK
+		case GKL_PREP_UPLOAD:
+			kiss_link.cmd = 0x4;
+			kiss_link.local_addr = 0xC500;
+			kiss_link.remote_addr = 0xFFD2;
+			kiss_link.param = 0x0;
+
+			kiss_link.input_data.clear();
+			gb_kiss_link_send_command();
+
+			break;
+
+		//Send History
+		case GKL_SEND_HISTORY:
+			kiss_link.cmd = 0x0A;
+			kiss_link.local_addr = 0xC500;
+			kiss_link.remote_addr = 0xC600;
+			kiss_link.len = 0x2E;
+			kiss_link.param = 0;
+
+			//Command data
+			kiss_link.input_data.clear();
+			start = (kiss_link.gbf_title_icon_size + 5);
+			end = start + 0x2E;
+						
+			for(u32 x = start; x < end; x++)
+			{
+				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
+			}
+
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//Send File
+		case GKL_SEND_FILE:
+			kiss_link.cmd = 0x0A;
+			kiss_link.local_addr = 0xC500;
+			kiss_link.remote_addr = 0xC600;
+			kiss_link.len = 0;
+			kiss_link.param = 1;
+
+			//Command data
+			kiss_link.input_data.clear();
+			start = kiss_link.gbf_index;
+			end = start + 256;
+
+			//End of file reached on this command
+			if(end > kiss_link.gbf_file_size)
+			{
+				end = kiss_link.gbf_file_size;
+				kiss_link.len = kiss_link.gbf_file_size - start;
+				kiss_link.param = 0;
+				kiss_link.is_upload_done = true;
+			} 
+						
+			for(u32 x = start; x < end; x++)
+			{
+				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
+				kiss_link.gbf_index++;
+			}
+
+			gb_kiss_link_send_command();
+
+			break;
+
+		//Finish Upload
+		case GKL_END_UPLOAD:
+			kiss_link.cmd = 0x04;
+			kiss_link.local_addr = 0xC50B;
+			kiss_link.remote_addr = 0x3 - (kiss_link.gbf_file_size - kiss_link.gbf_raw_size);
+			kiss_link.len = 0;
+			kiss_link.param = 0;
+
+			kiss_link.input_data.clear();
+			gb_kiss_link_send_command();
+
+			break;
+
+		//Close File
+		case GKL_CLOSE_FILE:
+			kiss_link.cmd = 0x0A;
+			kiss_link.local_addr = 0xC500;
+			kiss_link.remote_addr = 0xC50B;
+			kiss_link.len = 0x1;
+			kiss_link.param = 0;
+
+			//Command data
+			kiss_link.input_data.clear();
+			kiss_link.input_data.push_back(0x00);
+
+			gb_kiss_link_send_command();
+			
+			break;
+
+		//Unknown RAM Write #2
+		case GKL_UNK_WRITE_2:
+			kiss_link.cmd = 0x0B;
+			kiss_link.local_addr = 0xCE00;
+			kiss_link.remote_addr = 0xCE00;
+			kiss_link.len = 0x01;
+			kiss_link.param = 0x00;
+
+			//Command data
+			kiss_link.input_data.clear();
+			kiss_link.input_data.push_back(0x02);
+
+			gb_kiss_link_send_command();
+			
 			break;
 	}
 }
