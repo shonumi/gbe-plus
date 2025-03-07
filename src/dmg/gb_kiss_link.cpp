@@ -114,40 +114,7 @@ void DMG_MMU::gb_kiss_link_process()
 					//At end of ping, move onto next state, stage, or command
 					else
 					{
-						//Receive ID data from RAM
-						//Receive Icon Data echo (File Search Data)
-						//Receive File Search results
-						//Receive Prep Upload results
-						//Receive Send History and Send File echo
-						if((kiss_link.stage == GKL_REQUEST_ID) || (kiss_link.stage == GKL_SEND_ICON)
-						|| (kiss_link.stage == GKL_FILE_SEARCH) || (kiss_link.stage == GKL_UNK_READ_1)
-						|| (kiss_link.stage == GKL_PREP_UPLOAD) || (kiss_link.stage == GKL_SEND_HISTORY)
-						|| (kiss_link.stage == GKL_SEND_FILE) || (kiss_link.stage == GKL_END_UPLOAD)
-						|| (kiss_link.stage == GKL_CLOSE_FILE))
-						{
-							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
-							kiss_link.is_locked = false;
-						}
-
-						//Receive echo of checksum after RAM write
-						else if((kiss_link.stage == GKL_WRITE_ID) || (kiss_link.stage == GKL_UNK_WRITE_1)
-						|| (kiss_link.stage == GKL_UNK_WRITE_2))
-						{
-							gb_kiss_link_send_ping();
-						}
-
-						//Send icon data - Ping is super long due to client-side processing
-						else if(kiss_link.stage == GKL_START_SESSION)
-						{
-							kiss_link.output_data.clear();
-							gb_kiss_link_send_ping();
-							kiss_link.output_signals[0] = 1078400;
-						}
-
-						else if(kiss_link.stage == GKL_END_SESSION)
-						{
-							std::cout<<"GB KISS LINK Transfer Finished\n";
-						}
+						gb_kiss_link_process_ping();
 					}
 				}
 
@@ -600,6 +567,50 @@ void DMG_MMU::gb_kiss_link_process_command()
 			kiss_link.input_data.push_back(0x02);
 
 			gb_kiss_link_send_command();
+			
+			break;
+	}
+}
+
+/****** Handles behavior for various commands after each ping is sent ******/
+void DMG_MMU::gb_kiss_link_process_ping()
+{
+	switch(kiss_link.stage)
+	{
+		//Receive data in response to command - Start receiving handshake
+		case GKL_REQUEST_ID:
+		case GKL_SEND_ICON:
+		case GKL_FILE_SEARCH:
+		case GKL_UNK_READ_1:
+		case GKL_PREP_UPLOAD:
+		case GKL_SEND_HISTORY:
+		case GKL_SEND_FILE:
+		case GKL_END_UPLOAD:
+		case GKL_CLOSE_FILE:
+			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
+			kiss_link.is_locked = false;
+			
+			break;
+
+		//Receive echo of checksum after RAM writes - Continue pings
+		case GKL_WRITE_ID:
+		case GKL_UNK_WRITE_1:
+		case GKL_UNK_WRITE_2:
+			gb_kiss_link_send_ping();
+			
+			break;
+
+		//Start session - Ping is super long due to client-side processing
+		case GKL_START_SESSION:
+			kiss_link.output_data.clear();
+			gb_kiss_link_send_ping();
+			kiss_link.output_signals[0] = 1078400;
+			
+			break;
+
+		//End of transfer
+		case GKL_END_SESSION:
+			std::cout<<"GB KISS LINK Transfer Finished\n";
 			
 			break;
 	}
