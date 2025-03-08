@@ -223,110 +223,7 @@ void DMG_MMU::gb_kiss_link_process()
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
-
-				//Move onto next state, stage, and command
-				if(kiss_link.stage == GKL_REQUEST_ID)
-				{
-					kiss_link.stage = GKL_WRITE_ID;
-					gb_kiss_link_handshake(0xAA);
-
-					kiss_link.slot = kiss_link.input_data[kiss_link.input_data.size() - 2];
-				}
-
-				else if(kiss_link.stage == GKL_WRITE_ID)
-				{
-					kiss_link.stage = GKL_START_SESSION;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_SEND_ICON)
-				{
-					kiss_link.file_search_data.clear();
-
-					//Grab input used for file search
-					if(kiss_link.input_data.size() == 266)
-					{
-						for(u32 x = 0; x < 256; x++)
-						{
-							kiss_link.file_search_data.push_back(kiss_link.input_data[9 + x]);
-						}
-
-						kiss_link.stage = GKL_UNK_WRITE_1;
-						gb_kiss_link_handshake(0xAA);
-					}
-
-					else
-					{
-						std::cout<<"MMU::Warning - GB KISS LINK File Search Data is incorrect size\n";
-					}
-				}
-
-				else if(kiss_link.stage == GKL_UNK_WRITE_1)
-				{
-					kiss_link.stage = GKL_FILE_SEARCH;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_FILE_SEARCH)
-				{
-					kiss_link.stage = GKL_UNK_READ_1;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_UNK_READ_1)
-				{
-					kiss_link.stage = GKL_PREP_UPLOAD;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_PREP_UPLOAD)
-				{
-					//TODO - This should probably be optional if GBF file does not have history
-					//In that case, it would skip to the next stage? Needs more research
-					kiss_link.stage = GKL_SEND_HISTORY;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_SEND_HISTORY)
-				{
-					kiss_link.stage = GKL_SEND_FILE;
-					kiss_link.is_upload_done = false;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_SEND_FILE)
-				{
-					//Resend file in chunks until EOF is reached
-					if(!kiss_link.is_upload_done)
-					{
-						kiss_link.stage = GKL_SEND_FILE;
-						gb_kiss_link_handshake(0xAA);
-					}
-
-					else
-					{
-						kiss_link.stage = GKL_END_UPLOAD;
-						gb_kiss_link_handshake(0xAA);
-					}
-				}
-
-				else if(kiss_link.stage == GKL_END_UPLOAD)
-				{
-					kiss_link.stage = GKL_CLOSE_FILE;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_CLOSE_FILE)
-				{
-					kiss_link.stage = GKL_UNK_WRITE_2;
-					gb_kiss_link_handshake(0xAA);
-				}
-
-				else if(kiss_link.stage == GKL_UNK_WRITE_2)
-				{
-					kiss_link.stage = GKL_END_SESSION;
-					gb_kiss_link_handshake(0xAA);
-				}
+				gb_kiss_link_finish_command();
 			}
 
 			//Continue gathering cycle counts for incoming signals
@@ -568,6 +465,116 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 			gb_kiss_link_send_command();
 			
+			break;
+	}
+}
+
+/****** Moves from one command to the next for GB KISS LINK protocol ******/
+void DMG_MMU::gb_kiss_link_finish_command()
+{
+	switch(kiss_link.stage)
+	{
+		case GKL_REQUEST_ID:
+			kiss_link.stage = GKL_WRITE_ID;
+			gb_kiss_link_handshake(0xAA);
+
+			kiss_link.slot = kiss_link.input_data[kiss_link.input_data.size() - 2];
+			
+			break;
+
+		case GKL_WRITE_ID:
+			kiss_link.stage = GKL_START_SESSION;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_SEND_ICON:
+			kiss_link.file_search_data.clear();
+
+			//Grab input used for file search
+			if(kiss_link.input_data.size() == 266)
+			{
+				for(u32 x = 0; x < 256; x++)
+				{
+					kiss_link.file_search_data.push_back(kiss_link.input_data[9 + x]);
+				}
+
+				kiss_link.stage = GKL_UNK_WRITE_1;
+				gb_kiss_link_handshake(0xAA);
+			}
+
+			else
+			{
+				std::cout<<"MMU::Warning - GB KISS LINK File Search Data is incorrect size\n";
+			}
+			
+			break;
+
+		case GKL_UNK_WRITE_1:
+			kiss_link.stage = GKL_FILE_SEARCH;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_FILE_SEARCH:
+			kiss_link.stage = GKL_UNK_READ_1;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_UNK_READ_1:
+			kiss_link.stage = GKL_PREP_UPLOAD;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_PREP_UPLOAD:
+			//TODO - This should probably be optional if GBF file does not have history
+			//In that case, it would skip to the next stage? Needs more research
+			kiss_link.stage = GKL_SEND_HISTORY;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_SEND_HISTORY:
+			kiss_link.stage = GKL_SEND_FILE;
+			kiss_link.is_upload_done = false;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_SEND_FILE:
+			//Continue sending file in chunks until EOF is reached
+			if(!kiss_link.is_upload_done)
+			{
+				kiss_link.stage = GKL_SEND_FILE;
+				gb_kiss_link_handshake(0xAA);
+			}
+
+			else
+			{
+				kiss_link.stage = GKL_END_UPLOAD;
+				gb_kiss_link_handshake(0xAA);
+			}
+
+			break;
+
+		case GKL_END_UPLOAD:
+			kiss_link.stage = GKL_CLOSE_FILE;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_CLOSE_FILE:
+			kiss_link.stage = GKL_UNK_WRITE_2;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_UNK_WRITE_2:
+			kiss_link.stage = GKL_END_SESSION;
+			gb_kiss_link_handshake(0xAA);
+
 			break;
 	}
 }
