@@ -1243,7 +1243,7 @@ void AGB_MMU::process_campho()
 
 		//Flag a remote video frame as ready to draw
 		//Data previously pulled from network buffer
-		else if(campho.update_remote_camera)
+		if(campho.update_remote_camera)
 		{			
 			campho.update_remote_camera = false;
 			campho.camera_mode |= 0x02;
@@ -1869,7 +1869,7 @@ void AGB_MMU::campho_process_networking()
 			//Receive kill signal if necessary
 			SDLNet_CheckSockets(campho.phone_sockets, 0);
 
-			if(SDLNet_SocketReady(campho.ringer.remote_socket))
+			while(SDLNet_SocketReady(campho.ringer.remote_socket))
 			{
 				u32 recv_bytes = SDLNet_TCP_Recv(campho.ringer.remote_socket, campho.net_buffer.data(), 0x10000);
 				u16 status = (campho.net_buffer[1] << 8) | campho.net_buffer[0];
@@ -2147,7 +2147,7 @@ void AGB_MMU::campho_process_networking()
 				}
 			}
 
-			if(SDLNet_SocketReady(campho.line.remote_socket))
+			while(SDLNet_SocketReady(campho.line.remote_socket))
 			{
 				u32 recv_bytes = SDLNet_TCP_Recv(campho.line.remote_socket, campho.net_buffer.data(), 0x10000);
 				u16 status = (campho.net_buffer[1] << 8) | campho.net_buffer[0];
