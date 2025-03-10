@@ -5854,8 +5854,9 @@ ROM_CNT = 0x4015
 Address		| Description
 ------------------------------------------------------------------------
 0x00 - 0x01	| Transfer Type. Always 0xAB00 (0x1560 when warped)
-0x02		| Internal Phone Function
-0x03		| Modem Status 
+0x02 - 0x03	| Data Length. Always 0x0004 (0x8000 when warped)
+0x04 - 0x05	| Internal Phone Function
+0x06 - 0x07	| Modem Status 
 ------------------------------------------------------------------------</pre>
 
 	<p>The Modem Status byte uses 6-bits to represent various changes in the modem during calls. Each bit seems to represent a distinct state for the Campho Advance. Currently the only definitely known function of these is Bit 5, which indicates that a call is incoming and has triggered the receiver&#39;s ringer. Based on string data and code from the ROM, the rest of the bits likely correspond to states for idle, dialing, ringing, connecting, and answering. The following needs hardware verification, but Modem Status may look like this:</p>
