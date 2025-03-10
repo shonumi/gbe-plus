@@ -24,7 +24,7 @@ uniform float ext_data_2;
 void main()
 {
 	vec4 input_color = texture(screen_texture, texture_coordinates);
-	vec4 output_color = vec4(0, 0, 0, 0);
+	vec4 output_color = vec4(0.0, 0.0, 0.0, 1.0);
 
 	output_color.r = (input_color.r * 0.393) + (input_color.g * 0.769) + (input_color.b * 0.189);
 	output_color.g = (input_color.r * 0.349) + (input_color.g * 0.686) + (input_color.b * 0.168);
