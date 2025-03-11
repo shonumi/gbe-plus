@@ -6654,19 +6654,24 @@ Read Bit
 	<p>By writing certain bytes to the ATVT (using the protocol described above) the CPU can send several commands to the device. Typically the last two bytes of a command are 8-bit or 16-bit parameters. In the case of read commands, there are no parameters used. A list of known commands is shown in the table below along with whether the command uses TV_CNT_A or TV_CNT_B:</p>
 
 <pre>-----------------------------------------------------------
-Command Name		| Command Pattern (in hexadecimal)
+Command Name		| Command Pattern	|Register
 -----------------------------------------------------------
-Read Channel Status	| 87
-Change Channel		| C0 xx xx
-Switch to AV Input Mode	| D8 02 E0
-Switch to TV Mode	| D8 02 E1
-Set Video Contrast	| D8 10 xx
-Set Video Brightness	| D8 11 xx
-Set Video Hue		| D8 15 xx
-Clear Video Frame	| D8 0D 80
-Render Video Frame	| D8 0D 00
-Read Something?		| D9
+Unknown Command		| 86 xx xx		| TV_CNT_B
+Read Channel Status	| 87			| TV_CNT_B
+Change Channel		| C0 xx xx		| TV_CNT_B
+Switch to AV Input Mode	| D8 02 E0		| TV_CNT_A
+Switch to TV Mode	| D8 02 E1		| TV_CNT_A
+Set Video Contrast	| D8 10 xx		| TV_CNT_A
+Set Video Brightness	| D8 11 xx		| TV_CNT_A
+Set Video Hue		| D8 15 xx		| TV_CNT_A
+Clear Video Frame	| D8 0D 80		| TV_CNT_A
+Render Video Frame	| D8 0D 00		| TV_CNT_A
+Read Something?		| D9			| TV_CNT_A
 -----------------------------------------------------------</pre>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command 86 - Unknown Command</strong></p>
+	<p class="list_item">This command appears related to changing the channel. It is called at least 4 times before reading the channel status and changing the channel frequency; each time different parameters are used.</p>
 
 	<p class="spc"></p>
 	<p class="list_item"><strong>Command 87 - Read Channel Status</strong></p>
