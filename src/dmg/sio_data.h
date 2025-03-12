@@ -170,6 +170,17 @@ enum gb_kiss_link_stage
 	GKL_FINISHED,
 };
 
+enum gb_kiss_link_cmd
+{
+	GKL_CMD_MANAGE_SESSION = 0x00,
+	GKL_CMD_SEND_ICON = 0x02,
+	GKL_CMD_FILE_SEARCH = 0x03,
+	GKL_CMD_MANAGE_UPLOAD = 0x04,
+	GKL_CMD_READ_RAM = 0x08,
+	GKL_CMD_MANAGE_DATA = 0x0A,
+	GKL_CMD_WRITE_RAM = 0x0B,
+};
+
 struct dmg_sio_data
 {
 	bool connected;

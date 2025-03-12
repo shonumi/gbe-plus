@@ -76,21 +76,21 @@ void DMG_MMU::gb_kiss_link_process()
 					kiss_link.is_locked = false;
 
 					//Receive data
-					if((kiss_link.cmd == 0x02) || (kiss_link.cmd == 0x03)
-					|| (kiss_link.cmd == 0x04) || (kiss_link.cmd == 0x08)
-					|| (kiss_link.cmd == 0x0A))
+					if((kiss_link.cmd == GKL_CMD_SEND_ICON) || (kiss_link.cmd == GKL_CMD_FILE_SEARCH)
+					|| (kiss_link.cmd == GKL_CMD_MANAGE_UPLOAD) || (kiss_link.cmd == GKL_CMD_READ_RAM)
+					|| (kiss_link.cmd == GKL_CMD_MANAGE_DATA))
 					{
 						kiss_link.output_data.clear();
 						gb_kiss_link_send_ping();
 
 						//Some commands require receiving different lengths than they send
 						//Adjust length here as needed in these cases
-						if((kiss_link.cmd == 0x02) || (kiss_link.cmd == 0x03))
+						if((kiss_link.cmd == GKL_CMD_SEND_ICON) || (kiss_link.cmd == GKL_CMD_FILE_SEARCH))
 						{
 							kiss_link.len = 265;
 						}
 
-						else if((kiss_link.cmd == 0x04) || (kiss_link.cmd == 0x0A))
+						else if((kiss_link.cmd == GKL_CMD_MANAGE_UPLOAD) || (kiss_link.cmd == GKL_CMD_MANAGE_DATA))
 						{
 							kiss_link.len = 8;
 						}
@@ -251,7 +251,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 		case GKL_INIT:
 			kiss_link.stage = GKL_REQUEST_ID;
 
-			kiss_link.cmd = 0x08;
+			kiss_link.cmd = GKL_CMD_READ_RAM;
 			kiss_link.local_addr = 0xCE00;
 			kiss_link.remote_addr = 0xCE00;
 			kiss_link.len = 0x10;
@@ -264,7 +264,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Write RAM -> Receiver ID
 		case GKL_WRITE_ID:
-			kiss_link.cmd = 0x0B;
+			kiss_link.cmd = GKL_CMD_WRITE_RAM;
 			kiss_link.local_addr = 0xCE00;
 			kiss_link.remote_addr = 0xCE00;
 			kiss_link.len = 0x01;
@@ -282,7 +282,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 		//End Session
 		case GKL_START_SESSION:
 		case GKL_END_SESSION:
-			kiss_link.cmd = 0x00;
+			kiss_link.cmd = GKL_CMD_MANAGE_SESSION;
 			kiss_link.local_addr = 0xCE00;
 			kiss_link.remote_addr = 0xCE00;
 			kiss_link.len = 0x01;
@@ -295,7 +295,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Send Icon
 		case GKL_SEND_ICON:
-			kiss_link.cmd = 0x02;
+			kiss_link.cmd = GKL_CMD_SEND_ICON;
 			kiss_link.local_addr = 0xC700;
 			kiss_link.remote_addr = 0xC50C;
 			kiss_link.len = kiss_link.gbf_title_icon_size;
@@ -316,7 +316,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Unknown RAM Write #1
 		case GKL_UNK_WRITE_1:
-			kiss_link.cmd = 0x0B;
+			kiss_link.cmd = GKL_CMD_WRITE_RAM;
 			kiss_link.local_addr = 0xCE00;
 			kiss_link.remote_addr = 0xCE00;
 			kiss_link.len = 0x01;
@@ -332,7 +332,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//File Search
 		case GKL_FILE_SEARCH:
-			kiss_link.cmd = 0x03;
+			kiss_link.cmd = GKL_CMD_FILE_SEARCH;
 			kiss_link.local_addr = 0xC700;
 			kiss_link.param = kiss_link.gbf_flags;
 
@@ -345,7 +345,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Unknown RAM Read #1
 		case GKL_UNK_READ_1:
-			kiss_link.cmd = 0x08;
+			kiss_link.cmd = GKL_CMD_READ_RAM;
 			kiss_link.local_addr = 0xCE00;
 			kiss_link.remote_addr = 0xDFFC;
 			kiss_link.len = 0x02;
@@ -358,7 +358,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Prep file upload from GB KISS LINK
 		case GKL_PREP_UPLOAD:
-			kiss_link.cmd = 0x4;
+			kiss_link.cmd = GKL_CMD_MANAGE_UPLOAD;
 			kiss_link.local_addr = 0xC500;
 			kiss_link.remote_addr = 0xFFD2;
 			kiss_link.param = 0x0;
@@ -370,7 +370,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Send History
 		case GKL_SEND_HISTORY:
-			kiss_link.cmd = 0x0A;
+			kiss_link.cmd = GKL_CMD_MANAGE_DATA;
 			kiss_link.local_addr = 0xC500;
 			kiss_link.remote_addr = 0xC600;
 			kiss_link.len = 0x2E;
@@ -392,7 +392,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Send File
 		case GKL_SEND_FILE:
-			kiss_link.cmd = 0x0A;
+			kiss_link.cmd = GKL_CMD_MANAGE_DATA;
 			kiss_link.local_addr = 0xC500;
 			kiss_link.remote_addr = 0xC600;
 			kiss_link.len = 0;
@@ -424,7 +424,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Finish Upload
 		case GKL_END_UPLOAD:
-			kiss_link.cmd = 0x04;
+			kiss_link.cmd = GKL_CMD_MANAGE_UPLOAD;
 			kiss_link.local_addr = 0xC50B;
 			kiss_link.remote_addr = 0x3 - (kiss_link.gbf_file_size - kiss_link.gbf_raw_size);
 			kiss_link.len = 0;
@@ -437,7 +437,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Close File
 		case GKL_CLOSE_FILE:
-			kiss_link.cmd = 0x0A;
+			kiss_link.cmd = GKL_CMD_MANAGE_DATA;
 			kiss_link.local_addr = 0xC500;
 			kiss_link.remote_addr = 0xC50B;
 			kiss_link.len = 0x1;
@@ -453,7 +453,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Unknown RAM Write #2
 		case GKL_UNK_WRITE_2:
-			kiss_link.cmd = 0x0B;
+			kiss_link.cmd = GKL_CMD_WRITE_RAM;
 			kiss_link.local_addr = 0xCE00;
 			kiss_link.remote_addr = 0xCE00;
 			kiss_link.len = 0x01;
@@ -723,8 +723,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 	switch(kiss_link.cmd)
 	{
-		//Start Session
-		case 0x00:
+		case GKL_CMD_MANAGE_SESSION:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
@@ -747,8 +746,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			break;
 
-		//File Search
-		case 0x03:
+		case GKL_CMD_FILE_SEARCH:
 			//Local Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
@@ -794,8 +792,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			break;
 
-		//Prep Upload / End Upload
-		case 0x04:
+		case GKL_CMD_MANAGE_UPLOAD:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
@@ -823,8 +820,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			break;
 
-		//Read RAM
-		case 0x08:
+		case GKL_CMD_READ_RAM:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
@@ -847,12 +843,9 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			break;
 
-		//Send Icon
-		//Send History / File Data
-		//Write RAM
-		case 0x02:
-		case 0x0A:
-		case 0x0B:
+		case GKL_CMD_SEND_ICON:
+		case GKL_CMD_MANAGE_DATA:
+		case GKL_CMD_WRITE_RAM:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
