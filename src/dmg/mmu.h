@@ -163,6 +163,7 @@ class DMG_MMU
 		bool is_locked;
 		bool is_ping_delayed;
 		bool is_upload_done;
+		bool is_sender;
 
 		u8 cmd;
 		u8 checksum;

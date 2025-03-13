@@ -75,8 +75,13 @@ void DMG_MMU::gb_kiss_link_process()
 				{
 					kiss_link.is_locked = false;
 
+					if(!kiss_link.is_sender)
+					{
+						gb_kiss_link_send_ping();
+					}
+
 					//Receive data
-					if((kiss_link.cmd == GKL_CMD_SEND_ICON) || (kiss_link.cmd == GKL_CMD_FILE_SEARCH)
+					else if((kiss_link.cmd == GKL_CMD_SEND_ICON) || (kiss_link.cmd == GKL_CMD_FILE_SEARCH)
 					|| (kiss_link.cmd == GKL_CMD_MANAGE_UPLOAD) || (kiss_link.cmd == GKL_CMD_READ_RAM)
 					|| (kiss_link.cmd == GKL_CMD_MANAGE_DATA))
 					{
@@ -248,7 +253,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 	switch(kiss_link.stage)
 	{
 		//Read RAM -> Receiver ID String
-		case GKL_INIT:
+		case GKL_INIT_SENDER:
 			kiss_link.stage = GKL_REQUEST_ID;
 
 			kiss_link.cmd = GKL_CMD_READ_RAM;
@@ -641,6 +646,8 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 	}
 
 	kiss_link.input_data.push_back(result);
+
+	std::cout<<"BYTE -> 0x" << std::hex << (u32)result << "\n";
 }
 
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
@@ -900,8 +907,17 @@ void DMG_MMU::gb_kiss_link_send_ping()
 	kiss_link.state = GKL_SEND_PING;
 
 	//Ping pulse
-	kiss_link.output_signals.push_back(GKL_OFF_PING);
-	kiss_link.output_signals.push_back(GKL_ON_PING);
+	if(kiss_link.is_sender)
+	{
+		kiss_link.output_signals.push_back(GKL_OFF_PING_SENDER);
+		kiss_link.output_signals.push_back(GKL_ON_PING_SENDER);
+	}
+
+	else
+	{
+		kiss_link.output_signals.push_back(GKL_OFF_PING_RECEIVER);
+		kiss_link.output_signals.push_back(GKL_ON_PING_RECEIVER);
+	}
 
 	//Ping delay - Used for data bytes that follow a command
 	if(kiss_link.is_ping_delayed)
@@ -961,7 +977,7 @@ void DMG_MMU::gb_kiss_link_reset(bool reset_gbf)
 	kiss_link.output_data.clear();
 	kiss_link.file_search_data.clear();
 	kiss_link.state = GKL_INACTIVE;
-	kiss_link.stage = GKL_INIT;
+	kiss_link.stage = (kiss_link.is_sender) ? GKL_INIT_SENDER : GKL_INIT_RECEIVER;
 	kiss_link.is_locked = false;
 	kiss_link.is_ping_delayed = false;
 	kiss_link.is_upload_done = true;

@@ -32,6 +32,12 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 					if(kiss_link.cycles)
 					{
 						kiss_link.input_signals.push_back(kiss_link.cycles);
+
+						if(((kiss_link.cycles / 100) == 98) && (kiss_link.stage == GKL_INIT_RECEIVER))
+						{
+							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
+							kiss_link.input_signals.clear();
+						}
 					}
 
 					kiss_link.cycles = 0;
@@ -39,7 +45,7 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 					//Set generic RECV state if necessary
 					if((kiss_link.state != GKL_RECV_HANDSHAKE_55) && (kiss_link.state != GKL_RECV_HANDSHAKE_3C)
 					&& (kiss_link.state != GKL_RECV_HANDSHAKE_AA) && (kiss_link.state != GKL_RECV_HANDSHAKE_C3)
-					&& (kiss_link.state != GKL_RECV_PING))
+					&& (kiss_link.state != GKL_RECV_PING) && (kiss_link.state != GKL_RECV_DATA))
 					{
 						kiss_link.state = GKL_RECV;
 					}

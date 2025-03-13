@@ -1131,7 +1131,25 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			case GB_KISS_LINK:
 				std::cout<<"GB KISS LINK Transfer Started\n";
 				core_mmu.gb_kiss_link_reset(false);
-				core_mmu.gb_kiss_link_handshake(0xAA);
+				if(core_mmu.kiss_link.is_sender) { core_mmu.gb_kiss_link_handshake(0xAA); }
+				break;
+		}
+	}
+
+	//Switch sender/receiver mode for GB KISS LINK
+	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F4))
+	{
+		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
+		{
+			case GB_KISS_LINK:
+				core_mmu.kiss_link.is_sender = !core_mmu.kiss_link.is_sender;
+
+				//OSD
+				if(core_mmu.kiss_link.is_sender) { config::osd_message = "GB KISS SEND MODE"; }
+				else { config::osd_message = "GB KISS RECV MODE"; }
+
+				config::osd_count = 180;
+
 				break;
 		}
 	}
@@ -1253,11 +1271,29 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 				std::cout<<"GB KISS LINK Transfer Started\n";
 				core_mmu.gb_kiss_link_reset(true);
 				core_mmu.gb_kiss_link_load_file(config::external_data_file);
-				core_mmu.gb_kiss_link_handshake(0xAA);
+				if(core_mmu.kiss_link.is_sender) { core_mmu.gb_kiss_link_handshake(0xAA); }
 				break;
 		}
 	}
 
+	//Switch sender/receiver mode for GB KISS LINK
+	else if((input == SDLK_F4) && (pressed))
+	{
+		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
+		{
+			case GB_KISS_LINK:
+				core_mmu.kiss_link.is_sender = !core_mmu.kiss_link.is_sender;
+
+				//OSD
+				if(core_mmu.kiss_link.is_sender) { config::osd_message = "GB KISS SEND MODE"; }
+				else { config::osd_message = "GB KISS RECV MODE"; }
+
+				config::osd_count = 180;
+
+				break;
+		}
+	}
+				
 	//Reset emulation on F8
 	//Only done when using GB Memory Cartridge via GUI
 	else if((input == SDLK_F8) && (pressed) && (config::cart_type == DMG_GBMEM) && (config::use_external_interfaces))
