@@ -75,9 +75,11 @@ void DMG_MMU::gb_kiss_link_process()
 				{
 					kiss_link.is_locked = false;
 
+					//Receiver starts initial ping
 					if(!kiss_link.is_sender)
 					{
 						gb_kiss_link_send_ping();
+						kiss_link.input_data.clear();
 					}
 
 					//Receive data
@@ -146,7 +148,8 @@ void DMG_MMU::gb_kiss_link_process()
 						sio_stat->shift_clock = (kiss_link.output_signals.back() & 0xFFFFFFFE);
 					}
 
-					//Receive next byte for command response
+					//Receive next byte for command response (sender)
+					//Begin receiving command bytes (receiver)
 					else
 					{
 						//Send icon data after long ping
@@ -159,7 +162,7 @@ void DMG_MMU::gb_kiss_link_process()
 						else
 						{
 							kiss_link.is_locked = false;
-							kiss_link.state = GKL_RECV_DATA;
+							kiss_link.state = (kiss_link.is_sender) ? GKL_RECV_DATA : GKL_RECV_CMD;
 						}
 					}
 				}
@@ -168,6 +171,7 @@ void DMG_MMU::gb_kiss_link_process()
 			break;
 
 		case GKL_RECV:
+		case GKL_RECV_CMD:
 		case GKL_RECV_PING:
 		case GKL_RECV_DATA:
 		case GKL_RECV_HANDSHAKE_55:
@@ -214,7 +218,45 @@ void DMG_MMU::gb_kiss_link_process()
 				}
 			}
 
-			//Receive data from commands
+			//Receive command data (receiver)
+			else if((kiss_link.state == GKL_RECV_CMD) && (kiss_link.input_signals.size() == 9))
+			{
+				gb_kiss_link_get_bytes();
+				kiss_link.input_signals.clear();
+				gb_kiss_link_send_ping();
+
+				//Grab command - 10th byte in stream ("Hu0" + 8 command bytes)
+				if(kiss_link.input_data.size() == 10)
+				{
+					kiss_link.cmd = kiss_link.input_data[3];
+					
+					//Determine total length of bytes in command
+					switch(kiss_link.cmd)
+					{
+						case GKL_CMD_READ_RAM:
+						case GKL_CMD_MANAGE_SESSION:
+						case GKL_CMD_MANAGE_UPLOAD:
+							kiss_link.len = 11;
+							break;
+
+						case GKL_CMD_FILE_SEARCH:
+							kiss_link.len = 268;
+							break;
+
+						case GKL_CMD_MANAGE_DATA:
+							kiss_link.len = 11 + kiss_link.input_data[8];
+							if(!kiss_link.input_data[8]) { kiss_link.len += 256; }
+							break;
+
+						case GKL_CMD_SEND_ICON:
+						case GKL_CMD_WRITE_RAM:
+							kiss_link.len = 11 + kiss_link.input_data[8];
+							break;
+					}
+				}
+			}
+
+			//Receive data from commands (sender)
 			else if((kiss_link.state == GKL_RECV_DATA) && (kiss_link.input_signals.size() == 9))
 			{
 				gb_kiss_link_get_bytes();
@@ -222,9 +264,9 @@ void DMG_MMU::gb_kiss_link_process()
 				gb_kiss_link_send_ping();
 			}
 
-			//Finish receiving data from commands
+			//Finish receiving data from commands (sender)
 			else if((kiss_link.state == GKL_RECV_DATA) && (kiss_link.input_signals.size() == 8)
-			&& (kiss_link.input_data.size() == kiss_link.len))
+			&& (kiss_link.input_data.size() == kiss_link.len) && (kiss_link.is_sender))
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
