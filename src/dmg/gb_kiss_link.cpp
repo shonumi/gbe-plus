@@ -78,7 +78,7 @@ void DMG_MMU::gb_kiss_link_process()
 					//Receiver starts initial ping
 					if(!kiss_link.is_sender)
 					{
-						gb_kiss_link_send_ping();
+						gb_kiss_link_send_ping(GKL_ON_PING_RECEIVER, GKL_OFF_PING_RECEIVER);
 						kiss_link.input_data.clear();
 					}
 
@@ -88,7 +88,7 @@ void DMG_MMU::gb_kiss_link_process()
 					|| (kiss_link.cmd == GKL_CMD_MANAGE_DATA))
 					{
 						kiss_link.output_data.clear();
-						gb_kiss_link_send_ping();
+						gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
 
 						//Some commands require receiving different lengths than they send
 						//Adjust length here as needed in these cases
@@ -115,7 +115,7 @@ void DMG_MMU::gb_kiss_link_process()
 							kiss_link.is_ping_delayed = true;
 						}
 
-						gb_kiss_link_send_ping();
+						gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
 					}
 
 					//At end of ping, move onto next state, stage, or command
@@ -223,7 +223,7 @@ void DMG_MMU::gb_kiss_link_process()
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
-				gb_kiss_link_send_ping();
+				gb_kiss_link_send_ping(GKL_ON_PING_RECEIVER, GKL_OFF_PING_RECEIVER);
 
 				//Grab command - 10th byte in stream ("Hu0" + 8 command bytes)
 				if(kiss_link.input_data.size() == 10)
@@ -261,7 +261,7 @@ void DMG_MMU::gb_kiss_link_process()
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
-				gb_kiss_link_send_ping();
+				gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
 			}
 
 			//Finish receiving data from commands (sender)
@@ -650,14 +650,14 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_WRITE_ID:
 		case GKL_UNK_WRITE_1:
 		case GKL_UNK_WRITE_2:
-			gb_kiss_link_send_ping();
+			gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
 			
 			break;
 
 		//Start session - Ping is super long due to client-side processing
 		case GKL_START_SESSION:
 			kiss_link.output_data.clear();
-			gb_kiss_link_send_ping();
+			gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
 			kiss_link.output_signals[0] = 1078400;
 			
 			break;
@@ -936,11 +936,11 @@ void DMG_MMU::gb_kiss_link_send_command()
 			break;
 	}
 
-	gb_kiss_link_send_ping();
+	gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
 }
 
 /****** Sends ping signal for command bytes ******/
-void DMG_MMU::gb_kiss_link_send_ping()
+void DMG_MMU::gb_kiss_link_send_ping(u32 on_pulse, u32 off_pulse)
 {
 	kiss_link.output_signals.clear();
 	kiss_link.cycles = 0;
@@ -949,17 +949,8 @@ void DMG_MMU::gb_kiss_link_send_ping()
 	kiss_link.state = GKL_SEND_PING;
 
 	//Ping pulse
-	if(kiss_link.is_sender)
-	{
-		kiss_link.output_signals.push_back(GKL_OFF_PING_SENDER);
-		kiss_link.output_signals.push_back(GKL_ON_PING_SENDER);
-	}
-
-	else
-	{
-		kiss_link.output_signals.push_back(GKL_OFF_PING_RECEIVER);
-		kiss_link.output_signals.push_back(GKL_ON_PING_RECEIVER);
-	}
+	kiss_link.output_signals.push_back(off_pulse);
+	kiss_link.output_signals.push_back(on_pulse);
 
 	//Ping delay - Used for data bytes that follow a command
 	if(kiss_link.is_ping_delayed)
