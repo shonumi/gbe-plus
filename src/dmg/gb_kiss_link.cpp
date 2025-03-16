@@ -253,7 +253,17 @@ void DMG_MMU::gb_kiss_link_process()
 							kiss_link.len = 11 + kiss_link.input_data[8];
 							break;
 					}
+
+					gb_kiss_link_send_ping(41, 100);
 				}
+			}
+
+			//Receive checksum after command data (receiver)
+			else if((kiss_link.state == GKL_RECV_CMD) && (kiss_link.input_data.size() == 10)
+			&& (kiss_link.input_signals.size() == 8))
+			{
+				gb_kiss_link_get_bytes();
+				kiss_link.input_signals.clear();
 			}
 
 			//Receive data from commands (sender)
