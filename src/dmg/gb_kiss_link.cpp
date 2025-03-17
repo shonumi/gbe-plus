@@ -259,11 +259,12 @@ void DMG_MMU::gb_kiss_link_process()
 			}
 
 			//Receive checksum after command data (receiver)
-			else if((kiss_link.state == GKL_RECV_CMD) && (kiss_link.input_data.size() == 10)
-			&& (kiss_link.input_signals.size() == 8))
+			else if((kiss_link.state == GKL_RECV_CMD) && (kiss_link.input_data.size() >= 10)
+			&& ((kiss_link.input_data.size() + 1) == kiss_link.len) && (kiss_link.input_signals.size() == 8))
 			{
 				gb_kiss_link_get_bytes();
 				kiss_link.input_signals.clear();
+				gb_kiss_link_finish_command();
 			}
 
 			//Receive data from commands (sender)
@@ -301,6 +302,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 	u32 size = 0;
 	u32 start = 0;
 	u32 end = 0;
+	std::string temp_str = "";
 
 	switch(kiss_link.stage)
 	{
@@ -523,6 +525,27 @@ void DMG_MMU::gb_kiss_link_process_command()
 			gb_kiss_link_send_command();
 			
 			break;
+
+		//Write RAM -> Send receiver ID
+		case GKL_SEND_ID:
+			temp_str = "GB KISS LINK ";
+
+			//Command data
+			kiss_link.input_data.clear();
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0x02);
+
+			for(u32 x = 0; x < 13; x++)
+			{
+				u8 chr = temp_str[x];
+				kiss_link.input_data.push_back(chr);
+			}
+
+			kiss_link.input_data.push_back(0x02);
+
+			gb_kiss_link_recv_command();
+
+			break;
 	}
 }
 
@@ -633,6 +656,12 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			gb_kiss_link_handshake(0xAA);
 
 			break;
+
+		case GKL_INIT_RECEIVER:
+			kiss_link.stage = GKL_SEND_ID;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
 	}
 }
 
@@ -651,6 +680,7 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_SEND_FILE:
 		case GKL_END_UPLOAD:
 		case GKL_CLOSE_FILE:
+		case GKL_SEND_ID:
 			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 			kiss_link.is_locked = false;
 			
@@ -705,6 +735,8 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
 void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 {
+	std::cout<<"SENDING -> 0x" << (u32)input << "\n";
+
 	u8 mask = 0x01;
 
 	//Data is converted and stored as pulses little-endian first
@@ -942,6 +974,34 @@ void DMG_MMU::gb_kiss_link_send_command()
 			else if(kiss_link.stage == GKL_SEND_HISTORY) { std::cout<<"Send History -> 0x" << kiss_link.remote_addr << "\n"; }
 			else if(kiss_link.stage == GKL_SEND_FILE) { std::cout<<"Send File -> 0x" << kiss_link.remote_addr << "\n"; }
 			else { std::cout<<"Write RAM -> 0x" << kiss_link.remote_addr << "\n"; }
+
+			break;
+	}
+
+	gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
+}
+
+/****** Sends commands response from the GB KISS LINK to the Game Boy ******/
+void DMG_MMU::gb_kiss_link_recv_command()
+{
+	kiss_link.output_data.clear();
+	kiss_link.checksum = 0;
+	kiss_link.data_len = 0;
+
+	switch(kiss_link.cmd)
+	{
+		case GKL_CMD_READ_RAM:
+			//Data bytes and data checksum - Uses input_data
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				kiss_link.output_data.push_back(kiss_link.input_data[x]);
+				kiss_link.checksum += kiss_link.input_data[x];
+				kiss_link.data_len++;
+			}
+
+			kiss_link.checksum = ~kiss_link.checksum;
+			kiss_link.checksum++;
+			kiss_link.output_data.push_back(kiss_link.checksum);
 
 			break;
 	}

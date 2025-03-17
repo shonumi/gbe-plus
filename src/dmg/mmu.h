@@ -279,6 +279,7 @@ class DMG_MMU
 	void gb_kiss_link_set_signal(u8 input);
 	void gb_kiss_link_handshake(u8 input);
 	void gb_kiss_link_send_command();
+	void gb_kiss_link_recv_command();
 	void gb_kiss_link_send_ping(u32 on_pulse, u32 off_pulse);
 	void gb_kiss_link_process();
 	void gb_kiss_link_process_command();
