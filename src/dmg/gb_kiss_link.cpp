@@ -209,6 +209,7 @@ void DMG_MMU::gb_kiss_link_process()
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_3C)
 				{
 					gb_kiss_link_process_command();
+					std::cout<<"HEY\n";
 				}
 
 				//Finish first phase of receiver handshake
@@ -250,7 +251,7 @@ void DMG_MMU::gb_kiss_link_process()
 
 						case GKL_CMD_SEND_ICON:
 						case GKL_CMD_WRITE_RAM:
-							kiss_link.len = 11 + kiss_link.input_data[8];
+							kiss_link.len = 12 + kiss_link.input_data[8];
 							break;
 					}
 
@@ -528,7 +529,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Write RAM -> Send receiver ID
 		case GKL_SEND_ID:
-			temp_str = "GB KISS LINK ";
+			temp_str = "GB KISS MENU ";
 
 			//Command data
 			kiss_link.input_data.clear();
@@ -662,6 +663,17 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			gb_kiss_link_handshake(0xAA);
 
 			break;
+
+
+		case GKL_SEND_ID:
+			kiss_link.stage = GKL_GET_NEW_ID;
+
+			//Echo data checksum
+			kiss_link.output_data.clear();
+			kiss_link.output_data.push_back(kiss_link.input_data.back());
+			gb_kiss_link_send_ping(41, 100);
+
+			break;
 	}
 }
 
@@ -681,6 +693,7 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_END_UPLOAD:
 		case GKL_CLOSE_FILE:
 		case GKL_SEND_ID:
+		case GKL_GET_NEW_ID:
 			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 			kiss_link.is_locked = false;
 			
