@@ -32,8 +32,14 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 					if(kiss_link.cycles)
 					{
 						kiss_link.input_signals.push_back(kiss_link.cycles);
+						bool restart = false;
 
-						if(((kiss_link.cycles / 100) == 98) && (kiss_link.stage == GKL_INIT_RECEIVER))
+						if((kiss_link.stage == GKL_INIT_RECEIVER) || (kiss_link.stage == GKL_ACK_NEW_SESSION))
+						{
+							restart = true;
+						}
+
+						if(((kiss_link.cycles / 100) == 98) && (restart))
 						{
 							kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 							kiss_link.input_signals.clear();

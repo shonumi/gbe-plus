@@ -209,7 +209,6 @@ void DMG_MMU::gb_kiss_link_process()
 				else if(kiss_link.state == GKL_RECV_HANDSHAKE_3C)
 				{
 					gb_kiss_link_process_command();
-					std::cout<<"HEY\n";
 				}
 
 				//Finish first phase of receiver handshake
@@ -534,7 +533,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 			//Command data
 			kiss_link.input_data.clear();
 			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0x02);
+			kiss_link.input_data.push_back(0x00);
 
 			for(u32 x = 0; x < 13; x++)
 			{
@@ -542,9 +541,14 @@ void DMG_MMU::gb_kiss_link_process_command()
 				kiss_link.input_data.push_back(chr);
 			}
 
-			kiss_link.input_data.push_back(0x02);
+			kiss_link.input_data.push_back(0x00);
 
 			gb_kiss_link_recv_command();
+
+			break;
+
+		//Get Icon from sender
+		case GKL_GET_ICON:
 
 			break;
 	}
@@ -664,7 +668,6 @@ void DMG_MMU::gb_kiss_link_finish_command()
 
 			break;
 
-
 		case GKL_SEND_ID:
 			kiss_link.stage = GKL_GET_NEW_ID;
 
@@ -672,6 +675,20 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			kiss_link.output_data.clear();
 			kiss_link.output_data.push_back(kiss_link.input_data.back());
 			gb_kiss_link_send_ping(41, 100);
+
+			break;
+
+		case GKL_GET_NEW_ID:
+			//New sessions (for receiver) need to wait for handshakes just like init 
+			kiss_link.stage = GKL_ACK_NEW_SESSION;
+			kiss_link.state = GKL_INACTIVE;
+			kiss_link.is_locked = false;
+
+			break;
+
+		case GKL_ACK_NEW_SESSION:
+			kiss_link.stage = GKL_GET_ICON;
+			gb_kiss_link_handshake(0xAA);
 
 			break;
 	}
