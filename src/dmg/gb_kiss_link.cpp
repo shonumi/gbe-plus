@@ -549,6 +549,21 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		//Get Icon from sender
 		case GKL_GET_ICON:
+			kiss_link.gbf_index = 0;
+			kiss_link.gbf_file_size = 0;
+			kiss_link.gbf_raw_size = 0;
+			kiss_link.gbf_title_icon_size = 0;
+			kiss_link.gbf_flags = 0;
+			kiss_link.gbf_data.clear();
+
+			start = 12;
+			end = start + kiss_link.input_data[0x08];
+
+			//Grab Title+Icon from sender data stream
+			for(u32 x = start; x < end; x++)
+			{
+				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
+			}
 
 			break;
 	}
