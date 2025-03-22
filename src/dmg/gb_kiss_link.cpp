@@ -652,6 +652,108 @@ void DMG_MMU::gb_kiss_link_process_command()
 			gb_kiss_link_recv_command();
 
 			break;
+
+		case GKL_ACK_SEARCH:
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Transfer Status
+			kiss_link.input_data.push_back(0x80);
+			kiss_link.input_data.push_back(0x00);
+
+			//Local Addr - 0xC500
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xC5);
+
+			//Remote Addr - 0xC50C
+			kiss_link.input_data.push_back(0x0C);
+			kiss_link.input_data.push_back(0xC5);
+
+			//Unknown Parameter (used for next Read RAM command by sender), random values used here
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0x76);
+
+			//Checksum
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				sum += kiss_link.input_data[x];
+			}
+				
+			sum = ~sum;
+			sum++;
+			kiss_link.input_data.push_back(sum);
+
+			//Unknown Parameter, random values used here
+			kiss_link.input_data.push_back(0x9D);
+			kiss_link.input_data.push_back(0x76);
+
+			//Game Data Offset
+			size = 5 + kiss_link.gbf_title_icon_size;
+			if(kiss_link.gbf_flags & 0x01) { size += 46; }
+			size &= 0xFFFF;
+
+			kiss_link.input_data.push_back(size >> 8);
+			kiss_link.input_data.push_back(size);
+			kiss_link.input_data.push_back(size >> 8);
+			kiss_link.input_data.push_back(size);
+			kiss_link.input_data.push_back(0x00);
+
+			//Total File Size
+			kiss_link.gbf_file_size = size + kiss_link.gbf_raw_size;
+			kiss_link.input_data.push_back(kiss_link.gbf_file_size);
+			kiss_link.input_data.push_back(kiss_link.gbf_file_size >> 8);
+
+			//Flags
+			kiss_link.input_data.push_back(kiss_link.gbf_flags);
+
+			//Title+Icon Size
+			kiss_link.input_data.push_back(0xFF);
+			kiss_link.input_data.push_back(kiss_link.gbf_title_icon_size);
+
+			//Echo of Title+Icon
+			for(u32 x = 0; x < kiss_link.gbf_data.size(); x++)
+			{
+				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
+			}	
+
+			//File Search Input Data - Unknown
+			kiss_link.input_data.push_back(0xFE);
+			kiss_link.input_data.push_back(0x01);
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xFF);
+			kiss_link.input_data.push_back(0xEF);
+			kiss_link.input_data.push_back(0xEF);
+			kiss_link.input_data.push_back(0xE7);
+			kiss_link.input_data.push_back(0xE7);
+			kiss_link.input_data.push_back(0xE7);
+			kiss_link.input_data.push_back(0xE7);
+			kiss_link.input_data.push_back(0xE3);
+			kiss_link.input_data.push_back(0xE3);
+			kiss_link.input_data.push_back(0xE3);
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xFF);
+			kiss_link.input_data.push_back(0xFF);
+			kiss_link.input_data.push_back(0xFF);
+			kiss_link.input_data.push_back(0xFF);
+
+			for(u32 x = 0; x < 28; x++) { kiss_link.input_data.push_back(0x00); }
+
+			//Total Data Checksum
+			sum = 0;
+
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				sum += kiss_link.input_data[x];
+			}
+				
+			sum = ~sum;
+			sum++;
+			kiss_link.input_data.push_back(sum);
+
+			gb_kiss_link_recv_command();
+
+			break;
 	}
 }
 
@@ -792,6 +894,26 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			gb_kiss_link_handshake(0xAA);
 
 			break;
+
+		case GKL_GET_ICON:
+			kiss_link.stage = GKL_GET_UNK_DATA_1;
+
+			//Echo data checksum
+			kiss_link.output_data.clear();
+			kiss_link.output_data.push_back(kiss_link.input_data.back());
+			gb_kiss_link_send_ping(41, 100);
+
+			break;
+
+		case GKL_GET_UNK_DATA_1:
+			kiss_link.stage = GKL_ACK_SEARCH;
+
+			kiss_link.gbf_raw_size = (kiss_link.input_data[7] << 8) | kiss_link.input_data[6];
+			kiss_link.gbf_flags = kiss_link.input_data[9];
+
+			gb_kiss_link_handshake(0xAA);
+
+			break;
 	}
 }
 
@@ -813,6 +935,7 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_SEND_ID:
 		case GKL_GET_NEW_ID:
 		case GKL_GET_ICON:
+		case GKL_GET_UNK_DATA_1:
 			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 			kiss_link.is_locked = false;
 			
