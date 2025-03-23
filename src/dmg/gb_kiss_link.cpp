@@ -534,6 +534,8 @@ void DMG_MMU::gb_kiss_link_process_command()
 			//Command data
 			kiss_link.input_data.clear();
 			kiss_link.input_data.push_back(0x00);
+
+			//Slot #
 			kiss_link.input_data.push_back(0x00);
 
 			for(u32 x = 0; x < 13; x++)
@@ -754,6 +756,61 @@ void DMG_MMU::gb_kiss_link_process_command()
 			gb_kiss_link_recv_command();
 
 			break;
+
+		case GKL_SEND_UNK_DATA_1:
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Unknown. Seems constant?
+			kiss_link.input_data.push_back(0x05);
+
+			//Slot #
+			kiss_link.input_data.push_back(0x00);
+
+			gb_kiss_link_recv_command();
+
+			break;
+
+		case GKL_UPLOAD_READY:
+			kiss_link.is_upload_done = false;
+
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Transfer Status
+			kiss_link.input_data.push_back(0x40);
+			kiss_link.input_data.push_back(0x01);
+
+
+			//Remote Address
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xC5);
+
+			//Local Addr
+			kiss_link.input_data.push_back(0xD2);
+			kiss_link.input_data.push_back(0xFF);
+
+			//Game Data Offset
+			size = 5 + kiss_link.gbf_title_icon_size;
+			if(kiss_link.gbf_flags & 0x01) { size += 46; }
+			size &= 0xFFFF;
+
+			kiss_link.input_data.push_back(size);
+			kiss_link.input_data.push_back(size >> 8);
+
+			//Checksum
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				sum += kiss_link.input_data[x];
+			}
+				
+			sum = ~sum;
+			sum++;
+			kiss_link.input_data.push_back(sum);
+
+			gb_kiss_link_recv_command();
+
+			break;
 	}
 }
 
@@ -914,6 +971,18 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			gb_kiss_link_handshake(0xAA);
 
 			break;
+
+		case GKL_ACK_SEARCH:
+			kiss_link.stage = GKL_SEND_UNK_DATA_1;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_SEND_UNK_DATA_1:
+			kiss_link.stage = GKL_UPLOAD_READY;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
 	}
 }
 
@@ -936,6 +1005,9 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_GET_NEW_ID:
 		case GKL_GET_ICON:
 		case GKL_GET_UNK_DATA_1:
+		case GKL_ACK_SEARCH:
+		case GKL_SEND_UNK_DATA_1:
+		case GKL_UPLOAD_READY:
 			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 			kiss_link.is_locked = false;
 			
