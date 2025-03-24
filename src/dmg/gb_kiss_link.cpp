@@ -244,7 +244,7 @@ void DMG_MMU::gb_kiss_link_process()
 							break;
 
 						case GKL_CMD_MANAGE_DATA:
-							kiss_link.len = 11 + kiss_link.input_data[8];
+							kiss_link.len = 12 + kiss_link.input_data[8];
 							if(!kiss_link.input_data[8]) { kiss_link.len += 256; }
 							break;
 
@@ -616,28 +616,11 @@ void DMG_MMU::gb_kiss_link_process_command()
 				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
 			}
 
-			//File Search Input Data - Unknown
-			kiss_link.input_data.push_back(0xFE);
-			kiss_link.input_data.push_back(0x01);
-			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xEF);
-			kiss_link.input_data.push_back(0xEF);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE3);
-			kiss_link.input_data.push_back(0xE3);
-			kiss_link.input_data.push_back(0xE3);
-			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xFF);
-
-			for(u32 x = 0; x < 28; x++) { kiss_link.input_data.push_back(0x00); }
+			//File Search Input Data - Padding
+			while(kiss_link.input_data.size() < 265)
+			{
+				kiss_link.input_data.push_back(0x00);
+			}
 
 			//Total Data Checksum
 			sum = 0;
@@ -673,7 +656,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 			//Unknown Parameter (used for next Read RAM command by sender), random values used here
 			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0x76);
+			kiss_link.input_data.push_back(0x00);
 
 			//Checksum
 			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
@@ -686,8 +669,8 @@ void DMG_MMU::gb_kiss_link_process_command()
 			kiss_link.input_data.push_back(sum);
 
 			//Unknown Parameter, random values used here
-			kiss_link.input_data.push_back(0x9D);
-			kiss_link.input_data.push_back(0x76);
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0x00);
 
 			//Game Data Offset
 			size = 5 + kiss_link.gbf_title_icon_size;
@@ -718,28 +701,11 @@ void DMG_MMU::gb_kiss_link_process_command()
 				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
 			}	
 
-			//File Search Input Data - Unknown
-			kiss_link.input_data.push_back(0xFE);
-			kiss_link.input_data.push_back(0x01);
-			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xEF);
-			kiss_link.input_data.push_back(0xEF);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE7);
-			kiss_link.input_data.push_back(0xE3);
-			kiss_link.input_data.push_back(0xE3);
-			kiss_link.input_data.push_back(0xE3);
-			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0x00);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xFF);
-			kiss_link.input_data.push_back(0xFF);
-
-			for(u32 x = 0; x < 28; x++) { kiss_link.input_data.push_back(0x00); }
+			//File Search Input Data - Padding
+			while(kiss_link.input_data.size() < 265)
+			{
+				kiss_link.input_data.push_back(0x00);
+			}
 
 			//Total Data Checksum
 			sum = 0;
@@ -772,15 +738,12 @@ void DMG_MMU::gb_kiss_link_process_command()
 			break;
 
 		case GKL_UPLOAD_READY:
-			kiss_link.is_upload_done = false;
-
 			//Command Data
 			kiss_link.input_data.clear();
 
 			//Transfer Status
 			kiss_link.input_data.push_back(0x40);
 			kiss_link.input_data.push_back(0x01);
-
 
 			//Remote Address
 			kiss_link.input_data.push_back(0x00);
@@ -807,6 +770,165 @@ void DMG_MMU::gb_kiss_link_process_command()
 			sum = ~sum;
 			sum++;
 			kiss_link.input_data.push_back(sum);
+
+			gb_kiss_link_recv_command();
+
+			break;
+
+		case GKL_GET_HISTORY:
+			//Append history data to existing Title+Icon data
+			for(u32 x = 11; x < kiss_link.input_data.size() - 1; x++)
+			{
+				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
+			}
+
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Transfer Status
+			kiss_link.input_data.push_back(0x80);
+			kiss_link.input_data.push_back(0x00);
+
+			//Remote Address
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xC5);
+
+			//History Length
+			size = (kiss_link.gbf_flags & 0x01) ? 0x2E : 0x00;
+			kiss_link.input_data.push_back(size);
+
+			//Unknown - Constant?
+			kiss_link.input_data.push_back(0xC4);
+
+			//History Length again
+			kiss_link.input_data.push_back(0x2E);
+			kiss_link.input_data.push_back(0x00);
+
+			//Checksum
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				sum += kiss_link.input_data[x];
+			}
+				
+			sum = ~sum;
+			sum++;
+			kiss_link.input_data.push_back(sum);
+
+			gb_kiss_link_recv_command();
+
+			break;
+
+		case GKL_GET_FILE:
+			//Append game data to existing GBF
+			for(u32 x = 11; x < kiss_link.input_data.size() - 1; x++)
+			{
+				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
+			}
+
+			kiss_link.is_upload_done = (kiss_link.input_data[0x08]) ? true : false;
+
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Transfer Status
+			kiss_link.input_data.push_back(0x80);
+			kiss_link.input_data.push_back(0x00);
+
+			//Remote Address
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xC5);
+
+			if(!kiss_link.is_upload_done)
+			{
+				kiss_link.input_data.push_back(0x00);
+				kiss_link.input_data.push_back(0xC5);
+				kiss_link.input_data.push_back(0x00);
+				kiss_link.input_data.push_back(0x01);
+			}
+
+			else
+			{
+				kiss_link.input_data.push_back(0x03);
+				kiss_link.input_data.push_back(0xC4);
+				kiss_link.input_data.push_back(0x03);
+				kiss_link.input_data.push_back(0x00);
+			}
+
+			//Checksum
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				sum += kiss_link.input_data[x];
+			}
+				
+			sum = ~sum;
+			sum++;
+			kiss_link.input_data.push_back(sum);
+
+			gb_kiss_link_recv_command();
+
+			break;
+
+		case GKL_UPLOAD_DONE:
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Transfer Status
+			kiss_link.input_data.push_back(0x40);
+			kiss_link.input_data.push_back(0x01);
+
+			//Remote Address
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xC5);
+
+			//Sizes
+			size = 0x03 - (kiss_link.gbf_file_size - kiss_link.gbf_raw_size);
+			size &= 0xFFFF;
+
+			kiss_link.input_data.push_back(size);
+			kiss_link.input_data.push_back(size >> 8);
+
+			//Game Data Offset
+			size = 5 + kiss_link.gbf_title_icon_size;
+			if(kiss_link.gbf_flags & 0x01) { size += 46; }
+			size &= 0xFFFF;
+
+			kiss_link.input_data.push_back(size);
+			kiss_link.input_data.push_back(size >> 8);
+
+			//Checksum
+			for(u32 x = 0; x < kiss_link.input_data.size(); x++)
+			{
+				sum += kiss_link.input_data[x];
+			}
+				
+			sum = ~sum;
+			sum++;
+			kiss_link.input_data.push_back(sum);
+
+			gb_kiss_link_recv_command();
+
+			break;
+
+		case GKL_ACK_FILE_CLOSE:
+			//Command Data
+			kiss_link.input_data.clear();
+
+			//Transfer Status
+			kiss_link.input_data.push_back(0x80);
+			kiss_link.input_data.push_back(0x00);
+
+			//Remote Addr
+			kiss_link.input_data.push_back(0x00);
+			kiss_link.input_data.push_back(0xC5);
+
+			//Unknown Data - Constant?
+			kiss_link.input_data.push_back(0x01);
+			kiss_link.input_data.push_back(0xC4);
+			kiss_link.input_data.push_back(0x01);
+			kiss_link.input_data.push_back(0x00);
+
+			//Checksum (precalculated)
+			kiss_link.input_data.push_back(0xF5);
 
 			gb_kiss_link_recv_command();
 
@@ -983,6 +1105,40 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			gb_kiss_link_handshake(0xAA);
 
 			break;
+
+		case GKL_UPLOAD_READY:
+			kiss_link.stage = GKL_GET_HISTORY;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_GET_HISTORY:
+			kiss_link.stage = GKL_GET_FILE;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_GET_FILE:
+			if(kiss_link.is_upload_done) { kiss_link.stage = GKL_UPLOAD_DONE; }
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_UPLOAD_DONE:
+			kiss_link.stage = GKL_ACK_FILE_CLOSE;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_ACK_FILE_CLOSE:
+			kiss_link.stage = GKL_GET_UNK_DATA_2;
+			
+			//Echo data checksum
+			kiss_link.output_data.clear();
+			kiss_link.output_data.push_back(kiss_link.input_data.back());
+			gb_kiss_link_send_ping(41, 100);
+
+			break;
 	}
 }
 
@@ -1008,6 +1164,11 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_ACK_SEARCH:
 		case GKL_SEND_UNK_DATA_1:
 		case GKL_UPLOAD_READY:
+		case GKL_GET_HISTORY:
+		case GKL_GET_FILE:
+		case GKL_UPLOAD_DONE:
+		case GKL_ACK_FILE_CLOSE:
+		case GKL_GET_UNK_DATA_2:
 			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 			kiss_link.is_locked = false;
 			
