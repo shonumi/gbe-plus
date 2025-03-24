@@ -627,6 +627,7 @@ void main_menu::quit()
 	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
 	config::force_cart_audio_sync = (settings->fcas_enable->isChecked()) ? true : false;
 	config::volume = settings->volume->value();
+	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
 	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
 	config::use_ddr_mapping = (settings->ddr_mapping_on->isChecked()) ? true : false;
 	config::use_motion = (settings->motion_on->isChecked()) ? true : false;
@@ -1030,52 +1031,7 @@ void main_menu::paintEvent(QPaintEvent* event)
 /****** Closes the main window ******/
 void main_menu::closeEvent(QCloseEvent* event)
 {
-	//Close the core
-	if(main_menu::gbe_plus != NULL) 
-	{
-		main_menu::gbe_plus->shutdown();
-		main_menu::gbe_plus->core_emu::~core_emu();
-	}
-
-	//Save .ini options
-	config::gb_type = settings->sys_type->currentIndex();
-	config::use_cheats = (settings->cheats->isChecked()) ? true : false;
-	config::mute = (settings->sound_on->isChecked()) ? false : true;
-	config::use_stereo = (settings->stereo_enable->isChecked()) ? true : false;
-	config::use_microphone = (settings->mic_enable->isChecked()) ? true : false;
-	config::force_cart_audio_sync = (settings->fcas_enable->isChecked()) ? true : false;
-	config::volume = settings->volume->value();
-	config::use_opengl = (settings->ogl->isChecked()) ? true : false;
-	config::use_haptics = (settings->rumble_on->isChecked()) ? true : false;
-	config::use_motion = (settings->motion_on->isChecked()) ? true : false;
-	config::use_ddr_mapping = (settings->ddr_mapping_on->isChecked()) ? true : false;
-	config::vc_enable = (settings->vc_on->isChecked()) ? true : false;
-	config::vc_opacity = settings->vc_opacity->value();
-	config::vc_timeout = settings->vc_timeout->value();
-	
-	config::dmg_bios_path = settings->dmg_bios->text().toStdString();
-	config::gbc_bios_path = settings->gbc_bios->text().toStdString();
-	config::agb_bios_path = settings->gba_bios->text().toStdString();
-	config::ss_path = settings->screenshot->text().toStdString();
-	config::save_path = settings->game_saves->text().toStdString();
-	config::cheats_path = settings->cheats_path->text().toStdString();
-
-	switch(settings->freq->currentIndex())
-	{
-		case 0: config::sample_rate = 48000.0; break;
-		case 1: config::sample_rate = 44100.0; break;
-		case 2: config::sample_rate = 22050.0; break;
-		case 3: config::sample_rate = 11025.0; break;
-	}
-
-	save_ini_file();
-	save_cheats_file();
-
-	//Close SDL
-	SDL_Quit();
-
-	//Exit the application
-	exit(0);
+	quit();
 }
 
 /****** Handle keypress input ******/
@@ -1128,6 +1084,7 @@ void main_menu::keyPressEvent(QKeyEvent* event)
 
 				//Fullscreen
 				case SDLK_F12:
+				case SDLK_ESCAPE:
 					findChild<QAction*>("fullscreen_action")->setChecked(false);
 					fullscreen();
 					break;
