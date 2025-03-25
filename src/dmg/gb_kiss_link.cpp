@@ -505,7 +505,9 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 			//Command data
 			kiss_link.input_data.clear();
-			kiss_link.input_data.push_back(0x00);
+
+			//Cartridge Code
+			kiss_link.input_data.push_back(kiss_link.gbf_data[3]);
 
 			gb_kiss_link_send_command();
 			
@@ -1216,15 +1218,11 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 	}
 
 	kiss_link.input_data.push_back(result);
-
-	std::cout<<"BYTE -> 0x" << std::hex << (u32)result << "\n";
 }
 
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
 void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 {
-	std::cout<<"SENDING -> 0x" << (u32)input << "\n";
-
 	u8 mask = 0x01;
 
 	//Data is converted and stored as pulses little-endian first
@@ -1583,6 +1581,7 @@ void DMG_MMU::gb_kiss_link_reset(bool reset_gbf)
 	kiss_link.checksum = 0;
 	kiss_link.param = 0;
 	kiss_link.slot = 0;
+	kiss_link.cart_code = 0;
 	kiss_link.len = 0;
 	kiss_link.data_len = 0;
 	kiss_link.local_addr = 0;
