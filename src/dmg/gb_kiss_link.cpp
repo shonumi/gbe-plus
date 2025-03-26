@@ -564,6 +564,8 @@ void DMG_MMU::gb_kiss_link_process_command()
 			start = 11;
 			end = start + kiss_link.input_data[0x08];
 
+			kiss_link.gbf_data.push_back(kiss_link.gbf_title_icon_size);
+
 			//Grab Title+Icon from sender data stream
 			for(u32 x = start; x < end; x++)
 			{
@@ -779,7 +781,10 @@ void DMG_MMU::gb_kiss_link_process_command()
 
 		case GKL_GET_HISTORY:
 			//Append history data to existing Title+Icon data
-			for(u32 x = 11; x < kiss_link.input_data.size() - 1; x++)
+			start = 11;
+			end = start + 46;
+
+			for(u32 x = start; x < end; x++)
 			{
 				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
 			}
@@ -821,13 +826,18 @@ void DMG_MMU::gb_kiss_link_process_command()
 			break;
 
 		case GKL_GET_FILE:
+			kiss_link.is_upload_done = (kiss_link.input_data[0x08]) ? true : false;
+
 			//Append game data to existing GBF
-			for(u32 x = 11; x < kiss_link.input_data.size() - 1; x++)
+			start = 11;
+			
+			if(kiss_link.is_upload_done) { end = start + kiss_link.input_data[0x08]; }
+			else { end = start + 256; }
+
+			for(u32 x = start; x < end; x++)
 			{
 				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
 			}
-
-			kiss_link.is_upload_done = (kiss_link.input_data[0x08]) ? true : false;
 
 			//Command Data
 			kiss_link.input_data.clear();
@@ -912,6 +922,10 @@ void DMG_MMU::gb_kiss_link_process_command()
 			break;
 
 		case GKL_ACK_FILE_CLOSE:
+			//Build final GBF file and save
+			kiss_link.cart_code = kiss_link.input_data[0x0B];
+			gb_kiss_link_save_file();
+
 			//Command Data
 			kiss_link.input_data.clear();
 
@@ -1561,6 +1575,40 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 	return true;
 }
 
+/****** Saves a GBF file from GB KISS LINK *****/
+bool DMG_MMU::gb_kiss_link_save_file()
+{
+	std::string filename = "default.gbf";
+
+	std::ofstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open())
+	{
+		std::cout<<"MMU::GBF file could not be saved. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Total File Size
+	u8 hi = (kiss_link.gbf_file_size >> 8);
+	u8 lo = (kiss_link.gbf_file_size & 0xFF);
+	file.write((char*)&lo, 1);
+	file.write((char*)&hi, 1);
+
+	//Flags + Cart Code
+	file.write((char*)&kiss_link.gbf_flags, 1);
+	file.write((char*)&kiss_link.cart_code, 1);
+
+	//Rest of data
+	u8* ex_mem = &kiss_link.gbf_data[0];
+	u32 file_size = kiss_link.gbf_data.size();
+	file.write((char*)ex_mem, file_size);
+
+	file.close();
+
+	std::cout<<"MMU::GBF file saved. \n";
+
+	return true;
+}
 
 /****** Resets all data for emulated GB KISS LINK - Optionally resets GBF data ******/
 void DMG_MMU::gb_kiss_link_reset(bool reset_gbf)

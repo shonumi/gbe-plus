@@ -287,6 +287,7 @@ class DMG_MMU
 	void gb_kiss_link_process_ping();
 	void gb_kiss_link_finish_command();
 	bool gb_kiss_link_load_file(std::string filename);
+	bool gb_kiss_link_save_file();
 	void gb_kiss_link_reset(bool reset_gbf);
 
 	void set_gs_cheats();
