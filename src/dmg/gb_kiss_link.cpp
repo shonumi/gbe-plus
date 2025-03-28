@@ -1578,7 +1578,21 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 /****** Saves a GBF file from GB KISS LINK *****/
 bool DMG_MMU::gb_kiss_link_save_file()
 {
-	std::string filename = "default.gbf";
+	//Grab filename from GBF data, or use default
+	std::string filename = "";
+
+	for(u32 x = 2; x < 14; x++)
+	{
+		u8 chr = kiss_link.gbf_data[x];
+
+		if(chr == 0x00) { break; }
+		else if((chr > 0x20) && (chr <= 0x7E)) { filename += chr; }
+	}
+
+	if(filename.empty()) { filename = config::data_path + "bin/infrared/default.gbf"; }
+	else { filename = config::data_path + "bin/infrared/" + filename + ".gbf"; }
+
+	std::cout<<"PROPOSED FILENAME -> " << filename << "\n";
 
 	std::ofstream file(filename.c_str(), std::ios::binary);
 
