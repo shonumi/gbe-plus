@@ -198,6 +198,8 @@ enum gb_kiss_link_stage
 	GKL_GET_UNK_DATA_2,
 
 	GKL_END_SESSION,
+	GKL_ACK_END_SESSION,
+
 	GKL_FINISHED,
 };
 

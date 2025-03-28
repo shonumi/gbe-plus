@@ -1155,6 +1155,12 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			gb_kiss_link_send_ping(41, 100);
 
 			break;
+
+		case GKL_GET_UNK_DATA_2:
+			kiss_link.stage = GKL_FINISHED;
+			std::cout<<"GB KISS LINK Transfer Finished\n";
+
+			break;
 	}
 }
 
@@ -1591,8 +1597,6 @@ bool DMG_MMU::gb_kiss_link_save_file()
 
 	if(filename.empty()) { filename = config::data_path + "bin/infrared/default.gbf"; }
 	else { filename = config::data_path + "bin/infrared/" + filename + ".gbf"; }
-
-	std::cout<<"PROPOSED FILENAME -> " << filename << "\n";
 
 	std::ofstream file(filename.c_str(), std::ios::binary);
 
