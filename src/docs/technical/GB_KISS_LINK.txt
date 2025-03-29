@@ -1,0 +1,42 @@
+GB KISS LINK Technical Documentation 0.1
+March 29, 2025
+Shonumi aka D.S. Baxter 
+
+***************************************************
+1. Introduction
+***************************************************
+
+The GB KISS LINK is an infrared modem that connects to PCs in order to send/receive data from Game Boys. It was made by Hudson and released on March 6, 1998. The unit sold through mail order to the ASCII Corporation and was compatible with select titles that featured HuC-1 and HuC-3 cartridge mappers. The infrared connectivity allowed data to flow freely between the user's PC and the Game Boys. It was most prominently used to transfer GBF files and Nectaris maps, some of which could be downloaded from Hudson's website.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Unit came as a plain PCB protected only by a wrap-around plastic cover
+- Powered by a single 9V battery
+- Featured 2 infrared diodes for sending and receiving signals
+- Connected to PC via D-SUB25 serial cable
+- Required PC special Windows 95 software and drivers to use
+- Officially uses the model number HC-749
+
+
+***************************************************
+3. Compatible Games
+***************************************************
+
+Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even smaller selection took advantage of the GB KISS LINK. The list below notes these titles along with what kinds of features were enabled by the GB KISS LINK.
+
+- GBKiss Minigames
+* Mapper: HuC-1
+* Features: Downloading minigames, mail, and other files
+
+
+- Nectaris
+* Mapper: HuC-1
+* Features: Downloading custom maps
+
+
+- Pocket Family GB
+* Mapper: HuC-3
+* Features: Downloading custom alarm songs and a family photo event
