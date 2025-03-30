@@ -25,11 +25,7 @@ The GB KISS LINK is an infrared modem that connects to PCs in order to send/rece
 3. Compatible Games
 ***************************************************
 
-Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even smaller selection took advantage of the GB KISS LINK. The list below notes these titles along with what kinds of features were enabled by the GB KISS LINK.
-
-- GBKiss Minigames
-* Mapper: HuC-1
-* Features: Downloading minigames, mail, and other files
+Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even smaller selection took advantage of the GB KISS LINK for downloadable content provided online by Hudson. The list below notes these titles along with what kinds of features were enabled by the GB KISS LINK.
 
 
 - Nectaris
@@ -40,3 +36,101 @@ Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even
 - Pocket Family GB
 * Mapper: HuC-3
 * Features: Downloading custom alarm songs and a family photo event
+
+
+Other games are more broadly compatible with the GB KISS menu, a standardized menu that allows content to be shared between other Game Boys or via the GB KISS LINK. These, however, were not known to specifically have any downloadable content from Hudson.
+
+
+- Daikaiju Monogatori: The Miracle of the Zone
+- GBKiss Mini Games
+- Pocket Bomberman
+- Robot Poncots (Sun, Star, Moon, and Comic BomBom Versions)
+- Super B-Daman Fighting Phoenix
+
+
+***************************************************
+4. GBF Infrared Protocol Overview
+***************************************************
+
+The GB KISS LINK uses a specific protocol to communicate with GB KISS compatible software to transfer GBF files. This protocol appears to be the same regardless if the sender or receiver is a Game Boy or the GB KISS LINK. Below is a high-level description of how the protocol works:
+
+----------------------------------------------------------------------------------------------------------------------
+Sender							| Receiver
+----------------------------------------------------------------------------------------------------------------------
+1)  Read Receiver ID String				| 1)  Return ID String
+2)  Send Transfer Start Flag				| 2)  Get Transfer Start Flag
+3)  Start Session					| 3)  Wait
+4)  Send Title and Icon data				| 4)  Get Title and Icon Data, Return File Search Input + Echo
+5)  Search File						| 5)  Return File Metadata and Echo of Title and Icon data
+6)  Unknown Read					| 6)  Return Unknown Data
+7)  Prep File Data Transfer				| 7)  Wait
+8)  Send History Data					| 8)  Get History Data, Return ACK Data
+9)  Send File Data					| 9)  Get File Data, Return ACK Data
+10) End  File Data Transfer				| 10) Return File Metadata and ACK Data
+11) Send Cartridge Code					| 11) Get Cartridge Code, Return ACK Data
+12) Send Transfer End Flag				| 12) Get Transfer End Flag
+13) End Session						| 13) End Session
+----------------------------------------------------------------------------------------------------------------------
+
+The sender dictates the flow of communications by sending and 8-byte command packet in the following format:
+
+---------------------------------------------------------
+Byte	| Description
+---------------------------------------------------------
+0	| Transfer Status
+1	| Command Byte
+2	| Local Address Lo
+3	| Local Address Hi
+4	| Remote Address Lo
+5	| Remote Address Hi
+6	| Data Operation Length
+7	| Parameter
+---------------------------------------------------------
+
+Transfer Status is a bit-field that alerts the receiver if any errors have occured on the sender's side. Most GB KISS LINK software, seem to ignore this as long as the value is non-zero. When transferring a GBF file, the sender normally uses a constant value of 0x30 for the Transfer Status.
+
+The Command Byte tells the receiver what operation is being performed during the transfer. Its value indicates whether the receiver should wait for the next command or start returning data. There are a just a few commands used for GBF file transfers:
+
+---------------------------------------------------------
+Command	| Description
+---------------------------------------------------------
+0x00	| Start/Stop Session
+0x02	| Send Icon Data
+0x03	| File Search
+0x04	| Start/Stop File Data Transer
+0x08	| Read Remote RAM
+0x0A	| Send File Data
+0x0B	| Write Remote RAM
+---------------------------------------------------------
+
+Local/Remote Addresses are often analogous to Source/Destination Addresses, depending on the command. This allows the sender to specify where in RAM to pull data and where to push it when the receiver gets it.
+
+Data Operation Length specifies how many bytes a given command should read or write, if applicable.
+
+The final byte is a miscellaneous parameter that changes context based on the command. For example, often times it is used to specify which slot within the GB KISS Menu the GBF file will be written to.
+
+At the very end of a command packet, an 8-bit checksum is sent out. This is the sum of all previous 8 bytes bitwise complemented and incremented by 1:
+
+SUM = SUM OF ALL BYTES
+SUM = ~SUM
+SUM = SUM + 1
+
+For any command that sends data, those bytes come immediately after the command packet checksum. Additionally, the data is requires its own checksum at the end. Altogether, a complete command from the sender will look like this:
+
+---------------------------------------------------------
+1) Command Packet
+2) Command Checksum
+3) Data Bytes
+4) Data Checksum
+---------------------------------------------------------
+
+Between each command from the sender and response from the receiver, a brief handshake is exchanged between both sides. The values used for these handshakes changes depending on which side is currently sending data. The handshake is as follows:
+
+---------------------------------------------------------
+Sending Data		| Receiving Data
+---------------------------------------------------------
+0xAA			| 0x55
+0xC3			| 0x3C
+---------------------------------------------------------
+
+For example, when using the Read Remote RAM command, the sender initiates the handshake with the value 0xAA and waits for a 0x55 response. The sender then issues the byte 0xC3 and waits for a 0x3C response. When the receiver returns RAM data for the command, the roles are reversed. In this case, the sender must wait for the 0xAA and 0xC3 values and respond accordingly with 0x55 and 0x3C.
