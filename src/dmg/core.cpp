@@ -1142,11 +1142,16 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
 		{
 			case GB_KISS_LINK:
-				core_mmu.kiss_link.is_sender = !core_mmu.kiss_link.is_sender;
+				core_mmu.kiss_link.mode++;
+				core_mmu.kiss_link.mode &= 0x3;
 
-				//OSD
-				if(core_mmu.kiss_link.is_sender) { config::osd_message = "GB KISS SEND MODE"; }
-				else { config::osd_message = "GB KISS RECV MODE"; }
+				switch(core_mmu.kiss_link.mode)
+				{
+					case 0: config::osd_message = "GB KISS SEND MODE"; core_mmu.kiss_link.is_sender = true; break;
+					case 1: config::osd_message = "GB KISS RECV MODE"; core_mmu.kiss_link.is_sender = false; break;
+					case 2: config::osd_message = "NECTARIS SEND MAP"; core_mmu.kiss_link.is_sender = true; break;
+					case 3: config::osd_message = "NECTARIS RECV MAP"; core_mmu.kiss_link.is_sender = false; break;
+				}
 
 				config::osd_count = 180;
 
@@ -1282,11 +1287,16 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 		switch(core_cpu.controllers.serial_io.sio_stat.ir_type)
 		{
 			case GB_KISS_LINK:
-				core_mmu.kiss_link.is_sender = !core_mmu.kiss_link.is_sender;
+				core_mmu.kiss_link.mode++;
+				core_mmu.kiss_link.mode &= 0x3;
 
-				//OSD
-				if(core_mmu.kiss_link.is_sender) { config::osd_message = "GB KISS SEND MODE"; }
-				else { config::osd_message = "GB KISS RECV MODE"; }
+				switch(core_mmu.kiss_link.mode)
+				{
+					case 0: config::osd_message = "GB KISS SEND MODE"; core_mmu.kiss_link.is_sender = true; break;
+					case 1: config::osd_message = "GB KISS RECV MODE"; core_mmu.kiss_link.is_sender = false; break;
+					case 2: config::osd_message = "NECTARIS SEND MAP"; core_mmu.kiss_link.is_sender = true; break;
+					case 3: config::osd_message = "NECTARIS RECV MAP"; core_mmu.kiss_link.is_sender = false; break;
+				}
 
 				config::osd_count = 180;
 
