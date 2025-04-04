@@ -1022,6 +1022,15 @@ void DMG_MMU::gb_kiss_link_process_command()
 			kiss_link.len = 0;
 			kiss_link.param = 0;
 
+			kiss_link.gbf_data.clear();
+
+			end = (kiss_link.input_data.size() > 256) ? 256 : kiss_link.input_data.size();
+
+			for(u32 x = 0; x < end; x++)
+			{
+				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
+			}
+
 			kiss_link.input_data.clear();
 			gb_kiss_link_send_command();
 			
@@ -1033,6 +1042,15 @@ void DMG_MMU::gb_kiss_link_process_command()
 			kiss_link.remote_addr = 0xD100;
 			kiss_link.len = 0x00;
 			kiss_link.param = 0;
+
+			end = (kiss_link.input_data.size() > 256) ? 256 : kiss_link.input_data.size();
+
+			for(u32 x = 0; x < end; x++)
+			{
+				kiss_link.gbf_data.push_back(kiss_link.input_data[x]);
+			}
+
+			gb_kiss_link_save_file();
 
 			kiss_link.input_data.clear();
 			gb_kiss_link_send_command();
@@ -1338,6 +1356,8 @@ void DMG_MMU::gb_kiss_link_process_ping()
 
 		//End of transfer
 		case GKL_END_SESSION:
+		case GKL_FINISH_MAP:
+			kiss_link.stage = GKL_FINISHED;
 			std::cout<<"GB KISS LINK Transfer Finished\n";
 			
 			break;
@@ -1362,8 +1382,6 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 	}
 
 	kiss_link.input_data.push_back(result);
-
-	std::cout<<"RECV -> 0x" << (u32)result << "\n";
 }
 
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
@@ -1393,8 +1411,6 @@ void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 
 		mask <<= 1;
 	}
-
-	std::cout<<"SEND -> 0x" << (u32)input << "\n";
 }
 
 /****** Initiates a handshake from the GB KISS LINK to the Game Boy ******/
@@ -1720,10 +1736,14 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 /****** Saves a GBF file from GB KISS LINK *****/
 bool DMG_MMU::gb_kiss_link_save_file()
 {
-	//Grab filename from GBF data, or use default
-	std::string filename = "";
+	std::cout<<"MODE -> " << (u32)kiss_link.mode << "\n";
 
-	for(u32 x = 2; x < 14; x++)
+	//Grab filename from GBF or map data, or use default
+	std::string filename = "";
+	std::string ext = (kiss_link.mode == 3) ? ".bin" : ".gbf";
+	u8 start = (kiss_link.mode == 3) ? 8 : 2;
+
+	for(u32 x = start; x < 14; x++)
 	{
 		u8 chr = kiss_link.gbf_data[x];
 
@@ -1731,26 +1751,30 @@ bool DMG_MMU::gb_kiss_link_save_file()
 		else if((chr > 0x20) && (chr <= 0x7E)) { filename += chr; }
 	}
 
-	if(filename.empty()) { filename = config::data_path + "bin/infrared/default.gbf"; }
-	else { filename = config::data_path + "bin/infrared/" + filename + ".gbf"; }
+	if(filename.empty()) { filename = config::data_path + "bin/infrared/default" + ext; }
+	else { filename = config::data_path + "bin/infrared/" + filename + ext; }
 
 	std::ofstream file(filename.c_str(), std::ios::binary);
 
 	if(!file.is_open())
 	{
-		std::cout<<"MMU::GBF file could not be saved. Check file path or permissions. \n";
+		std::cout<<"MMU::GB KISS LINK file could not be saved. Check file path or permissions. \n";
 		return false;
 	}
 
-	//Total File Size
-	u8 hi = (kiss_link.gbf_file_size >> 8);
-	u8 lo = (kiss_link.gbf_file_size & 0xFF);
-	file.write((char*)&lo, 1);
-	file.write((char*)&hi, 1);
+	//Save GBF specific data
+	if(kiss_link.mode == 1)
+	{
+		//Total File Size
+		u8 hi = (kiss_link.gbf_file_size >> 8);
+		u8 lo = (kiss_link.gbf_file_size & 0xFF);
+		file.write((char*)&lo, 1);
+		file.write((char*)&hi, 1);
 
-	//Flags + Cart Code
-	file.write((char*)&kiss_link.gbf_flags, 1);
-	file.write((char*)&kiss_link.cart_code, 1);
+		//Flags + Cart Code
+		file.write((char*)&kiss_link.gbf_flags, 1);
+		file.write((char*)&kiss_link.cart_code, 1);
+	}
 
 	//Rest of data
 	u8* ex_mem = &kiss_link.gbf_data[0];
@@ -1759,7 +1783,7 @@ bool DMG_MMU::gb_kiss_link_save_file()
 
 	file.close();
 
-	std::cout<<"MMU::GBF file saved. \n";
+	std::cout<<"MMU::GB KISS LINK file saved. \n";
 
 	return true;
 }
