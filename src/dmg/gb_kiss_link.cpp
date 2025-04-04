@@ -951,6 +951,7 @@ void DMG_MMU::gb_kiss_link_process_command()
 			break;
 
 		case GKL_INIT_MAP_SENDER:
+		case GKL_INIT_MAP_RECEIVER:
 			kiss_link.stage = GKL_REQUEST_MAP_ID;
 
 			kiss_link.cmd = GKL_CMD_READ_RAM;
@@ -998,6 +999,30 @@ void DMG_MMU::gb_kiss_link_process_command()
 				kiss_link.input_data.push_back(kiss_link.gbf_data[x]);
 			}
 
+			gb_kiss_link_send_command();
+			
+			break;
+
+		case GKL_GET_DATA_LO:
+			kiss_link.cmd = GKL_CMD_READ_RAM;
+			kiss_link.local_addr = 0xD000;
+			kiss_link.remote_addr = 0xD000;
+			kiss_link.len = 0;
+			kiss_link.param = 0;
+
+			kiss_link.input_data.clear();
+			gb_kiss_link_send_command();
+			
+			break;
+
+		case GKL_GET_DATA_HI:
+			kiss_link.cmd = GKL_CMD_READ_RAM;
+			kiss_link.local_addr = 0xD100;
+			kiss_link.remote_addr = 0xD100;
+			kiss_link.len = 0;
+			kiss_link.param = 0;
+
+			kiss_link.input_data.clear();
 			gb_kiss_link_send_command();
 			
 			break;
@@ -1227,7 +1252,7 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			break;
 
 		case GKL_REQUEST_MAP_ID:
-			kiss_link.stage = GKL_SEND_DATA_LO;
+			kiss_link.stage = (kiss_link.mode == 2) ? GKL_SEND_DATA_LO : GKL_GET_DATA_LO;
 			gb_kiss_link_handshake(0xAA);
 
 			break;
@@ -1239,6 +1264,18 @@ void DMG_MMU::gb_kiss_link_finish_command()
 			break;
 
 		case GKL_SEND_DATA_HI:
+			kiss_link.stage = GKL_FINISH_MAP;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_GET_DATA_LO:
+			kiss_link.stage = GKL_GET_DATA_HI;
+			gb_kiss_link_handshake(0xAA);
+
+			break;
+
+		case GKL_GET_DATA_HI:
 			kiss_link.stage = GKL_FINISH_MAP;
 			gb_kiss_link_handshake(0xAA);
 
@@ -1274,6 +1311,8 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_ACK_FILE_CLOSE:
 		case GKL_GET_UNK_DATA_2:
 		case GKL_REQUEST_MAP_ID:
+		case GKL_GET_DATA_LO:
+		case GKL_GET_DATA_HI:
 			kiss_link.state = GKL_RECV_HANDSHAKE_AA;
 			kiss_link.is_locked = false;
 			
@@ -1323,6 +1362,8 @@ void DMG_MMU::gb_kiss_link_get_bytes()
 	}
 
 	kiss_link.input_data.push_back(result);
+
+	std::cout<<"RECV -> 0x" << (u32)result << "\n";
 }
 
 /****** Converts byte data into IR pulses for the GB KISS LINK ******/
@@ -1352,6 +1393,8 @@ void DMG_MMU::gb_kiss_link_set_signal(u8 input)
 
 		mask <<= 1;
 	}
+
+	std::cout<<"SEND -> 0x" << (u32)input << "\n";
 }
 
 /****** Initiates a handshake from the GB KISS LINK to the Game Boy ******/
@@ -1521,6 +1564,10 @@ void DMG_MMU::gb_kiss_link_send_command()
 			kiss_link.checksum++;
 			kiss_link.output_data.push_back(kiss_link.checksum);
 
+			//When reading directly from RAM for Nectaris maps, the size is sometimes 0x00
+			//Here, make sure that the internal length is set so GBE+ can count the correct amount of bytes sent
+			if((kiss_link.mode >= 0x02) && (kiss_link.len == 0)) { kiss_link.len = 256; }
+
 			std::cout<<"Read RAM -> 0x" << kiss_link.remote_addr << "\n";
 
 			break;
@@ -1563,7 +1610,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 
 			//When writing directly to RAM for Nectaris maps, the size is always 0x00
 			//Here, make sure that the internal length is set so GBE+ can count the correct amount of bytes sent
-			if(kiss_link.mode == 0x02) { kiss_link.len = 256; }
+			if((kiss_link.mode == 0x02) && (kiss_link.len == 0)) { kiss_link.len = 256; }
 
 			if(kiss_link.cmd == 0x02) { std::cout<<"Send Icon -> 0x" << kiss_link.remote_addr << "\n"; }
 			else if(kiss_link.stage == GKL_SEND_HISTORY) { std::cout<<"Send History -> 0x" << kiss_link.remote_addr << "\n"; }
