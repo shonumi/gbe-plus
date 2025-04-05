@@ -12,8 +12,8 @@
 #ifndef PM_APU
 #define PM_APU
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_audio.h>
+#include <SDL.h>
+#include <SDL_audio.h>
 #include "mmu.h"
 
 class MIN_APU

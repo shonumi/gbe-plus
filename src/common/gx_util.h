@@ -15,7 +15,7 @@
 #include <vector>
 #include <string>
 
-#include <SDL2/SDL_opengl.h>
+#include <SDL_opengl.h>
 
 #include "common.h"
 

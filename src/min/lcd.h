@@ -9,8 +9,8 @@
 // Draws background and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_opengl.h"
+#include "SDL.h"
+#include "SDL_opengl.h"
 #include "mmu.h"
 
 #ifndef PM_LCD

@@ -15,7 +15,7 @@
 #include <sstream>
 
 #ifdef GBE_IMAGE_FORMATS
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #endif
 
 #include "common/util.h"

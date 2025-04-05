@@ -9,7 +9,7 @@
 // Reads and writes to the P1 register
 // Handles input from keyboard using SDL events
 
-#include "SDL2/SDL_sensor.h"
+#include "SDL_sensor.h"
 
 #include "gamepad.h"
 

@@ -11,7 +11,7 @@
 // Nintendo MP3 Player handled separately (see nmp.cpp)
 
 #ifdef GBE_IMAGE_FORMATS
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #endif
 
 #include <filesystem>

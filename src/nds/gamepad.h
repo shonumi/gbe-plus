@@ -12,7 +12,7 @@
 #ifndef NDS_GAMEPAD
 #define NDS_GAMEPAD
 
-#include "SDL2/SDL.h"
+#include "SDL.h"
 #include <string>
 #include <iostream>
 
