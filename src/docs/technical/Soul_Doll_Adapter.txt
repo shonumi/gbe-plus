@@ -1,4 +1,4 @@
-Soul Doll Adapter Technical Documentation 0.4
+Soul Doll Adapter Technical Documentation 0.5
 December 18th, 2018
 Shonumi aka D.S. Baxter
 
@@ -136,6 +136,7 @@ For Yomigaeru Shiren no Shima, EEPROM data is arranged as follows:
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
+0x317 - 0x318	| Extended Legend ID
 0x351		| Training Bonus
 0x398 - 0x39C	| Owner Name
 0x3A1 - 0x3B0	| Message
@@ -154,6 +155,7 @@ For Sign of Nekrom, EEPROM data is arranged as follows:
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
+0x317 - 0x318	| Extended Legend ID
 0x351		| Training Bonus
 0x390 - 0x394	| Owner Name
 0x3A1 - 0x3B0	| Message
@@ -174,7 +176,7 @@ Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will
 0x05 = Werewolf				0x24 = Triton					0x48 = Colonel Windragon Tornado Soul		
 0x06 = Will 'o' Wisp			0x25 = Gargoyle					0x49 = Pheonix
 0x07 = Tornado Kingdragon		0x26 = Cloud Giant				0x4A = Behemoth
-0x08 = Blaze Dragon (A)?		0x27 = Command Windragon			0x4B = Jabberwock
+0x08 = Blazedragon (A)?			0x27 = Command Windragon			0x4B = Jabberwock
 0x09 = Goblin				0x28 = Command Blazedragon			0x4C = Leviathan
 0x0A = Yeti				0x2B = Spiritual Windragon			0x4D = Fenrir
 0x0B = Hell Hound			0x2C = Hexadragon				0x4E = Colonel Blazedragon Volcano Soul
@@ -199,7 +201,25 @@ Byte 0x302 acts as the Legend ID. Depending on the value of this, the games will
 0x20 = Chibi Shiron			0x42 = Kraken					0x73 = Valkyrie
 											0x74 = Cerberus
 
-Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with "?" in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The gaps between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.
+Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with "?" in the list above. Some Soul Dolls use a longer ID that expands to 24-bits. This combines the 8-bit value from 0x302 and the 16-bit value from 0x317 - 0x318. This extension is stored MSB first. The chart below lists the Legendz obtainable via the extended IDs (format is 8-bit ID :: 16-bit extension):
+
+0x02 :: 0x002C = Blazedragon (A)?
+0x02 :: 0x0055 = Greedo Unawakened Version
+0x02 :: 0x0104 = Blazedragon (C)?
+0x02 :: 0x0122 = GW Nicol
+0x29 :: 0x004F = Griffin
+0x29 :: 0x005D = Griffin (Elemental Version)?
+0x29 :: 0x0163 = Griffin Zan Armed
+0x2A :: 0x0040 = Bigfoot
+0x2A :: 0x004B = Bigfoot (Elemental Version)?
+0x2A :: 0x013B = Bigfoot Cure Armed
+0x2F :: 0x0073 = Colonel Windragon (A)
+0x2F :: 0x0104 = Colonel Windragon Strike Armed
+0x2F :: 0x01E8 = True Windragon
+0x30 :: 0x0078 = Colonel Blazedragon (A)
+0x30 :: 0x0122 = Colonel Blaze Dragon Zoldyck Armed
+0x40 :: 0x0064 = Chibi Ranshiin
+0x40 :: 0x0140 = Ranshiin (A)?
 
 1 byte represents the so called "Training Bonus" granted to a Legend when it is reborn. This adds a certain amount of points to its various base stats, such as HP, Strength, Defense, etc. The larger the value of this byte, the greater the stat boost will be. It has a limited range of valid values (1 = Minimum, 6 = Maximum).
 
@@ -231,7 +251,7 @@ HP
 -----------------------------------------------------------
 VAL1 = READ 16 BITS FROM (ADDRESS)
 VAL2 = READ 08 BITS FROM (ADDRESS + 2)
-HP = (VAL_1 >> 6) | ((VAL & 0x0F) << 10)
+HP = (VAL_1 >> 6) | ((VAL_2 & 0x0F) << 10)
 
 
 -----------------------------------------------------------

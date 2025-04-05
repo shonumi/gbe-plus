@@ -2846,6 +2846,8 @@ Bit 7               | Bit 6               | Bit 5               | Bit 4         
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
+0x317 - 0x318	| Extended Legend ID
+0x351		| Training Bonus
 0x398 - 0x39C	| Owner Name
 0x3A1 - 0x3B0	| Message
 0x3B1 - 0x3B9	| Legend Name
@@ -2863,6 +2865,8 @@ Address		| Data Description
 Address		| Data Description
 -----------------------------------------------------------
 0x302		| Legend ID
+0x317 - 0x318	| Extended Legend ID
+0x351		| Training Bonus
 0x390 - 0x394	| Owner Name
 0x3A1 - 0x3B0	| Message
 0x399 - 0x3A0	| Legend Name
@@ -2907,7 +2911,25 @@ Address		| Data Description
 0x20 = Chibi Shiron			0x42 = Kraken					0x73 = Valkyrie
 											0x74 = Cerberus</pre></p>
 
-	<p>Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with &#34;?&#34; in the list above. Although there are 103 Soul Dollz, the list remains incomplete. The gaps between entries do not generate valid Legendz, which suggests other bytes in EEPROM are also responsible for the ID.</p>
+	<p>Several IDs appear to be mapped to the same Legend. This may be explained by the fact that some Soul Dollz were released in A, B, and sometimes C variants. The plastic figurine is different, but the GBA games generate the same sprite and default name for the Soul Doll. All of the potential duplicates are marked with &#34;?&#34; in the list above. Some Soul Dolls use a longer ID that expands to 24-bits. This combines the 8-bit value from 0x302 and the 16-bit value from 0x317 - 0x318. This extension is stored MSB first. The chart below lists the Legendz obtainable via the extended IDs (format is 8-bit ID :: 16-bit extension):</p>
+
+<p><pre>0x02 :: 0x002C = Blazedragon (A)?
+0x02 :: 0x0055 = Greedo Unawakened Version
+0x02 :: 0x0104 = Blazedragon (C)?
+0x02 :: 0x0122 = GW Nicol
+0x29 :: 0x004F = Griffin
+0x29 :: 0x005D = Griffin (Elemental Version)?
+0x29 :: 0x0163 = Griffin Zan Armed
+0x2A :: 0x0040 = Bigfoot
+0x2A :: 0x004B = Bigfoot (Elemental Version)?
+0x2A :: 0x013B = Bigfoot Cure Armed
+0x2F :: 0x0073 = Colonel Windragon (A)
+0x2F :: 0x0104 = Colonel Windragon Strike Armed
+0x2F :: 0x01E8 = True Windragon
+0x30 :: 0x0078 = Colonel Blazedragon (A)
+0x30 :: 0x0122 = Colonel Blaze Dragon Zoldyck Armed
+0x40 :: 0x0064 = Chibi Ranshiin
+0x40 :: 0x0140 = Ranshiin (A)?</pre></p>
 
 	<p>1 byte represents the so called &#34;Training Bonus&#34; granted to a Legend when it is reborn. This adds a certain amount of points to its various base stats, such as HP, Strength, Defense, etc. The larger the value of this byte, the greater the stat boost will be. It has a limited range of valid values (1 = Minimum, 6 = Maximum).</p>
 
@@ -2937,7 +2959,7 @@ HP
 -----------------------------------------------------------
 VAL1 = READ 16 BITS FROM (ADDRESS)
 VAL2 = READ 08 BITS FROM (ADDRESS + 2)
-HP = (VAL_1 &gt;&gt; 6) | ((VAL & 0x0F) &lt;&lt; 10)
+HP = (VAL_1 &gt;&gt; 6) | ((VAL_2 & 0x0F) &lt;&lt; 10)
 
 
 -----------------------------------------------------------
