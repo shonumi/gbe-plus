@@ -11,7 +11,7 @@
 #ifndef PM_GAMEPAD
 #define PM_GAMEPAD
 
-#include "SDL2/SDL.h"
+#include "SDL.h"
 #include <iostream>
 
 #include "common.h"

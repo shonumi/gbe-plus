@@ -6,7 +6,7 @@
 // Date : July 15, 2015
 // Description : Common functions and definitions for Qt
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <QtWidgets>
 

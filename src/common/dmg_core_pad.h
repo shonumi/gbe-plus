@@ -12,7 +12,7 @@
 #ifndef DMG_CORE_PAD
 #define DMG_CORE_PAD
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "common/common.h"
 

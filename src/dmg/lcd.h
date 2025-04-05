@@ -12,8 +12,8 @@
 #ifndef GB_LCD
 #define GB_LCD
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_opengl.h"
+#include "SDL.h"
+#include "SDL_opengl.h"
 #include "mmu.h"
 
 class DMG_LCD

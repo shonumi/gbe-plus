@@ -13,7 +13,7 @@
 #ifndef SGB_GAMEPAD
 #define SGB_GAMEPAD
 
-#include "SDL2/SDL.h"
+#include "SDL.h"
 #include <string>
 #include <iostream>
 
