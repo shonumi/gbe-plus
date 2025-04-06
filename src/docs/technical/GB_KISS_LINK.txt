@@ -1,4 +1,4 @@
-GB KISS LINK Technical Documentation 0.1
+GB KISS LINK Technical Documentation 0.2
 March 29, 2025
 Shonumi aka D.S. Baxter 
 
@@ -28,7 +28,7 @@ The GB KISS LINK is an infrared modem that connects to PCs in order to send/rece
 Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even smaller selection took advantage of the GB KISS LINK for downloadable content provided online by Hudson. The list below notes these titles along with what kinds of features were enabled by the GB KISS LINK.
 
 
-- Nectaris
+- Nectaris GB
 * Mapper: HuC-1
 * Features: Downloading custom maps
 
@@ -46,6 +46,9 @@ Other games are more broadly compatible with the GB KISS menu, a standardized me
 - Pocket Bomberman
 - Robot Poncots (Sun, Star, Moon, and Comic BomBom Versions)
 - Super B-Daman Fighting Phoenix
+
+
+All of the above titles (Nectaris GB and Pocket Family GB included) can access the GB KISS Menu, which can be used to send or receive GBF files. The sender or recipient can be another Game Boy or the GB KISS LINK. Nectaris GB, however, has a separate mode for transmitting map files. As a result, GBF and map files have different protocols.
 
 
 ***************************************************
@@ -515,4 +518,28 @@ Sender Bytes	| Value			| Description
 ----------------------------------------------------------------------------------------------------------------------
 
 
+***************************************************
+6. Nectaris Map Infrared Protocol
+***************************************************
 
+The infrared protocol used by Nectaris GB is much simpler than that used for GBF files. In this mode, the GB KISS LINK always takes on the role of sender, even if the map data itself is technically being transferred to it. The main difference is whether the GB KISS LINK reads remote RAM stored on the Game Boy or writes to it. The following steps are done when the GB KISS LINK communicates with the Game Boy:
+
+----------------------------------------------------------------------------------------------------------------------
+GB KISS LINK						| Game Boy
+----------------------------------------------------------------------------------------------------------------------
+1)  Read Receiver ID String				| 1)  Return ID String
+							|
+	** If ID is "RECEIVE" **			| 	** If ID is "RECEIVE" **
+	2a) Send 1st 256 bytes of map data		| 	2a) Receive 1st 256 bytes of map data
+	3a) Send 2nd 256 bytes of map data		| 	3a) Receive 2nd 256 bytes of map data
+							|
+	** If ID is "TRANCE" **				|	** If ID is "TRANCE **
+	2b) Receive 1st 256 bytes of map data		|	2b) Send 1st 256 bytes of map data
+	3b) Receive 2nd 256 bytes of map data		|	3b) Send 2nd 256 bytes of map data
+							|
+4) End Session						| 4) End Session
+----------------------------------------------------------------------------------------------------------------------
+
+When the user chooses to send or receive a map, Nectaris GB will write a short ASCII string in RAM and 0xD000. The GB KISS LINK will read this with the Read Remote RAM command. Depending on the value, the GB KISS LINK will then determine if it needs to send or receive a map. The device must issue 2 Read Remote RAM commands or 2 Write Remote RAM commands. The destination/source of the 1st 256 block of map data is at 0xD000. The destination/source of the 2nd block of map data is at 0xD100. It should be noted that when the GB KISS LINK receives a map from the Game Boy, Nectaris GB appears to have already copied the entire map data to RAM. As a result, the GB KISS LINK can read the data immediately.
+
+For examples of how Read Remote RAM and Write Remote RAM commands are handled, see the above section detailing the GBF file transfer. The structure of these commands is identical, with the only differences being the Local/Remote Addresses. None of the commands appear to use the Parameter byte. Data Operation Length should be 0x07 to read the ID string, but it should be 0x00 to read each 256 byte block of map data.
