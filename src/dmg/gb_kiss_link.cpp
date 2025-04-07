@@ -85,7 +85,7 @@ void DMG_MMU::gb_kiss_link_process()
 					//Receive data
 					else if((kiss_link.cmd == GKL_CMD_SEND_ICON) || (kiss_link.cmd == GKL_CMD_FILE_SEARCH)
 					|| (kiss_link.cmd == GKL_CMD_MANAGE_UPLOAD) || (kiss_link.cmd == GKL_CMD_READ_RAM)
-					|| (kiss_link.cmd == GKL_CMD_MANAGE_DATA))
+					|| (kiss_link.cmd == GKL_CMD_READ_SRAM) || (kiss_link.cmd == GKL_CMD_MANAGE_DATA))
 					{
 						kiss_link.output_data.clear();
 						gb_kiss_link_send_ping(GKL_ON_PING_SENDER, GKL_OFF_PING_SENDER);
@@ -1004,9 +1004,10 @@ void DMG_MMU::gb_kiss_link_process_command()
 			break;
 
 		case GKL_GET_DATA_LO:
-			kiss_link.cmd = GKL_CMD_READ_RAM;
-			kiss_link.local_addr = 0xD000;
-			kiss_link.remote_addr = 0xD000;
+			kiss_link.slot = kiss_link.input_data[6];
+			kiss_link.cmd = GKL_CMD_READ_SRAM;
+			kiss_link.local_addr = 0x4000 + (0x200 * kiss_link.slot);
+			kiss_link.remote_addr = 0x4000 + (0x200 * kiss_link.slot);
 			kiss_link.len = 0;
 			kiss_link.param = 0;
 
@@ -1016,9 +1017,9 @@ void DMG_MMU::gb_kiss_link_process_command()
 			break;
 
 		case GKL_GET_DATA_HI:
-			kiss_link.cmd = GKL_CMD_READ_RAM;
-			kiss_link.local_addr = 0xD100;
-			kiss_link.remote_addr = 0xD100;
+			kiss_link.cmd = GKL_CMD_READ_SRAM;
+			kiss_link.local_addr = 0x4100 + (0x200 * kiss_link.slot);
+			kiss_link.remote_addr = 0x4100 + (0x200 * kiss_link.slot);
 			kiss_link.len = 0;
 			kiss_link.param = 0;
 
@@ -1562,6 +1563,7 @@ void DMG_MMU::gb_kiss_link_send_command()
 			break;
 
 		case GKL_CMD_READ_RAM:
+		case GKL_CMD_READ_SRAM:
 			//Local Addr + Remote Addr
 			kiss_link.output_data.push_back(kiss_link.local_addr & 0xFF);
 			kiss_link.output_data.push_back(kiss_link.local_addr >> 8);
@@ -1736,8 +1738,6 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 /****** Saves a GBF file from GB KISS LINK *****/
 bool DMG_MMU::gb_kiss_link_save_file()
 {
-	std::cout<<"MODE -> " << (u32)kiss_link.mode << "\n";
-
 	//Grab filename from GBF or map data, or use default
 	std::string filename = "";
 	std::string ext = (kiss_link.mode == 3) ? ".bin" : ".gbf";
