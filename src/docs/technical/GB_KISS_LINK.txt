@@ -540,6 +540,34 @@ GB KISS LINK						| Game Boy
 4) End Session						| 4) End Session
 ----------------------------------------------------------------------------------------------------------------------
 
-When the user chooses to send or receive a map, Nectaris GB will write a short ASCII string in RAM and 0xD000. The GB KISS LINK will read this with the Read Remote RAM command. Depending on the value, the GB KISS LINK will then determine if it needs to send or receive a map. The device must issue 2 Read Remote RAM commands or 2 Write Remote RAM commands. The destination/source of the 1st 256 block of map data is at 0xD000. The destination/source of the 2nd block of map data is at 0xD100. It should be noted that when the GB KISS LINK receives a map from the Game Boy, Nectaris GB appears to have already copied the entire map data to RAM. As a result, the GB KISS LINK can read the data immediately.
+When the user chooses to send or receive a map, Nectaris GB will write a short ASCII string in RAM and 0xD000. The GB KISS LINK will read this with the Read Remote RAM command. Depending on the value, the GB KISS LINK will then determine if it needs to send or receive a map. The device must issue 2 Write Remote RAM commands or 2 Read Remote SRAM commands as described below:
 
-For examples of how Read Remote RAM and Write Remote RAM commands are handled, see the above section detailing the GBF file transfer. The structure of these commands is identical, with the only differences being the Local/Remote Addresses. None of the commands appear to use the Parameter byte. Data Operation Length should be 0x07 to read the ID string, but it should be 0x00 to read each 256 byte block of map data.
+----------------------------------------------------------------------------------------------------------------------
+Sender Bytes	| Value			| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| 0x30			| Transfer Status
+0x01		| 0x0B			| Command Byte (Write Remote RAM)
+0x02 - 0x03	| 0xD000 and 0xD100	| Local Address
+0x04 - 0x05	| 0xD000 and 0xD100	| Remote Address
+0x06		| 0x00			| Data Operation Length
+0x07		| 0x00			| Parameter
+0x08		| ...			| Command Checksum
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Sender Bytes	| Value			| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| 0x30			| Transfer Status
+0x01		| 0x09			| Command Byte (Read Remote SRAM)
+0x02 - 0x03	| 0x4000+		| Local Address
+0x04 - 0x05	| 0x4000+		| Remote Address
+0x06		| 0x00			| Data Operation Length
+0x07		| 0x00			| Parameter
+0x08		| ...			| Command Checksum
+----------------------------------------------------------------------------------------------------------------------
+
+Sending maps from the GB KISS LINK to the Game Boy uses fixed addresses. The destination/source of the 1st 256 block of map data is at 0xD000. The destination/source of the 2nd block of map data is at 0xD100.
+
+When the GB KISS LINK receives a map from the Game Boy, Nectaris GB will transfer a single byte after the "TRANCE" string. This value represents an offset to the map's data in SRAM. Map data is reserved for the 3rd SRAM bank, however, the Read Remote RAM command treats the entire 32KB as a single addressable block of memory. In other words, map data begins at 0x4000. The offset represents increments of 512 bytes. For example, an offset of 0x07 points to map data at 0x4E00.
+
+Neither the Write Remote RAM commands nor the Read Remote SRAM commands appear to use the Parameter byte. When reading the ID string from a Game Boy, the Data Operation Length should be 0x07 at a minimum. Additionally, the length should be 0x00 when reading and writing each 256 byte block of map data.
