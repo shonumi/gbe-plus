@@ -35,7 +35,7 @@ Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even
 
 - Pocket Family GB
 * Mapper: HuC-3
-* Features: Downloading custom alarm songs and a family photo event
+* Features: Downloading custom alarm songs, a family photo event, and new characters
 
 
 Other games are more broadly compatible with the GB KISS menu, a standardized menu that allows content to be shared between other Game Boys or via the GB KISS LINK. These, however, were not known to specifically have any downloadable content from Hudson.
@@ -571,3 +571,53 @@ Sending maps from the GB KISS LINK to the Game Boy uses fixed addresses. The des
 When the GB KISS LINK receives a map from the Game Boy, Nectaris GB will transfer a single byte after the "TRANCE" string. This value represents an offset to the map's data in SRAM. Map data is reserved for the 3rd SRAM bank, however, the Read Remote RAM command treats the entire 32KB as a single addressable block of memory. In other words, map data begins at 0x4000. The offset represents increments of 512 bytes. For example, an offset of 0x07 points to map data at 0x4E00.
 
 Neither the Write Remote RAM commands nor the Read Remote SRAM commands appear to use the Parameter byte. When reading the ID string from a Game Boy, the Data Operation Length should be 0x07 at a minimum. Additionally, the length should be 0x00 when reading and writing each 256 byte block of map data.
+
+
+***************************************************
+5. Nectaris GB Map Data
+***************************************************
+
+Nectaris GB separates unit placement data and terrain placement data. Unit placement data is saved in SRAM while terrain placement data is hardcoded into ROM. Game Boy-to-Game Boy transfers only deal with unit placement data. It is currently unknown if GB KISS LINK transfers are supposed to pull terrain data from Nectaris GB's ROM or if Hudson provided PC versions of these maps. These Game Boy-to-PC transfers via the GB KISS LINK were handled by Hudson's unit placement program, UnitEdit.exe. Maps measure in at 15x10 on-screen tiles.
+
+The unit placement data for Game Boy maps follows this format:
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Value		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x0000 - 0x0005	| "NECTAR"	| Magic Bytes 
+0x0006		| 0x20 - 0x47	| Map ID
+0x0007		| 0x04		| Map Type (Construction Map Data)
+0x0008 - 0x000D | ...		| Map Name
+0x000E - 0x000F | 0xFF		| Padding?
+0x0010 - 0x0013 | 0x00		| Padding?
+0x0014 - 0x002B | ...		| Factory Data
+0x002C - 0x017B | ...		| Unit Data
+0x017C - 0x017D | ...		| Cursor Position
+0x017E - 0x017F | 0x00		| Unknown Data
+0x0180 - 0x01E3 | 0xFF		| Padding? 
+0x01E4 - 0x01FE | 0x00		| Padding?
+0x01FF		| ...		| Checksum
+----------------------------------------------------------------------------------------------------------------------
+
+The Map ID determines which set of terrain data from ROM is used for a given map. Indexing begins at 0x20 and can access all 40 maps available for Nectaris GB. Campaign maps use lower values from 0x00 to 0x1F, although Nectaris GB does not appear to allow editing campaign maps.
+
+The Map Type determines how the map will be interpreted by Nectaris GB. For example, other values signify a campaign or multiplayer map. For GB KISS LINK transfers, this value is meant to be constant.
+
+The Map Name is a 6-byte ASCII field. For construction map data, this field typically contains the name "EMAPxx" where "xx" is the string "01" through "40". Campaign maps use their 6-character names here.
+
+There are 336 bytes dedicated to the actual units placed on a map. The format is as follows:
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| Unit Type
+0x01		| X Coordinate
+0x02		| Y Coordinate
+0x03		| Unit Level
+0x04		| 0xFF
+0x05		| Unit Quantity
+----------------------------------------------------------------------------------------------------------------------
+
+When construction map data is saved, the X/Y Coordinates of the cursor are also stored. Nectaris GB, however, does not appear to use the data to restore the cursor position when opening a map to edit (nor does it appear to be used when saving map data for campaign battles).
+
+The checksum is a simple 8-bit value calculated by adding all bytes from 0x0000 to 0x01FE. This bytes must be correct, otherwise Nectaris GB will raise an error when receiving maps from the GB KISS LINK.
