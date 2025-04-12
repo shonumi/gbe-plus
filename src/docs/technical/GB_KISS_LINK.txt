@@ -577,7 +577,7 @@ Neither the Write Remote RAM commands nor the Read Remote SRAM commands appear t
 5. Nectaris GB Map Data
 ***************************************************
 
-Nectaris GB separates unit placement data and terrain placement data. Unit placement data is saved in SRAM while terrain placement data is hardcoded into ROM. Game Boy-to-Game Boy transfers only deal with unit placement data. It is currently unknown if GB KISS LINK transfers are supposed to pull terrain data from Nectaris GB's ROM or if Hudson provided PC versions of these maps. These Game Boy-to-PC transfers via the GB KISS LINK were handled by Hudson's unit placement program, UnitEdit.exe. Maps measure in at 15x10 on-screen tiles.
+Nectaris GB largely separates unit placement data and terrain placement data. Unit placement data is saved in SRAM while terrain placement data is mostly hardcoded into ROM. Game Boy-to-Game Boy transfers primarily only deal with unit placement data. It is currently unknown if GB KISS LINK transfers are supposed to pull terrain data from Nectaris GB's ROM or if Hudson provided PC versions of these maps. These Game Boy-to-PC transfers via the GB KISS LINK were handled by Hudson's unit placement program, UnitEdit.exe. Maps measure in at 15x10 on-screen tiles.
 
 The unit placement data for Game Boy maps follows this format:
 
@@ -590,7 +590,7 @@ Bytes		| Value		| Description
 0x0008 - 0x000D | ...		| Map Name
 0x000E - 0x000F | 0xFF		| Padding?
 0x0010 - 0x0013 | 0x00		| Padding?
-0x0014 - 0x002B | ...		| Factory Data
+0x0014 - 0x002B | ...		| Terrain Data
 0x002C - 0x017B | ...		| Unit Data
 0x017C - 0x017D | ...		| Cursor Position
 0x017E - 0x017F | 0x00		| Unknown Data
@@ -605,7 +605,33 @@ The Map Type determines how the map will be interpreted by Nectaris GB. For exam
 
 The Map Name is a 6-byte ASCII field. For construction map data, this field typically contains the name "EMAPxx" where "xx" is the string "01" through "40". Campaign maps use their 6-character names here.
 
-There are 336 bytes dedicated to the actual units placed on a map. The format is as follows:
+A very small amount of terrain data is alotted for construction map data. These are often used to put factories on the map, although the format allows for any kind of terrain (mountains, bridges, valleys, etc) to appear. These tiles will overwrite any of the original terrain data found from ROM. The format of terrain data is as follows:
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| X Coordinate
+0x01		| Y Coordinate
+0x02		| Terrain Type
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Value		| Terrain Type
+----------------------------------------------------------------------------------------------------------------------
+0x00		| Flat Land
+0x01		| Road
+0x02		| Hill
+0x03		| Wasteland
+0x04		| Valley
+0x05		| Mountain
+0x06		| Bridge
+0x07		| Bridge
+0x08		| Union Base
+0x09		| Guicy Base
+0x0C		| Nuetral Factory
+----------------------------------------------------------------------------------------------------------------------
+
+There are 336 bytes dedicated to the actual units placed on a map. Data for each unit uses 6 bytes. As a result, a maximum of 56 units may be placed on any given map. The format of unit data is as follows:
 
 ----------------------------------------------------------------------------------------------------------------------
 Bytes		| Description
