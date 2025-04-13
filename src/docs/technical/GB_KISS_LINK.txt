@@ -628,6 +628,8 @@ Value		| Terrain Type
 0x07		| Bridge
 0x08		| Union Base
 0x09		| Guicy Base
+0x0A		| Union Factory
+0x0B		| Guicy Factory
 0x0C		| Nuetral Factory
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -643,6 +645,36 @@ Bytes		| Description
 0x04		| 0xFF
 0x05		| Unit Quantity
 ----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Value		| Unit Type (Translated Codename)
+----------------------------------------------------------------------------------------------------------------------
+0x00		| M77 (Porcupine)
+0x01		| FX-1 (Falco)
+0x02		| AX-87 (Javi)
+0x03		| EF-88 (Hunter)
+0x04		| T-79 (Grizzly)
+0x05		| PT-6 (Armadillo)
+0x06		| S-61 (Bison)
+0x07		| GS-81 (Slug)
+0x08		| GT-86 (Monster)
+0x09		| HMB-2 (Giant)
+0x0A		| TT-1 (Lenet)
+0x0B		| SG-4 (Nashorn)
+0x0C		| MR-22 (Estol)
+0x0D		| MB-5 (Rabbit)
+0x0E		| MB-4 (Lynx)
+0x0F		| AAG-4 (Seeker)
+0x10		| MM107 (Hawkeye)
+0x11		| SS-80 (Monoculus)
+0x12		| GX-77 (Munks?)
+0x13		| GX-87 (Dabek?)
+0x14		| CBX-1 (Draper)
+0x15		| NC-1 (Mule)
+0x16		| C-61 (Pelican)
+----------------------------------------------------------------------------------------------------------------------
+
+Setting Bit 7 of the Unit Type byte will add that unit to the Guicy forces. Otherwise, if Bit 7 is unset, the unit will be added to the Union forces.
 
 When construction map data is saved, the X/Y Coordinates of the cursor are also stored. Nectaris GB, however, does not appear to use the data to restore the cursor position when opening a map to edit (nor does it appear to be used when saving map data for campaign battles).
 
