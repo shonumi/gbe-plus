@@ -679,3 +679,47 @@ Setting Bit 7 of the Unit Type byte will add that unit to the Guicy forces. Othe
 When construction map data is saved, the X/Y Coordinates of the cursor are also stored. Nectaris GB, however, does not appear to use the data to restore the cursor position when opening a map to edit (nor does it appear to be used when saving map data for campaign battles).
 
 The checksum is a simple 8-bit value calculated by adding all bytes from 0x0000 to 0x01FE. This bytes must be correct, otherwise Nectaris GB will raise an error when receiving maps from the GB KISS LINK.
+
+***************************************************
+6. Nectaris PC Map Data
+***************************************************
+
+The PC version of Nectaris combines terrain and unit placement data into a single file, unlike Nectaris GB. As a result, each PC map is completely self-contained, however, there is no fixed size either. There are 2 different formats depending on the version used:
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Value		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x0000 - 0x000F | "NEC MAP 1.0"	| Magic Bytes
+0x0010 		| ...		| Map Width
+0x0011		| ...		| Map Height
+0x0012 - ...	| ...		| Terrain Data
+...    - ...	|		| Unit Data
+EOF		| 0xFF		| EOF Marker
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Value		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x0000 - 0x000F | "NEC MAP 1.1"	| Magic Bytes
+0x0010 - 0x0015 | ...		| Map Name
+0x0016 - 0x0017 | 0x00		| Padding?
+0x0018		| ...		| Map Width
+0x0019		| ...		| Map Height
+0x001A - ...	| ...		| Terrain Data
+...    - ...	| ...		| Unit Data
+EOF		| 0xFF		| EOF Marker
+----------------------------------------------------------------------------------------------------------------------
+
+The first version omits the Map Name. Additionally, it uses a more compact data format for terrain and unit data. In both versions, terrain bytes are ordered starting from the top-left and ending at the bottom-right of the map. Each row of the map is stored one after the others. The difference between versions is that V0 uses simple 8-bit values for each terrain tile. V1, however, pads this out to 16-bits, where the 2nd byte is 0x00. A typical 16x11 map, for example, will have exactly 176 bytes of terrain data in V0 and 352 in V1. Both versions use the following format for units data:
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| Unit Type
+0x01		| X Coordinate
+0x02		| Y Coordinate
+----------------------------------------------------------------------------------------------------------------------
+
+Unlike maps for Nectaris GB, the PC version does not use checksums. Instead, the last byte of each file is simply 0xFF to mark EOF.
+
+It is currently unknown exactly how Hudson's UnitEdit.exe program converted between GB and PC versions of maps and whether or not only certain types of maps were capable of conversion. An archived version of UnitEdit.exe still exists, however, this earlier version lacks the updates Hudson made to work with the GB KISS LINK.
