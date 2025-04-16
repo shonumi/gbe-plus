@@ -720,6 +720,140 @@ Bytes		| Description
 0x02		| Y Coordinate
 ----------------------------------------------------------------------------------------------------------------------
 
+Unit Types use the same format as Nectaris GB (see section above). Once again, setting Bit 7 of the Unit Type byte makes the unit part of the Guicy army, while leaving Bit 7 unset makes the unit part of the Union Army. Terrain data is a bit more elaborate than Nectaris GB. More tiles are available for the PC version, allowing it to show greater details like craters, large boulders, and complex roads. The following is a list of which values generates specific terrain data. Note that road orientations are described as routes according to clock-wise compass directions (North first, East, South, then West).
+
+----------------------------------------------------------------------------------------------------------------------
+Value		| Terrain Type					| Road Shape (if applicable)
+----------------------------------------------------------------------------------------------------------------------
+0x02		| Mountain					|
+0x03		| Mountain					|
+0x05		| Mountain					|
+0x06		| Mountain					|
+0x07		| Wasteland					|
+0x08		| Mountain					|
+0x09		| Flat Land					|
+0x0B		| Flat Land					|
+0x0C		| Mountain					|
+0x0F		| Mountain					|
+0x10		| Mountain					|
+0x12		| Flat Land					|
+0x13		| Mountain  (Single Tile)			|
+0x14		| Flat Land					|
+0x15		| Flat Land					|
+0x16		| Mountain					|
+0x18		| Mountain					|
+0x19		| Mountain					|
+0x1A		| Flat Land					|
+0x1D		| Flat Land					|
+0x1E		| Mountain					|
+0x22		| Mountain					|
+0x26		| Mountain					|
+0x27		| Mountain					|
+0x29		| Flat Land					|
+0x2A		| Flat Land					|
+0x2D		| Flat Land					|
+0x2E		| Mountain					|
+0x2F		| Mountain					|
+0x30		| Mountain					|
+0x32		| Flat Land					|
+0x34		| Flat Land					|
+0x35		| Flat Land					|
+0x36		| Mountain					|
+0x37		| Mountain					|
+0x3A		| Flat Land (Single Tile)			|
+0x3B		| Flat Land					|
+0x3C		| Flat Land					|
+0x3D		| Flat Land					|
+0x3F		| Mountain					|
+0x40		| Wasteland					|
+0x41		| Wasteland					|
+0x42		| Wasteland					|
+0x45		| Hill  (Single Tile)				|
+0x48		| Wasteland					|
+0x49		| Wasteland					|
+0x4A		| Wasteland					|
+0x4B		| Hill						|
+0x4D		| Hill 						|
+0x4E		| Flat Land					|
+0x50		| Wasteland					|
+0x51		| Wasteland					|
+0x52		| Wasteland					|
+0x54		| Hill						|
+0x55		| Hill						|
+0x56		| Flat Land (Crater)				|
+0x57		| Flat Land (Crater)				|
+0x58		| Wasteland					|
+0x59		| Wasteland					|
+0x5D		| Hill						|
+0x5E		| Flat Land (Crater)				|
+0x5F		| Flat Land (Crater)				|
+0x60		| Union Base					|
+0x61		| Mountain (Union Base)				|
+0x62		| Guicy Base					|
+0x64		| Flat Land (Guicy Base)			|
+0x67		| Flat Land					|
+0x68		| Flat Land					|
+0x6B		| Flat Land					|
+0x6C		| Flat Land (Guicy Base)			|
+0x6F		| Flat Land					|
+0x70		| Neutral Factory				|
+0x71		| Flat Land (Neutral Factory)			|
+0x76		| Flat Land (Union Base)			|
+0x78		| Mountain					|
+0x79		| Flat Land (Neutral Factory)			|
+0x7A		| Mountain					|
+0x7E		| Flat Land (Union Base)			|
+0x80		| Mountain					|
+0x81		| Mountain					|
+0x82		| Mountain					|
+0x83		| Mountain					|
+0x84		| Mountain					|
+0x85		| Mountain					|
+0x88		| Mountain					|
+0x8A		| 						|	
+0x8B		| Flat Land					|
+0x8C		| Mountain					|
+0x90		| Hill						|
+0x91		| Hill						|
+0x92		| Hill						|
+0x94		| Mountain					|
+0x99		| Valley					|
+0x9B		| T-Junction Road				| ┳
+0x9F		| Mountain					|
+0xA1		| Valley					|
+0xA2		| Valley					|
+0xA3		| Valley					|
+0xA4		| Valley					|
+0xA7		| Valley					|
+0xAE		| Valley					|
+0xAF		| T-Junction Road				| ┣╸
+0xB1		| Horizontal Road, Flat Land on South Side	| ━
+0xB2		| Horizontal Road, Flat Land on North Side	| ━
+0xB4		| NE->N Elbow Road				| ┛		
+0xB5		| SE Road					| \
+0xB6		| NE and SE 3-Way Junction Road			| >—
+0xB7		| Valley					|
+0xB8		| NE Road					| /		
+0xB9		| N->NE Elbow Road				| ┏		
+0xBB		| NE Bridge					| /
+0xBD		| Vertical Road 				| ┃ 
+0xC2		| SE->S Elbow Road				| ┓
+0xC5		| N->SE and N->SW 3-Way Junction Road		| ⅄
+0xC6		| S-SE Elbow Road				| ┗
+0xC7		| Mountain					|
+0xC8		| Mountain					|
+0xCA		| Flat Land					|
+0xCB		| Flat Land					|
+0xCD		| Flat Land					|
+0xD2		| Mountain					|
+0xD4		| Flat Land					|
+0xD6		| Mountain					|
+0xD8		| Mountain					|
+0xDA		| Mountain					|
+0xDC		| Mountain					|
+0xDE		| Mountain					|
+----------------------------------------------------------------------------------------------------------------------
+
 Unlike maps for Nectaris GB, the PC version does not use checksums. Instead, the last byte of each file is simply 0xFF to mark EOF.
 
 It is currently unknown exactly how Hudson's UnitEdit.exe program converted between GB and PC versions of maps and whether or not only certain types of maps were capable of conversion. An archived version of UnitEdit.exe still exists, however, this earlier version lacks the updates Hudson made to work with the GB KISS LINK.
