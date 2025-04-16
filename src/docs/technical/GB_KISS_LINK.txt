@@ -725,6 +725,7 @@ Unit Types use the same format as Nectaris GB (see section above). Once again, s
 ----------------------------------------------------------------------------------------------------------------------
 Value		| Terrain Type					| Road Shape (if applicable)
 ----------------------------------------------------------------------------------------------------------------------
+0x01		| Mountain					|
 0x02		| Mountain					|
 0x03		| Mountain					|
 0x05		| Mountain					|
@@ -732,87 +733,138 @@ Value		| Terrain Type					| Road Shape (if applicable)
 0x07		| Wasteland					|
 0x08		| Mountain					|
 0x09		| Flat Land					|
+0x0A		| Mountain					|
 0x0B		| Flat Land					|
 0x0C		| Mountain					|
+0x0D		| Mountain					|
+0x0E		| Flat Land					|
 0x0F		| Mountain					|
 0x10		| Mountain					|
+0x11		| Mountain					|
 0x12		| Flat Land					|
 0x13		| Mountain  (Single Tile)			|
 0x14		| Flat Land					|
 0x15		| Flat Land					|
 0x16		| Mountain					|
+0x17		| Mountain					|
 0x18		| Mountain					|
 0x19		| Mountain					|
 0x1A		| Flat Land					|
+0x1B		| Flat Land					|
+0x1C		| Wasteland					|
 0x1D		| Flat Land					|
 0x1E		| Mountain					|
+0x1F		| Mountain					|
+0x20		| Mountain					|
+0x21		| Mountain					|
 0x22		| Mountain					|
+0x23		| Flat Land					|
+0x24		| Flat Land					|
+0x25		| Flat Land					|
 0x26		| Mountain					|
 0x27		| Mountain					|
+0x28		| Mountain					|
 0x29		| Flat Land					|
 0x2A		| Flat Land					|
+0x2B		| Mountain					|
+0x2C		| Mountain					|
 0x2D		| Flat Land					|
 0x2E		| Mountain					|
 0x2F		| Mountain					|
 0x30		| Mountain					|
+0x31		| Flat Land					|
 0x32		| Flat Land					|
+0x33		| Horizontal Road, Flat Land on North Side	| ━
 0x34		| Flat Land					|
 0x35		| Flat Land					|
 0x36		| Mountain					|
 0x37		| Mountain					|
+0x38		| Flat Land					|
+0x39		| Flat Land					|
 0x3A		| Flat Land (Single Tile)			|
 0x3B		| Flat Land					|
 0x3C		| Flat Land					|
 0x3D		| Flat Land					|
+0x3E		| Flat Land					|
 0x3F		| Mountain					|
 0x40		| Wasteland					|
 0x41		| Wasteland					|
 0x42		| Wasteland					|
-0x45		| Hill  (Single Tile)				|
+0x43		| Wasteland					|
+0x44		| Hill						|
+0x45		| Hill (Single Tile)				|
+0x46		| Flat Land					|
+0x47		| Flat Land					|
 0x48		| Wasteland					|
 0x49		| Wasteland					|
 0x4A		| Wasteland					|
 0x4B		| Hill						|
+0x4C		| Hill						|
 0x4D		| Hill 						|
 0x4E		| Flat Land					|
+0x4F		| Flat Land					|
 0x50		| Wasteland					|
 0x51		| Wasteland					|
 0x52		| Wasteland					|
+0x53		| Flat Land					|
 0x54		| Hill						|
 0x55		| Hill						|
 0x56		| Flat Land (Crater)				|
 0x57		| Flat Land (Crater)				|
 0x58		| Wasteland					|
 0x59		| Wasteland					|
+0x5A		| Hill						|
+0x5B		| Hill						|
+0x5C		| Hill						|
 0x5D		| Hill						|
 0x5E		| Flat Land (Crater)				|
 0x5F		| Flat Land (Crater)				|
 0x60		| Union Base					|
-0x61		| Mountain (Union Base)				|
+0x61		| Mountain					|
 0x62		| Guicy Base					|
-0x64		| Flat Land (Guicy Base)			|
+0x63		| Guicy Factory					|
+0x64		| Flat Land					|
+0x65		| Hill						|
+0x66		| Flat Land					|
 0x67		| Flat Land					|
 0x68		| Flat Land					|
+0x69		| Wasteland					|
+0x6A		| Hill						|
 0x6B		| Flat Land					|
-0x6C		| Flat Land (Guicy Base)			|
+0x6C		| Flat Land					|
+0x6D		| Hill						|
+0x6E		| Hill						|
 0x6F		| Flat Land					|
 0x70		| Neutral Factory				|
-0x71		| Flat Land (Neutral Factory)			|
-0x76		| Flat Land (Union Base)			|
+0x71		| Flat Land					|
+0x72		| Hill						|
+0x73		| Wasteland					|
+0x74		| Hill						|
+0x75		| Union	Factory					|
+0x76		| Flat Land					|
+0x77		| Flat Land					|
 0x78		| Mountain					|
-0x79		| Flat Land (Neutral Factory)			|
+0x79		| Flat Land					|
 0x7A		| Mountain					|
-0x7E		| Flat Land (Union Base)			|
+0x7B		| Wasteland					|
+0x7C		| Flat Land					|
+0x7D		| Union Factory					|
+0x7E		| Flat Land					|
+0x7F		| Mountain					|
 0x80		| Mountain					|
 0x81		| Mountain					|
 0x82		| Mountain					|
 0x83		| Mountain					|
 0x84		| Mountain					|
 0x85		| Mountain					|
+0x86		| Flat Land					|
+0x87		| Flat Land					|
 0x88		| Mountain					|
-0x8A		| 						|	
+0x89		| Mountain					|
+0x8A		| Flat Land					|	
 0x8B		| Flat Land					|
 0x8C		| Mountain					|
+0x8D		| Flat Land					|
 0x90		| Hill						|
 0x91		| Hill						|
 0x92		| Hill						|
