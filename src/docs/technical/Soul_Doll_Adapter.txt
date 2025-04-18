@@ -217,7 +217,7 @@ Several IDs appear to be mapped to the same Legend. This may be explained by the
 0x2F :: 0x0104 = Colonel Windragon Strike Armed
 0x2F :: 0x01E8 = True Windragon
 0x30 :: 0x0078 = Colonel Blazedragon (A)
-0x30 :: 0x0122 = Colonel Blaze Dragon Zoldyck Armed
+0x30 :: 0x0122 = Colonel Blazedragon Zoldyck Armed
 0x40 :: 0x0064 = Chibi Ranshiin
 0x40 :: 0x0140 = Ranshiin (A)?
 

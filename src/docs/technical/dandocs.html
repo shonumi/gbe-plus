@@ -2207,6 +2207,9 @@ Bit 7 - Pause Operation		| Alerts software when sewing operations are immediatel
 	<p class="list_item"><a href="#gkl_ovr">GBF Infrared Protocol Overview</a></p>
 	<p class="list_item"><a href="#gkl_low">GBF Infrared Protocol Low Level</a></p>
 	<p class="list_item"><a href="#gkl_dep">GBF Infrared Protocol In-Depth</a></p>
+	<p class="list_item"><a href="#gkl_nmp">Nectaris Map Infrared Protocol</a></p>
+	<p class="list_item"><a href="#gkl_gbd">Nectaris GB Map Data</a></p>
+	<p class="list_item"><a href="#gkl_pcd">Nectaris PC Map Data</a></p>
 
 	<a name="gkl_gen"></a>
 	<p class="gray_title">[GB KISS LINK] : General Hardware Information</p>
@@ -2227,11 +2230,11 @@ Bit 7 - Pause Operation		| Alerts software when sewing operations are immediatel
 
 	<p>Only a handful of games used HuC-1 and HuC-3 mappers. Within this group, an even smaller selection took advantage of the GB KISS LINK for downloadable content provided online by Hudson. The list below notes these titles along with what kinds of features were enabled by the GB KISS LINK.</p>
 
-	<p class="list_item"><strong>Nectaris</strong></p>
+	<p class="list_item"><strong>Nectaris GB</strong></p>
 	<ul class="list_item"><li class="list_item">Mapper: HuC-1</li> <li class="list_item">Downloading custom maps</li></ul><p></p>
 
-	<p class="list_item"><strong>Pocket Family GBNectaris</strong></p>
-	<ul class="list_item"><li class="list_item">Mapper: HuC-3</li> <li class="list_item">Downloading custom alarm songs and a family photo event</li></ul><p></p>
+	<p class="list_item"><strong>Pocket Family GB</strong></p>
+	<ul class="list_item"><li class="list_item">Mapper: HuC-3</li> <li class="list_item">Downloading custom alarm songs, a family photo event, and new characters</li></ul><p></p>
 
 	<p>Other games are more broadly compatible with the GB KISS menu, a standardized menu that allows content to be shared between other Game Boys or via the GB KISS LINK. These, however, were not known to specifically have any downloadable content from Hudson.</p>
 
@@ -2242,6 +2245,8 @@ Bit 7 - Pause Operation		| Alerts software when sewing operations are immediatel
 		<li class="list_item">Robot Poncots (Sun, Star, Moon, and Comic BomBom Versions)</li>
 		<li class="list_item">Super B-Daman Fighting Phoenix</li>
 	</ul>
+
+	<p>All of the above titles (Nectaris GB and Pocket Family GB included) can access the GB KISS Menu, which can be used to send or receive GBF files. The sender or recipient can be another Game Boy or the GB KISS LINK. Nectaris GB, however, has a separate mode for transmitting map files. As a result, GBF and map files have different protocols.</p>
 
 	<a name="gkl_ovr"></a>
 	<p class="gray_title">[GB KISS LINK] : GBF Infrared Protocol Overview</p>
@@ -2704,6 +2709,473 @@ Sender Bytes	| Value			| Description
 0x08		| 0x33			| Command Checksum
 ----------------------------------------------------------------------------------------------------------------------</pre>
 
+	<a name="gkl_nmp"></a>
+	<p class="gray_title">[GB KISS LINK] : Nectaris Map Infrared Protocol</p>
+
+		<p>The infrared protocol used by Nectaris GB is much simpler than that used for GBF files. In this mode, the GB KISS LINK always takes on the role of sender, even if the map data itself is technically being transferred to it. The main difference is whether the GB KISS LINK reads remote RAM stored on the Game Boy or writes to it. The following steps are done when the GB KISS LINK communicates with the Game Boy:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+GB KISS LINK						| Game Boy
+----------------------------------------------------------------------------------------------------------------------
+1)  Read Receiver ID String				| 1)  Return ID String
+							|
+	** If ID is &#34;RECEIVE&#34; **			| 	** If ID is &#34;RECEIVE&#34; **
+	2a) Send 1st 256 bytes of map data		| 	2a) Receive 1st 256 bytes of map data
+	3a) Send 2nd 256 bytes of map data		| 	3a) Receive 2nd 256 bytes of map data
+							|
+	** If ID is &#34;TRANCE&#34; **				|	** If ID is &#34;TRANCE **
+	2b) Receive 1st 256 bytes of map data		|	2b) Send 1st 256 bytes of map data
+	3b) Receive 2nd 256 bytes of map data		|	3b) Send 2nd 256 bytes of map data
+							|
+4) End Session						| 4) End Session
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>When the user chooses to send or receive a map, Nectaris GB will write a short ASCII string in RAM and 0xD000. The GB KISS LINK will read this with the Read Remote RAM command. Depending on the value, the GB KISS LINK will then determine if it needs to send or receive a map. The device must issue 2 Write Remote RAM commands or 2 Read Remote SRAM commands as described below:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Sender Bytes	| Value			| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| 0x30			| Transfer Status
+0x01		| 0x0B			| Command Byte (Write Remote RAM)
+0x02 - 0x03	| 0xD000 and 0xD100	| Local Address
+0x04 - 0x05	| 0xD000 and 0xD100	| Remote Address
+0x06		| 0x00			| Data Operation Length
+0x07		| 0x00			| Parameter
+0x08		| ...			| Command Checksum
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Sender Bytes	| Value			| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| 0x30			| Transfer Status
+0x01		| 0x09			| Command Byte (Read Remote SRAM)
+0x02 - 0x03	| 0x4000+		| Local Address
+0x04 - 0x05	| 0x4000+		| Remote Address
+0x06		| 0x00			| Data Operation Length
+0x07		| 0x00			| Parameter
+0x08		| ...			| Command Checksum
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>Sending maps from the GB KISS LINK to the Game Boy uses fixed addresses. The destination/source of the 1st 256 block of map data is at 0xD000. The destination/source of the 2nd block of map data is at 0xD100.</p>
+
+	<p>When the GB KISS LINK receives a map from the Game Boy, Nectaris GB will transfer a single byte after the &#34;TRANCE&#34; string. This value represents an offset to the map&#39;s data in SRAM. Map data is reserved for the 3rd SRAM bank, however, the Read Remote RAM command treats the entire 32KB as a single addressable block of memory. In other words, map data begins at 0x4000. The offset represents increments of 512 bytes. For example, an offset of 0x07 points to map data at 0x4E00.</p>
+
+	<p>Neither the Write Remote RAM commands nor the Read Remote SRAM commands appear to use the Parameter byte. When reading the ID string from a Game Boy, the Data Operation Length should be 0x07 at a minimum. Additionally, the length should be 0x00 when reading and writing each 256 byte block of map data.</p>
+
+	<a name="gkl_gbd"></a>
+	<p class="gray_title">[GB KISS LINK] : Nectaris GB Map Data</p>
+
+	<p>Nectaris GB largely separates unit placement data and terrain placement data. Unit placement data is saved in SRAM while terrain placement data is mostly hardcoded into ROM. Game Boy-to-Game Boy transfers primarily only deal with unit placement data. It is currently unknown if GB KISS LINK transfers are supposed to pull terrain data from Nectaris GB&#39;s ROM or if Hudson provided PC versions of these maps. These Game Boy-to-PC transfers via the GB KISS LINK were handled by Hudson&#39;s unit placement program, UnitEdit.exe. Maps measure in at 15x10 on-screen tiles.</p>
+
+	<p>The unit placement data for Game Boy maps follows this format:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Bytes		| Value		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x0000 - 0x0005	| &#34;NECTAR&#34;	| Magic Bytes 
+0x0006		| 0x20 - 0x47	| Map ID
+0x0007		| 0x04		| Map Type (Construction Map Data)
+0x0008 - 0x000D | ...		| Map Name
+0x000E - 0x000F | 0xFF		| Padding?
+0x0010 - 0x0013 | 0x00		| Padding?
+0x0014 - 0x002B | ...		| Terrain Data
+0x002C - 0x017B | ...		| Unit Data
+0x017C - 0x017D | ...		| Cursor Position
+0x017E - 0x017F | 0x00		| Unknown Data
+0x0180 - 0x01E3 | 0xFF		| Padding? 
+0x01E4 - 0x01FE | 0x00		| Padding?
+0x01FF		| ...		| Checksum
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>The Map ID determines which set of terrain data from ROM is used for a given map. Indexing begins at 0x20 and can access all 40 maps available for Nectaris GB. Campaign maps use lower values from 0x00 to 0x1F, although Nectaris GB does not appear to allow editing campaign maps.</p>
+
+	<p>The Map Type determines how the map will be interpreted by Nectaris GB. For example, other values signify a campaign or multiplayer map. For GB KISS LINK transfers, this value is meant to be constant.</p>
+
+	<p>The Map Name is a 6-byte ASCII field. For construction map data, this field typically contains the name &#34;EMAPxx&#34; where &#34;xx&#34; is the string &#34;01&#34; through &#34;40&#34;. Campaign maps use their 6-character names here.</p>
+
+	<p>A very small amount of terrain data is alotted for construction map data. These are often used to put factories on the map, although the format allows for any kind of terrain (mountains, bridges, valleys, etc) to appear. These tiles will overwrite any of the original terrain data found from ROM. The format of terrain data is as follows:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Bytes		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| X Coordinate
+0x01		| Y Coordinate
+0x02		| Terrain Type
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Value		| Terrain Type
+----------------------------------------------------------------------------------------------------------------------
+0x00		| Flat Land
+0x01		| Road
+0x02		| Hill
+0x03		| Wasteland
+0x04		| Valley
+0x05		| Mountain
+0x06		| Bridge
+0x07		| Bridge
+0x08		| Union Base
+0x09		| Guicy Base
+0x0A		| Union Factory
+0x0B		| Guicy Factory
+0x0C		| Nuetral Factory
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>There are 336 bytes dedicated to the actual units placed on a map. Data for each unit uses 6 bytes. As a result, a maximum of 56 units may be placed on any given map. The format of unit data is as follows:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Bytes		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| Unit Type
+0x01		| X Coordinate
+0x02		| Y Coordinate
+0x03		| Unit Level
+0x04		| 0xFF
+0x05		| Unit Quantity
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Value		| Unit Type (Translated Codename)
+----------------------------------------------------------------------------------------------------------------------
+0x00		| M77 (Porcupine)
+0x01		| FX-1 (Falco)
+0x02		| AX-87 (Javi)
+0x03		| EF-88 (Hunter)
+0x04		| T-79 (Grizzly)
+0x05		| PT-6 (Armadillo)
+0x06		| S-61 (Bison)
+0x07		| GS-81 (Slug)
+0x08		| GT-86 (Monster)
+0x09		| HMB-2 (Giant)
+0x0A		| TT-1 (Lenet)
+0x0B		| SG-4 (Nashorn)
+0x0C		| MR-22 (Estol)
+0x0D		| MB-5 (Rabbit)
+0x0E		| MB-4 (Lynx)
+0x0F		| AAG-4 (Seeker)
+0x10		| MM107 (Hawkeye)
+0x11		| SS-80 (Monoculus)
+0x12		| GX-77 (Munks?)
+0x13		| GX-87 (Dabek?)
+0x14		| CBX-1 (Draper)
+0x15		| NC-1 (Mule)
+0x16		| C-61 (Pelican)
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>Setting Bit 7 of the Unit Type byte will add that unit to the Guicy forces. Otherwise, if Bit 7 is unset, the unit will be added to the Union forces.</p>
+
+	<p>When construction map data is saved, the X/Y Coordinates of the cursor are also stored. Nectaris GB, however, does not appear to use the data to restore the cursor position when opening a map to edit (nor does it appear to be used when saving map data for campaign battles).</p>
+
+	<p>The checksum is a simple 8-bit value calculated by adding all bytes from 0x0000 to 0x01FE. This bytes must be correct, otherwise Nectaris GB will raise an error when receiving maps from the GB KISS LINK.</p>
+
+	<a name="gkl_pcd"></a>
+	<p class="gray_title">[GB KISS LINK] : Nectaris PC Map Data</p>
+
+	<p>The PC version of Nectaris combines terrain and unit placement data into a single file, unlike Nectaris GB. As a result, each PC map is completely self-contained, however, there is no fixed size either. There are 2 different formats depending on the version used:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Bytes		| Value		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x0000 - 0x000F | &#34;NEC MAP 1.0&#34;	| Magic Bytes
+0x0010 		| ...		| Map Width
+0x0011		| ...		| Map Height
+0x0012 - ...	| ...		| Terrain Data
+...    - ...	|		| Unit Data
+EOF		| 0xFF		| EOF Marker
+----------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------
+Bytes		| Value		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x0000 - 0x000F | &#34;NEC MAP 1.1&#34;	| Magic Bytes
+0x0010 - 0x0015 | ...		| Map Name
+0x0016 - 0x0017 | 0x00		| Padding?
+0x0018		| ...		| Map Width
+0x0019		| ...		| Map Height
+0x001A - ...	| ...		| Terrain Data
+...    - ...	| ...		| Unit Data
+EOF		| 0xFF		| EOF Marker
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>The first version omits the Map Name. Additionally, it uses a more compact data format for terrain and unit data. In both versions, terrain bytes are ordered starting from the top-left and ending at the bottom-right of the map. Each row of the map is stored one after the others. The difference between versions is that V0 uses simple 8-bit values for each terrain tile. V1, however, pads this out to 16-bits, where the 2nd byte is 0x00. A typical 16x11 map, for example, will have exactly 176 bytes of terrain data in V0 and 352 in V1. Both versions use the following format for units data:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Bytes		| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| Unit Type
+0x01		| X Coordinate
+0x02		| Y Coordinate
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>Unit Types use the same format as Nectaris GB (see section above). Once again, setting Bit 7 of the Unit Type byte makes the unit part of the Guicy army, while leaving Bit 7 unset makes the unit part of the Union Army. Terrain data is a bit more elaborate than Nectaris GB. More tiles are available for the PC version, allowing it to show greater details like craters, large boulders, and complex roads. The following is a list of which values generates specific terrain data. Note that road orientations are described as routes according to clock-wise compass directions (North first, East, South, then West).</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Value		| Terrain Type					| Road Shape (if applicable)
+----------------------------------------------------------------------------------------------------------------------
+0x01		| Mountain					|
+0x02		| Mountain					|
+0x03		| Mountain					|
+0x04		| Mountain					|
+0x05		| Mountain					|
+0x06		| Mountain					|
+0x07		| Wasteland					|
+0x08		| Mountain					|
+0x09		| Flat Land					|
+0x0A		| Mountain					|
+0x0B		| Flat Land					|
+0x0C		| Mountain					|
+0x0D		| Mountain					|
+0x0E		| Flat Land					|
+0x0F		| Mountain					|
+0x10		| Mountain					|
+0x11		| Mountain					|
+0x12		| Flat Land					|
+0x13		| Mountain  (Single Tile)			|
+0x14		| Flat Land					|
+0x15		| Flat Land					|
+0x16		| Mountain					|
+0x17		| Mountain					|
+0x18		| Mountain					|
+0x19		| Mountain					|
+0x1A		| Flat Land					|
+0x1B		| Flat Land					|
+0x1C		| Wasteland					|
+0x1D		| Flat Land					|
+0x1E		| Mountain					|
+0x1F		| Mountain					|
+0x20		| Mountain					|
+0x21		| Mountain					|
+0x22		| Mountain					|
+0x23		| Flat Land					|
+0x24		| Flat Land					|
+0x25		| Flat Land					|
+0x26		| Mountain					|
+0x27		| Mountain					|
+0x28		| Mountain					|
+0x29		| Flat Land					|
+0x2A		| Flat Land					|
+0x2B		| Mountain					|
+0x2C		| Mountain					|
+0x2D		| Flat Land					|
+0x2E		| Mountain					|
+0x2F		| Mountain					|
+0x30		| Mountain					|
+0x31		| Flat Land					|
+0x32		| Flat Land					|
+0x33		| Horizontal Road, Flat Land on North Side	| ━
+0x34		| Flat Land					|
+0x35		| Flat Land					|
+0x36		| Mountain					|
+0x37		| Mountain					|
+0x38		| Flat Land					|
+0x39		| Flat Land					|
+0x3A		| Flat Land (Single Tile)			|
+0x3B		| Flat Land					|
+0x3C		| Flat Land					|
+0x3D		| Flat Land					|
+0x3E		| Flat Land					|
+0x3F		| Mountain					|
+0x40		| Wasteland					|
+0x41		| Wasteland					|
+0x42		| Wasteland					|
+0x43		| Wasteland					|
+0x44		| Hill						|
+0x45		| Hill (Single Tile)				|
+0x46		| Flat Land					|
+0x47		| Flat Land					|
+0x48		| Wasteland					|
+0x49		| Wasteland					|
+0x4A		| Wasteland					|
+0x4B		| Hill						|
+0x4C		| Hill						|
+0x4D		| Hill 						|
+0x4E		| Flat Land					|
+0x4F		| Flat Land					|
+0x50		| Wasteland					|
+0x51		| Wasteland					|
+0x52		| Wasteland					|
+0x53		| Flat Land					|
+0x54		| Hill						|
+0x55		| Hill						|
+0x56		| Flat Land (Crater)				|
+0x57		| Flat Land (Crater)				|
+0x58		| Wasteland					|
+0x59		| Wasteland					|
+0x5A		| Hill						|
+0x5B		| Hill						|
+0x5C		| Hill						|
+0x5D		| Hill						|
+0x5E		| Flat Land (Crater)				|
+0x5F		| Flat Land (Crater)				|
+0x60		| Union Base					|
+0x61		| Mountain					|
+0x62		| Guicy Base					|
+0x63		| Guicy Factory					|
+0x64		| Flat Land					|
+0x65		| Hill						|
+0x66		| Flat Land					|
+0x67		| Flat Land					|
+0x68		| Flat Land					|
+0x69		| Wasteland					|
+0x6A		| Hill						|
+0x6B		| Flat Land					|
+0x6C		| Flat Land					|
+0x6D		| Hill						|
+0x6E		| Hill						|
+0x6F		| Flat Land					|
+0x70		| Neutral Factory				|
+0x71		| Flat Land					|
+0x72		| Hill						|
+0x73		| Wasteland					|
+0x74		| Hill						|
+0x75		| Union	Factory					|
+0x76		| Flat Land					|
+0x77		| Flat Land					|
+0x78		| Mountain					|
+0x79		| Flat Land					|
+0x7A		| Mountain					|
+0x7B		| Wasteland					|
+0x7C		| Flat Land					|
+0x7D		| Union Factory					|
+0x7E		| Flat Land					|
+0x7F		| Mountain					|
+0x80		| Mountain					|
+0x81		| Mountain					|
+0x82		| Mountain					|
+0x83		| Mountain					|
+0x84		| Mountain					|
+0x85		| Mountain					|
+0x86		| Flat Land					|
+0x87		| Flat Land					|
+0x88		| Mountain					|
+0x89		| Mountain					|
+0x8A		| Flat Land					|	
+0x8B		| Flat Land					|
+0x8C		| Mountain					|
+0x8D		| Flat Land					|
+0x8E		| Guicy Base					|
+0x8F		| S-SE Elbow Road (Leads to Guicy Base)		| ┗
+0x90		| Hill						|
+0x91		| Hill						|
+0x92		| Hill						|
+0x93		| Mountain					|
+0x94		| Mountain					|
+0x95		| NE Road (Leads to Guicy Base)			| /
+0x96		| Vertical Road (Leads to Guicy Base)		| ┃
+0x97		| Mountain					|
+0x98		| Flat Land					|
+0x99		| Valley					|
+0x9A		| Valley					|
+0x9B		| T-Junction Road				| ┳
+0x9C		| Valley					|
+0x9D		| Horizontal Road (Guicy Base on South Side)	| ━ 
+0x9E		| Valley					|
+0x9F		| Mountain					|
+0xA0		| Valley					|
+0xA1		| Valley					|
+0xA2		| Valley					|
+0xA3		| Valley					|
+0xA4		| Valley					|
+0xA5		| Flat Land					|
+0xA6		| Wasteland					|
+0xA7		| Valley					|
+0xA8		| Valley					|
+0xA9		| Valley					|
+0xAA		| Valley					|
+0xAB		| Valley					|
+0xAC		| Valley					|
+0xAD		| Valley					|
+0xAE		| Valley					|
+0xAF		| T-Junction Road				| ┣╸
+0xB0		| Horizontal Road (Dead End on Right Side)	| ━
+0xB1		| Horizontal Road (Flat Land on South Side)	| ━
+0xB2		| Horizontal Road (Flat Land on North Side)	| ━
+0xB3		| Horizontal Road (Dead End on Left Side)	| ━
+0xB4		| NE->N Elbow Road				| ┛		
+0xB5		| SE Road					| \
+0xB6		| E-NE and Horizontal Road			| ━&lt;
+0xB7		| Valley					|
+0xB8		| NE Road					| /		
+0xB9		| N->NE Elbow Road				| ┏		
+0xBA		| NE->N Elbow Road				| ┛
+0xBB		| NE Bridge					| /
+0xBC		| Valley					|
+0xBD		| Vertical Road 				| ┃ 
+0xBE		| Vertical Road					| ┃
+0xBF		| Horizontal Road Neutral Factory to the North	| ━
+0xC0		| Mountain					|
+0xC1		| Mountain					|
+0xC2		| SE->S Elbow Road				| ┓
+0xC3		| Mountain					|
+0xC4		| Mountain					|
+0xC5		| N->SE and N->SW 3-Way Junction Road		| ⅄
+0xC6		| S-SE Elbow Road				| ┗
+0xC7		| Mountain					|
+0xC8		| Mountain					|
+0xC9		| Mountain					|
+0xCA		| Flat Land					|
+0xCB		| Flat Land					|
+0xCC		| Wasteland					|
+0xCD		| Flat Land					|
+0xCE		| Mountain					|
+0xCF		| Flat Land					|
+0xD0		| Mountain					|
+0xD1		| Wasteland					|
+0xD2		| Mountain					|
+0xD3		| Mountain					|
+0xD4		| Flat Land					|
+0xD5		| Mountain					|
+0xD6		| Mountain					|
+0xD7		| Flat Land					|
+0xD8		| Mountain					|
+0xD9		| Mountain					|
+0xDA		| Mountain					|
+0xDB		| Flat Land					|
+0xDC		| Mountain					|
+0xDD		| Flat Land					|
+0xDE		| Mountain					|
+0xDF		| Vertical Bridge				| ┃
+0xE0		| Valley					|
+0xE1		| Valley					|
+0xE2		| Valley					|
+0xE3		| Valley					|
+0xE4		| Mountain					|
+0xE5		| Mountain					|
+0xE6		| Mountain					|
+0xE7		| W-NW and Horizontal Road			| &gt;━
+0xE8		| Flat Land					|
+0xE9		| Flat Land					|
+0xEA		| Mountain					|
+0xEB		| Flat Land					|
+0xEC		| Mountain					|
+0xED		| Mountain					|
+0xEE		| Mountain					|
+0xEF		| Mountain					|
+0xF0		| Flat Land					|
+0xF1		| Flat Land					|
+0xF2		| Mountain					|
+0xF3		| Mountain					|
+0xF4		| Mountain					|
+0xF5		| Mountain					|
+0xF6		| Flat Land					|
+0xF7		| Mountain					|
+0xF8		| Mountain					|
+0xF9		| Mountain					|
+0xFA		| Mountain					|
+0xFB		| Mountain					|
+0xFC		| Mountain					|
+0xFD		| Mountain					|
+0xFE		| Mountain					|
+0xFF		| Mountain					|
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>Unlike maps for Nectaris GB, the PC version does not use checksums. Instead, the last byte of each file is simply 0xFF to mark EOF.</p>
+
+	<p>It is currently unknown exactly how Hudson&#39;s UnitEdit.exe program converted between GB and PC versions of maps and whether or not only certain types of maps were capable of conversion. An archived version of UnitEdit.exe still exists, however, this earlier version lacks the updates Hudson made to work with the GB KISS LINK. Many of the PC terrain types are used to add an increased level of detail and variety to maps, but they can be simplified to match the Game Boy versions.</p>
+
+	<p>Some of the above terrain types are marked as &#34;Single Tile&#34;, meaning they represent the closest direct conversion to Nectaris GB, since the graphics occupy a single, isolated tile and are typically not meant to be stitched together with others.</p>
+
+
 
 
 
@@ -2927,7 +3399,7 @@ Address		| Data Description
 0x2F :: 0x0104 = Colonel Windragon Strike Armed
 0x2F :: 0x01E8 = True Windragon
 0x30 :: 0x0078 = Colonel Blazedragon (A)
-0x30 :: 0x0122 = Colonel Blaze Dragon Zoldyck Armed
+0x30 :: 0x0122 = Colonel Blazedragon Zoldyck Armed
 0x40 :: 0x0064 = Chibi Ranshiin
 0x40 :: 0x0140 = Ranshiin (A)?</pre></p>
 
