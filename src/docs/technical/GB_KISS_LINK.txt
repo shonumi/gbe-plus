@@ -728,6 +728,7 @@ Value		| Terrain Type					| Road Shape (if applicable)
 0x01		| Mountain					|
 0x02		| Mountain					|
 0x03		| Mountain					|
+0x04		| Mountain					|
 0x05		| Mountain					|
 0x06		| Mountain					|
 0x07		| Wasteland					|
@@ -865,47 +866,124 @@ Value		| Terrain Type					| Road Shape (if applicable)
 0x8B		| Flat Land					|
 0x8C		| Mountain					|
 0x8D		| Flat Land					|
+0x8E		| Guicy Base					|
+0x8F		| S-SE Elbow Road (Leads to Guicy Base)		| ┗
 0x90		| Hill						|
 0x91		| Hill						|
 0x92		| Hill						|
+0x93		| Mountain					|
 0x94		| Mountain					|
+0x95		| NE Road (Leads to Guicy Base)			| /
+0x96		| Vertical Road (Leads to Guicy Base)		| ┃
+0x97		| Mountain					|
+0x98		| Flat Land					|
 0x99		| Valley					|
+0x9A		| Valley					|
 0x9B		| T-Junction Road				| ┳
+0x9C		| Valley					|
+0x9D		| Horizontal Road (Guicy Base on South Side)	| ━ 
+0x9E		| Valley					|
 0x9F		| Mountain					|
+0xA0		| Valley					|
 0xA1		| Valley					|
 0xA2		| Valley					|
 0xA3		| Valley					|
 0xA4		| Valley					|
+0xA5		| Flat Land					|
+0xA6		| Wasteland					|
 0xA7		| Valley					|
+0xA8		| Valley					|
+0xA9		| Valley					|
+0xAA		| Valley					|
+0xAB		| Valley					|
+0xAC		| Valley					|
+0xAD		| Valley					|
 0xAE		| Valley					|
 0xAF		| T-Junction Road				| ┣╸
-0xB1		| Horizontal Road, Flat Land on South Side	| ━
-0xB2		| Horizontal Road, Flat Land on North Side	| ━
+0xB0		| Horizontal Road (Dead End on Right Side)	| ━
+0xB1		| Horizontal Road (Flat Land on South Side)	| ━
+0xB2		| Horizontal Road (Flat Land on North Side)	| ━
+0xB3		| Horizontal Road (Dead End on Left Side)	| ━
 0xB4		| NE->N Elbow Road				| ┛		
 0xB5		| SE Road					| \
-0xB6		| NE and SE 3-Way Junction Road			| >—
+0xB6		| E-NE and Horizontal Road			| ━<
 0xB7		| Valley					|
 0xB8		| NE Road					| /		
 0xB9		| N->NE Elbow Road				| ┏		
+0xBA		| NE->N Elbow Road				| ┛
 0xBB		| NE Bridge					| /
+0xBC		| Valley					|
 0xBD		| Vertical Road 				| ┃ 
+0xBE		| Vertical Road					| ┃
+0xBF		| Horizontal Road Neutral Factory to the North	| ━
+0xC0		| Mountain					|
+0xC1		| Mountain					|
 0xC2		| SE->S Elbow Road				| ┓
+0xC3		| Mountain					|
+0xC4		| Mountain					|
 0xC5		| N->SE and N->SW 3-Way Junction Road		| ⅄
 0xC6		| S-SE Elbow Road				| ┗
 0xC7		| Mountain					|
 0xC8		| Mountain					|
+0xC9		| Mountain					|
 0xCA		| Flat Land					|
 0xCB		| Flat Land					|
+0xCC		| Wasteland					|
 0xCD		| Flat Land					|
+0xCE		| Mountain					|
+0xCF		| Flat Land					|
+0xD0		| Mountain					|
+0xD1		| Wasteland					|
 0xD2		| Mountain					|
+0xD3		| Mountain					|
 0xD4		| Flat Land					|
+0xD5		| Mountain					|
 0xD6		| Mountain					|
+0xD7		| Flat Land					|
 0xD8		| Mountain					|
+0xD9		| Mountain					|
 0xDA		| Mountain					|
+0xDB		| Flat Land					|
 0xDC		| Mountain					|
+0xDD		| Flat Land					|
 0xDE		| Mountain					|
+0xDF		| Vertical Bridge				| ┃
+0xE0		| Valley					|
+0xE1		| Valley					|
+0xE2		| Valley					|
+0xE3		| Valley					|
+0xE4		| Mountain					|
+0xE5		| Mountain					|
+0xE6		| Mountain					|
+0xE7		| W-NW and Horizontal Road			| >━
+0xE8		| Flat Land					|
+0xE9		| Flat Land					|
+0xEA		| Mountain					|
+0xEB		| Flat Land					|
+0xEC		| Mountain					|
+0xED		| Mountain					|
+0xEE		| Mountain					|
+0xEF		| Mountain					|
+0xF0		| Flat Land					|
+0xF1		| Flat Land					|
+0xF2		| Mountain					|
+0xF3		| Mountain					|
+0xF4		| Mountain					|
+0xF5		| Mountain					|
+0xF6		| Flat Land					|
+0xF7		| Mountain					|
+0xF8		| Mountain					|
+0xF9		| Mountain					|
+0xFA		| Mountain					|
+0xFB		| Mountain					|
+0xFC		| Mountain					|
+0xFD		| Mountain					|
+0xFE		| Mountain					|
+0xFF		| Mountain					|
 ----------------------------------------------------------------------------------------------------------------------
 
 Unlike maps for Nectaris GB, the PC version does not use checksums. Instead, the last byte of each file is simply 0xFF to mark EOF.
 
-It is currently unknown exactly how Hudson's UnitEdit.exe program converted between GB and PC versions of maps and whether or not only certain types of maps were capable of conversion. An archived version of UnitEdit.exe still exists, however, this earlier version lacks the updates Hudson made to work with the GB KISS LINK.
+It is currently unknown exactly how Hudson's UnitEdit.exe program converted between GB and PC versions of maps and whether or not only certain types of maps were capable of conversion. An archived version of UnitEdit.exe still exists, however, this earlier version lacks the updates Hudson made to work with the GB KISS LINK. Many of the PC terrain types are used to add an increased level of detail and variety to maps, but they can be simplified to match the Game Boy versions.
+
+Some of the above terrain types are marked as "Single Tile", meaning they represent the closest direct conversion to Nectaris GB, since the graphics occupy a single, isolated tile and are typically not meant to be stitched together with others.
