@@ -64,17 +64,37 @@ void DMG_MMU::huc3_write(u16 address, u8 value)
 			}
 		}
 
+		//Set RTC command
+		else if(cart.huc_reg_map == 0x0B)
+		{
+			cart.huc_rtc_cmd = value;
+		}
+
+		//Clear RTC semaphore to execute command
+		else if(cart.huc_reg_map == 0x0D)
+		{
+			//GBE+ executes commands instantly, so semaphore should remain unchanged (Bit 0 high)
+			if((value & 0x01) == 0)
+			{
+				huc3_process_command();
+			}
+		}
+
 		//Otherwise write to RAM if enabled
 		else if(ram_banking_enabled) { random_access_bank[bank_bits][address - 0xA000] = value; }
 	}
 
-	//MBC register - Enable or Disable RAM Write or IR
+	//Register Map - Maps in RAM, IR, or RTC 
 	if(address <= 0x1FFF)
 	{
-		if((value & 0xF) == 0xA) { ram_banking_enabled = true; }
+		cart.huc_reg_map = (value & 0xF);
+
+		//Set RAM to read-write or read-only
+		if(cart.huc_reg_map == 0x0A) { ram_banking_enabled = true; }
 		else { ram_banking_enabled = false; }
 
-		if((value & 0xF) == 0xE) { ir_stat.trigger = 1; }
+		//Enable or disable IR communications
+		if(cart.huc_reg_map == 0x0E) { ir_stat.trigger = 1; }
 		else { ir_stat.trigger = 0; }
 	}
 
@@ -113,14 +133,69 @@ u8 DMG_MMU::huc3_read(u16 address)
 	//Read using RAM Banking
 	else if((address >= 0xA000) && (address <= 0xBFFF))
 	{
-		//Prioritize IR reading if applicable
+		//Read from IR
 		if(ir_stat.trigger) { return 0xC0 | (cart.huc_ir_input); }
 
-		//Otherwise read from RAM
-		else if(ram_banking_enabled) { return random_access_bank[bank_bits][address - 0xA000]; }
-		else { return 1; }
+		//Read RTC Command/Response
+		else if(cart.huc_reg_map == 0x0C) { return cart.huc_rtc_out; }
+
+		//Read RTC Semaphore
+		else if(cart.huc_reg_map == 0x0D) { return cart.huc_semaphore; }
+
+		//Otherwise read from RAM - Note, SRAM is always enabled on HuC-3 when selected by register map
+		else if((cart.huc_reg_map == 0x00) || (cart.huc_reg_map == 0x0A))
+		{
+			return random_access_bank[bank_bits][address - 0xA000];
+		}
 	}
 
 	//For all unhandled reads, attempt to return the value from the memory map
 	return memory_map[address];
+}
+
+/****** Processes HuC-3 commands for RTC ******/
+void DMG_MMU::huc3_process_command()
+{
+	switch(cart.huc_rtc_cmd >> 4)
+	{
+		//Read Value + Increment Address
+		case 0x01:
+			break;
+
+		//Write Value + Increment Address
+		case 0x03:
+			break;
+
+		//Set addr LO
+		case 0x04:
+			break;
+
+		//Set addr Hi
+		case 0x05:
+			break;
+
+		//Extended ops
+		case 0x06:
+			switch(cart.huc_rtc_cmd & 0x0F)
+			{
+				//Copy current time to 0x00 - 0x06
+				case 0x00:
+					break;
+
+				//Copy 0x00 - 0x06 to current time
+				case 0x01:
+					break;
+
+				//Return RTC status - Always 0x01 because GBE+ is always good to go
+				case 0x02:
+					cart.huc_rtc_out = 0x01;
+					break;
+
+				//Trigger tone generator
+				case 0x0E:
+					break;
+			}
+
+			break;
+	}
 }

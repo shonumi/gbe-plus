@@ -114,6 +114,10 @@ void DMG_MMU::reset()
 	}
 
 	cart.huc_ir_input = 0;
+	cart.huc_reg_map = 0;
+	cart.huc_semaphore = 0x01;
+	cart.huc_rtc_cmd = 0;
+	cart.huc_rtc_out = 0;
 
 	ir_stat.signal = 0;
 	ir_stat.send = false;

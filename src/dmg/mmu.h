@@ -135,6 +135,11 @@ class DMG_MMU
 
 		//HuC-1 + HuC-3
 		u8 huc_ir_input;
+		u8 huc_reg_map;
+		u8 huc_semaphore;
+		u8 huc_rtc_cmd;
+		u8 huc_rtc_out;
+		
 	} cart;
 
 	struct ir_data
@@ -258,6 +263,7 @@ class DMG_MMU
 
 	void huc3_write(u16 address, u8 value);
 	u8 huc3_read(u16 address);
+	void huc3_process_command();
 
 	void mmm01_write(u16 address, u8 value);
 	u8 mmm01_read(u16 address);
