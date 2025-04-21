@@ -15,7 +15,7 @@
 #include <sstream>
 
 #ifdef GBE_IMAGE_FORMATS
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 #endif
 
 #include "common/util.h"
@@ -1127,7 +1127,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 				core_mmu.ir_stat.trigger = 1;
 				break;
 
-			//GB KISS LINK - Start GBF file transfer
+			//GB KISS LINK - Start file transfer
 			case GB_KISS_LINK:
 				std::cout<<"GB KISS LINK Transfer Started\n";
 				core_mmu.gb_kiss_link_reset(false);
@@ -1271,7 +1271,7 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 				core_mmu.ir_stat.trigger = 1;
 				break;
 
-			//GB KISS LINK - Start GBF file transfer
+			//GB KISS LINK - Start file transfer
 			case GB_KISS_LINK:
 				std::cout<<"GB KISS LINK Transfer Started\n";
 				core_mmu.gb_kiss_link_reset(true);

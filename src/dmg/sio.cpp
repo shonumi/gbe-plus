@@ -1142,6 +1142,11 @@ void DMG_SIO::set_huc_ir_connection()
 /****** Processes data sent to the GB Printer ******/
 void DMG_SIO::printer_process()
 {
+	//Forcibly ignore any processing while GB KISS LINK is active
+	//This is a workaround since the GB KISS LINK uses SIO stuff for scheduling
+	//Lets Pocket Family GB switch between GB KISS LINK and GB Printer without issues
+	if(mem->kiss_link.is_running) { return; }
+
 	//Check for magic bytes at any time during initial transfer
 	//Pokemon Pinball sometimes sends 0x10 0x33. Needs hardware verification on how this works. Treat it as valid for now.
 	if(((sio_stat.last_transfer == 0x88) || (sio_stat.last_transfer == 0x10)) && (sio_stat.transfer_byte == 0x33) && (printer.packet_size <= 6))

@@ -169,6 +169,7 @@ class DMG_MMU
 		bool is_ping_delayed;
 		bool is_upload_done;
 		bool is_sender;
+		bool is_running;
 
 		u8 cmd;
 		u8 checksum;

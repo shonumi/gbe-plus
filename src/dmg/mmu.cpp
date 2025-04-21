@@ -130,6 +130,7 @@ void DMG_MMU::reset()
 	gb_kiss_link_reset(true);
 	kiss_link.gbf_data.clear();
 	kiss_link.is_sender = true;
+	kiss_link.is_running = false;
 	kiss_link.mode = 0;
 
 	if(config::ir_device == 9)

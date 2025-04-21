@@ -7,7 +7,7 @@
 // Description : GB KISS LINK emulation
 //
 // Emulates the GB KISS LINK (HC-749)
-// Sends and receives .GBF files
+// Sends and receives .GBF and Nectaris map files
 // Works in conjunction with HuC-1 and HuC-3 carts
 
 #include "sio.h"
@@ -16,6 +16,8 @@
 /****** Processes IR communication protocol for GB KISS LINK *****/
 void DMG_MMU::gb_kiss_link_process()
 {
+	if(!kiss_link.is_running) { return; }
+
 	switch(kiss_link.state)
 	{
 		case GKL_SEND:
@@ -1266,6 +1268,11 @@ void DMG_MMU::gb_kiss_link_finish_command()
 
 		case GKL_GET_UNK_DATA_2:
 			kiss_link.stage = GKL_FINISHED;
+			kiss_link.is_running = false;
+			sio_stat->shifts_left = 0;
+			sio_stat->shift_counter = 0;
+			sio_stat->shift_clock = 0;
+
 			std::cout<<"GB KISS LINK Transfer Finished\n";
 
 			break;
@@ -1359,6 +1366,11 @@ void DMG_MMU::gb_kiss_link_process_ping()
 		case GKL_END_SESSION:
 		case GKL_FINISH_MAP:
 			kiss_link.stage = GKL_FINISHED;
+			kiss_link.is_running = false;
+			sio_stat->shifts_left = 0;
+			sio_stat->shift_counter = 0;
+			sio_stat->shift_clock = 0;
+
 			std::cout<<"GB KISS LINK Transfer Finished\n";
 			
 			break;
@@ -1801,6 +1813,7 @@ void DMG_MMU::gb_kiss_link_reset(bool reset_gbf)
 	kiss_link.is_locked = false;
 	kiss_link.is_ping_delayed = false;
 	kiss_link.is_upload_done = true;
+	kiss_link.is_running = true;
 
 	switch(kiss_link.mode)
 	{
