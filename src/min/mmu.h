@@ -12,7 +12,7 @@
 #define PM_MMU
 
 #ifdef GBE_NETPLAY
-#include <SDL2/SDL_net.h>
+#include <SDL_net.h>
 #endif
 
 #include <fstream>

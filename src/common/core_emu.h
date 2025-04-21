@@ -12,7 +12,7 @@
 #ifndef CORE_EMU
 #define CORE_EMU
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <string>
 #include <vector>
 

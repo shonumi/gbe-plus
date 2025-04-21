@@ -9,7 +9,7 @@
 // Handles I/O for the Jukebox
 // Manages Jukebox metadata files and recording status
 
-#include <SDL2/SDL_audio.h>
+#include <SDL_audio.h>
 #include "mmu.h"
 #include "common/util.h"
 

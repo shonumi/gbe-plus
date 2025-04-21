@@ -9,7 +9,7 @@
 // Handles I/O for the Agatsuma TV Tuner (ATVT)
 
 #ifdef GBE_IMAGE_FORMATS
-#include <SDL2/SDL_image.h>
+#include <SDL_image.h>
 #endif
 
 #include <ctime>
