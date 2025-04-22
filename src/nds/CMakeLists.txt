@@ -44,10 +44,6 @@ if (USE_OGL)
 	target_link_libraries(nds OpenGL::GL)
 endif()
 
-if (IMAGE_FORMATS)
-	target_link_libraries(nds SDL2_image::SDL2_image)
-endif()
-
 if (WIN32)
 	target_link_libraries(nds GLEW::GLEW)
 endif()

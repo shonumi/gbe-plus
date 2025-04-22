@@ -47,10 +47,6 @@ if (LINK_CABLE)
 	target_link_libraries(dmg SDL2_net::SDL2_net)
 endif()
 
-if (IMAGE_FORMATS)
-	target_link_libraries(dmg SDL2_image::SDL2_image)
-endif()
-
 if (USE_OGL)
 	target_link_libraries(dmg OpenGL::GL)
 endif()

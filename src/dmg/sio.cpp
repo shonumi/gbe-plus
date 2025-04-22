@@ -1611,7 +1611,6 @@ void DMG_SIO::print_image()
 	filename += util::to_str(rand() % 1024);
 	filename += util::to_str(rand() % 1024);
 	filename += util::to_str(rand() % 1024);
-	filename += ".bmp";
 
 	//Create a 160x144 image from the buffer, save as BMP
 	SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);
@@ -1658,7 +1657,7 @@ void DMG_SIO::print_image()
 	//Unlock source surface
 	if(SDL_MUSTLOCK(print_screen)){ SDL_UnlockSurface(print_screen); }
 
-	SDL_SaveBMP(print_screen, filename.c_str());
+	util::save_image(print_screen, filename);
 	SDL_FreeSurface(print_screen);
 
 	printer.strip_count = 0;
@@ -1680,7 +1679,7 @@ void DMG_SIO::print_image()
 
 		filename = "full_" + filename;
 
-		SDL_SaveBMP(full_screen, filename.c_str());
+		util::save_image(full_screen, filename);
 		SDL_FreeSurface(full_screen);
 	}
 
@@ -2735,12 +2734,14 @@ void DMG_SIO::singer_izek_update()
 				save_name += util::to_str(rand() % 1024);
 				save_name += util::to_str(rand() % 1024);
 				save_name += util::to_str(rand() % 1024);
-				save_name += ".bmp";
 
 				SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
 				u32* out_pixel_data = (u32*)tmp_s->pixels;
+
 				for(u32 x = 0; x < singer_izek.temp_buffer.size(); x++) { out_pixel_data[x] = singer_izek.temp_buffer[x]; }
-				SDL_SaveBMP(tmp_s, save_name.c_str());
+
+				util::save_image(tmp_s, save_name);
+				SDL_FreeSurface(tmp_s);
 			}
 
 			//Exit menu

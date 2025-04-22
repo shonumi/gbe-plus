@@ -953,6 +953,20 @@ SDL_Surface* load_icon(std::string filename)
 	return output;
 }
 
+/****** Saves an image file as BMP or PNG ******/
+bool save_image(SDL_Surface* src, std::string filename)
+{
+	#ifdef GBE_IMAGE_FORMATS
+	filename += ".png";
+	return IMG_SavePNG(src, filename.c_str());
+	#endif
+		
+	#ifndef GBE_IMAGE_FORMATS
+	filename += ".bmp";
+	return SDL_SaveBMP(src, filename.c_str());
+	#endif
+}
+
 /****** Converts an integer into a BCD ******/
 u32 get_bcd(u32 input)
 {

@@ -14,10 +14,6 @@
 #include <ctime>
 #include <sstream>
 
-#ifdef GBE_IMAGE_FORMATS
-#include <SDL_image.h>
-#endif
-
 #include "common/util.h"
 
 #include "core.h"
@@ -903,15 +899,8 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		srand(SDL_GetTicks());
 		save_stream << rand() % 1024 << rand() % 1024 << rand() % 1024;
 
-		#ifdef GBE_IMAGE_FORMATS
-		save_name += save_stream.str() + ".png";
-		IMG_SavePNG(core_cpu.controllers.video.final_screen, save_name.c_str());
-		#endif
-		
-		#ifndef GBE_IMAGE_FORMATS
-		save_name += save_stream.str() + ".bmp";
-		SDL_SaveBMP(core_cpu.controllers.video.final_screen, save_name.c_str());
-		#endif
+		save_name += save_stream.str();
+		util::save_image(core_cpu.controllers.video.final_screen, save_name);
 
 		//OSD
 		config::osd_message = "SAVED SCREENSHOT";

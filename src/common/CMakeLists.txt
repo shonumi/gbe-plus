@@ -19,6 +19,10 @@ add_library(common STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(common SDL2::SDL2)
 
+if (IMAGE_FORMATS)
+	target_link_libraries(common SDL2_image::SDL2_image)
+endif()
+
 if (USE_OGL)
 	target_link_libraries(common OpenGL::GL)
 endif()

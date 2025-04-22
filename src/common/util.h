@@ -16,6 +16,10 @@
 
 #include <SDL.h>
 
+#ifdef GBE_IMAGE_FORMATS
+#include <SDL_image.h>
+#endif
+
 #include "common.h"
 
 namespace util
@@ -104,6 +108,7 @@ namespace util
 	u32 bswap(u32 input);
 
 	SDL_Surface* load_icon(std::string filename);
+	bool save_image(SDL_Surface* src, std::string filename);
 
 	void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u32 data_size); 
 
