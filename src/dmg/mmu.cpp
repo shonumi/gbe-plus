@@ -18,6 +18,9 @@
 /****** MMU Constructor ******/
 DMG_MMU::DMG_MMU() 
 {
+	//Explicitly init flash_stat just *once* when creating the MMU instance
+	cart.flash_stat = 0;
+
 	reset();
 }
 
@@ -1698,7 +1701,7 @@ bool DMG_MMU::read_file(std::string filename)
 		{
 			s32 pos = (file_size - 0x8000);
 		
-			if (pos > 0)
+			if(pos > 0)
 			{
 				//Read the last 32KB and put it as Bank 0
 				file.seekg(pos);
