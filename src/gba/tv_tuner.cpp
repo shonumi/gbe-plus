@@ -1031,7 +1031,7 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 		//Note that "Hue" is translated from the ATVT menu. It actually changes saturation!
 		float bright_ratio = 0.0;
 		u8 bright_max = (tv_tuner.video_brightness > 0) ? 127 : 128;
-		if(tv_tuner.video_brightness) { bright_ratio = (0.5 / bright_max) * tv_tuner.video_brightness; }
+		if(tv_tuner.video_brightness) { bright_ratio = (1.0 / bright_max) * tv_tuner.video_brightness; }
 
 		float hue_ratio = 0.0;
 		u8 hue_max = (tv_tuner.video_hue > 0) ? 127 : 128;
@@ -1057,17 +1057,29 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 
 			if(tv_tuner.video_brightness)
 			{
-				util::hsl temp_color = util::rgb_to_hsl(input_color);
-				temp_color.lightness += bright_ratio;
+				s16 nr = pixel_data[i] + s16(pixel_data[i] * bright_ratio);
+				s16 ng = pixel_data[i + 1] + s16(pixel_data[i + 1] * bright_ratio);
+				s16 nb = pixel_data[i + 2] + s16(pixel_data[i + 2] * bright_ratio);
 
-				if(temp_color.lightness > 1.0) { temp_color.lightness = 1.0; }
-				if(temp_color.lightness < 0.0) { temp_color.lightness = 0.0; }
+				if(bright_ratio > 0)
+				{
+					r = (nr > 255) ? 255 : nr;
+					g = (ng > 255) ? 255 : ng;
+					b = (nb > 255) ? 255 : nb;
+				}
 
-				input_color = util::hsl_to_rgb(temp_color);
+				else
+				{
+					r = (nr < 0) ? 0 : nr;
+					g = (ng < 0) ? 0 : ng;
+					b = (nb < 0) ? 0 : nb;
+				}
 
-				r = (input_color >> 19) & 0x1F;
-				g = (input_color >> 11) & 0x1F;
-				b = (input_color >> 3) & 0x1F;
+				input_color = ((0xFF000000) | (r << 16) | (g << 8) | b);
+
+				r >>= 3;
+				g >>= 3;
+				b >>= 3;
 			}
 
 			if(tv_tuner.video_hue)
