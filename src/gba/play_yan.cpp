@@ -2573,24 +2573,36 @@ bool AGB_MMU::play_yan_grab_frame_data(u32 frame)
 			//Adjust (increase) brightness if necessary
 			if(play_yan.video_brightness > 0x101)
 			{
-				u32 input_color = 0xFF000000 | (pixel_data[i] << 16) | (pixel_data[i+1] << 8) | pixel_data[i+2];
-				double ratio = (play_yan.video_brightness - 0x100) / 512.0;
+				double ratio = (play_yan.video_brightness - 0x100) / 256.0;
 
-				util::hsl temp_color = util::rgb_to_hsl(input_color);
-				temp_color.lightness += ratio;
-				if(temp_color.lightness > 1.0) { temp_color.lightness = 1.0; }
+				u8 r = pixel_data[i];
+				u8 g = pixel_data[i+1];
+				u8 b = pixel_data[i+2];
 
-				input_color = util::hsl_to_rgb(temp_color);
-				u8 r = (input_color >> 16) & 0xFF;
-				u8 g = (input_color >> 8) & 0xFF;
-				u8 b = input_color & 0xFF;
+				s16 nr = r + s16(r * ratio);
+				s16 ng = g + s16(g * ratio);
+				s16 nb = b + s16(b * ratio);
+
+				if(ratio > 0)
+				{
+					r = (nr > 255) ? 255 : nr;
+					g = (ng > 255) ? 255 : ng;
+					b = (nb > 255) ? 255 : nb;
+				}
+
+				else
+				{
+					r = (nr < 0) ? 0 : nr;
+					g = (ng < 0) ? 0 : ng;
+					b = (nb < 0) ? 0 : nb;
+				}	
 
 				raw_pixel = ((b & 0xF8) << 7) | ((g & 0xF8) << 2) | ((r & 0xF8) >> 3);
 			}
 
 			else
 			{
-				raw_pixel = ((pixel_data[i+2] & 0xF8) << 7) | ((pixel_data[i+1] & 0xF8) << 2) | ((pixel_data[i] & 0xF8) >> 3);
+				raw_pixel = ((pixel_data[i + 2] & 0xF8) << 7) | ((pixel_data[i + 1] & 0xF8) << 2) | ((pixel_data[i] & 0xF8) >> 3);
 			}
 
 			play_yan.video_data[index++] = (raw_pixel & 0xFF);
