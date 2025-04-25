@@ -1422,25 +1422,31 @@ void AGB_MMU::campho_get_image_data(u8* img_data, std::vector <u8> &out_buffer, 
 		//Adjust brightness as per user settings - Do nothing if settings are in the middle
 		if(campho.video_brightness != 5)
 		{
-			util::hsl temp_color = util::rgb_to_hsl(input_color);
-			double l = temp_color.lightness;
-			double ratio;
+			double ratio = (campho.video_brightness - 5) / 5.0;
 
-			//Decrease image brightness
-			if(campho.video_brightness < 5)
+			r = (input_color >> 16);
+			g = (input_color >> 8);
+			b = input_color;
+
+			s16 nr = r + s16(r * ratio);
+			s16 ng = g + s16(g * ratio);
+			s16 nb = b + s16(b * ratio);
+
+			if(ratio > 0)
 			{
-				ratio = (l / 5.0);
-				temp_color.lightness = (campho.video_brightness * ratio);
+				r = (nr > 255) ? 255 : nr;
+				g = (ng > 255) ? 255 : ng;
+				b = (nb > 255) ? 255 : nb;
 			}
 
-			//Increase image brightness
 			else
 			{
-				ratio = ((1.0 - l) / 5.0);
-				temp_color.lightness += ((campho.video_brightness - 5) * ratio);
+				r = (nr < 0) ? 0 : nr;
+				g = (ng < 0) ? 0 : ng;
+				b = (nb < 0) ? 0 : nb;
 			}
 
-			input_color = util::hsl_to_rgb(temp_color);
+			input_color = 0xFF000000 | (r << 16) | (g << 8) | b;
 
 			r = (input_color >> 19) & 0x1F;
 			g = (input_color >> 11) & 0x1F;
