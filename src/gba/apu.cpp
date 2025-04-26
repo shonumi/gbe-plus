@@ -483,6 +483,8 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	u32 stream_size = apu_stat.ext_audio.length / 2;
 	u32 karaoke_size = apu_stat.ext_audio.karaoke_length / 2;
 
+	double volume = config::volume / 128.0;
+
 	//Play-Yan - Silence audio when seeking forwards/backwards through videos
 	bool is_seek_video = (mem->play_yan.is_video_playing && mem->play_yan.is_media_paused);
 
@@ -504,7 +506,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				//Karaoke Audio
 				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (temp_pos < karaoke_size)) 
 				{
-					stream[x] = k_stream[temp_pos];
+					stream[x] = (k_stream[temp_pos] * volume);
 
 					//When recording, use the karaoke track samples
 					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
@@ -514,8 +516,9 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				}
 
 				//Normal Audio
+				else
 				{
-					stream[x] = (is_seek_video) ? -32768 : e_stream[temp_pos];
+					stream[x] = (is_seek_video) ? -32768 : (e_stream[temp_pos] * volume);
 				}
 			}
 
@@ -526,7 +529,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos + 1) < karaoke_size)) 
 				{
 					s32 out_sample = (k_stream[temp_pos] + k_stream[temp_pos + 1]) / 2;
-					stream[x] = out_sample;
+					stream[x] = (out_sample * volume);
 
 					//When recording, use the karaoke track samples
 					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
@@ -539,7 +542,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				else
 				{
 					s32 out_sample = (e_stream[temp_pos] + e_stream[temp_pos + 1]) / 2;
-					stream[x] = (is_seek_video) ? -32768 : out_sample;
+					stream[x] = (is_seek_video) ? -32768 : (out_sample * volume);
 				}
 			}	
 		}
