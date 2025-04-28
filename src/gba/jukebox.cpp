@@ -1107,7 +1107,7 @@ void AGB_MMU::process_jukebox()
 		//When playing music, make sure to increment playback time
 		else if((!jukebox.is_recording) && ((jukebox.progress % 60) == 0) && (jukebox.status == 0x113))
 		{
-			u32 current_time = (jukebox.io_regs[0x0084] * 60) + jukebox.io_regs[0x0085] + 1;
+			u32 current_time = apu_stat->ext_audio.sample_pos / apu_stat->ext_audio.frequency;
 
 			jukebox.io_regs[0x0084] = (current_time / 60);
 			jukebox.io_regs[0x0085] = (current_time % 60);
