@@ -6928,7 +6928,7 @@ ROM_CNT = 0x4015
 
 	<p>Eventually, the modem will respond with data in much the same way it sends camera and telephony input. ROM_STAT will change to 0xA00A. Afterwards, the GBA will read 32-bits from ROM_DATA_1, which will contain 2 16-bit components: a Transfer Type and the length of incoming data. For AT command responses, the Transfer Type will be 0x41A0. The length here, however, does refer to the total number of bytes received from the modem. The response data is another ASCII string with the same encoding as previously described. Once the Campho Advance parses the string, it will be displayed.</p>
 
-	<a name="cam_cfg"></a>
+	<a name="cam_com"></a>
 	<p class="gray_title">[Campho Advance] : System Compatibility</p>
 
 	<p>The Campho Advance is incompatible with any model from the Nintendo DS family. Attempting to boot the original DS or a DS Lite with the Campho Advance in Slot-2 while providing external power generally causes the system to halt with a blank white screen. The likely culprit is the novel way the Campho Advance streams ROM data, which conflicts with the DS firmware as it tries to read Slot-2 when turning on the system. Ultimately, the entire process on the DS differs significantly from the normal GBA BIOS startup routine, which the Campho Advance was heavily tailored around.</p>
