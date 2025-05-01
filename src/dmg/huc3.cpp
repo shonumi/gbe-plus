@@ -156,22 +156,33 @@ u8 DMG_MMU::huc3_read(u16 address)
 /****** Processes HuC-3 commands for RTC ******/
 void DMG_MMU::huc3_process_command()
 {
-	switch(cart.huc_rtc_cmd >> 4)
+	u8 cmd = (cart.huc_rtc_cmd >> 4);
+	u8 arg = (cart.huc_rtc_cmd & 0x0F);
+
+	switch(cmd)
 	{
 		//Read Value + Increment Address
 		case 0x01:
+			cart.huc_rtc_out = cart.huc_ram[cart.huc_addr];
+			cart.huc_addr++;
 			break;
 
 		//Write Value + Increment Address
 		case 0x03:
+			cart.huc_ram[cart.huc_addr] = cart.huc_rtc_out;
+			cart.huc_addr++;
 			break;
 
 		//Set addr LO
 		case 0x04:
+			cart.huc_addr &= 0xF0;
+			cart.huc_addr |= arg;
 			break;
 
 		//Set addr Hi
 		case 0x05:
+			cart.huc_addr &= 0x0F;
+			cart.huc_addr |= (arg << 4);
 			break;
 
 		//Extended ops
@@ -180,6 +191,17 @@ void DMG_MMU::huc3_process_command()
 			{
 				//Copy current time to 0x00 - 0x06
 				case 0x00:
+					{
+						//Minutes since start of day = 0x00 - 0x02, LSB first
+						time_t system_time = time(0);
+						tm* current_time = localtime(&system_time);
+						u16 minutes = current_time->tm_min + (current_time->tm_hour * 60);
+
+						cart.huc_ram[0x00] = (minutes & 0x0F);
+						cart.huc_ram[0x01] = ((minutes >> 4) & 0x0F);
+						cart.huc_ram[0x02] = ((minutes >> 8) & 0x0F);
+					}
+ 
 					break;
 
 				//Copy 0x00 - 0x06 to current time

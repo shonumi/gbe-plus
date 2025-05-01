@@ -139,6 +139,8 @@ class DMG_MMU
 		u8 huc_semaphore;
 		u8 huc_rtc_cmd;
 		u8 huc_rtc_out;
+		u8 huc_addr;
+		u8 huc_ram[256];
 		
 	} cart;
 

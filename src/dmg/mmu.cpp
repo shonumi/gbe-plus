@@ -116,11 +116,14 @@ void DMG_MMU::reset()
 		for(u32 x = 0; x < 128; x++) { cart.gb_mem_map[x] = 0xFF; }
 	}
 
+
+	for(u32 x = 0; x < 256; x++) { cart.huc_ram[x] = 0; }
 	cart.huc_ir_input = 0;
 	cart.huc_reg_map = 0;
 	cart.huc_semaphore = 0x01;
 	cart.huc_rtc_cmd = 0;
 	cart.huc_rtc_out = 0;
+	cart.huc_addr = 0;
 
 	ir_stat.signal = 0;
 	ir_stat.send = false;
