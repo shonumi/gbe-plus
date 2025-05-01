@@ -7,9 +7,41 @@
 // Description : Game Boy HuC-3 I/O handling
 //
 // Handles reading and writing bytes to memory locations for HuC-3
+// Handles RTC operations specific to the HuC-3
 // Used to switch ROM and RAM banks in HuC-3
 
+#include <ctime>
+#include <chrono>
+
 #include "mmu.h"
+
+/****** Grab current system time for Real-Time Clock - HuC-3 Version ******/
+void DMG_MMU::grab_huc3_time()
+{
+	//Grab local time as a seconds since epoch
+	u64 current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+	if(!cart.rtc_timestamp)
+	{
+		cart.rtc_timestamp = current_timestamp;
+	}
+
+	//Add offsets to timestamp
+	current_timestamp += config::rtc_offset[0];
+	current_timestamp += (config::rtc_offset[1] * 60);
+	current_timestamp += (config::rtc_offset[2] * 3600);
+	current_timestamp += (config::rtc_offset[3] * 86400);
+
+	s64 time_passed = current_timestamp - cart.rtc_timestamp;
+
+	if(time_passed > 0)
+	{
+
+	}
+
+	//Manually set new time
+	cart.rtc_timestamp = current_timestamp;
+}
 
 /****** Performs write operations specific to the HuC-3 ******/
 void DMG_MMU::huc3_write(u16 address, u8 value)
@@ -169,7 +201,7 @@ void DMG_MMU::huc3_process_command()
 
 		//Write Value + Increment Address
 		case 0x03:
-			cart.huc_ram[cart.huc_addr] = cart.huc_rtc_out;
+			cart.huc_ram[cart.huc_addr] = arg;
 			cart.huc_addr++;
 			break;
 

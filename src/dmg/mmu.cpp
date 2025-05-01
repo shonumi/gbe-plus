@@ -2354,7 +2354,7 @@ bool DMG_MMU::load_backup(std::string filename)
 				sram.read((char*)ex_ram, 0x2000);
 			}
 
-			//Read RTC data
+			//Read RTC data - MBC3
 			if((cart.rtc) && (((file_size & 0x1FFF) == 0x30) || ((file_size & 0x1FFF) == 0x2C))) 
 			{
 				u32 temp_rtc_reg[5];
@@ -2374,6 +2374,13 @@ bool DMG_MMU::load_backup(std::string filename)
 					cart.latch_reg[x] = temp_latch_reg[x];
 				}
 
+				//64-bit UNIX timestamp
+				sram.read((char*)(&cart.rtc_timestamp), 0x08);
+			}
+
+			//Read RTC data - HuC-3
+			else if((cart.mbc_type == HUC3) && ((file_size & 0x1FFF) == 0x08))
+			{
 				//64-bit UNIX timestamp
 				sram.read((char*)(&cart.rtc_timestamp), 0x08);
 			}
@@ -2484,10 +2491,10 @@ bool DMG_MMU::save_backup(std::string filename)
 			}
 					
 
-			//Add RTC data
+			//Add RTC data - MBC3
 			if(cart.rtc) 
 			{
-				grab_time();
+				grab_mbc3_time();
 
 				//RTC registers
 				for(int x = 0; x < 5; x++)
@@ -2505,7 +2512,16 @@ bool DMG_MMU::save_backup(std::string filename)
 
 				//64-bit UNIX timestamp
 				sram.write(reinterpret_cast<char*> (&cart.rtc_timestamp), 0x08);
-			} 
+			}
+
+			//Add RTC data - HuC-3
+			else if(cart.mbc_type == HUC3)
+			{
+				grab_huc3_time();
+
+				//64-bit UNIX timestamp
+				sram.write(reinterpret_cast<char*> (&cart.rtc_timestamp), 0x08);
+			}
 
 			sram.close();
 

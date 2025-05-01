@@ -210,7 +210,8 @@ class DMG_MMU
 	~DMG_MMU();
 
 	void reset();
-	void grab_time();
+	void grab_mbc3_time();
+	void grab_huc3_time();
 
 	u8 read_u8(u16 address);
 	u16 read_u16(u16 address);

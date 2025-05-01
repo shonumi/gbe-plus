@@ -15,8 +15,8 @@
 
 #include "mmu.h"
 
-/****** Grab current system time for Real-Time Clock ******/
-void DMG_MMU::grab_time()
+/****** Grab current system time for Real-Time Clock - MBC3 Version ******/
+void DMG_MMU::grab_mbc3_time()
 {
 	//Grab local time as a seconds since epoch
 	u64 current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -168,7 +168,7 @@ void DMG_MMU::mbc3_write(u16 address, u8 value)
 			//After latch checks pass, grab system time to put into RTC regs
 			else if((cart.rtc_latch_2 == 0xFF) && (value == 1)) 
 			{
-				grab_time();
+				grab_mbc3_time();
 
 				//Reset latches
 				cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
