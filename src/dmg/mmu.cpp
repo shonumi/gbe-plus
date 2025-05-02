@@ -144,8 +144,6 @@ void DMG_MMU::reset()
 		gb_kiss_link_load_file(config::external_data_file);
 	}
 
-	for(u32 x = 0; x < 10; x++) { ir_stat.connected[x] = 0; }
-
 	div_reset = false;
 
 	//Resize various banks
