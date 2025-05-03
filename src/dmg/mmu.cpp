@@ -121,9 +121,12 @@ void DMG_MMU::reset()
 	cart.huc_ir_input = 0;
 	cart.huc_reg_map = 0;
 	cart.huc_semaphore = 0x01;
+	cart.huc_addr = 0;
+
+	cart.huc_rtc_seconds = 0;
+	cart.huc_rtc_days = 0;
 	cart.huc_rtc_cmd = 0;
 	cart.huc_rtc_out = 0;
-	cart.huc_addr = 0;
 
 	ir_stat.signal = 0;
 	ir_stat.send = false;
@@ -2377,8 +2380,12 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data - HuC-3
-			else if((cart.mbc_type == HUC3) && ((file_size & 0x1FFF) == 0x08))
+			else if((cart.mbc_type == HUC3) && ((file_size & 0x1FFF) == 0x0C))
 			{
+				//RTC Seconds and Days
+				sram.read((char*)(&cart.huc_rtc_seconds), 0x04);
+				sram.read((char*)(&cart.huc_rtc_days), 0x04);
+
 				//64-bit UNIX timestamp
 				sram.read((char*)(&cart.rtc_timestamp), 0x08);
 			}
@@ -2516,6 +2523,10 @@ bool DMG_MMU::save_backup(std::string filename)
 			else if(cart.mbc_type == HUC3)
 			{
 				grab_huc3_time();
+
+				//RTC Seconds and Days
+				sram.write(reinterpret_cast<char*> (&cart.huc_rtc_seconds), 0x04);
+				sram.write(reinterpret_cast<char*> (&cart.huc_rtc_days), 0x04);
 
 				//64-bit UNIX timestamp
 				sram.write(reinterpret_cast<char*> (&cart.rtc_timestamp), 0x08);

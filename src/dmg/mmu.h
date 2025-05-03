@@ -137,10 +137,13 @@ class DMG_MMU
 		u8 huc_ir_input;
 		u8 huc_reg_map;
 		u8 huc_semaphore;
-		u8 huc_rtc_cmd;
-		u8 huc_rtc_out;
 		u8 huc_addr;
 		u8 huc_ram[256];
+
+		u32 huc_rtc_seconds;
+		u32 huc_rtc_days;
+		u8 huc_rtc_cmd;
+		u8 huc_rtc_out;
 		
 	} cart;
 
