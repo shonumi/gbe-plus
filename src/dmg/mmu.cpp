@@ -2380,7 +2380,7 @@ bool DMG_MMU::load_backup(std::string filename)
 			}
 
 			//Read RTC data - HuC-3
-			else if((cart.mbc_type == HUC3) && ((file_size & 0x1FFF) == 0x0C))
+			else if((cart.mbc_type == HUC3) && ((file_size & 0x1FFF) == 0x10))
 			{
 				//RTC Seconds and Days
 				sram.read((char*)(&cart.huc_rtc_seconds), 0x04);
@@ -2388,6 +2388,8 @@ bool DMG_MMU::load_backup(std::string filename)
 
 				//64-bit UNIX timestamp
 				sram.read((char*)(&cart.rtc_timestamp), 0x08);
+
+				grab_huc3_time();
 			}
 		}
 

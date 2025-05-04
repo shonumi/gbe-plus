@@ -33,14 +33,28 @@ void DMG_MMU::grab_huc3_time()
 	current_timestamp += (config::rtc_offset[3] * 86400);
 
 	s64 time_passed = current_timestamp - cart.rtc_timestamp;
+	u32 test_seconds = cart.huc_rtc_seconds;
 
 	if(time_passed > 0)
 	{
+		for(u32 x = 0; x < time_passed; x++)
+		{
+			test_seconds++;
 
+			if(test_seconds >= 86400)
+			{
+				test_seconds = 0;
+				cart.huc_rtc_days++;
+			}
+		}
 	}
 
 	//Manually set new time
 	cart.rtc_timestamp = current_timestamp;
+
+	time_t system_time = time(0);
+	tm* current_time = localtime(&system_time);
+	cart.huc_rtc_seconds = (current_time->tm_hour * 3600) + (current_time->tm_min * 60) + (current_time->tm_sec);
 }
 
 /****** Performs write operations specific to the HuC-3 ******/
@@ -232,6 +246,12 @@ void DMG_MMU::huc3_process_command()
 						cart.huc_ram[0x00] = (minutes & 0x0F);
 						cart.huc_ram[0x01] = ((minutes >> 4) & 0x0F);
 						cart.huc_ram[0x02] = ((minutes >> 8) & 0x0F);
+
+						//Day counter = 0x03 - 0x05, LSB first
+						u32 days = cart.huc_rtc_days;
+						cart.huc_ram[0x03] = (days & 0x0F);
+						cart.huc_ram[0x04] = ((days >> 4) & 0x0F);
+						cart.huc_ram[0x05] = ((days >> 8) & 0x0F);
 					}
  
 					break;
