@@ -49,6 +49,22 @@ void DMG_MMU::grab_huc3_time()
 		}
 	}
 
+	else if(time_passed < 0)
+	{
+		time_passed *= -1;
+
+		for(u32 x = 0; x < time_passed; x++)
+		{
+			test_seconds--;
+
+			if(test_seconds == 0xFFFFFFFF)
+			{
+				test_seconds = 86399;
+				if(cart.huc_rtc_days) { cart.huc_rtc_days--; }
+			}
+		}
+	}
+
 	//Manually set new time
 	cart.rtc_timestamp = current_timestamp;
 
