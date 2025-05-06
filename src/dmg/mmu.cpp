@@ -127,6 +127,7 @@ void DMG_MMU::reset()
 	cart.huc_rtc_days = 0;
 	cart.huc_rtc_cmd = 0;
 	cart.huc_rtc_out = 0;
+	cart.huc_tone_generator_flag = 0;
 
 	ir_stat.signal = 0;
 	ir_stat.send = false;

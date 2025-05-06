@@ -283,6 +283,14 @@ void DMG_MMU::huc3_process_command()
 
 				//Trigger tone generator
 				case 0x0E:
+					cart.huc_tone_generator_flag++;
+
+					//Generate tone every 2nd write
+					if((cart.huc_tone_generator_flag & 0x01) == 0)
+					{
+
+					}
+
 					break;
 			}
 

@@ -144,6 +144,7 @@ class DMG_MMU
 		u32 huc_rtc_days;
 		u8 huc_rtc_cmd;
 		u8 huc_rtc_out;
+		u8 huc_tone_generator_flag;
 		
 	} cart;
 
