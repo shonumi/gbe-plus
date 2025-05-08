@@ -918,7 +918,7 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--save-flash64") { config::agb_save_type = AGB_FLASH64; }
 
 			//Force FLASH 128KB GBA saves
-			else if(config::cli_args[x] == "--save-auto") { config::agb_save_type = AGB_FLASH128; }
+			else if(config::cli_args[x] == "--save-flash128") { config::agb_save_type = AGB_FLASH128; }
 
 			//Disable Pokemon Mini 3-color Mode
 			else if(config::cli_args[x] == "--min-disable-colors") { config::min_config &= ~0x1; }
