@@ -1,39 +1,34 @@
-// GB Enhanced Copyright Daniel Baxter 2017
+// GB Enhanced Copyright Daniel Baxter 2013
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : z80.cpp
-// Date : June 16, 2017
-// Description : Super Game Boy Z80 CPU emulator
+// File : sm83.cpp
+// Date : July 27, 2013
+// Description : Game Boy SM83 CPU emulator
 //
-// Emulates the SGB Z80 in software
+// Emulates the GB SM83 in software
 
-#include "z80.h"
+#include "sm83.h"
 
-/****** SGB_Z80 Constructor ******/
-SGB_Z80::SGB_Z80() 
+/****** SM83 Constructor ******/
+SM83::SM83() 
 {
-	if(config::gb_type == 6) { sgb_type = 1; }
-	else { sgb_type = 0; } 
-
-	config::gb_type = 1;
-
 	if(config::use_bios) { reset_bios(); }
 	else { reset(); }
 }
 
-/****** SGB_Z80 Deconstructor ******/
-SGB_Z80::~SGB_Z80() 
+/****** SM83 Deconstructor ******/
+SM83::~SM83() 
 { 
 	std::cout<<"CPU::Shutdown\n";
 }
 
-/****** SGB_Z80 Reset ******/
-void SGB_Z80::reset() 
+/****** SM83 Reset ******/
+void SM83::reset() 
 {
 	//Values represent HLE BIOS
-	reg.a = (sgb_type) ? 0xFF : 0x1;
-	reg.b = 0x00;
+	reg.a = (config::gb_type == 2) ? 0x11 : 0x01;
+	reg.b = (config::gba_enhance) ? 0x01 : 0x00;
 	reg.c = 0x13;
 	reg.d = 0x00;
 	reg.e = 0xD8;
@@ -64,8 +59,8 @@ void SGB_Z80::reset()
 	std::cout<<"CPU::Initialized\n";
 }
 
-/****** SGB_Z80 Reset - For BIOS ******/
-void SGB_Z80::reset_bios() 
+/****** SM83 Reset - For BIOS ******/
+void SM83::reset_bios() 
 {
 	reg.a = 0x00;
 	reg.b = 0x00;
@@ -100,7 +95,7 @@ void SGB_Z80::reset_bios()
 }
 
 /****** Read CPU data from save state ******/
-bool SGB_Z80::cpu_read(u32 offset, std::string filename)
+bool SM83::cpu_read(u32 offset, std::string filename)
 {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	
@@ -143,7 +138,7 @@ bool SGB_Z80::cpu_read(u32 offset, std::string filename)
 }
 
 /****** Write CPU data to save state ******/
-bool SGB_Z80::cpu_write(std::string filename)
+bool SM83::cpu_write(std::string filename)
 {
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
 	
@@ -183,7 +178,7 @@ bool SGB_Z80::cpu_write(std::string filename)
 }
 
 /****** Gets the size of CPU data for serialization ******/
-u32 SGB_Z80::size()
+u32 SM83::size()
 {
 	u32 cpu_size = 0; 
 
@@ -216,8 +211,8 @@ u32 SGB_Z80::size()
 	return cpu_size;
 }
 
-/****** Handle Interrupts to SGB_Z80 ******/
-bool SGB_Z80::handle_interrupts()
+/****** Handle Interrupts to SM83 ******/
+bool SM83::handle_interrupts()
 {
 	//Delay interrupts when EI is called
 	if(interrupt_delay)
@@ -239,7 +234,7 @@ bool SGB_Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x40;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -252,7 +247,7 @@ bool SGB_Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x48;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -265,7 +260,7 @@ bool SGB_Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x50;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -278,7 +273,7 @@ bool SGB_Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x58;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -291,7 +286,7 @@ bool SGB_Z80::handle_interrupts()
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x60;
-			cycles += 36;
+			cycles += 20;
 			return true;
 		}
 
@@ -305,7 +300,7 @@ bool SGB_Z80::handle_interrupts()
 }	
 
 /****** Relative jump by signed immediate ******/
-void SGB_Z80::jr(u8 reg_one)
+void SM83::jr(u8 reg_one)
 {
 	if ((reg_one & 0x80) == 0x80) {
 		--reg_one; 
@@ -317,7 +312,7 @@ void SGB_Z80::jr(u8 reg_one)
 }
 
 /****** Swaps nibbles ******/
-u8 SGB_Z80::swap(u8 reg_one)
+u8 SM83::swap(u8 reg_one)
 {
 	reg.f = 0;
 	u8 temp_one = (reg_one & 0xF) << 4;
@@ -331,7 +326,7 @@ u8 SGB_Z80::swap(u8 reg_one)
 }
 
 /****** 8-bit addition ******/
-u8 SGB_Z80::add_byte(u8 reg_one, u8 reg_two)
+u8 SM83::add_byte(u8 reg_one, u8 reg_two)
 {
 	reg.f = 0;
 
@@ -348,7 +343,7 @@ u8 SGB_Z80::add_byte(u8 reg_one, u8 reg_two)
 }
 
 /****** 8-bit addition - Carry ******/
-u8 SGB_Z80::add_carry(u8 reg_one, u8 reg_two)
+u8 SM83::add_carry(u8 reg_one, u8 reg_two)
 {
 	u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
 	u8 carry_set = 0;
@@ -381,7 +376,7 @@ u8 SGB_Z80::add_carry(u8 reg_one, u8 reg_two)
 }
 
 /****** 16-bit addition ******/
-u16 SGB_Z80::add_word(u16 reg_one, u16 reg_two)
+u16 SM83::add_word(u16 reg_one, u16 reg_two)
 {
 	u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
 	reg.f = 0;
@@ -399,7 +394,7 @@ u16 SGB_Z80::add_word(u16 reg_one, u16 reg_two)
 }
 
 /****** 16-bit addition with signed byte ******/
-u16 SGB_Z80::add_signed_byte(u16 reg_one, u8 reg_two)
+u16 SM83::add_signed_byte(u16 reg_one, u8 reg_two)
 {
 	s16 reg_two_bsx = (s16)((s8)reg_two);
 	u16 result = reg_one + reg_two_bsx;
@@ -416,7 +411,7 @@ u16 SGB_Z80::add_signed_byte(u16 reg_one, u8 reg_two)
 }
 
 /****** 8-bit subtraction ******/
-u8 SGB_Z80::sub_byte(u8 reg_one, u8 reg_two)
+u8 SM83::sub_byte(u8 reg_one, u8 reg_two)
 {
 	reg.f = 0;
 
@@ -436,7 +431,7 @@ u8 SGB_Z80::sub_byte(u8 reg_one, u8 reg_two)
 }
 
 /****** 8-bit subtraction - Carry ******/
-u8 SGB_Z80::sub_carry(u8 reg_one, u8 reg_two)
+u8 SM83::sub_carry(u8 reg_one, u8 reg_two)
 {
 	u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
 	u8 carry_set = 0;
@@ -472,7 +467,7 @@ u8 SGB_Z80::sub_carry(u8 reg_one, u8 reg_two)
 }
 
 /****** 8-bit AND ******/
-u8 SGB_Z80::and_byte(u8 reg_one, u8 reg_two)
+u8 SM83::and_byte(u8 reg_one, u8 reg_two)
 {
 	reg.f = 0;
 
@@ -486,7 +481,7 @@ u8 SGB_Z80::and_byte(u8 reg_one, u8 reg_two)
 }
 
 /****** 8-bit OR ******/
-u8 SGB_Z80::or_byte(u8 reg_one, u8 reg_two)
+u8 SM83::or_byte(u8 reg_one, u8 reg_two)
 {
 	reg.f = 0;
 
@@ -497,7 +492,7 @@ u8 SGB_Z80::or_byte(u8 reg_one, u8 reg_two)
 }
 
 /****** 8-bit XOR ******/
-u8 SGB_Z80::xor_byte(u8 reg_one, u8 reg_two)
+u8 SM83::xor_byte(u8 reg_one, u8 reg_two)
 {
 	reg.f = 0;
 	
@@ -508,7 +503,7 @@ u8 SGB_Z80::xor_byte(u8 reg_one, u8 reg_two)
 }
 
 /****** 8-bit increment ******/
-u8 SGB_Z80::inc_byte(u8 reg_one)
+u8 SM83::inc_byte(u8 reg_one)
 {
 	u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
 	reg_one++;
@@ -528,7 +523,7 @@ u8 SGB_Z80::inc_byte(u8 reg_one)
 }
 
 /****** 8-bit decrement ******/
-u8 SGB_Z80::dec_byte(u8 reg_one)
+u8 SM83::dec_byte(u8 reg_one)
 {
 	u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
 	reg_one--;
@@ -551,7 +546,7 @@ u8 SGB_Z80::dec_byte(u8 reg_one)
 }
 
 /****** Check bit ******/
-void SGB_Z80::bit(u8 reg_one, u8 check_bit)
+void SM83::bit(u8 reg_one, u8 check_bit)
 {
 	u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
 	reg.f = 0;
@@ -567,21 +562,21 @@ void SGB_Z80::bit(u8 reg_one, u8 check_bit)
 }
 
 /****** Reset bit ******/
-u8 SGB_Z80::res(u8 reg_one, u8 reset_bit)
+u8 SM83::res(u8 reg_one, u8 reset_bit)
 {
 	reg_one &= ~reset_bit;
 	return reg_one;
 }
 
 /****** Set bit ******/
-u8 SGB_Z80::set(u8 reg_one, u8 set_bit)
+u8 SM83::set(u8 reg_one, u8 set_bit)
 {
 	reg_one |=set_bit;
 	return reg_one;
 }
 
 /****** Rotate byte left *****/
-u8 SGB_Z80::rotate_left(u8 reg_one)
+u8 SM83::rotate_left(u8 reg_one)
 {
 	u8 old_carry = (reg.f & 0x10) ? 1 : 0;
 	reg.f = 0;
@@ -599,7 +594,7 @@ u8 SGB_Z80::rotate_left(u8 reg_one)
 }
 
 /****** Rotate byte left through carry *****/
-u8 SGB_Z80::rotate_left_carry(u8 reg_one)
+u8 SM83::rotate_left_carry(u8 reg_one)
 {
 	reg.f = 0;	
 
@@ -616,7 +611,7 @@ u8 SGB_Z80::rotate_left_carry(u8 reg_one)
 }
 
 /****** Rotate byte right  ******/
-u8 SGB_Z80::rotate_right(u8 reg_one)
+u8 SM83::rotate_right(u8 reg_one)
 {
 	u8 old_carry = (reg.f & 0x10) ? 1 : 0;
 	reg.f = 0;
@@ -634,7 +629,7 @@ u8 SGB_Z80::rotate_right(u8 reg_one)
 }
 
 /****** Rotate byte right through carry ******/
-u8 SGB_Z80::rotate_right_carry(u8 reg_one)
+u8 SM83::rotate_right_carry(u8 reg_one)
 {
 	reg.f = 0;
 
@@ -652,7 +647,7 @@ u8 SGB_Z80::rotate_right_carry(u8 reg_one)
 }
 
 /****** Shift byte left into carry - Preserve sign ******/
-u8 SGB_Z80::sla(u8 reg_one)
+u8 SM83::sla(u8 reg_one)
 {
 	reg.f = 0;
 	u8 carry_flag = (reg_one & 0x80) ? 1 : 0;
@@ -668,7 +663,7 @@ u8 SGB_Z80::sla(u8 reg_one)
 }
 
 /****** Shift byte right into carry - Preserve sign ******/
-u8 SGB_Z80::sra(u8 reg_one)
+u8 SM83::sra(u8 reg_one)
 {
 	reg.f = 0;
 	u8 carry_flag = (reg_one & 0x01) ? 1 : 0;
@@ -685,7 +680,7 @@ u8 SGB_Z80::sra(u8 reg_one)
 }
 
 /****** Shift byte right into carry ******/
-u8 SGB_Z80::srl(u8 reg_one)
+u8 SM83::srl(u8 reg_one)
 {
 	reg.f = 0;
 	u8 carry_flag = (reg_one & 0x01) ? 1 : 0;
@@ -701,7 +696,7 @@ u8 SGB_Z80::srl(u8 reg_one)
 }
 
 /****** Decimal adjust accumulator ******/
-u8 SGB_Z80::daa()
+u8 SM83::daa()
 {
 	u32 reg_one = reg.a;
 	
@@ -733,7 +728,7 @@ u8 SGB_Z80::daa()
 }
 
 /****** Execute 8-bit opcodes ******/
-void SGB_Z80::exec_op(u8 opcode)
+void SM83::exec_op(u8 opcode)
 {
 	switch (opcode)
 	{
@@ -833,11 +828,36 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0x0F :
 			reg.a = rotate_right_carry(reg.a);
 			reg.f &= ~0x80;
-			cycles += 8;
+			cycles += 4;
 			break;
 
 		//STOP
 		case 0x10 :
+			//GBC - Normal to double speed mode
+			if((config::gb_type == 2) && (mem->memory_map[REG_KEY1] & 0x1) && ((mem->memory_map[REG_KEY1] & 0x80) == 0))
+			{
+				double_speed = true;
+				mem->memory_map[REG_KEY1] = 0x80;
+
+				//Set SIO clock - 16384Hz - Bit 1 cleared, Double Speed
+				if((mem->memory_map[REG_SC] & 0x2) == 0) { controllers.serial_io.sio_stat.shift_clock = 256; }
+
+				//Set SIO clock - 524288Hz - Bit 1 set, Double Speed
+				else { controllers.serial_io.sio_stat.shift_clock = 8; }
+			}
+
+			//GBC - Double to normal speed mode
+			if((config::gb_type == 2) && (mem->memory_map[REG_KEY1] & 0x1) && (mem->memory_map[REG_KEY1] & 0x80))
+			{
+				double_speed = false;
+				mem->memory_map[REG_KEY1] = 0;
+
+				//Set SIO clock - 8192Hz - Bit 1 cleared, Normal Speed
+				if((mem->memory_map[REG_SC] & 0x2) == 0) { controllers.serial_io.sio_stat.shift_clock = 512; }
+
+				//Set SIO clock - 262144Hz - Bit 1 set, Normal Speed
+				else { controllers.serial_io.sio_stat.shift_clock = 16; }
+			}
 			break;	
 
 		//LD DE, nn
@@ -881,13 +901,13 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0x17 :
 			reg.a = rotate_left(reg.a);
 			reg.f &= ~0x80;
-			cycles += 8;
+			cycles += 4;
 			break;
 
 		//JR, n
 		case 0x18 :
 			jr(mem->read_u8(reg.pc++));
-			cycles += 8;
+			cycles += 12;
 			break;
 
 		//ADD HL, DE
@@ -930,15 +950,15 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0x1F :
 			reg.a = rotate_right(reg.a);
 			reg.f &= ~0x80;
-			cycles += 8;
+			cycles += 4;
 			break;		
 
 		//JR NZ, n
 		case 0x20 :	
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 0) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(zero_flag == 0) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -991,8 +1011,8 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0x28 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 1) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(zero_flag == 1) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -1045,8 +1065,8 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0x30 :	
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 0) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(carry_flag == 0) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -1107,8 +1127,8 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0x38 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 1) { jr(mem->read_u8(reg.pc));}
-				cycles += 8;
+				if(carry_flag == 1) { jr(mem->read_u8(reg.pc)); cycles += 12; }
+				else { cycles += 8; }
 				reg.pc++;
 			}
 			break;
@@ -1939,8 +1959,8 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0xC0 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; }
-				cycles += 8;
+				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; }
+				else { cycles += 8; }
 			}
 			break;
 
@@ -1955,16 +1975,15 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0xC2 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12; 
+				if(zero_flag == 0) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
 		//JP nn
 		case 0xC3 :
 			reg.pc = mem->read_u16(reg.pc);
-			cycles += 12;
+			cycles += 16;
 			break;
 
 		//CALL NZ, nn
@@ -1977,10 +1996,10 @@ void SGB_Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2002,15 +2021,15 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x00;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//RET Z
 		case 0xC8 :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2;} 
-				cycles += 8;
+				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; } 
+				else { cycles += 8; }
 			}
 			break;
 
@@ -2018,16 +2037,15 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0xC9 :
 			reg.pc = mem->read_u16(reg.sp);
 			reg.sp += 2;
-			cycles += 8;
+			cycles += 16;
 			break;
 
 		//JP Z nn
 		case 0xCA :
 			{
 				u8 zero_flag = (reg.f & 0x80) ? 1 : 0;
-				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12;
+				if(zero_flag == 1) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2048,10 +2066,10 @@ void SGB_Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2060,7 +2078,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc+2);
 			reg.pc = mem->read_u16(reg.pc);
-			cycles += 12;
+			cycles += 24;
 			break;
 
 		//ADC A, n
@@ -2074,15 +2092,15 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x08;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//RET NC
 		case 0xD0 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; }
-				cycles += 8;
+				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; }
+				else { cycles += 8; }
 			}
 			break;
 
@@ -2097,9 +2115,8 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0xD2 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12; 
+				if(carry_flag == 0) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2113,10 +2130,10 @@ void SGB_Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 				
@@ -2138,15 +2155,15 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x10;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//RET C
 		case 0xD8 :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2;} 
-				cycles += 8;
+				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.sp); reg.sp += 2; cycles += 20; } 
+				else { cycles += 8; }
 			}
 			break;
 
@@ -2154,7 +2171,7 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0xD9 :
 			reg.pc = mem->read_u16(reg.sp);
 			reg.sp += 2;
-			cycles += 8;
+			cycles += 16;
 			interrupt = true;
 			break;
 
@@ -2162,9 +2179,8 @@ void SGB_Z80::exec_op(u8 opcode)
 		case 0xDA :
 			{
 				u8 carry_flag = (reg.f & 0x10) ? 1 : 0;
-				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.pc); }
-				else { reg.pc += 2; }
-				cycles += 12;
+				if(carry_flag == 1) { reg.pc = mem->read_u16(reg.pc); cycles += 16; }
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2178,10 +2194,10 @@ void SGB_Z80::exec_op(u8 opcode)
 					reg.sp -= 2;
 					mem->write_u16(reg.sp, reg.pc+2);
 					reg.pc = mem->read_u16(reg.pc);
+					cycles += 24;
 				}
 				
-				else { reg.pc += 2; }
-				cycles += 12;
+				else { reg.pc += 2; cycles += 12; }
 			}
 			break;
 
@@ -2196,7 +2212,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x18;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//LDH n, A
@@ -2238,7 +2254,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x20;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//ADD SP, n
@@ -2271,7 +2287,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x28;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//LDH A, n
@@ -2318,7 +2334,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x30;
-			cycles += 32;
+			cycles += 16;
 			break;
 
 		//LDHL SP, n
@@ -2357,7 +2373,7 @@ void SGB_Z80::exec_op(u8 opcode)
 			reg.sp -= 2;
 			mem->write_u16(reg.sp, reg.pc);
 			reg.pc = 0x38;
-			cycles += 32;
+			cycles += 16;
 			break;
 			
 		default :
@@ -2367,7 +2383,7 @@ void SGB_Z80::exec_op(u8 opcode)
 }
 
 /****** Execute 16-bit opcodes ******/
-void SGB_Z80::exec_op(u16 opcode)
+void SM83::exec_op(u16 opcode)
 {
 	switch (opcode)
 	{
@@ -2810,7 +2826,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 0, HL
 		case 0xCB46 :
 			bit(mem->read_u8(reg.hl), 0x01);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 0, A
@@ -2858,7 +2874,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 1, HL
 		case 0xCB4E :
 			bit(mem->read_u8(reg.hl), 0x02);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 1, A
@@ -2906,7 +2922,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 2, HL
 		case 0xCB56 :
 			bit(mem->read_u8(reg.hl), 0x04);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 2, A
@@ -2954,7 +2970,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 3, HL
 		case 0xCB5E :
 			bit(mem->read_u8(reg.hl), 0x08);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 3, A
@@ -3002,7 +3018,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 4, HL
 		case 0xCB66 :
 			bit(mem->read_u8(reg.hl), 0x10);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 4, A
@@ -3050,7 +3066,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 5, HL
 		case 0xCB6E :
 			bit(mem->read_u8(reg.hl), 0x20);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 5, A
@@ -3098,7 +3114,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 6, HL
 		case 0xCB76 :
 			bit(mem->read_u8(reg.hl), 0x40);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 6, A
@@ -3146,7 +3162,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		//BIT 7, HL
 		case 0xCB7E :
 			bit(mem->read_u8(reg.hl), 0x80);
-			cycles += 16;
+			cycles += 12;
 			break;
 
 		//BIT 7, A
@@ -3440,7 +3456,7 @@ void SGB_Z80::exec_op(u16 opcode)
 		case 0xCBAE :
 			temp_byte = res(mem->read_u8(reg.hl), 0x20);
 			mem->write_u8(reg.hl, temp_byte);
-			cycles += 8;
+			cycles += 16;
 			break;
 
 		//RES 5, A

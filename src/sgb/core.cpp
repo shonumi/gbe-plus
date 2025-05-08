@@ -92,7 +92,7 @@ void SGB_core::stop()
 void SGB_core::shutdown()
 {
 	core_mmu.DMG_MMU::~DMG_MMU();
-	core_cpu.SGB_Z80::~SGB_Z80();
+	core_cpu.SGB_SM83::~SGB_SM83();
 	config::gba_enhance = false;
 }
 

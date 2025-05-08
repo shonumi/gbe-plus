@@ -2,8 +2,8 @@
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : z80.cpp
-// Date : July 27, 2013
+// File : s1c88.cpp
+// Date : December 03, 2020
 // Description : S1C88 CPU emulator
 //
 // Emulates a S1C88 in software

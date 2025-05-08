@@ -13,7 +13,7 @@ set(SRCS
 	./../dmg/camera.cpp
 	./../dmg/mmu.cpp
 	opengl.cpp
-	z80.cpp
+	sm83.cpp
 	./../dmg/sio.cpp
 	./../dmg/dmg07.cpp
 	./../dmg/gbma.cpp
@@ -29,7 +29,7 @@ set(HEADERS
 	lcd.h
 	./../dmg/lcd_data.h
 	./../dmg/mmu.h
-	z80.h
+	sm83.h
 	./../dmg/sio.h
 	./../dmg/sio_data.h
 	)

@@ -643,7 +643,7 @@ void SGB_core::debug_process_command()
 
 		#endif
 
-		//Disassembles 16 GBZ80 instructions from specified address
+		//Disassembles 16 SM83 instructions from specified address
 		else if((command.substr(0, 2) == "dz") && (command.substr(3, 2) == "0x"))
 		{
 			valid_command = true;
@@ -800,7 +800,7 @@ void SGB_core::debug_process_command()
 			std::cout<<"reg \t\t Change register value (0-9) \n";
 			std::cout<<"rom \t\t Display current ROM bank (if any) \n";
 			std::cout<<"ram \t\t Display current RAM bank (if any) \n";
-			std::cout<<"dz \t\t Disassembles some GBZ80 instructions, format 0x1234 for addr\n";
+			std::cout<<"dz \t\t Disassembles some SM83 instructions, format 0x1234 for addr\n";
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";

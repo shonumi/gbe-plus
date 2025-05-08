@@ -1,26 +1,26 @@
-// GB Enhanced+ Copyright Daniel Baxter 2015
+// GB Enhanced+ Copyright Daniel Baxter 2017
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : z80.cpp
-// Date : May 13, 2015
-// Description : Game Boy Z80 CPU emulator
+// File : sm83.cpp
+// Date : June 16, 2017
+// Description : Super Game Boy SM83 CPU emulator
 //
-// Emulates the GB CPU in software
+// Emulates the SGB CPU in software
 
-#ifndef GB_CPU
-#define GB_CPU
+#ifndef SGB_CPU
+#define SGB_CPU
 
 #include <string>
 #include <iostream>
 
-#include "common.h"
-#include "mmu.h"
+#include "dmg/common.h"
+#include "dmg/mmu.h"
 #include "lcd.h"
-#include "apu.h"
-#include "sio.h"
+#include "dmg/apu.h"
+#include "dmg/sio.h"
 
-class Z80
+class SGB_SM83
 {
 	public:
 	
@@ -102,17 +102,20 @@ class Z80
 	bool double_speed;
 	bool skip_instruction;
 
+	//SGB type
+	u8 sgb_type;
+
 	//Audio-Video and other controllers
 	struct io_controllers
 	{
-		DMG_LCD video;
+		SGB_LCD video;
 		DMG_APU audio;
 		DMG_SIO serial_io;
 	} controllers;
 
 	//Core Functions
-	Z80();
-	~Z80();
+	SGB_SM83();
+	~SGB_SM83();
 	void reset();
 	void reset_bios();
 	void exec_op(u8 opcode);
@@ -161,4 +164,4 @@ class Z80
 	inline u8 daa();
 };
 
-#endif // GB_CPU
+#endif // SGB_CPU

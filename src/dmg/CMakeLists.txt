@@ -16,7 +16,7 @@ set(SRCS
 	tama5.cpp
 	mmu.cpp
 	opengl.cpp
-	z80.cpp
+	sm83.cpp
 	sio.cpp
 	infrared.cpp
 	dmg07.cpp
@@ -34,7 +34,7 @@ set(HEADERS
 	lcd.h
 	lcd_data.h
 	mmu.h
-	z80.h
+	sm83.h
 	sio.h
 	sio_data.h
 	)

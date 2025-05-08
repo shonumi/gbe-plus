@@ -18,7 +18,7 @@
 #include "common/core_emu.h"
 #include "gamepad.h"
 #include "dmg/mmu.h"
-#include "z80.h"
+#include "sm83.h"
 
 class SGB_core : virtual public core_emu
 {
@@ -64,7 +64,7 @@ class SGB_core : virtual public core_emu
 		u32 get_core_data(u32 core_index);
 
 		DMG_MMU core_mmu;
-		SGB_Z80 core_cpu;
+		SGB_SM83 core_cpu;
 		SGB_GamePad core_pad;
 };
 		

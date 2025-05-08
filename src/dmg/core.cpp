@@ -98,7 +98,7 @@ void DMG_core::stop()
 void DMG_core::shutdown()
 {
 	core_mmu.DMG_MMU::~DMG_MMU();
-	core_cpu.Z80::~Z80();
+	core_cpu.SM83::~SM83();
 	config::gba_enhance = false;
 }
 
