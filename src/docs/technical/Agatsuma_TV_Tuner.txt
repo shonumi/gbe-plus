@@ -165,7 +165,18 @@ Read Something?		| D9			| 			| TV_CNT_A
 
 [[Command 86 xx xx - Unknown Command]]
 
-This command appears related to changing the channel. It is called at least 4 times before reading the channel status and actually changing the channel frequency; each time different parameters are used.
+This command appears related to changing the channel. It is called at least 4 times before reading the channel status and actually changing the channel frequency. The 16-bit parameters follow this pattern:
+
+-----------------------------------------------------------
+Byte	1		| Byte 2
+-----------------------------------------------------------
+0x86			| 0x41 / 0x42 / 0x44
+0x00			| 0x56
+0x01			| 0x30
+0x02			| 0x44
+-----------------------------------------------------------
+
+The second byte of the first 16-bit parameter changes depending on the channel frequency. If the frequency is between 55.25MHz and 159.9375MHz inclusive, the value is 0x41. If the frequency is between 160MHz and 441.9375MHz inclusive, the value is 0x42. If the frequency is greater than 442MHz, the value is 0x44.
 
 
 
