@@ -152,31 +152,31 @@ Command Name		| Address Frame		|Command Pattern	|Register
 Unknown Command		| 86 			| xx xx			| TV_CNT_B
 Read Channel Status	| 87			|			| TV_CNT_B
 Change Channel		| C0			| xx xx			| TV_CNT_B
+Unknown Command		| D8			| 00			| TV_CNT_A
 Switch to AV Input Mode	| D8			| 02 E0			| TV_CNT_A
 Switch to TV Mode	| D8			| 02 E1			| TV_CNT_A
 Set Video Contrast	| D8			| 10 xx			| TV_CNT_A
 Set Video Brightness	| D8			| 11 xx			| TV_CNT_A
+Unknown Command		| D8			| 14			| TV_CNT_A
 Set Video Hue		| D8			| 15 xx			| TV_CNT_A
+Unknown Command		| D8			| 1E xx			| TV_CNT_A
 Clear Video Frame	| D8			| 0D 80			| TV_CNT_A
 Render Video Frame	| D8			| 0D 00			| TV_CNT_A
-Read Something?		| D9			| 			| TV_CNT_A
+Read Command Data	| D9			| 			| TV_CNT_A
 ----------------------------------------------------------------------------------------------------------------------
 
 
 [[Command 86 xx xx - Unknown Command]]
 
-This command appears related to changing the channel. It is called at least 4 times before reading the channel status and actually changing the channel frequency. The 16-bit parameters follow this pattern:
+This command appears related to changing the channel. It is called 3 times before reading the channel status or changing the channel frequency. The 16-bit parameters always follow this pattern:
 
 -----------------------------------------------------------
 Byte	1		| Byte 2
 -----------------------------------------------------------
-0x86			| 0x41 / 0x42 / 0x44
 0x00			| 0x56
 0x01			| 0x30
 0x02			| 0x44
 -----------------------------------------------------------
-
-The second byte of the first 16-bit parameter changes depending on the channel frequency. If the frequency is between 55.25MHz and 159.9375MHz inclusive, the value is 0x41. If the frequency is between 160MHz and 441.9375MHz inclusive, the value is 0x42. If the frequency is greater than 442MHz, the value is 0x44.
 
 
 
@@ -192,7 +192,11 @@ This command returns an 8-bit value representing the status of the current chann
 
 [[Command C0 xx xx - Change Channel]]
 
-This command changes the current channel. Its parameters form a 16-bit value that represents the channel's frequency in MHz. The lowest frequency possible is 55.25MHz and is representing by the hex value 0x0650. The highest possible frequency is 801.25MHz and is represented by the hex value 0x34F0. Essentially, increasing/decreasing the 16-bit value by 1 changes the frequency by 0.0625MHz. The Change Channel command is called when the user manually switches between saved channels, when scanning for available channels, and when manually tuning channels.
+This command changes the current channel. This command is called twice. For the first call, its parameters form a 16-bit value that represents the channel's frequency in MHz. The lowest frequency possible is 55.25MHz and is representing by the hex value 0x0650. The highest possible frequency is 801.25MHz and is represented by the hex value 0x34F0. Essentially, increasing/decreasing the 16-bit value by 1 changes the frequency by 0.0625MHz.
+
+For the second call, the 16-bit parameter uses 3 values depending on the channel frequency. If the frequency is between 55.25MHz and 159.9375MHz inclusive, the value is 0x8641. If the frequency is between 160MHz and 441.9375MHz inclusive, the value is 0x8642. If the frequency is greater than 442MHz, the value is 0x8644.
+
+The Change Channel command is called when the user manually switches between saved channels, when scanning for available channels, and when manually tuning channels.
 
 
 
@@ -254,9 +258,9 @@ This command renders any video frame from TV signals or the A/V input source. Af
 
 
 
-[[Command D9 - Read Something?]]
+[[Command D9 - Read Command Data]]
 
-This command appears to read the result of several unidentified commands. Its purpose and function are currently unknown.
+This command reads a single byte that represents the result of several unidentified commands.
 
 
 ***************************************************
