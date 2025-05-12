@@ -201,6 +201,13 @@ The Change Channel command is called when the user manually switches between sav
 
 
 
+[[Command D8 00 - Unknown Command]]
+
+This command is used right after the Render Video Frame command. It returns a single byte.
+
+
+
+
 
 [[Command D8 02 E0 - Switch to AV Input Mode]]
 
@@ -234,9 +241,25 @@ This command sets the brightness of all video output. It accepts a single signed
 
 
 
+[[Command D8 14 - Unknown Command]]
+
+This command is used after the Render Video Frame command and right after the command D8 00. It returns a single byte.
+
+
+
+
+
 [[Command D8 15 xx - Set Video Hue]]
 
 This command sets the hue of all video output. It accepts a single signed 8-bit value (2's complement), where the lowest value (-128) represents the minimum hue and the highest value (127) represents the maximum hue. Although this feature is labeled as hue by the ATVT itself, functionally it manipulates the saturation, with lower values skewing video more towards grayscale, but never completely so.
+
+
+
+
+
+[[Command D8 1E xx - Unknown Command]]
+
+This command is used right before the Render Video Frame and Clear Video Frame commands. It accepts an 8-bit parameter. The ATVT appears to set this to a constant value of either 0x06 when rendering a frame or 0x26 when clearing a frame.
 
 
 
@@ -260,7 +283,7 @@ This command renders any video frame from TV signals or the A/V input source. Af
 
 [[Command D9 - Read Command Data]]
 
-This command reads a single byte that represents the result of several unidentified commands.
+This command reads a single byte that represents the result of several unidentified commands. Specifically, it is used in conjection with the D8 00 and D8 14 commands.
 
 
 ***************************************************
