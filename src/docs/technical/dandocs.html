@@ -7549,6 +7549,7 @@ SD Card Data: N/A
 		<li class="list_item">Only compatible with analog broadcasts (NTSC-J).</li>
 		<li class="list_item">Tunes into 62 channels.</li>
 		<li class="list_item">Capable of receiving signals from 55.25MHz to 801.25MHz.</li>
+		<li class="list_item">Uses a Philips FQ1236/P H-3 as the actual TV tuner.</li>
 	</ul>
 
 	<a name="atv_reg"></a>
@@ -7586,7 +7587,7 @@ Bit 0	| I/O Data
 Bit 1	| Clock (0 = LOW, 1 = HIGH)
 -----------------------------------------------------------</pre>
 
-	<p>Depending on the command, TV_CNT_A must have Bits 2, 6, and 7 set HIGH (essentially OR&#39;ed 0xC4), while TV_CNT_B must have Bit 6 set HIGH (essentially OR&#39;ed by 0x40). The high-level protocol issuing commands protocol looks something like this:</p>
+	<p>The ATVT uses the I2C protocol for data transfers, but the specifics of how it is implemented on the GBA are detailed in this section. Depending on the command, TV_CNT_A must have Bits 2, 6, and 7 set HIGH (essentially OR&#39;ed 0xC4), while TV_CNT_B must have Bit 6 set HIGH (essentially OR&#39;ed by 0x40). The high-level protocol for issuing commands looks something like this:</p>
 
 <pre>-----------------------------------------------------------
 START SIGNAL
@@ -7661,35 +7662,56 @@ Read Bit
 	<a name="atv_cmd"></a>
 	<p class="gray_title">[Agatsuma TV Tuner] : Commands</p>
 
-	<p>By writing certain bytes to the ATVT (using the protocol described above) the CPU can send several commands to the device. Typically the last two bytes of a command are 8-bit or 16-bit parameters. In the case of read commands, there are no parameters used. A list of known commands is shown in the table below along with whether the command uses TV_CNT_A or TV_CNT_B:</p>
+	<p>By writing certain bytes to the ATVT (using the protocol described above) the CPU can send several commands to the device. The first byte is the address frame. The last two bytes of a command are 16-bit parameters. As is typical of I2C, Bit 0 of the address frame determines whether the command will read or write values. In the case of read commands, no parameter bytes are used. A list of known commands is shown in the table below along with whether the command uses TV_CNT_A or TV_CNT_B:</p>
 
-<pre>-----------------------------------------------------------
-Command Name		| Command Pattern	|Register
------------------------------------------------------------
-Unknown Command		| 86 xx xx		| TV_CNT_B
-Read Channel Status	| 87			| TV_CNT_B
-Change Channel		| C0 xx xx		| TV_CNT_B
-Switch to AV Input Mode	| D8 02 E0		| TV_CNT_A
-Switch to TV Mode	| D8 02 E1		| TV_CNT_A
-Set Video Contrast	| D8 10 xx		| TV_CNT_A
-Set Video Brightness	| D8 11 xx		| TV_CNT_A
-Set Video Hue		| D8 15 xx		| TV_CNT_A
-Clear Video Frame	| D8 0D 80		| TV_CNT_A
-Render Video Frame	| D8 0D 00		| TV_CNT_A
-Read Something?		| D9			| TV_CNT_A
------------------------------------------------------------</pre>
+<pre>----------------------------------------------------------------------------------------------------------------------
+Command Name		| Address Frame		|Command Pattern	|Register
+----------------------------------------------------------------------------------------------------------------------
+Unknown Command		| 86 			| xx xx			| TV_CNT_B
+Read Channel Status	| 87			|			| TV_CNT_B
+Change Channel		| C0			| xx xx			| TV_CNT_B
+Unknown Command		| D8			| 00			| TV_CNT_A
+Switch to AV Input Mode	| D8			| 02 E0			| TV_CNT_A
+Switch to TV Mode	| D8			| 02 E1			| TV_CNT_A
+Set Video Contrast	| D8			| 10 xx			| TV_CNT_A
+Set Video Brightness	| D8			| 11 xx			| TV_CNT_A
+Unknown Command		| D8			| 14			| TV_CNT_A
+Set Video Hue		| D8			| 15 xx			| TV_CNT_A
+Unknown Command		| D8			| 1E xx			| TV_CNT_A
+Clear Video Frame	| D8			| 0D 80			| TV_CNT_A
+Render Video Frame	| D8			| 0D 00			| TV_CNT_A
+Read Command Data	| D9			| 			| TV_CNT_A
+----------------------------------------------------------------------------------------------------------------------</pre>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Command 86 - Unknown Command</strong></p>
-	<p class="list_item">This command appears related to changing the channel. It is called at least 4 times before reading the channel status and changing the channel frequency; each time different parameters are used.</p>
+	<p class="list_item"><strong>Command 86 xx xx - Unknown Command</strong></p>
+	<p class="list_item">This command appears related to changing the channel. It is called 3 times before reading the channel status or changing the channel frequency. The 16-bit parameters always follow this pattern:</p>
+
+<pre>-----------------------------------------------------------
+Byte	1		| Byte 2
+-----------------------------------------------------------
+0x00			| 0x56
+0x01			| 0x30
+0x02			| 0x44
+-----------------------------------------------------------</pre>
+
+	<p>The second byte of the first 16-bit parameter changes depending on the channel frequency. If the frequency is between 55.25MHz and 159.9375MHz inclusive, the value is 0x41. If the frequency is between 160MHz and 441.9375MHz inclusive, the value is 0x42. If the frequency is greater than 442MHz, the value is 0x44.</p>
 
 	<p class="spc"></p>
 	<p class="list_item"><strong>Command 87 - Read Channel Status</strong></p>
 	<p class="list_item">This command returns an 8-bit value representing the status of the current channel&#39;s reception. If the ATVT detects a valid TV signal, it will return the value 0xC0. Any other value seems to indicate that no proper reception was found for that channel, at least on the frequency assigned for it.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Command C0 - Change Channel</strong></p>
-	<p class="list_item">This command changes the current channel. Its parameters form a 16-bit value that represents the channel&#39;s frequency in MHz. The lowest frequency possible is 55.25MHz and is representing by the hex value 0x0650. The highest possible frequency is 801.25MHz and is represented by the hex value 0x34F0. Essentially, increasing/decreasing the 16-bit value by 1 changes the frequency by 0.0625MHz. The Change Channel command is called when the user manually switches between saved channels, when scanning for available channels, and when manually tuning channels.</p>
+	<p class="list_item"><strong>Command C0 xx xx - Change Channel</strong></p>
+	<p class="list_item">This command changes the current channel. This command is called twice. For the first call, its parameters form a 16-bit value that represents the channel&#39;s frequency in MHz. The lowest frequency possible is 55.25MHz and is representing by the hex value 0x0650. The highest possible frequency is 801.25MHz and is represented by the hex value 0x34F0. Essentially, increasing/decreasing the 16-bit value by 1 changes the frequency by 0.0625MHz.</p>
+
+	<p>For the second call, the 16-bit parameter uses 3 values depending on the channel frequency. If the frequency is between 55.25MHz and 159.9375MHz inclusive, the value is 0x8641. If the frequency is between 160MHz and 441.9375MHz inclusive, the value is 0x8642. If the frequency is greater than 442MHz, the value is 0x8644.</p>
+
+	<p>The Change Channel command is called when the user manually switches between saved channels, when scanning for available channels, and when manually tuning channels.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 00 - Unknown Command</strong></p>
+	<p class="list_item">This command is used right after the Render Video Frame command. It returns a single byte.</p>
 
 	<p class="spc"></p>
 	<p class="list_item"><strong>Command D8 02 E0 - Switch to AV Input Mode</strong></p>
@@ -7700,16 +7722,24 @@ Read Something?		| D9			| TV_CNT_A
 	<p class="list_item">This command is used to switch video input from composite A/V input to TV signals whenever the user presses the Select button.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Command D8 10 - Set Video Contrast</strong></p>
+	<p class="list_item"><strong>Command D8 10 xx - Set Video Contrast</strong></p>
 	<p class="list_item">This command sets the contrast of all video output. It accepts a single signed 8-bit value (2&#39;s complement), where the lowest value (-128) represents the minimum contrast and the highest value (127) represents the maximum contrast.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Command D8 11 - Set Video Brightness</strong></p>
+	<p class="list_item"><strong>Command D8 11 xx - Set Video Brightness</strong></p>
 	<p class="list_item">This command sets the brightness of all video output. It accepts a single signed 8-bit value (2&#39;s complement), where the lowest value (-128) represents the minimum brightness and the highest value (127) represents the maximum brightness.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Command D8 15 - Set Video Hue</strong></p>
+	<p class="list_item"><strong>Command D8 14 - Unknown Command</strong></p>
+	<p class="list_item">This command is used after the Render Video Frame command and right after the command D8 00. It returns a single byte.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 15 xx - Set Video Hue</strong></p>
 	<p class="list_item">This command sets the hue of all video output. It accepts a single signed 8-bit value (2&#39;s complement), where the lowest value (-128) represents the minimum hue and the highest value (127) represents the maximum hue. Although this feature is labeled as hue by the ATVT itself, functionally it manipulates the saturation, with lower values skewing video more towards grayscale, but never completely so.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Command D8 1E xx - Unknown Command</strong></p>
+	<p class="list_item">This command is used right before the Render Video Frame and Clear Video Frame commands. It accepts an 8-bit parameter. The ATVT appears to set this to a constant value of either 0x06 when rendering a frame or 0x26 when clearing a frame.</p>
 
 	<p class="spc"></p>
 	<p class="list_item"><strong>Command D8 0D 80 - Clear Video Frame</strong></p>
@@ -7720,8 +7750,8 @@ Read Something?		| D9			| TV_CNT_A
 	<p class="list_item">This command renders any video frame from TV signals or the A/V input source. After issuing this command, 15bpp image data is available to read at the address range 0xA800000 - 0xA812BFF.</p>
 
 	<p class="spc"></p>
-	<p class="list_item"><strong>Command D9 - Read Something?</strong></p>
-	<p class="list_item">This command appears to read the result of several unidentified commands. Its purpose and function are currently unknown.</p>
+	<p class="list_item"><strong>Command D9 - Read Command Byte</strong></p>
+	<p class="list_item">This command reads a single byte that represents the result of several unidentified commands. Specifically, it is used in conjection with the D8 00 and D8 14 commands.</p>
 
 	<a name="atv_fla"></a>
 	<p class="gray_title">[Agatsuma TV Tuner] : Flash Memory</p>
