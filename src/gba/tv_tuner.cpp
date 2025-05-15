@@ -546,6 +546,15 @@ void AGB_MMU::process_tv_tuner_cmd()
 		//std::cout<<"CMD 0xD9\n";
 	}
 
+	//86 command -> Writes 16-bit values
+	else if((tv_tuner.cmd_stream.size() == 3) && (tv_tuner.cmd_stream[0] == 0x86) && (tv_tuner.state == TV_TUNER_STOP_DATA))
+	{
+		u8 param_1 = tv_tuner.cmd_stream[1];
+		u8 param_2 = tv_tuner.cmd_stream[2];
+
+		//std::cout<<"CMD 0x86 -> 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n";
+	}
+
 	//87 command -> Reads a single 8-bit value
 	//Appears to indicate if a channel is active. Used during the Channel Search feature
 	else if((tv_tuner.cmd_stream.size() == 1) && (tv_tuner.cmd_stream[0] == 0x87) && (tv_tuner.state == TV_TUNER_NEXT_DATA))
@@ -608,8 +617,6 @@ void AGB_MMU::process_tv_tuner_cmd()
 			std::cout<<"CHANNEL FREQUENCY -> " << tv_tuner.channel_freq << "\n";
 			std::cout<<"CHANNEL FREQUENCY RAW -> " << raw_freq << "\n\n";
 		}
-
-		else { std::cout<<"UKNOWN CMD -> 0x86 :: 0x" << (u32)param_1 << " :: 0x" << (u32)param_2 << "\n"; }
 	}
 
 	//Unknown command
