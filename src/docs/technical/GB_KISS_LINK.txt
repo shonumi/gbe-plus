@@ -176,7 +176,7 @@ Sender Bytes	| Value			| Description
 0x08		| 0x1C			| Command Checksum
 ----------------------------------------------------------------------------------------------------------------------
 
-The receiver the responds with an ASCII string: "GB KISS MENU ". This string must be an exact match, otherwise the sender will fail to initialize continue after a certain point. The receiver's respon looks like this:
+The receiver the responds with an ASCII string: "GB KISS MENU ". This string must be an exact match, otherwise the sender will fail to initialize continue after a certain point. The receiver's response looks like this:
 
 ----------------------------------------------------------------------------------------------------------------------
 Receiver Bytes	| Value			| Description
