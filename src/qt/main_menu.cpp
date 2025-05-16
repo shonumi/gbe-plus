@@ -1337,6 +1337,8 @@ void main_menu::pause()
 			pause_emu();
 		}
 	}
+
+	else { findChild<QAction*>("pause_action")->setChecked(false); }
 }
 
 /****** Pauses the emulator ******/
