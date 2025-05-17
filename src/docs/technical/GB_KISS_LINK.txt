@@ -239,7 +239,7 @@ The length of Title and Icon Data is specified by the Byte 0x04 of the GBF file.
 ----------------------------------------------------------------------------------------------------------------------
 Receiver Bytes	| Value			| Description
 ----------------------------------------------------------------------------------------------------------------------
-0x00		| 0x90			| Transfer Status
+0x00		| 0x80 or 0x90		| Transfer Status
 0x01		| 0x00			|
 0x02  - 0x03	| 0xC500		| Remote Address
 0x04		| ...			| Title and Icon Length
@@ -251,6 +251,8 @@ Receiver Bytes	| Value			| Description
 0x14  - 0x108	| ...			| Title and Icon Data
 0x109		| ...			| Data Checksum
 ----------------------------------------------------------------------------------------------------------------------
+
+The Transfer Status here respresents whether or not the receiver already has a GBF file that matches what the sender is trying to transfer. The value 0x80 means an existing file is present, which prompts the sender to comfirm if the file will be overwritten. The value 0x90 indicates no matching file is present.
 
 The total length of this transfer is *ALWAYS* 265 bytes. Since the Title and Icon data will not fill up this space, it seems random RAM bytes are transferred towards the very end before the Data Checksum. The format for File Search Input is currently not known. Note that in the case that a GBF file does not have its own icon, only the Title data will actually be transferred. The 11 bytes sent here are copied and used by the sender later on. Before that, the sender writes to the receiver's RAM for unknown reasons:
 
