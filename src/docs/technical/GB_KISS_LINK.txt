@@ -101,7 +101,9 @@ Command	| Description
 0x02	| Send Title and Icon Data
 0x03	| File Search
 0x04	| Start/Stop File Data Transer
+0x06	| Continue File Transfer
 0x08	| Read Remote RAM
+0x09	| Read Remote SRAM
 0x0A	| Send File Data
 0x0B	| Write Remote RAM
 ---------------------------------------------------------
@@ -252,9 +254,30 @@ Receiver Bytes	| Value			| Description
 0x109		| ...			| Data Checksum
 ----------------------------------------------------------------------------------------------------------------------
 
-The Transfer Status here respresents whether or not the receiver already has a GBF file that matches what the sender is trying to transfer. The value 0x80 means an existing file is present, which prompts the sender to comfirm if the file will be overwritten. The value 0x90 indicates no matching file is present.
+The Transfer Status here represents whether or not the receiver already has a GBF file that matches what the sender is trying to transfer. The value 0x80 means an existing file is present, which prompts the sender to confirm if the file will be sent anyway. The value 0x90 indicates no matching file is present. The actual content of the GBF file may be different or updated, something that isn't communicated when just sending the Title and Icon. This should be considered a preliminary check at best for users to detect duplicate files. All infrared activity is paused until the sender makes a choice to send the file or quit the transfer immediately.
 
-The total length of this transfer is *ALWAYS* 265 bytes. Since the Title and Icon data will not fill up this space, it seems random RAM bytes are transferred towards the very end before the Data Checksum. The format for File Search Input is currently not known. Note that in the case that a GBF file does not have its own icon, only the Title data will actually be transferred. The 11 bytes sent here are copied and used by the sender later on. Before that, the sender writes to the receiver's RAM for unknown reasons:
+The total length of this transfer is *ALWAYS* 265 bytes. Since the Title and Icon data will not fill up this space, it seems random RAM bytes are transferred towards the very end before the Data Checksum. The format for File Search Input is currently not known. Note that in the case that a GBF file does not have its own icon, only the Title data will actually be transferred. The 11 bytes sent here are copied and used by the sender later on.
+
+If a duplicate file is not sent, the connection is closed and with a command to stop the current session. Otherwise, a new command is sent to indicate that the receiver will delete the current file and write the the incoming GBF file data (potentially moving it to a new slot as well).
+
+----------------------------------------------------------------------------------------------------------------------
+Sender Bytes	| Value			| Description
+----------------------------------------------------------------------------------------------------------------------
+0x00		| 0x30			| Transfer Status 
+0x01		| 0x06			| Command Byte (Continue File Transfer)
+0x02 - 0x03	| 0xC700		| Local Address
+0x04		| 0x10			|
+0x05		| 0x09			| 
+0x06		| 0x08			| 
+0x07		| 0x23			| Parameter
+0x08		| ...			| Command Checksum
+0x09 - ...	| ...			| Echo of File Search Input + Title and Icon Length/Data
+...		| ...			| Echo Checksum
+----------------------------------------------------------------------------------------------------------------------
+
+This command essentially copies all the data from the original response to the Send Title and Icon Data command. It appears to force the receiver to accept the incoming file and mark the old data to be deleted. The 4 parameters after the Local Address are used for currently unknown purposes, however, they appear to be constant values, at least as far as most GB KISS transfers are concerned. Once this command is finished, the sender must repeat the above Send Title and Icon Data. At this point, the receiver's Transfer Status value will read 0x90.
+
+After the Send Title and Icon Data command, the sender writes to the receiver's RAM:
 
 ----------------------------------------------------------------------------------------------------------------------
 Sender Bytes	| Value			| Description
