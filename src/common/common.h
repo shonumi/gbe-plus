@@ -42,4 +42,6 @@ const u32 CPSR_MODE_ABT = 0x17;
 const u32 CPSR_MODE_UND = 0x1B;
 const u32 CPSR_MODE_SYS = 0x1F;
 
+const u32 SAVE_STATE_VERSION = 0x01;
+
 #endif // EMU_COMMON
