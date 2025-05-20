@@ -160,7 +160,7 @@ void DMG_core::load_state(u8 slot)
 	}
 
 	if(!get_save_state_version(offset, state_file)) { return; }
-	offset += sizeof(SAVE_STATE_VERSION);
+	offset += sizeof(DMG_SAVE_STATE_VERSION);
 
 	if(!core_cpu.cpu_read(offset, state_file)) { return; }
 	offset += core_cpu.size();	
@@ -213,7 +213,7 @@ bool DMG_core::get_save_state_version(u32 offset, std::string filename)
 	file.read((char*)&version, sizeof(version));
 	file.close();
 
-	if(version == SAVE_STATE_VERSION)
+	if(version == DMG_SAVE_STATE_VERSION)
 	{
 		return true;
 	}
@@ -231,7 +231,7 @@ bool DMG_core::set_save_state_version(std::string filename)
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
 	if(!file.is_open()) { return false; }
 
-	file.write((char*)&SAVE_STATE_VERSION, sizeof(SAVE_STATE_VERSION));
+	file.write((char*)&DMG_SAVE_STATE_VERSION, sizeof(DMG_SAVE_STATE_VERSION));
 	file.close();
 
 	return true;
