@@ -153,19 +153,18 @@ void SGB_core::load_state(u8 slot)
 		return;
 	}
 
-	//Offset 0, size 43
+	if(!get_save_state_version(offset, state_file)) { return; }
+	offset += sizeof(SGB_SAVE_STATE_VERSION);
+
 	if(!core_cpu.cpu_read(offset, state_file)) { return; }
 	offset += core_cpu.size();	
 
-	//Offset 43, size 213047
 	if(!core_mmu.mmu_read(offset, state_file)) { return; }
 	offset += core_mmu.size();
 
-	//Offset 213090, size 320
 	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
 	offset += core_cpu.controllers.audio.size();
 
-	//Offset 213410
 	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
@@ -183,6 +182,7 @@ void SGB_core::save_state(u8 slot)
 	std::string state_file = config::rom_file + ".ss";
 	state_file += id;
 
+	if(!set_save_state_version(state_file)) { return; }
 	if(!core_cpu.cpu_write(state_file)) { return; }
 	if(!core_mmu.mmu_write(state_file)) { return; }
 	if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
@@ -193,6 +193,42 @@ void SGB_core::save_state(u8 slot)
 	//OSD
 	config::osd_message = "SAVED STATE " + util::to_str(slot);
 	config::osd_count = 180;
+}
+
+/****** Gets the save state version ******/
+bool SGB_core::get_save_state_version(u32 offset, std::string filename)
+{
+	u32 version = 0;
+
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	if(!file.is_open()) { return false; }
+
+	file.seekg(offset);
+	file.read((char*)&version, sizeof(version));
+	file.close();
+
+	if(version == SGB_SAVE_STATE_VERSION)
+	{
+		return true;
+	}
+	
+	else
+	{
+		std::cout<<"GBE::Warning - Save State " <<  filename << " has outdated version number. Cannot load save.\n";
+		return false;
+	}	
+}
+
+/****** Sets the save state version ******/
+bool SGB_core::set_save_state_version(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	if(!file.is_open()) { return false; }
+
+	file.write((char*)&SGB_SAVE_STATE_VERSION, sizeof(SGB_SAVE_STATE_VERSION));
+	file.close();
+
+	return true;
 }
 
 /****** Run the core in a loop until exit ******/
