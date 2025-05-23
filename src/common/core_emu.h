@@ -38,6 +38,8 @@ class core_emu
 	virtual void feed_key_input(int sdl_key, bool pressed) = 0;
 	virtual	void save_state(u8 slot) = 0;
 	virtual	void load_state(u8 slot) = 0;
+	virtual bool get_save_state_version(u32 offset, std::string filename) = 0;
+	virtual bool set_save_state_version(std::string filename) = 0;
 
 	//Core debugging
 	virtual	void debug_step() = 0;

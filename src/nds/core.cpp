@@ -190,6 +190,42 @@ void NTR_core::load_state(u8 slot) { }
 /****** Saves a save state ******/
 void NTR_core::save_state(u8 slot) { }
 
+/****** Gets the save state version ******/
+bool NTR_core::get_save_state_version(u32 offset, std::string filename)
+{
+	u32 version = 0;
+
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	if(!file.is_open()) { return false; }
+
+	file.seekg(offset);
+	file.read((char*)&version, sizeof(version));
+	file.close();
+
+	if(version == NTR_SAVE_STATE_VERSION)
+	{
+		return true;
+	}
+	
+	else
+	{
+		std::cout<<"GBE::Warning - Save State " <<  filename << " has outdated version number. Cannot load save.\n";
+		return false;
+	}	
+}
+
+/****** Sets the save state version ******/
+bool NTR_core::set_save_state_version(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	if(!file.is_open()) { return false; }
+
+	file.write((char*)&NTR_SAVE_STATE_VERSION, sizeof(NTR_SAVE_STATE_VERSION));
+	file.close();
+
+	return true;
+}
+
 /****** Run the core in a loop until exit ******/
 void NTR_core::run_core()
 {

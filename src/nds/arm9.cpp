@@ -1642,7 +1642,7 @@ bool NTR_ARM9::cpu_read(u32 offset, std::string filename)
 /****** Write CPU data to save state ******/
 bool NTR_ARM9::cpu_write(std::string filename)
 {
-	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
 	
 	if(!file.is_open()) { return false; }
 
