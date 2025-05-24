@@ -280,6 +280,24 @@ bool SGB_LCD::lcd_read(u32 offset, std::string filename)
 		file.read((char*)&obj[x], sizeof(obj[x]));
 	}
 
+	file.read((char*)&sgb_mask_mode, sizeof(sgb_mask_mode));
+	file.read((char*)&sgb_gfx_mode, sizeof(sgb_gfx_mode));
+	file.read((char*)&sgb_pal, sizeof(sgb_pal));
+	file.read((char*)&atf_data, sizeof(atf_data));
+	file.read((char*)&sgb_system_pal, sizeof(sgb_system_pal));
+	file.read((char*)&current_atf, sizeof(current_atf));
+	file.read((char*)&color_0, sizeof(color_0));
+	file.read((char*)&manual_pal, sizeof(manual_pal));
+	file.read((char*)&render_border, sizeof(render_border));
+
+	file.read((char*)border_tile_map, sizeof(border_tile_map));
+	file.read((char*)border_pal, sizeof(border_pal));
+	file.read((char*)border_chr, sizeof(border_chr));
+	file.read((char*)atr_blk, sizeof(atr_blk));
+
+	//Render border now. Loading save state after booting can lead to black borders.
+	render_sgb_border();
+
 	//Sanitize LCD data
 	if(lcd_stat.current_scanline > 153) { lcd_stat.current_scanline = 0;  }
 	if(lcd_stat.last_y > 153) { lcd_stat.last_y = 0; }
@@ -307,6 +325,21 @@ bool SGB_LCD::lcd_write(std::string filename)
 	{
 		file.write((char*)&obj[x], sizeof(obj[x]));
 	}
+
+	file.write((char*)&sgb_mask_mode, sizeof(sgb_mask_mode));
+	file.write((char*)&sgb_gfx_mode, sizeof(sgb_gfx_mode));
+	file.write((char*)&sgb_pal, sizeof(sgb_pal));
+	file.write((char*)&atf_data, sizeof(atf_data));
+	file.write((char*)&sgb_system_pal, sizeof(sgb_system_pal));
+	file.write((char*)&current_atf, sizeof(current_atf));
+	file.write((char*)&color_0, sizeof(color_0));
+	file.write((char*)&manual_pal, sizeof(manual_pal));
+	file.write((char*)&render_border, sizeof(render_border));
+
+	file.write((char*)border_tile_map, sizeof(border_tile_map));
+	file.write((char*)border_pal, sizeof(border_pal));
+	file.write((char*)border_chr, sizeof(border_chr));
+	file.write((char*)atr_blk, sizeof(atr_blk));
 
 	file.close();
 	return true;
