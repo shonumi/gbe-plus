@@ -37,8 +37,8 @@ class DMG_core : virtual public core_emu
 		void feed_key_input(int sdl_key, bool pressed);
 		void save_state(u8 slot);
 		void load_state(u8 slot);
-		bool get_save_state_version(u32 offset, std::string filename);
-		bool set_save_state_version(std::string filename);
+		bool get_save_state_info(u32 offset, std::string filename);
+		bool set_save_state_info(std::string filename);
 		void run_core();
 
 		//Core debugging

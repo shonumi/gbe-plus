@@ -86,6 +86,18 @@ enum gba_save_types
 	AGB_TV_TUNER_FLASH,
 };
 
+enum system_types
+{
+	SYS_AUTO = 0,
+	SYS_DMG = 1,
+	SYS_GBC = 2,
+	SYS_GBA = 3,
+	SYS_NDS = 4,
+	SYS_SGB = 5,
+	SYS_SGB2 = 6,
+	SYS_MIN = 7,
+};
+
 namespace config
 { 
 	extern std::string rom_file;
