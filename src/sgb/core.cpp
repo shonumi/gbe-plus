@@ -210,7 +210,7 @@ bool SGB_core::get_save_state_info(u32 offset, std::string filename)
 	file.read((char*)&system_type, sizeof(system_type));
 	file.close();
 
-	if(system_type != config::gb_type)
+	if((system_type != SYS_SGB) && (system_type != SYS_SGB2))
 	{
 		std::cout<<"GBE::Error - Save State " <<  filename << " has incorrect system type. Cannot load save.\n";
 		return false;
@@ -232,7 +232,7 @@ bool SGB_core::set_save_state_info(std::string filename)
 	if(!file.is_open()) { return false; }
 
 	file.write((char*)&SGB_SAVE_STATE_VERSION, sizeof(SGB_SAVE_STATE_VERSION));
-	file.write((char*)&config::gb_type, sizeof(config::gb_type));
+	file.write((char*)&core_mmu.original_sys_type, sizeof(core_mmu.original_sys_type));
 	file.close();
 
 	return true;

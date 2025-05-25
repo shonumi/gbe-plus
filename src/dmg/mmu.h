@@ -59,6 +59,8 @@ class DMG_MMU
 	//Flash memory - MBC6 only
 	std::vector< std::vector<u8> > flash;
 
+	u8 original_sys_type;
+
 	//Bank controls
 	u16 rom_bank;
 	u8 ram_bank;

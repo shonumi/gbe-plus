@@ -21,6 +21,9 @@ DMG_MMU::DMG_MMU()
 	//Explicitly init flash_stat just *once* when creating the MMU instance
 	cart.flash_stat = 0;
 
+	//Grab the original system type, used for SGB save state info
+	original_sys_type = config::gb_type;
+
 	reset();
 }
 
@@ -230,6 +233,7 @@ bool DMG_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&bios_size, sizeof(bios_size));
 	file.read((char*)&cart, sizeof(cart));
 	file.read((char*)&previous_value, sizeof(previous_value));
+	file.read((char*)&original_sys_type, sizeof(original_sys_type));
 
 	//Sanitize MMU data from save state
 	if((bios_size != 0x100) && (bios_size != 0x900)) { bios_size = 0x100; }
@@ -271,6 +275,7 @@ bool DMG_MMU::mmu_write(std::string filename)
 	file.write((char*)&bios_size, sizeof(bios_size));
 	file.write((char*)&cart, sizeof(cart));
 	file.write((char*)&previous_value, sizeof(previous_value));
+	file.write((char*)&original_sys_type, sizeof(original_sys_type));
 
 	file.close();
 	return true;
@@ -295,6 +300,7 @@ u32 DMG_MMU::size()
 	mmu_size += sizeof(bios_size);
 	mmu_size += sizeof(cart);
 	mmu_size += sizeof(previous_value);
+	mmu_size += sizeof(original_sys_type);
 
 	return mmu_size;
 }
