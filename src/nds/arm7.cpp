@@ -1648,12 +1648,8 @@ bool NTR_ARM7::cpu_write(std::string filename)
 	file.write((char*)&thumb_long_branch, sizeof(thumb_long_branch));
 	file.write((char*)&last_instr_branch, sizeof(last_instr_branch));
 	file.write((char*)&swi_waitbyloop_count, sizeof(swi_waitbyloop_count));
-	file.write((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
-	file.write((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
-	file.write((char*)&instruction_pipeline[2], sizeof(instruction_pipeline[2]));
-	file.write((char*)&instruction_operation[0], sizeof(instruction_operation[0]));
-	file.write((char*)&instruction_operation[1], sizeof(instruction_operation[1]));
-	file.write((char*)&instruction_operation[2], sizeof(instruction_operation[2]));
+	file.write((char*)&instruction_pipeline, sizeof(instruction_pipeline));
+	file.write((char*)&instruction_operation, sizeof(instruction_operation));
 	file.write((char*)&pipeline_pointer, sizeof(pipeline_pointer));
 	file.write((char*)&debug_message, sizeof(debug_message));
 	file.write((char*)&debug_code, sizeof(debug_code));
@@ -1664,10 +1660,7 @@ bool NTR_ARM7::cpu_write(std::string filename)
 	file.write((char*)&re_sync, sizeof(re_sync));
 
 	//Serialize timers to save state
-	file.write((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
-	file.write((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
-	file.write((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
-	file.write((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+	file.write((char*)&controllers.timer, sizeof(controllers.timer));
 
 	file.close();
 	return true;
@@ -1689,21 +1682,14 @@ u32 NTR_ARM7::size()
 	cpu_size += sizeof(thumb_long_branch);
 	cpu_size += sizeof(last_instr_branch);
 	cpu_size += sizeof(swi_waitbyloop_count);
-	cpu_size += sizeof(instruction_pipeline[0]);
-	cpu_size += sizeof(instruction_pipeline[1]);
-	cpu_size += sizeof(instruction_pipeline[2]);
-	cpu_size += sizeof(instruction_operation[0]);
-	cpu_size += sizeof(instruction_operation[1]);
-	cpu_size += sizeof(instruction_operation[2]);
+	cpu_size += sizeof(instruction_pipeline);
+	cpu_size += sizeof(instruction_operation);
 	cpu_size += sizeof(pipeline_pointer);
 	cpu_size += sizeof(debug_message);
 	cpu_size += sizeof(debug_code);
 	cpu_size += sizeof(debug_cycles);
 	cpu_size += sizeof(debug_addr);
-	cpu_size += sizeof(controllers.timer[0]);
-	cpu_size += sizeof(controllers.timer[1]);
-	cpu_size += sizeof(controllers.timer[2]);
-	cpu_size += sizeof(controllers.timer[3]);
+	cpu_size += sizeof(controllers.timer);
 	cpu_size += sizeof(sync_cycles);
 	cpu_size += sizeof(system_cycles);
 	cpu_size += sizeof(re_sync);
