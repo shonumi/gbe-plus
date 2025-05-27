@@ -6643,6 +6643,9 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	
 	if(!file.is_open()) { return false; }
 
+	u32 temp_word = 0;
+	u32 temp_size = 0;
+
 	//Go to offset
 	file.seekg(offset);
 
@@ -6702,20 +6705,37 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	//Serialize misc data from MMU from save state
 	file.read((char*)&current_save_type, sizeof(current_save_type));
 	file.read((char*)&gba_save_type, sizeof(gba_save_type));
+	file.read((char*)&current_slot1_device, sizeof(current_slot1_device));
 	file.read((char*)&current_slot2_device, sizeof(current_slot2_device));
 
 	//Serialize IPC from save state
 	file.read((char*)&nds7_ipc.sync, sizeof(nds7_ipc.sync));
 	file.read((char*)&nds7_ipc.cnt, sizeof(nds7_ipc.cnt));
-	file.read((char*)&nds7_ipc.fifo, sizeof(nds7_ipc.fifo));
 	file.read((char*)&nds7_ipc.fifo_latest, sizeof(nds7_ipc.fifo_latest));
 	file.read((char*)&nds7_ipc.fifo_incoming, sizeof(nds7_ipc.fifo_incoming));
 
+	file.read((char*)&temp_size, sizeof(temp_size));
+	while(!nds7_ipc.fifo.empty()) { nds7_ipc.fifo.pop(); }
+
+	for(u32 x = 0; x < temp_size; x++)
+	{
+		file.read((char*)&temp_word, sizeof(temp_word));
+		nds7_ipc.fifo.push(temp_word);
+	} 
+
 	file.read((char*)&nds9_ipc.sync, sizeof(nds9_ipc.sync));
 	file.read((char*)&nds9_ipc.cnt, sizeof(nds9_ipc.cnt));
-	file.read((char*)&nds9_ipc.fifo, sizeof(nds9_ipc.fifo));
 	file.read((char*)&nds9_ipc.fifo_latest, sizeof(nds9_ipc.fifo_latest));
 	file.read((char*)&nds9_ipc.fifo_incoming, sizeof(nds9_ipc.fifo_incoming));
+
+	file.read((char*)&temp_size, sizeof(temp_size));
+	while(!nds9_ipc.fifo.empty()) { nds9_ipc.fifo.pop(); }
+
+	for(u32 x = 0; x < temp_size; x++)
+	{
+		file.read((char*)&temp_word, sizeof(temp_word));
+		nds9_ipc.fifo.push(temp_word);
+	} 
 
 	//Serialize SPI, AUX_SPI, Game Card, RTC, NDS9 Math, and Touchscreen from save state
 	file.read((char*)&nds7_spi, sizeof(nds7_spi));
@@ -6726,9 +6746,17 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&touchscreen, sizeof(touchscreen));
 
 	//Serialize GX data from save state
-	file.read((char*)&nds9_gx_fifo, sizeof(nds9_gx_fifo));
 	file.read((char*)&gx_fifo_entry, sizeof(gx_fifo_entry));
 	file.read((char*)&gx_fifo_param_length, sizeof(gx_fifo_param_length));
+
+	file.read((char*)&temp_size, sizeof(temp_size));
+	while(!nds9_gx_fifo.empty()) { nds9_gx_fifo.pop(); }
+
+	for(u32 x = 0; x < temp_size; x++)
+	{
+		file.read((char*)&temp_word, sizeof(temp_word));
+		nds9_gx_fifo.push(temp_word);
+	} 
 
 	//Serialize more misc data from MMU from save state
 	file.read((char*)&n_clock, sizeof(n_clock));
@@ -6746,7 +6774,7 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&header, sizeof(header));
 
 	//Serialize DMA data from save state
-	for(u32 x = 0; x < 8; x++) { file.read((char*)&dma[x], sizeof(dma[x])); }
+	file.read((char*)&dma, sizeof(dma));
 
 	//Serialize even more misc data from MMU from save state
 	file.read((char*)&nds9_ie, sizeof(nds9_ie));
@@ -6788,6 +6816,8 @@ bool NTR_MMU::mmu_write(std::string filename)
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
 	
 	if(!file.is_open()) { return false; }
+
+	u32 temp_word = 0;
 
 	//Serialize WRAM to save state
 	u8* ex_mem = &memory_map[0x2000000];
@@ -6845,20 +6875,41 @@ bool NTR_MMU::mmu_write(std::string filename)
 	//Serialize misc data to MMU to save state
 	file.write((char*)&current_save_type, sizeof(current_save_type));
 	file.write((char*)&gba_save_type, sizeof(gba_save_type));
+	file.write((char*)&current_slot1_device, sizeof(current_slot1_device));
 	file.write((char*)&current_slot2_device, sizeof(current_slot2_device));
 
 	//Serialize IPC to save state
 	file.write((char*)&nds7_ipc.sync, sizeof(nds7_ipc.sync));
 	file.write((char*)&nds7_ipc.cnt, sizeof(nds7_ipc.cnt));
-	file.write((char*)&nds7_ipc.fifo, sizeof(nds7_ipc.fifo));
 	file.write((char*)&nds7_ipc.fifo_latest, sizeof(nds7_ipc.fifo_latest));
 	file.write((char*)&nds7_ipc.fifo_incoming, sizeof(nds7_ipc.fifo_incoming));
 
+	std::queue <u32> temp_q1(nds7_ipc.fifo);
+	temp_word = temp_q1.size();
+	file.write((char*)&temp_word, sizeof(temp_word));
+
+	while(!temp_q1.empty())
+	{
+		temp_word = temp_q1.front();
+		file.write((char*)&temp_word, sizeof(temp_word));
+		temp_q1.pop();
+	}
+
 	file.write((char*)&nds9_ipc.sync, sizeof(nds9_ipc.sync));
 	file.write((char*)&nds9_ipc.cnt, sizeof(nds9_ipc.cnt));
-	file.write((char*)&nds9_ipc.fifo, sizeof(nds9_ipc.fifo));
 	file.write((char*)&nds9_ipc.fifo_latest, sizeof(nds9_ipc.fifo_latest));
 	file.write((char*)&nds9_ipc.fifo_incoming, sizeof(nds9_ipc.fifo_incoming));
+
+	std::queue <u32> temp_q2(nds9_ipc.fifo);
+	temp_word = temp_q2.size();
+	file.write((char*)&temp_word, sizeof(temp_word));
+
+	while(!temp_q2.empty())
+	{
+		temp_word = temp_q2.front();
+		file.write((char*)&temp_word, sizeof(temp_word));
+		temp_q2.pop();
+	}
 
 	//Serialize SPI, AUX_SPI, Game Card, RTC, NDS9 Math, and Touchscreen to save state
 	file.write((char*)&nds7_spi, sizeof(nds7_spi));
@@ -6869,9 +6920,19 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&touchscreen, sizeof(touchscreen));
 
 	//Serialize GX data to save state
-	file.write((char*)&nds9_gx_fifo, sizeof(nds9_gx_fifo));
 	file.write((char*)&gx_fifo_entry, sizeof(gx_fifo_entry));
 	file.write((char*)&gx_fifo_param_length, sizeof(gx_fifo_param_length));
+
+	std::queue <u32> temp_q3(nds9_gx_fifo);
+	temp_word = temp_q3.size();
+	file.write((char*)&temp_word, sizeof(temp_word));
+
+	while(!temp_q3.empty())
+	{
+		temp_word = temp_q3.front();
+		file.write((char*)&temp_word, sizeof(temp_word));
+		temp_q3.pop();
+	}
 
 	//Serialize more misc data from MMU to save state
 	file.write((char*)&n_clock, sizeof(n_clock));
@@ -6889,7 +6950,7 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&header, sizeof(header));
 
 	//Serialize DMA data to save state
-	for(u32 x = 0; x < 8; x++) { file.write((char*)&dma[x], sizeof(dma[x])); }
+	file.write((char*)&dma, sizeof(dma));
 
 	//Serialize even more misc data to MMU to save state
 	file.write((char*)&nds9_ie, sizeof(nds9_ie));
@@ -6932,19 +6993,22 @@ u32 NTR_MMU::size()
 
 	mmu_size += sizeof(current_save_type);
 	mmu_size += sizeof(gba_save_type);
+	mmu_size += sizeof(current_slot1_device);
 	mmu_size += sizeof(current_slot2_device);
 
 	mmu_size += sizeof(nds7_ipc.sync);
 	mmu_size += sizeof(nds7_ipc.cnt);
-	mmu_size += sizeof(nds7_ipc.fifo);
 	mmu_size += sizeof(nds7_ipc.fifo_latest);
 	mmu_size += sizeof(nds7_ipc.fifo_incoming);
 
+	mmu_size += (4 + (nds7_ipc.fifo.size() * 4));
+
 	mmu_size += sizeof(nds9_ipc.sync);
 	mmu_size += sizeof(nds9_ipc.cnt);
-	mmu_size += sizeof(nds9_ipc.fifo);
 	mmu_size += sizeof(nds9_ipc.fifo_latest);
 	mmu_size += sizeof(nds9_ipc.fifo_incoming);
+
+	mmu_size += (4 + (nds9_ipc.fifo.size() * 4));
 
 	mmu_size += sizeof(nds7_spi);
 	mmu_size += sizeof(nds_aux_spi);
@@ -6953,9 +7017,10 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(nds9_math);
 	mmu_size += sizeof(touchscreen);
 
-	mmu_size += sizeof(nds9_gx_fifo);
 	mmu_size += sizeof(gx_fifo_entry);
 	mmu_size += sizeof(gx_fifo_param_length);
+
+	mmu_size += (4 + (nds9_gx_fifo.size() * 4));
 
 	mmu_size += sizeof(n_clock);
 	mmu_size += sizeof(s_clock);
@@ -6971,7 +7036,7 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(gx_command);
 	mmu_size += sizeof(header);
 
-	for(u32 x = 0; x < 8; x++) { mmu_size += sizeof(dma[x]); }
+	mmu_size += sizeof(dma);
 
 	mmu_size += sizeof(nds9_ie);
 	mmu_size += sizeof(nds9_if);
