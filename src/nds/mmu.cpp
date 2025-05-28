@@ -6779,6 +6779,7 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	//Serialize even more misc data from MMU from save state
 	file.read((char*)&nds9_ie, sizeof(nds9_ie));
 	file.read((char*)&nds9_if, sizeof(nds9_if));
+	file.read((char*)&gx_if, sizeof(gx_if));
 	file.read((char*)&nds9_temp_if, sizeof(nds9_temp_if));
 	file.read((char*)&nds9_ime, sizeof(nds9_ime));
 	file.read((char*)&power_cnt1, sizeof(power_cnt1));
@@ -6799,7 +6800,10 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&touchscreen_state, sizeof(touchscreen_state));
 	file.read((char*)&apu_io_id, sizeof(apu_io_id));
 	file.read((char*)&dtcm_addr, sizeof(dtcm_addr));
+	file.read((char*)&dtcm_end, sizeof(dtcm_end));
+	file.read((char*)&dtcm_load_mode, sizeof(dtcm_load_mode));
 	file.read((char*)&itcm_addr, sizeof(itcm_addr));
+	file.read((char*)&itcm_load_mode, sizeof(itcm_load_mode));
 	file.read((char*)&pal_a_bg_slot, sizeof(pal_a_bg_slot));
 	file.read((char*)&pal_a_obj_slot, sizeof(pal_a_obj_slot));
 	file.read((char*)&pal_b_bg_slot, sizeof(pal_b_bg_slot));
@@ -6955,6 +6959,7 @@ bool NTR_MMU::mmu_write(std::string filename)
 	//Serialize even more misc data to MMU to save state
 	file.write((char*)&nds9_ie, sizeof(nds9_ie));
 	file.write((char*)&nds9_if, sizeof(nds9_if));
+	file.write((char*)&gx_if, sizeof(gx_if));
 	file.write((char*)&nds9_temp_if, sizeof(nds9_temp_if));
 	file.write((char*)&nds9_ime, sizeof(nds9_ime));
 	file.write((char*)&power_cnt1, sizeof(power_cnt1));
@@ -6975,7 +6980,10 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&touchscreen_state, sizeof(touchscreen_state));
 	file.write((char*)&apu_io_id, sizeof(apu_io_id));
 	file.write((char*)&dtcm_addr, sizeof(dtcm_addr));
+	file.write((char*)&dtcm_end, sizeof(dtcm_end));
+	file.write((char*)&dtcm_load_mode, sizeof(dtcm_load_mode));
 	file.write((char*)&itcm_addr, sizeof(itcm_addr));
+	file.write((char*)&itcm_load_mode, sizeof(itcm_load_mode));
 	file.write((char*)&pal_a_bg_slot, sizeof(pal_a_bg_slot));
 	file.write((char*)&pal_a_obj_slot, sizeof(pal_a_obj_slot));
 	file.write((char*)&pal_b_bg_slot, sizeof(pal_b_bg_slot));
@@ -7040,6 +7048,7 @@ u32 NTR_MMU::size()
 
 	mmu_size += sizeof(nds9_ie);
 	mmu_size += sizeof(nds9_if);
+	mmu_size += sizeof(gx_if);
 	mmu_size += sizeof(nds9_temp_if);
 	mmu_size += sizeof(nds9_ime);
 	mmu_size += sizeof(power_cnt1);
@@ -7060,7 +7069,10 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(touchscreen_state);
 	mmu_size += sizeof(apu_io_id);
 	mmu_size += sizeof(dtcm_addr);
+	mmu_size += sizeof(dtcm_end);
+	mmu_size += sizeof(dtcm_load_mode);
 	mmu_size += sizeof(itcm_addr);
+	mmu_size += sizeof(itcm_load_mode);
 	mmu_size += sizeof(pal_a_bg_slot);
 	mmu_size += sizeof(pal_a_obj_slot);
 	mmu_size += sizeof(pal_b_bg_slot);
