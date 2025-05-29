@@ -197,34 +197,34 @@ struct ntr_lcd_data
 	bool vcount_irq_enable_b;
 
 	bool bg_pal_update_a;
-	std::vector<bool> bg_pal_update_list_a;
+	bool bg_pal_update_list_a[0x100];
 
 	bool bg_pal_update_b;
-	std::vector<bool> bg_pal_update_list_b;
+	bool bg_pal_update_list_b[0x100];
 
 	bool obj_pal_update_a;
-	std::vector<bool> obj_pal_update_list_a;
+	bool obj_pal_update_list_a[0x100];
 
 	bool obj_pal_update_b;
-	std::vector<bool> obj_pal_update_list_b;
+	bool obj_pal_update_list_b[0x100];
 
 	bool bg_ext_pal_update_a;
-	std::vector<bool> bg_ext_pal_update_list_a;
+	bool bg_ext_pal_update_list_a[0x4000];
 
 	bool bg_ext_pal_update_b;
-	std::vector<bool> bg_ext_pal_update_list_b;
+	bool bg_ext_pal_update_list_b[0x4000];
 
 	bool obj_ext_pal_update_a;
-	std::vector<bool> obj_ext_pal_update_list_a;
+	bool obj_ext_pal_update_list_a[0x1000];
 
 	bool obj_ext_pal_update_b;
-	std::vector<bool> obj_ext_pal_update_list_b;
+	bool obj_ext_pal_update_list_b[0x1000];
 
 	bool update_bg_control_a;
 	bool update_bg_control_b;
 
 	bool oam_update;
-	std::vector<bool> oam_update_list;
+	bool oam_update_list[0x100];
 };
 
 struct ntr_lcd_3D_data

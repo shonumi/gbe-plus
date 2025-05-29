@@ -3114,16 +3114,16 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					if((bank_id == 5) || (bank_id == 6))
 					{
 						lcd_stat->obj_ext_pal_update_a = true;
-						std::fill(lcd_stat->obj_ext_pal_update_list_a.begin(), lcd_stat->obj_ext_pal_update_list_a.end(), true);
+						std::fill(lcd_stat->obj_ext_pal_update_list_a, (lcd_stat->obj_ext_pal_update_list_a + 0x1000), true);
 
 						lcd_stat->bg_ext_pal_update_a = true;
-						std::fill(lcd_stat->bg_ext_pal_update_list_a.begin(), lcd_stat->bg_ext_pal_update_list_a.end(), true);
+						std::fill(lcd_stat->bg_ext_pal_update_list_a, (lcd_stat->bg_ext_pal_update_list_a + 0x100), true);
 					}
 
 					else if(bank_id == 8)
 					{
 						lcd_stat->obj_ext_pal_update_b = true;
-						lcd_stat->obj_ext_pal_update_list_b.resize(0x1000, true);
+						std::fill(lcd_stat->obj_ext_pal_update_list_b, (lcd_stat->obj_ext_pal_update_list_b + 0x1000), true);
 					}
 
 					switch(mst)
@@ -6810,6 +6810,13 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&pal_b_obj_slot, sizeof(pal_b_obj_slot));
 	file.read((char*)&vram_tex_slot, sizeof(vram_tex_slot));
 
+	//Serialize timers from save state
+	for(u32 x = 0; x < 4; x++)
+	{
+		file.read((char*)&nds9_timer->at(x), sizeof(nds9_timer->at(x)));
+		file.read((char*)&nds7_timer->at(x), sizeof(nds7_timer->at(x)));
+	}
+
 	file.close();
 	return true;
 }
@@ -6990,6 +6997,13 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&pal_b_obj_slot, sizeof(pal_b_obj_slot));
 	file.write((char*)&vram_tex_slot, sizeof(vram_tex_slot));
 
+	//Serialize timers to save state
+	for(u32 x = 0; x < 4; x++)
+	{
+		file.write((char*)&nds9_timer->at(x), sizeof(nds9_timer->at(x)));
+		file.write((char*)&nds7_timer->at(x), sizeof(nds7_timer->at(x)));
+	}
+
 	file.close();
 	return true;
 }
@@ -7078,6 +7092,13 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(pal_b_bg_slot);
 	mmu_size += sizeof(pal_b_obj_slot);
 	mmu_size += sizeof(vram_tex_slot);
+
+	//Serialize timers to save state
+	for(u32 x = 0; x < 4; x++)
+	{
+		mmu_size += sizeof(nds9_timer->at(x));
+		mmu_size += sizeof(nds7_timer->at(x));
+	}
 
 	return mmu_size;
 }

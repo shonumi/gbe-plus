@@ -107,29 +107,41 @@ void NTR_LCD::reset()
 
 	//BG palette initialization
 	lcd_stat.bg_pal_update_a = true;
-	lcd_stat.bg_pal_update_list_a.resize(0x100, true);
-
 	lcd_stat.bg_pal_update_b = true;
-	lcd_stat.bg_pal_update_list_b.resize(0x100, true);
+
+	for(u32 x = 0; x < 0x100; x++)
+	{
+		lcd_stat.bg_pal_update_list_a[x] = true;
+		lcd_stat.bg_pal_update_list_b[x] = true;
+	}
 
 	lcd_stat.bg_ext_pal_update_a = true;
-	lcd_stat.bg_ext_pal_update_list_a.resize(0x4000, true);
-
 	lcd_stat.bg_ext_pal_update_b = true;
-	lcd_stat.bg_ext_pal_update_list_b.resize(0x4000, true);
+
+	for(u32 x = 0; x < 0x4000; x++)
+	{
+		lcd_stat.bg_ext_pal_update_list_a[x] = true;
+		lcd_stat.bg_ext_pal_update_list_b[x] = true;
+	}
 
 	//OBJ palette initialization
 	lcd_stat.obj_pal_update_a = true;
-	lcd_stat.obj_pal_update_list_a.resize(0x100, true);
-
 	lcd_stat.obj_pal_update_b = true;
-	lcd_stat.obj_pal_update_list_b.resize(0x100, true);
+
+	for(u32 x = 0; x < 0x100; x++)
+	{
+		lcd_stat.obj_pal_update_list_a[x] = true;
+		lcd_stat.obj_pal_update_list_b[x] = true;
+	}
 
 	lcd_stat.obj_ext_pal_update_a = true;
-	lcd_stat.obj_ext_pal_update_list_a.resize(0x1000, true);
-
 	lcd_stat.obj_ext_pal_update_b = true;
-	lcd_stat.obj_ext_pal_update_list_b.resize(0x1000, true);
+
+	for(u32 x = 0; x < 0x1000; x++)
+	{
+		lcd_stat.obj_ext_pal_update_list_a[x] = true;
+		lcd_stat.obj_ext_pal_update_list_b[x] = true;
+	}
 
 	//SFX and Window initialization
 	lcd_stat.current_sfx_type_a = NDS_NORMAL;
@@ -137,7 +149,11 @@ void NTR_LCD::reset()
 
 	//OAM initialization
 	lcd_stat.oam_update = true;
-	lcd_stat.oam_update_list.resize(0x100, true);
+
+	for(u32 x = 0; x < 0x100; x++)
+	{
+		lcd_stat.oam_update_list[x] = true;
+	}
 
 	lcd_stat.update_bg_control_a = false;
 	lcd_stat.update_bg_control_b = false;

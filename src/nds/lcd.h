@@ -245,6 +245,11 @@ class NTR_LCD
 
 	//Window functions
 	void calculate_window_on_scanline();
+
+	//Serialize data for save state loading/saving
+	bool lcd_read(u32 offset, std::string filename);
+	//bool lcd_write(std::string filename);
+	//u32 size();
 };
 
 #endif // NDS_LCD
