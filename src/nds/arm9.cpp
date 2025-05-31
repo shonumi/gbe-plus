@@ -1601,9 +1601,9 @@ bool NTR_ARM9::cpu_read(u32 offset, std::string filename)
 	//Serialize misc CPU data to save state
 	file.read((char*)&current_cpu_mode, sizeof(current_cpu_mode));
 	file.read((char*)&arm_mode, sizeof(arm_mode));
+	file.read((char*)&running, sizeof(running));
 	file.read((char*)&lbl_addr, sizeof(lbl_addr));
 	file.read((char*)&first_branch, sizeof(first_branch));
-	file.read((char*)&running, sizeof(running));
 	file.read((char*)&needs_flush, sizeof(needs_flush));
 	file.read((char*)&in_interrupt, sizeof(in_interrupt));
 	file.read((char*)&idle_state, sizeof(idle_state));
@@ -1611,8 +1611,8 @@ bool NTR_ARM9::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&thumb_long_branch, sizeof(thumb_long_branch));
 	file.read((char*)&last_instr_branch, sizeof(last_instr_branch));
 	file.read((char*)&swi_waitbyloop_count, sizeof(swi_waitbyloop_count));
-	file.read((char*)&instruction_pipeline[0], sizeof(instruction_pipeline));
-	file.read((char*)&instruction_operation[0], sizeof(instruction_operation));
+	file.read((char*)&instruction_pipeline, sizeof(instruction_pipeline));
+	file.read((char*)&instruction_operation, sizeof(instruction_operation));
 	file.read((char*)&pipeline_pointer, sizeof(pipeline_pointer));
 	file.read((char*)&debug_message, sizeof(debug_message));
 	file.read((char*)&debug_code, sizeof(debug_code));
@@ -1684,9 +1684,9 @@ u32 NTR_ARM9::size()
 	cpu_size += sizeof(reg);
 	cpu_size += sizeof(current_cpu_mode);
 	cpu_size += sizeof(arm_mode);
+	cpu_size += sizeof(running);
 	cpu_size += sizeof(lbl_addr);
 	cpu_size += sizeof(first_branch);
-	cpu_size += sizeof(running);
 	cpu_size += sizeof(needs_flush);
 	cpu_size += sizeof(in_interrupt);
 	cpu_size += sizeof(idle_state);

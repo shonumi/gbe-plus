@@ -4737,3 +4737,38 @@ void NTR_LCD::render_virtual_cursor()
 		}
 	}
 }
+
+/****** Read LCD data from save state ******/
+bool NTR_LCD::lcd_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	file.read((char*)&lcd_stat, sizeof(lcd_stat));
+
+	file.read((char*)&obj, sizeof(obj));
+	file.read((char*)&capture_on, sizeof(capture_on));
+
+	file.close();
+	return true;
+}
+
+/****** Write LCD data to save state ******/
+bool NTR_LCD::lcd_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	file.write((char*)&lcd_stat, sizeof(lcd_stat));
+
+	file.write((char*)&obj, sizeof(obj));
+	file.write((char*)&capture_on, sizeof(capture_on));
+
+	file.close();
+	return true;
+}

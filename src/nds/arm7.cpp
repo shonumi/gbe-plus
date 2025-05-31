@@ -1602,12 +1602,8 @@ bool NTR_ARM7::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&thumb_long_branch, sizeof(thumb_long_branch));
 	file.read((char*)&last_instr_branch, sizeof(last_instr_branch));
 	file.read((char*)&swi_waitbyloop_count, sizeof(swi_waitbyloop_count));
-	file.read((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
-	file.read((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
-	file.read((char*)&instruction_pipeline[2], sizeof(instruction_pipeline[2]));
-	file.read((char*)&instruction_operation[0], sizeof(instruction_operation[0]));
-	file.read((char*)&instruction_operation[1], sizeof(instruction_operation[1]));
-	file.read((char*)&instruction_operation[2], sizeof(instruction_operation[2]));
+	file.read((char*)&instruction_pipeline, sizeof(instruction_pipeline));
+	file.read((char*)&instruction_operation, sizeof(instruction_operation));
 	file.read((char*)&pipeline_pointer, sizeof(pipeline_pointer));
 	file.read((char*)&debug_message, sizeof(debug_message));
 	file.read((char*)&debug_code, sizeof(debug_code));
@@ -1618,10 +1614,7 @@ bool NTR_ARM7::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&re_sync, sizeof(re_sync));
 
 	//Serialize timers to save state
-	file.read((char*)&controllers.timer[0], sizeof(controllers.timer[0]));
-	file.read((char*)&controllers.timer[1], sizeof(controllers.timer[1]));
-	file.read((char*)&controllers.timer[2], sizeof(controllers.timer[2]));
-	file.read((char*)&controllers.timer[3], sizeof(controllers.timer[3]));
+	file.read((char*)&controllers.timer, sizeof(controllers.timer));
 
 	file.close();
 	return true;

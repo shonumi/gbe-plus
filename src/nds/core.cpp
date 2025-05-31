@@ -185,10 +185,72 @@ void NTR_core::reset()
 }
 
 /****** Loads a save state ******/
-void NTR_core::load_state(u8 slot) { }
+void NTR_core::load_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	u32 offset = 0;
+
+	//Check if save state is accessible
+	std::ifstream test(state_file.c_str());
+	
+	if(!test.good())
+	{
+		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
+		config::osd_count = 180;
+		return;
+	}
+
+	if(!get_save_state_info(offset, state_file)) { return; }
+	offset += sizeof(NTR_SAVE_STATE_VERSION);
+	offset += sizeof(config::gb_type);
+
+	if(!core_cpu_nds9.cpu_read(offset, state_file)) { return; }
+	offset += core_cpu_nds9.size();
+
+	if(!core_cpu_nds7.cpu_read(offset, state_file)) { return; }
+	offset += core_cpu_nds7.size();
+
+
+	if(!core_mmu.mmu_read(offset, state_file)) { return; }
+	offset += core_mmu.size();
+
+	if(!core_cpu_nds9.controllers.video.lcd_read(offset, state_file)) { return; }
+
+
+	std::cout<<"GBE::Loaded state " << state_file << "\n";
+
+	//OSD
+	config::osd_message = "LOADED STATE " + util::to_str(slot);
+	config::osd_count = 180;
+}
 
 /****** Saves a save state ******/
-void NTR_core::save_state(u8 slot) { }
+void NTR_core::save_state(u8 slot)
+{
+	std::string id = (slot > 0) ? util::to_str(slot) : "";
+
+	std::string state_file = config::rom_file + ".ss";
+	state_file += id;
+
+	if(!set_save_state_info(state_file)) { return; }
+	if(!core_cpu_nds9.cpu_write(state_file)) { return; }
+	if(!core_cpu_nds7.cpu_write(state_file)) { return; }
+
+
+	if(!core_mmu.mmu_write(state_file)) { return; }
+	if(!core_cpu_nds9.controllers.video.lcd_write(state_file)) { return; }
+
+
+	std::cout<<"GBE::Saved state " << state_file << "\n";
+
+	//OSD
+	config::osd_message = "SAVED STATE " + util::to_str(slot);
+	config::osd_count = 180;
+}
 
 /****** Gets the save state info (Version + System Type) ******/
 bool NTR_core::get_save_state_info(u32 offset, std::string filename)
