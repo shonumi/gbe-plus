@@ -53,25 +53,25 @@ int main(int argc, char* args[])
 	config::gb_type = get_system_type_from_file(config::rom_file);
 
 	//GBA core
-	if(config::gb_type == 3)
+	if(config::gb_type == SYS_GBA)
 	{
 		gbe_plus = new AGB_core();
 	}
 	
 	//DMG-GBC core
-	else if((config::gb_type >= 0) && (config::gb_type <= 2))
+	else if((config::gb_type >= SYS_AUTO) && (config::gb_type <= SYS_GBC))
 	{
 		gbe_plus = new DMG_core();
 	}
 
 	//Super Game Boy (SGB1 and SGB2)
-	else if((config::gb_type == 5) || (config::gb_type == 6))
+	else if((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2))
 	{
 		gbe_plus = new SGB_core();
 	}
 
 	//Pokemon Mini core
-	else if(config::gb_type == 7)
+	else if(config::gb_type == SYS_MIN)
 	{
 		gbe_plus = new MIN_core();
 	}
@@ -90,10 +90,10 @@ int main(int argc, char* args[])
 		{
 			switch(config::gb_type)
 			{
-				case 0x1: config::bios_file = config::dmg_bios_path; break;
-				case 0x2: config::bios_file = config::gbc_bios_path; break;
-				case 0x3: config::bios_file = config::agb_bios_path; break;
-				case 0x7: config::bios_file = config::min_bios_path; break;
+				case SYS_DMG: config::bios_file = config::dmg_bios_path; break;
+				case SYS_GBC: config::bios_file = config::gbc_bios_path; break;
+				case SYS_GBA: config::bios_file = config::agb_bios_path; break;
+				case SYS_MIN: config::bios_file = config::min_bios_path; break;
 			}
 		}
 
@@ -104,7 +104,7 @@ int main(int argc, char* args[])
 	if(!gbe_plus->read_file(config::rom_file)) { return 0; }
 
 	//Read firmware optionally (NDS)
-	if((config::use_firmware) && (config::gb_type == 4))
+	if((config::use_firmware) && (config::gb_type == SYS_NDS))
 	{
 		if(!gbe_plus->read_firmware(config::nds_firmware_path)) { return 0; }
 	}
