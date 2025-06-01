@@ -155,9 +155,8 @@ namespace config
 	u8 dmg_gbc_pal = 0;
 
 	//Emulated Gameboy type
-	//TODO - Make this an enum
 	//0 - DMG, 1 - DMG on GBC, 2 - GBC, 3 - GBA, 4 - NDS????
-	u8 gb_type = 0;
+	u8 gb_type = SYS_AUTO;
 
 	//Boolean dictating whether this is a DMG/GBC game on a GBA
 	bool gba_enhance = false;
@@ -623,7 +622,7 @@ void validate_system_type()
 	//When loading AM3 files, force system type to GBA
 	if(config::cart_type == AGB_AM3)
 	{
-		config::gb_type = 3;
+		config::gb_type = SYS_GBA;
 		return;
 	}
 
@@ -645,14 +644,14 @@ void validate_system_type()
 		if((ext[x] >= 0x41) && (ext[x] <= 0x5A)) { ext[x] += 0x20; }
 	}
 
-	if(ext == ".gba") { config::gb_type = 3; }
-	else if(ext == ".nds") { config::gb_type = 4; }
-	else if(ext == ".min") { config::gb_type = 7; }
+	if(ext == ".gba") { config::gb_type = SYS_GBA; }
+	else if(ext == ".nds") { config::gb_type = SYS_NDS; }
+	else if(ext == ".min") { config::gb_type = SYS_MIN; }
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
-	else if((ext != ".gba") && (config::gb_type == 3)) 
+	else if((ext != ".gba") && (config::gb_type == SYS_GBA)) 
 	{
-		config::gb_type = 2;
+		config::gb_type = SYS_GBC;
 		config::gba_enhance = true;
 	}
 }
@@ -670,7 +669,7 @@ u8 get_system_type_from_file(std::string filename)
 	//When loading AM3 files, force system type to GBA
 	if(config::cart_type == AGB_AM3)
 	{
-		config::gb_type = 3;
+		config::gb_type = SYS_GBA;
 		return config::gb_type;
 	}
 
@@ -689,13 +688,13 @@ u8 get_system_type_from_file(std::string filename)
 
 	u8 gb_type = config::gb_type;
 
-	if(ext == ".gba") { gb_type = 3; }
-	else if(ext == ".nds") { gb_type = 4; }
-	else if(ext == ".min") { gb_type = 7; }
-	else if((ext != ".gba") && (gb_type == 3)) { gb_type = 2; }
+	if(ext == ".gba") { gb_type = SYS_GBA; }
+	else if(ext == ".nds") { gb_type = SYS_NDS; }
+	else if(ext == ".min") { gb_type = SYS_MIN; }
+	else if((ext != ".gba") && (gb_type == SYS_GBA)) { gb_type = SYS_GBC; }
 
 	//For Auto or GBC mode, determine what the CGB Flag is
-	if((gb_type == 0) || (gb_type == 2) || (gb_type == 5) || (gb_type == 6))
+	if((gb_type == SYS_AUTO) || (gb_type == SYS_GBC) || (gb_type == SYS_SGB) || (gb_type == SYS_SGB2))
 	{
 		std::ifstream test_stream(filename.c_str(), std::ios::binary);
 		
@@ -708,15 +707,15 @@ u8 get_system_type_from_file(std::string filename)
 			test_stream.read((char*)&color_byte, 1);
 
 			//If GBC compatible, use GBC mode. Otherwise, use DMG mode
-			if((color_byte == 0xC0) || (color_byte == 0x80)) { gb_type = 2; }
-			else { gb_type = 1; }
+			if((color_byte == 0xC0) || (color_byte == 0x80)) { gb_type = SYS_GBC; }
+			else { gb_type = SYS_DMG; }
 
 			test_stream.seekg(0x146);
 			test_stream.read((char*)&sgb_byte, 1);
 
 			//If SGB compatible, use it if SGB set as the system
-			if((sgb_byte == 0x3) && (config::gb_type == 5)) { gb_type = 5; }
-			else if((sgb_byte == 0x3) && (config::gb_type == 6)) { gb_type = 6; }
+			if((sgb_byte == 0x3) && (config::gb_type == SYS_SGB)) { gb_type = SYS_SGB; }
+			else if((sgb_byte == 0x3) && (config::gb_type == SYS_SGB2)) { gb_type = SYS_SGB2; }
 
 			test_stream.close();
 		}
@@ -755,7 +754,7 @@ bool parse_cli_args()
 					config::bios_file = config::cli_args[x];
 
 					//For the NDS, read 1st argument as NDS7 BIOS, 2nd as NDS9 BIOS
-					if(config::gb_type == 4)
+					if(config::gb_type == SYS_NDS)
 					{
 						if((++x) == config::cli_args.size())
 						{
@@ -953,28 +952,28 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--6x") { config::scaling_factor = config::old_scaling_factor = 6; }
 
 			//Set system type - Auto
-			else if(config::cli_args[x] == "--sys-auto") { config::gb_type = 0; }
+			else if(config::cli_args[x] == "--sys-auto") { config::gb_type = SYS_AUTO; }
 
 			//Set system type - DMG
-			else if(config::cli_args[x] == "--sys-dmg") { config::gb_type = 1; }
+			else if(config::cli_args[x] == "--sys-dmg") { config::gb_type = SYS_DMG; }
 
 			//Set system type - GBC
-			else if(config::cli_args[x] == "--sys-gbc") { config::gb_type = 2; }
+			else if(config::cli_args[x] == "--sys-gbc") { config::gb_type = SYS_GBC; }
 
 			//Set system type - GBA
-			else if(config::cli_args[x] == "--sys-gba") { config::gb_type = 3; }
+			else if(config::cli_args[x] == "--sys-gba") { config::gb_type = SYS_GBA; }
 
 			//Set system type - NDS
-			else if(config::cli_args[x] == "--sys-nds") { config::gb_type = 4; }
+			else if(config::cli_args[x] == "--sys-nds") { config::gb_type = SYS_NDS; }
 
 			//Set system type - SGB1
-			else if(config::cli_args[x] == "--sys-sgb") { config::gb_type = 5; }
+			else if(config::cli_args[x] == "--sys-sgb") { config::gb_type = SYS_SGB; }
 
 			//Set system type - SGB2
-			else if(config::cli_args[x] == "--sys-sgb2") { config::gb_type = 6; }
+			else if(config::cli_args[x] == "--sys-sgb2") { config::gb_type = SYS_SGB2; }
 
 			//Set system type - MIN
-			else if(config::cli_args[x] == "--sys-min") { config::gb_type = 7; }
+			else if(config::cli_args[x] == "--sys-min") { config::gb_type = SYS_MIN; }
 
 			//Enable Turbo File memory card
 			else if(config::cli_args[x] == "--turbo-file-memcard") { config::turbo_file_options |= 0x1; }
