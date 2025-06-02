@@ -691,7 +691,13 @@ u8 get_system_type_from_file(std::string filename)
 	if(ext == ".gba") { gb_type = SYS_GBA; }
 	else if(ext == ".nds") { gb_type = SYS_NDS; }
 	else if(ext == ".min") { gb_type = SYS_MIN; }
-	else if((ext != ".gba") && (gb_type == SYS_GBA)) { gb_type = SYS_GBC; }
+
+	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
+	else if((ext != ".gba") && (gb_type == SYS_GBA))
+	{
+		gb_type = SYS_GBC;
+		config::gba_enhance = true;
+	}
 
 	//For Auto or GBC mode, determine what the CGB Flag is
 	if((gb_type == SYS_AUTO) || (gb_type == SYS_GBC) || (gb_type == SYS_SGB) || (gb_type == SYS_SGB2))
