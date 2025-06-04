@@ -4749,6 +4749,7 @@ bool NTR_LCD::lcd_read(u32 offset, std::string filename)
 	file.seekg(offset);
 
 	file.read((char*)&lcd_stat, sizeof(lcd_stat));
+	file.read((char*)&lcd_3D_stat, sizeof(lcd_3D_stat));
 
 	file.read((char*)&obj, sizeof(obj));
 	file.read((char*)&capture_on, sizeof(capture_on));
@@ -4765,6 +4766,7 @@ bool NTR_LCD::lcd_write(std::string filename)
 	if(!file.is_open()) { return false; }
 
 	file.write((char*)&lcd_stat, sizeof(lcd_stat));
+	file.write((char*)&lcd_3D_stat, sizeof(lcd_3D_stat));
 
 	file.write((char*)&obj, sizeof(obj));
 	file.write((char*)&capture_on, sizeof(capture_on));
