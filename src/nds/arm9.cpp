@@ -1628,6 +1628,16 @@ bool NTR_ARM9::cpu_read(u32 offset, std::string filename)
 	//Serialize CP15 registers
 	file.read((char*)&co_proc.regs, sizeof(co_proc.regs));
 
+	//Serialize misc CP15 data
+	file.read((char*)&co_proc.pu_enable, sizeof(co_proc.pu_enable));
+	file.read((char*)&co_proc.unified_cache, sizeof(co_proc.unified_cache));
+	file.read((char*)&co_proc.instr_cache, sizeof(co_proc.instr_cache));
+	file.read((char*)&co_proc.exception_vector, sizeof(co_proc.exception_vector));
+	file.read((char*)&co_proc.cache_replacement, sizeof(co_proc.cache_replacement));
+	file.read((char*)&co_proc.pre_armv5, sizeof(co_proc.pre_armv5));
+	file.read((char*)&co_proc.dtcm_enable, sizeof(co_proc.dtcm_enable));
+	file.read((char*)&co_proc.itcm_enable, sizeof(co_proc.itcm_enable));
+
 	file.close();
 	return true;
 }
@@ -1672,6 +1682,16 @@ bool NTR_ARM9::cpu_write(std::string filename)
 	//Serialize CP15 registers
 	file.write((char*)&co_proc.regs, sizeof(co_proc.regs));
 
+	//Serialize misc CP15 data
+	file.write((char*)&co_proc.pu_enable, sizeof(co_proc.pu_enable));
+	file.write((char*)&co_proc.unified_cache, sizeof(co_proc.unified_cache));
+	file.write((char*)&co_proc.instr_cache, sizeof(co_proc.instr_cache));
+	file.write((char*)&co_proc.exception_vector, sizeof(co_proc.exception_vector));
+	file.write((char*)&co_proc.cache_replacement, sizeof(co_proc.cache_replacement));
+	file.write((char*)&co_proc.pre_armv5, sizeof(co_proc.pre_armv5));
+	file.write((char*)&co_proc.dtcm_enable, sizeof(co_proc.dtcm_enable));
+	file.write((char*)&co_proc.itcm_enable, sizeof(co_proc.itcm_enable));
+
 	file.close();
 	return true;
 }
@@ -1707,6 +1727,15 @@ u32 NTR_ARM9::size()
 	cpu_size += sizeof(re_sync);
 
 	cpu_size += sizeof(co_proc.regs);
+
+	cpu_size += sizeof(co_proc.pu_enable);
+	cpu_size += sizeof(co_proc.unified_cache);
+	cpu_size += sizeof(co_proc.instr_cache);
+	cpu_size += sizeof(co_proc.exception_vector);
+	cpu_size += sizeof(co_proc.cache_replacement);
+	cpu_size += sizeof(co_proc.pre_armv5);
+	cpu_size += sizeof(co_proc.dtcm_enable);
+	cpu_size += sizeof(co_proc.itcm_enable);
 
 	return cpu_size;
 }
