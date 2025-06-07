@@ -71,6 +71,8 @@ const u16 RTC_SEC_LO = 0x2009;
 const u16 RTC_SEC_MID = 0x200A;
 const u16 RTC_SEC_HI = 0x200B;
 
+const u16 SYS_BATT = 0x2010;
+
 const u16 TIMER1_SCALE = 0x2018;
 const u16 TIMER1_OSC = 0x2019;
 

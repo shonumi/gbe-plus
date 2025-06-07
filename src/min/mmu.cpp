@@ -229,6 +229,11 @@ void MIN_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
+		//Battery ADC
+		case SYS_BATT:
+			memory_map[SYS_BATT] = (value & 0x1F);
+			break;
+
 		//Interrupt Priority 1
 		case IRQ_PRI_1:
 			irq_priority[3] = (value >> 6) & 0x3;
