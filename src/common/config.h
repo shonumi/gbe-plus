@@ -98,6 +98,14 @@ enum system_types
 	SYS_MIN = 7,
 };
 
+enum pm_config
+{
+	PMC_ENABLE_TRI_COLOR_MODE = 0x01,
+	PMC_ENABLE_RTC = 0x02,
+	PMC_ENABLE_SHARED_EEPROM = 0x04,
+	PMC_ENABLE_LOW_BATTERY = 0x08,
+};
+
 namespace config
 { 
 	extern std::string rom_file;

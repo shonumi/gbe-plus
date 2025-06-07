@@ -926,13 +926,13 @@ bool parse_cli_args()
 			else if(config::cli_args[x] == "--save-flash128") { config::agb_save_type = AGB_FLASH128; }
 
 			//Disable Pokemon Mini 3-color Mode
-			else if(config::cli_args[x] == "--min-disable-colors") { config::min_config &= ~0x1; }
+			else if(config::cli_args[x] == "--min-disable-colors") { config::min_config &= ~PMC_ENABLE_TRI_COLOR_MODE; }
 
 			//Disable Pokemon Mini RTC
-			else if(config::cli_args[x] == "--min-disable-rtc") { config::min_config &= ~0x2; }
+			else if(config::cli_args[x] == "--min-disable-rtc") { config::min_config &= ~PMC_ENABLE_RTC; }
 
 			//Enable shared EEPROM
-			else if(config::cli_args[x] == "--min-shared-eeprom") { config::min_config &= ~0x4; }
+			else if(config::cli_args[x] == "--min-shared-eeprom") { config::min_config &= ~PMC_ENABLE_SHARED_EEPROM; }
 			
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }
