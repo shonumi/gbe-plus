@@ -931,8 +931,11 @@ bool parse_cli_args()
 			//Disable Pokemon Mini RTC
 			else if(config::cli_args[x] == "--min-disable-rtc") { config::min_config &= ~PMC_ENABLE_RTC; }
 
-			//Enable shared EEPROM
-			else if(config::cli_args[x] == "--min-shared-eeprom") { config::min_config &= ~PMC_ENABLE_SHARED_EEPROM; }
+			//Enable Pokemon Mini shared EEPROM
+			else if(config::cli_args[x] == "--min-shared-eeprom") { config::min_config &= ~PMC_ENABLE_PER_GAME_EEPROM; }
+
+			//Enable Pokemon Mini low battery
+			else if(config::cli_args[x] == "--min-low-battery") { config::min_config |= PMC_ENABLE_LOW_BATTERY; }
 			
 			//Use OpenGL for screen drawing
 			else if(config::cli_args[x] == "--opengl") { config::use_opengl = true; }

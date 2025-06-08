@@ -684,7 +684,7 @@ void MIN_LCD::render_frame()
 			else { screen_buffer[buffer_pos] = off_pixel; }
 
 			//3-color blending
-			if(config::min_config & 0x1)
+			if(config::min_config & PMC_ENABLE_TRI_COLOR_MODE)
 			{
 				temp_pixel = screen_buffer[buffer_pos];
 

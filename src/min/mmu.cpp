@@ -62,7 +62,7 @@ void MIN_MMU::reset()
 	osc_1_enable = false;
 	osc_2_enable = false;
 
-	enable_rtc = (config::min_config & 0x2) ? true : false;
+	enable_rtc = (config::min_config & PMC_ENABLE_RTC) ? true : false;
 	rtc_cycles = 0;
 	rtc = 0;
 
@@ -118,6 +118,15 @@ u8 MIN_MMU::read_u8(u32 address)
 		case SYS_CNT3:
 			if(enable_rtc) { return memory_map[SYS_CNT3] | 0x2; }
 			return memory_map[SYS_CNT3];
+
+		case SYS_BATT:
+			if(config::min_config & PMC_ENABLE_LOW_BATTERY)
+			{
+				return memory_map[SYS_BATT] | 0x20;
+			}
+			
+			return memory_map[SYS_BATT];
+			
 
 		case RTC_SEC_LO:
 			return rtc & 0xFF;
