@@ -63,8 +63,6 @@ class MIN_MMU
 	bool load_backup(std::string filename);
 	bool save_backup(std::string filename);
 
-	bool patch_ips(std::string filename);
-
 	u32 get_prescalar_1(u8 val);
 	u32 get_prescalar_2(u8 val);
 	double get_timer3_freq();

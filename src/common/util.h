@@ -110,7 +110,9 @@ namespace util
 	SDL_Surface* load_icon(std::string filename);
 	bool save_image(SDL_Surface* src, std::string filename);
 
-	void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u32 data_size); 
+	void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u32 data_size);
+
+	bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos);
 
 	extern u32 crc32_table[256];
 	extern u32 poly32;
