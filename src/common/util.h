@@ -112,7 +112,8 @@ namespace util
 
 	void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u32 data_size);
 
-	bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos);
+	bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size);
+	bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size);
 
 	extern u32 crc32_table[256];
 	extern u32 poly32;

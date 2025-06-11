@@ -1081,7 +1081,7 @@ void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u3
 }
 
 /****** Applies an IPS patch to a ROM loaded in memory ******/
-bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos)
+bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size)
 {
 	std::ifstream patch_file(filename.c_str(), std::ios::binary);
 
@@ -1148,6 +1148,12 @@ bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos)
 			{
 				u8 patch_byte = patch_data[patch_pos++];
 
+				if((mem_pos + offset) > max_size)
+				{
+					std::cout<<"MMU::" << filename << "patches beyond max ROM size. Aborting further patching.\n";
+					return false;
+				}
+
 				mem_map[mem_pos + offset] = patch_byte;
 
 				offset++;
@@ -1169,10 +1175,138 @@ bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos)
 
 			for(u32 x = 0; x < rle_size; x++)
 			{
+				if((mem_pos + offset) > max_size)
+				{
+					std::cout<<"MMU::" << filename << "patches beyond max ROM size. Aborting further patching.\n";
+					return false;
+				}
+
 				mem_map[mem_pos + offset] = patch_byte;
 
 				offset++;
 			}
+		}
+	}
+
+	patch_file.close();
+	patch_data.clear();
+
+	return true;
+}
+
+/****** Applies an UPS patch to a ROM loaded in memory ******/
+bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size)
+{
+
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " UPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for UPS1 string
+	if((patch_data[0] != 0x55) || (patch_data[1] != 0x50) || (patch_data[2] != 0x53) || (patch_data[3] != 0x31))
+	{
+		std::cout<<"MMU::" << filename << " UPS patch file has invalid header\n";
+		return false;
+	}
+
+	u32 patch_pos = 4;
+	u32 patch_size = file_size - 12;
+	u32 file_pos = 0;
+
+	//Grab file sizes
+	for(u32 x = 0; x < 2; x++)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+	}
+
+	//Begin patching the source file
+	while(patch_pos < patch_size)
+	{
+		//Grab variable width integer
+		u32 var_int = 0;
+		bool var_end = false;
+		u8 var_shift = 0;
+
+		while(!var_end)
+		{
+			//Grab byte from patch file
+			u8 var_byte = patch_data[patch_pos++];
+			
+			if(var_byte & 0x80)
+			{
+				var_int += ((var_byte & 0x7F) << var_shift);
+				var_end = true;
+			}
+
+			else
+			{
+				var_int += ((var_byte | 0x80) << var_shift);
+				var_shift += 7;
+			}
+		}
+
+		//XOR data at offset with patch
+		var_end = false;
+		file_pos += var_int;
+
+		while(!var_end)
+		{
+			//Abort if patching greater than ROM size
+			if(file_pos > max_size)
+			{
+				std::cout<<"MMU::" << filename << "patches beyond max ROM size. Aborting further patching.\n";
+				return false;
+			}
+
+			u8 patch_byte = patch_data[patch_pos++];
+
+			//Terminate patching for this chunk if encountering a zero byte
+			if(patch_byte == 0) { var_end = true; }
+
+			//Otherwise, use the byte to patch
+			else
+			{
+				mem_map[mem_pos + file_pos] ^= patch_byte;
+			}
+
+			file_pos++;
 		}
 	}
 
