@@ -10,7 +10,6 @@
 // Handles OpenGL specific stuff like loading shaders
 
 #include <iostream>
-#include <fstream>
 #include <cmath>
 
 #ifndef GL3_PROTOTYPES
@@ -279,4 +278,30 @@ float dist(float x1, float y1, float x2, float y2)
 float dist(float x1, float y1, float z1, float x2, float y2, float z2)
 {
 	return sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)) + ((z2 - z1) * (z2 - z1)));
+}
+
+/****** Serializes maxtrix data from binary file ******/
+bool serialize_matrix(std::ifstream file, gx_matrix mat)
+{
+	//For simplicity, file must already be opened
+	if(!file.is_open()) { return false; }
+
+	file.read((char*)&mat.data, sizeof(mat.data));
+	file.read((char*)&mat.rows, sizeof(mat.rows));
+	file.read((char*)&mat.columns, sizeof(mat.columns));
+
+	return true;
+}
+
+/****** Serializes maxtrix data from binary file ******/
+bool serialize_matrix(std::ofstream file, gx_matrix mat)
+{
+	//For simplicity, file must already be opened
+	if(!file.is_open()) { return false; }
+
+	file.write((char*)&mat.data, sizeof(mat.data));
+	file.write((char*)&mat.rows, sizeof(mat.rows));
+	file.write((char*)&mat.columns, sizeof(mat.columns));
+
+	return true;
 }
