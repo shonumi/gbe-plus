@@ -281,7 +281,7 @@ float dist(float x1, float y1, float z1, float x2, float y2, float z2)
 }
 
 /****** Serializes maxtrix data from binary file ******/
-bool serialize_matrix(std::ifstream file, gx_matrix mat)
+bool serialize_matrix(std::ifstream &file, gx_matrix &mat)
 {
 	//For simplicity, file must already be opened
 	if(!file.is_open()) { return false; }
@@ -294,7 +294,7 @@ bool serialize_matrix(std::ifstream file, gx_matrix mat)
 }
 
 /****** Serializes maxtrix data from binary file ******/
-bool serialize_matrix(std::ofstream file, gx_matrix mat)
+bool serialize_matrix(std::ofstream &file, gx_matrix &mat)
 {
 	//For simplicity, file must already be opened
 	if(!file.is_open()) { return false; }

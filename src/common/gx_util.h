@@ -61,7 +61,7 @@ float dist(float x1, float y1, float x2, float y2);
 float dist(float x1, float y1, float z1, float x2, float y2, float z2);
 
 //Serialize matrix data to/from binary file
-bool serialize_matrix(std::ifstream file, gx_matrix mat);
-bool serialize_matrix(std::ofstream file, gx_matrix mat);
+bool serialize_matrix(std::ifstream &file, gx_matrix &mat);
+bool serialize_matrix(std::ofstream &file, gx_matrix &mat);
 
 #endif // GBE_GX_UTIL
