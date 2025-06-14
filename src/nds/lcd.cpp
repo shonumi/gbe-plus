@@ -4771,6 +4771,18 @@ bool NTR_LCD::lcd_read(u32 offset, std::string filename)
 		serialize_matrix(file, current_normal[x]);
 	}
 
+	for(u32 x = 0; x < 2; x++)
+	{
+		serialize_matrix(file, gx_projection_stack[x]);
+		serialize_matrix(file, gx_texture_stack[x]);
+	}
+
+	for(u32 x = 0; x < 32; x++)
+	{
+		serialize_matrix(file, gx_position_stack[x]);
+		serialize_matrix(file, gx_vector_stack[x]);
+	}
+
 	file.read((char*)&position_sp, sizeof(position_sp));
 	file.read((char*)&vector_sp, sizeof(vector_sp));
 	file.read((char*)&projection_sp, sizeof(projection_sp));
@@ -4786,6 +4798,11 @@ bool NTR_LCD::lcd_read(u32 offset, std::string filename)
 /****** Write LCD data to save state ******/
 bool NTR_LCD::lcd_write(std::string filename)
 {
+	gx_projection_stack.resize(2);
+	gx_position_stack.resize(32);
+	gx_vector_stack.resize(32);
+	gx_texture_stack.resize(2);
+
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
 	
 	if(!file.is_open()) { return false; }
@@ -4811,6 +4828,18 @@ bool NTR_LCD::lcd_write(std::string filename)
 		serialize_matrix(file, last_pos_matrix[x]);
 		serialize_matrix(file, light_vector[x]);
 		serialize_matrix(file, current_normal[x]);
+	}
+
+	for(u32 x = 0; x < 2; x++)
+	{
+		serialize_matrix(file, gx_projection_stack[x]);
+		serialize_matrix(file, gx_texture_stack[x]);
+	}
+
+	for(u32 x = 0; x < 32; x++)
+	{
+		serialize_matrix(file, gx_position_stack[x]);
+		serialize_matrix(file, gx_vector_stack[x]);
 	}
 
 	file.write((char*)&position_sp, sizeof(position_sp));
