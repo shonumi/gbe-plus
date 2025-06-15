@@ -1598,7 +1598,7 @@ bool NTR_ARM9::cpu_read(u32 offset, std::string filename)
 	//Serialize CPU registers data from file stream
 	file.read((char*)&reg, sizeof(reg));
 
-	//Serialize misc CPU data to save state
+	//Serialize misc CPU data from save state
 	file.read((char*)&current_cpu_mode, sizeof(current_cpu_mode));
 	file.read((char*)&arm_mode, sizeof(arm_mode));
 	file.read((char*)&running, sizeof(running));
@@ -1622,8 +1622,11 @@ bool NTR_ARM9::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&system_cycles, sizeof(system_cycles));
 	file.read((char*)&re_sync, sizeof(re_sync));
 
-	//Serialize timers to save state
-	file.read((char*)&controllers.timer, sizeof(controllers.timer));
+	//Serialize timers from save state
+	for(u32 x = 0; x < 4; x++)
+	{
+		file.read((char*)&controllers.timer[x], sizeof(controllers.timer[x]));
+	}
 
 	//Serialize CP15 registers
 	file.read((char*)&co_proc.regs, sizeof(co_proc.regs));
@@ -1677,7 +1680,10 @@ bool NTR_ARM9::cpu_write(std::string filename)
 	file.write((char*)&re_sync, sizeof(re_sync));
 
 	//Serialize timers to save state
-	file.write((char*)&controllers.timer, sizeof(controllers.timer));
+	for(u32 x = 0; x < 4; x++)
+	{
+		file.write((char*)&controllers.timer[x], sizeof(controllers.timer[x]));
+	}
 
 	//Serialize CP15 registers
 	file.write((char*)&co_proc.regs, sizeof(co_proc.regs));
@@ -1721,7 +1727,12 @@ u32 NTR_ARM9::size()
 	cpu_size += sizeof(debug_code);
 	cpu_size += sizeof(debug_cycles);
 	cpu_size += sizeof(debug_addr);
-	cpu_size += sizeof(controllers.timer);
+
+	for(u32 x = 0; x < 4; x++)
+	{
+		cpu_size += sizeof(controllers.timer[x]);
+	}
+
 	cpu_size += sizeof(sync_cycles);
 	cpu_size += sizeof(system_cycles);
 	cpu_size += sizeof(re_sync);

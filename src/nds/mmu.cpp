@@ -6771,7 +6771,6 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&do_save, sizeof(do_save));
 	file.read((char*)&fetch_request, sizeof(fetch_request));
 	file.read((char*)&gx_command, sizeof(gx_command));
-	file.read((char*)&header, sizeof(header));
 
 	//Serialize DMA data from save state
 	file.read((char*)&dma, sizeof(dma));
@@ -6809,13 +6808,6 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&pal_b_bg_slot, sizeof(pal_b_bg_slot));
 	file.read((char*)&pal_b_obj_slot, sizeof(pal_b_obj_slot));
 	file.read((char*)&vram_tex_slot, sizeof(vram_tex_slot));
-
-	//Serialize timers from save state
-	for(u32 x = 0; x < 4; x++)
-	{
-		file.read((char*)&nds9_timer->at(x), sizeof(nds9_timer->at(x)));
-		file.read((char*)&nds7_timer->at(x), sizeof(nds7_timer->at(x)));
-	}
 
 	file.close();
 	return true;
@@ -6958,7 +6950,6 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&do_save, sizeof(do_save));
 	file.write((char*)&fetch_request, sizeof(fetch_request));
 	file.write((char*)&gx_command, sizeof(gx_command));
-	file.write((char*)&header, sizeof(header));
 
 	//Serialize DMA data to save state
 	file.write((char*)&dma, sizeof(dma));
@@ -6996,13 +6987,6 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&pal_b_bg_slot, sizeof(pal_b_bg_slot));
 	file.write((char*)&pal_b_obj_slot, sizeof(pal_b_obj_slot));
 	file.write((char*)&vram_tex_slot, sizeof(vram_tex_slot));
-
-	//Serialize timers to save state
-	for(u32 x = 0; x < 4; x++)
-	{
-		file.write((char*)&nds9_timer->at(x), sizeof(nds9_timer->at(x)));
-		file.write((char*)&nds7_timer->at(x), sizeof(nds7_timer->at(x)));
-	}
 
 	file.close();
 	return true;
@@ -7056,7 +7040,6 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(do_save);
 	mmu_size += sizeof(fetch_request);
 	mmu_size += sizeof(gx_command);
-	mmu_size += sizeof(header);
 
 	mmu_size += sizeof(dma);
 
@@ -7092,13 +7075,6 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(pal_b_bg_slot);
 	mmu_size += sizeof(pal_b_obj_slot);
 	mmu_size += sizeof(vram_tex_slot);
-
-	//Serialize timers to save state
-	for(u32 x = 0; x < 4; x++)
-	{
-		mmu_size += sizeof(nds9_timer->at(x));
-		mmu_size += sizeof(nds7_timer->at(x));
-	}
 
 	return mmu_size;
 }

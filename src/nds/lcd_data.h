@@ -303,7 +303,6 @@ struct ntr_lcd_3D_data
 	bool repeat_tex_y;
 	bool flip_tex_x;
 	bool flip_tex_y;
-	std::vector <u32> tex_data;
 
 	//Polygon Attribute
 	u8 poly_id;

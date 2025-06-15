@@ -143,6 +143,7 @@ class NTR_LCD
 	//Other buffers
 	std::vector< std::vector<u32> > line_buffer;
 	std::vector< std::vector<u32> > obj_line_buffer;
+	std::vector <u32> tex_data;
 
 	//Display Capture
 	bool capture_on;

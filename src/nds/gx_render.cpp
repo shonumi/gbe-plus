@@ -571,7 +571,7 @@ void NTR_LCD::fill_poly_textured()
 		case 0x7: gen_tex_7(tex_addr); break;
 	}
 
-	u32 tex_size = lcd_3D_stat.tex_data.size();
+	u32 tex_size = tex_data.size();
 	u32 tw = lcd_3D_stat.tex_src_width;
 	u32 th = lcd_3D_stat.tex_src_height;
 
@@ -677,7 +677,7 @@ void NTR_LCD::fill_poly_textured()
 			//Make sure texel exists as well
 			if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
 			{
-				texel = lcd_3D_stat.tex_data[texel_index];
+				texel = tex_data[texel_index];
 
 				//Draw texel if not transparent
 				if(texel & 0xFF000000)
@@ -2141,7 +2141,7 @@ u32 NTR_LCD::blend_texel(u32 color_1)
 /****** Generates pixel data fram VRAM for A315 textures ******/
 void NTR_LCD::gen_tex_1(u32 address)
 {
-	lcd_3D_stat.tex_data.clear();
+	tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 	u32 color = 0;
 
@@ -2168,7 +2168,7 @@ void NTR_LCD::gen_tex_1(u32 address)
 		if(index < 7) { color |= (((index << 2) + (index >> 1)) << 24); }
 		else { color |= 0xFF000000; }
 
-		lcd_3D_stat.tex_data.push_back(color);
+		tex_data.push_back(color);
 		tex_size--;
 	}
 }
@@ -2176,7 +2176,7 @@ void NTR_LCD::gen_tex_1(u32 address)
 /****** Generates pixel data from VRAM for 4 color textures ******/
 void NTR_LCD::gen_tex_2(u32 address)
 {
-	lcd_3D_stat.tex_data.clear();
+	tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	//Generate temporary palette
@@ -2195,10 +2195,10 @@ void NTR_LCD::gen_tex_2(u32 address)
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
-		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0x3]);
-		lcd_3D_stat.tex_data.push_back(tex_pal[(index >> 2) & 0x3]);
-		lcd_3D_stat.tex_data.push_back(tex_pal[(index >> 4) & 0x3]);
-		lcd_3D_stat.tex_data.push_back(tex_pal[(index >> 6) & 0x3]);
+		tex_data.push_back(tex_pal[index & 0x3]);
+		tex_data.push_back(tex_pal[(index >> 2) & 0x3]);
+		tex_data.push_back(tex_pal[(index >> 4) & 0x3]);
+		tex_data.push_back(tex_pal[(index >> 6) & 0x3]);
 		tex_size -= 4;
 	}
 }
@@ -2206,7 +2206,7 @@ void NTR_LCD::gen_tex_2(u32 address)
 /****** Generates pixel data from VRAM for 16 color textures ******/
 void NTR_LCD::gen_tex_3(u32 address)
 {
-	lcd_3D_stat.tex_data.clear();
+	tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	//Generate temporary palette
@@ -2225,8 +2225,8 @@ void NTR_LCD::gen_tex_3(u32 address)
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
-		lcd_3D_stat.tex_data.push_back(tex_pal[index & 0xF]);
-		lcd_3D_stat.tex_data.push_back(tex_pal[index >> 4]);
+		tex_data.push_back(tex_pal[index & 0xF]);
+		tex_data.push_back(tex_pal[index >> 4]);
 		tex_size -= 2;
 	}
 }
@@ -2234,7 +2234,7 @@ void NTR_LCD::gen_tex_3(u32 address)
 /****** Generates pixel data from VRAM for 256 color textures ******/
 void NTR_LCD::gen_tex_4(u32 address)
 {
-	lcd_3D_stat.tex_data.clear();
+	tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	//Generate temporary palette
@@ -2253,7 +2253,7 @@ void NTR_LCD::gen_tex_4(u32 address)
 	while(tex_size)
 	{
 		u8 index = mem->memory_map[address++];
-		lcd_3D_stat.tex_data.push_back(tex_pal[index]);
+		tex_data.push_back(tex_pal[index]);
 		tex_size--;
 	}
 }
@@ -2263,8 +2263,8 @@ void NTR_LCD::gen_tex_5(u32 address)
 {
 	u8 slot = (lcd_3D_stat.tex_offset >> 17);
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
-	lcd_3D_stat.tex_data.clear();
-	lcd_3D_stat.tex_data.resize(tex_size, 0x00);
+	tex_data.clear();
+	tex_data.resize(tex_size, 0x00);
 
 	u32 color = 0;
 	u32 slot_addr = mem->vram_tex_slot[1] + ((lcd_3D_stat.tex_offset & 0x1FFFF) >> 1);
@@ -2334,7 +2334,7 @@ void NTR_LCD::gen_tex_5(u32 address)
 			{
 				color = tex_pal[texel_row & 0x3];
 				texel_row >>= 2;
-				lcd_3D_stat.tex_data[texel_index + x] = color;
+				tex_data[texel_index + x] = color;
 			}
 
 			texel_data >>= 8;
@@ -2350,7 +2350,7 @@ void NTR_LCD::gen_tex_5(u32 address)
 /****** Generates pixel data from VRAM for A513 textures ******/
 void NTR_LCD::gen_tex_6(u32 address)
 {
-	lcd_3D_stat.tex_data.clear();
+	tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 	u32 color = 0;
 
@@ -2377,7 +2377,7 @@ void NTR_LCD::gen_tex_6(u32 address)
 		if(index < 0x1F) { color |= (index << 24); }
 		else { color |= 0xFF000000; }
 
-		lcd_3D_stat.tex_data.push_back(color);
+		tex_data.push_back(color);
 		tex_size--;
 	}
 }
@@ -2385,14 +2385,14 @@ void NTR_LCD::gen_tex_6(u32 address)
 /****** Generates pixel data from VRAM for Direct Color textures ******/
 void NTR_LCD::gen_tex_7(u32 address)
 {
-	lcd_3D_stat.tex_data.clear();
+	tex_data.clear();
 	u32 tex_size = (lcd_3D_stat.tex_src_width * lcd_3D_stat.tex_src_height);
 
 	while(tex_size)
 	{
 		u16 color = mem->read_u16_fast(address);
 		u32 final_color = (color & 0x8000) ? get_rgb15(color) : (get_rgb15(color) & ~0xFF000000);
-		lcd_3D_stat.tex_data.push_back(final_color);
+		tex_data.push_back(final_color);
 
 		address += 2;
 		tex_size--;
