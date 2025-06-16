@@ -1292,26 +1292,45 @@ void AGB_SIO::net_gate_process()
 
 	if(network_init && config::use_netplay && !sio_stat.connected)
 	{
+		std::vector<u8> recv_data;
+
 		//Loop for a while to see if a connection will accept
 		for(u32 x = 0; x < 100; x++)
 		{
 			//Check remote socket for any connections
 			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
 			{
-				u8 temp_buffer[3] = {0, 0, 0};
+				u8 temp_buffer[1024];
+				u32 recv_bytes = SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1024);
 
-				//Net Gate protocol is 1-shot, no response, 3 bytes
-				if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 3) > 0)
+				//Net Gate protocol is HTTP POST, 4-byte payload (unsigned 32-bit value, MSB first)
+				if(recv_bytes > 0)
 				{
-					//Set Battle Chip ID from network data
-					if(temp_buffer[0] == 0x80)
+					//Generate and send HTTP response
+					std::string http_str = "HTTP/1.1 200 OK\r\n";
+					http_str += "Access-Control-Allow-Origin: *\r\n\r\n";
+
+					std::vector <u8> http_data;
+					http_data.resize(http_str.length());
+					util::str_to_data(http_data.data(), http_str);
+
+					u32 send_bytes = SDLNet_TCP_Send(server.remote_socket, (void*)http_data.data(), http_data.size());
+					SDLNet_TCP_Close(server.remote_socket);
+
+					//Find end of header + payload data
+					std::string raw_str = util::data_to_str(temp_buffer, 1024);
+					std::size_t header_match = raw_str.find("\r\n\r\n");
+					u32 pos = header_match + 4;
+
+					if((header_match != std::string::npos) && (pos <= 1019))
 					{
-						config::battle_chip_id = (temp_buffer[1] << 8) | temp_buffer[2];
+						u32 id = (temp_buffer[pos] << 24) | (temp_buffer[pos + 1] << 16) | (temp_buffer[pos + 2] << 8) | temp_buffer[pos + 3];
+						config::battle_chip_id = (id & 0xFFFF);
 						chip_gate.net_gate_count = 1024;
 					}
 				}
 
-				x = 100;
+				break;
 			}
 		}
 	}
