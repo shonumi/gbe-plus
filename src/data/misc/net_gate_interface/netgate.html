@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Net Gate</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+		<script type="text/javascript" src="netgate.js"></script>
+
+		<style type="text/css">
+
+			body
+			{
+				font-family: sans-serif;
+				font-size: 1.5em;
+				margin: 0px;
+				background-color: #C0C0C0;
+				padding: 8px;
+				height: 100%;
+			}
+
+			.center
+			{
+				text-align: center;
+			}
+
+			.box
+			{
+				margin: auto;
+				width: 50%;
+				border: 2px solid #000;
+				border-radius: 25px;
+				background-color: #DFDFDF;
+				text-indent: 3em;
+			}
+
+			.big_button
+			{
+				height:10%;
+				font-size: 2em;
+			}
+
+			.chip_button
+			{
+				border-radius: 20px;
+				background-color: #E0E0E0;
+				text-align: center;
+				width: 200px;
+				height: 200px;
+				margin: 20px;
+				border: 2px solid #000;
+				float: left;
+			}
+
+			.chip_box
+			{
+				width: 80%;
+				margin: auto;
+				cursor: pointer;
+			}
+
+			input
+			{
+				font-size: 1.0em;
+			}
+
+			
+
+		</style>
+
+	</head>
+
+	<body>
+
+	<p class="center" onchange="generate_chip_list()">
+		<select class="big_button" id="netgate_type">
+			<option value="0">--- Select Chip Gate ---</option>
+			<option value="1">Battle Chip Gate</option>
+			<option value="2">Progress Chip Gate</option>
+			<option value="3">Beast Link Gate</option>
+		</select>
+	</p>
+
+	<div class="box">
+		<p id="netgate_status">Net Gate Status : Ready</p>
+
+		<p>GBE+ IPv4 Address + Port</p>
+		<p><input type="text" id="netgate_address" value="127.0.0.1:2000"></p>
+	</div>
+
+	<div class="chip_box">
+		<div id="chip_list"></div>
+	</div>
+
+	</body>
+</html>
