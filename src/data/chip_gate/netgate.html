@@ -43,18 +43,22 @@
 			{
 				border-radius: 20px;
 				background-color: #E0E0E0;
+				margin: 20px;
 				text-align: center;
 				width: 200px;
 				height: 200px;
-				margin: 20px;
+				max-height: 200px;
+				overflow: hidden;
 				border: 2px solid #000;
-				float: left;
+				display: inline-block;
+				padding: 5px;
 			}
 
 			.chip_box
 			{
 				width: 80%;
 				margin: auto;
+				text-align: center;
 				cursor: pointer;
 			}
 
@@ -73,7 +77,7 @@
 
 	<p class="center" onchange="generate_chip_list()">
 		<select class="big_button" id="netgate_type">
-			<option value="0">--- Select Chip Gate ---</option>
+			<option value="0" hidden>--- Select Chip Gate ---</option>
 			<option value="1">Battle Chip Gate</option>
 			<option value="2">Progress Chip Gate</option>
 			<option value="3">Beast Link Gate</option>
@@ -88,7 +92,8 @@
 	</div>
 
 	<div class="chip_box">
-		<div id="chip_list"></div>
+		<div id="chip_list">
+		</div>
 	</div>
 
 	</body>

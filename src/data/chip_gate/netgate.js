@@ -5,6 +5,11 @@ let server_ready = true;
 
 let chip_data = new Uint8Array(4);
 
+window.onload = (event) =>
+{
+	document.getElementById("netgate_type").selectedIndex = 0;
+};
+
 /****** Generates a list of chips for different Battle Chip Gates ******/
 function generate_chip_list()
 {
@@ -18,9 +23,12 @@ function generate_chip_list()
 	//Set chips for original Battle Chip Gate
 	if(index == 1)
 	{
-		for(let x = 0; x < 307; x++)
+		for(let x = 0; x < bcg_list.length; x++)
 		{
-			final_html += "<div class='chip_button' onclick=send_chip_data(" + (x + 1) + ")>" + bcg_list[x] + "</div>";
+			if(bcg_list[x].length > 0)
+			{
+				final_html += "<div class='chip_button' onclick=send_chip_data(" + (x + 1) + ")>" + bcg_list[x] + "</div>";
+			}
 		}
 	}
 
