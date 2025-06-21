@@ -208,6 +208,7 @@ void AGB_SIO::reset()
 	sio_stat.connected = false;
 	sio_stat.active_transfer = false;
 	sio_stat.internal_clock = false;
+	sio_stat.send_so_status = false;
 	sio_stat.sync_counter = 0;
 	sio_stat.sync_clock = config::netplay_sync_threshold;
 	sio_stat.sync = false;
@@ -540,8 +541,14 @@ bool AGB_SIO::send_data()
 	//UART and General Purpose not supported atm
 	switch(sio_stat.sio_mode)
 	{
+		case NORMAL_8BIT:
+			temp_buffer[4] |= 0x2;
+			if(sio_stat.send_so_status) { temp_buffer[4] |= 0x01; }
+			break;
+
 		case NORMAL_32BIT:
 			temp_buffer[4] |= 0x4;
+			if(sio_stat.send_so_status) { temp_buffer[4] |= 0x01; }
 			break;
 
 		case MULTIPLAY_16BIT:
@@ -562,14 +569,20 @@ bool AGB_SIO::send_data()
 		return false;
 	}
 
+	if(sio_stat.send_so_status)
+	{
+		sio_stat.send_so_status = false;
+		return true;
+	}
+
 	//Wait for other GBA to acknowledge
 	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 5) > 0)
 	{
-		//Only process response if the emulated SIO connection is ready
-		if(sio_stat.connection_ready)
+		//16-bit Multiplayer
+		if(sio_stat.sio_mode == MULTIPLAY_16BIT)
 		{
-			//16-bit Multiplayer
-			if(sio_stat.sio_mode == MULTIPLAY_16BIT)
+			//Only process response if the emulated SIO connection is ready
+			if(sio_stat.connection_ready)
 			{
 				switch(temp_buffer[4] & 0x3)
 				{
@@ -607,15 +620,15 @@ bool AGB_SIO::send_data()
 				sio_stat.shifts_left = 0;
 				sio_stat.shift_counter = 0;
 			}
-		}
 
-		//Otherwise delay the transfer
-		else
-		{
-			sio_stat.active_transfer = true;
-			sio_stat.shifts_left = 16;
-			sio_stat.shift_counter = 0;
-			mem->memory_map[SIO_CNT] |= 0x80;
+			//Otherwise delay the transfer
+			else
+			{
+				sio_stat.active_transfer = true;
+				sio_stat.shifts_left = 16;
+				sio_stat.shift_counter = 0;
+				mem->memory_map[SIO_CNT] |= 0x80;
+			}
 		}
 	}
 
@@ -685,66 +698,77 @@ bool AGB_SIO::receive_byte()
 			//Process GBA SIO communications
 			else if((temp_buffer[4] >= 0x40) && (temp_buffer[4] <= 0x4F))
 			{
-				if(sio_stat.connection_ready)
+				//Receive SO status for NORMAL_8BIT and NORMAL_32BIT modes
+				if(temp_buffer[4] & 0x01)
 				{
-					//Reset transfer data
-					mem->write_u32_fast(0x4000120, 0xFFFFFFFF);
-					mem->write_u32_fast(0x4000124, 0xFFFFFFFF);
-
-					//Raise SIO IRQ after sending byte
-					if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
-
-					//Set SO HIGH on all children
-					mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x8));
-
-					//Store byte from transfer into SIO data registers - 16-bit Multiplayer
-					if((sio_stat.sio_mode == MULTIPLAY_16BIT) && ((temp_buffer[4] & 0xC) == 0x8))
-					{
-						switch(temp_buffer[4] & 0x3)
-						{
-							case 0x0:
-								mem->memory_map[0x4000120] = temp_buffer[0];
-								mem->memory_map[0x4000121] = temp_buffer[1];
-								break;
-
-							case 0x1:
-								mem->memory_map[0x4000122] = temp_buffer[0];
-								mem->memory_map[0x4000123] = temp_buffer[1];
-								break; 
-
-							case 0x2:
-								mem->memory_map[0x4000124] = temp_buffer[0];
-								mem->memory_map[0x4000125] = temp_buffer[1];
-								break; 
-
-							case 0x3:
-								mem->memory_map[0x4000126] = temp_buffer[0];
-								mem->memory_map[0x4000127] = temp_buffer[1];
-								break;
-						}
-
-						sio_stat.transfer_data = (mem->memory_map[SIO_DATA_8 + 1] << 8) | mem->memory_map[SIO_DATA_8];
-
-						//Set own multiplayer data based on SIOMLT_SEND
-						mem->write_u16_fast((0x4000120 + (sio_stat.player_id << 1)), sio_stat.transfer_data);
-
-						temp_buffer[0] = (sio_stat.transfer_data & 0xFF);
-						temp_buffer[1] = ((sio_stat.transfer_data >> 8) & 0xFF);
-						temp_buffer[2] = ((sio_stat.transfer_data >> 16) & 0xFF);
-						temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
-					}
-
-					temp_buffer[4] = sio_stat.player_id;
+					u8 status = temp_buffer[0] & 0x08;
+					if(status) { sio_stat.cnt |= 0x04; }
+					else { sio_stat.cnt &= ~0x04; }
 				}
 
-				//Send acknowledgement
-				if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
+				else if(sio_stat.sio_mode == MULTIPLAY_16BIT)
 				{
-					std::cout<<"SIO::Error - Host failed to send data to client\n";
-					sio_stat.connected = false;
-					server.connected = false;
-					sender.connected = false;
-					return false;
+					if(sio_stat.connection_ready)
+					{
+						//Reset transfer data
+						mem->write_u32_fast(0x4000120, 0xFFFFFFFF);
+						mem->write_u32_fast(0x4000124, 0xFFFFFFFF);
+
+						//Raise SIO IRQ after sending byte
+						if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+						//Set SO HIGH on all children
+						mem->write_u8(R_CNT, (mem->memory_map[R_CNT] | 0x8));
+
+						//Store byte from transfer into SIO data registers - 16-bit Multiplayer
+						if((sio_stat.sio_mode == MULTIPLAY_16BIT) && ((temp_buffer[4] & 0xC) == 0x8))
+						{
+							switch(temp_buffer[4] & 0x3)
+							{
+								case 0x0:
+									mem->memory_map[0x4000120] = temp_buffer[0];
+									mem->memory_map[0x4000121] = temp_buffer[1];
+									break;
+
+								case 0x1:
+									mem->memory_map[0x4000122] = temp_buffer[0];
+									mem->memory_map[0x4000123] = temp_buffer[1];
+									break; 
+
+								case 0x2:
+									mem->memory_map[0x4000124] = temp_buffer[0];
+									mem->memory_map[0x4000125] = temp_buffer[1];
+									break; 
+
+								case 0x3:
+									mem->memory_map[0x4000126] = temp_buffer[0];
+									mem->memory_map[0x4000127] = temp_buffer[1];
+									break;
+							}
+
+							sio_stat.transfer_data = (mem->memory_map[SIO_DATA_8 + 1] << 8) | mem->memory_map[SIO_DATA_8];
+
+							//Set own multiplayer data based on SIOMLT_SEND
+							mem->write_u16_fast((0x4000120 + (sio_stat.player_id << 1)), sio_stat.transfer_data);
+
+							temp_buffer[0] = (sio_stat.transfer_data & 0xFF);
+							temp_buffer[1] = ((sio_stat.transfer_data >> 8) & 0xFF);
+							temp_buffer[2] = ((sio_stat.transfer_data >> 16) & 0xFF);
+							temp_buffer[3] = ((sio_stat.transfer_data >> 24) & 0xFF);
+						}
+
+						temp_buffer[4] = sio_stat.player_id;
+					}
+
+					//Send acknowledgement
+					if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
+					{
+						std::cout<<"SIO::Error - Host failed to send data to client\n";
+						sio_stat.connected = false;
+						server.connected = false;
+						sender.connected = false;
+						return false;
+					}
 				}
 
 				return true;

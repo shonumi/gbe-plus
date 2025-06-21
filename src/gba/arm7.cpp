@@ -1596,8 +1596,14 @@ void ARM7::clock_sio()
 			{
 				controllers.serial_io.sio_stat.active_transfer = false;
 
+				//SO transfer for NORMAL_8BIT or NORMAL_32BIT
+				if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.send_so_status))
+				{
+					controllers.serial_io.send_data();
+				}
+
 				//16-bit Multiplayer Mode
-				if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.sio_mode == MULTIPLAY_16BIT))
+				else if((controllers.serial_io.sio_stat.sio_type == GBA_LINK) && (controllers.serial_io.sio_stat.sio_mode == MULTIPLAY_16BIT))
 				{
 					//Reset Bit 7 in SIO_CNT
 					controllers.serial_io.sio_stat.cnt &= ~0x80;

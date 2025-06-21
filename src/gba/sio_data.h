@@ -138,6 +138,7 @@ struct agb_sio_data
 	bool sync;
 	bool connection_ready;
 	bool emu_device_ready;
+	bool send_so_status;
 	u32 sync_counter;
 	u32 sync_clock;
 	u32 transfer_data;

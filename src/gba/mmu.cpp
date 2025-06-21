@@ -3447,7 +3447,7 @@ void AGB_MMU::process_sio()
 		//Set internal or external clock
 		sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
 
-		//Start transfer
+		//Start transfer for various emulated devices
 		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
 			//Initiate transfer to Mobile Adapter GB
@@ -3467,6 +3467,16 @@ void AGB_MMU::process_sio()
 				sio_stat->shift_counter = 0;
 				sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
 			}
+		}
+
+		//Transfer SO for Link Cable
+		else if((!sio_stat->active_transfer) && ((sio_stat->cnt & 0x80) == 0) && (sio_stat->sio_type == GBA_LINK))
+		{
+			sio_stat->transfer_data = sio_stat->cnt;
+			sio_stat->send_so_status = true;
+			sio_stat->active_transfer = true;
+			sio_stat->shifts_left = 1;
+			sio_stat->shift_counter = sio_stat->shift_clock;
 		}
 
 		//Turn Power Antenna on or off
@@ -3495,8 +3505,8 @@ void AGB_MMU::process_sio()
 		//Set internal or external clock
 		sio_stat->internal_clock = (sio_stat->cnt & 0x1) ? true : false;
 
-		//Start transfer
-		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
+		//Start transfer for various emulated devices
+		if((!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
 			//Turn Power Antenna on or off
 			if((sio_stat->sio_type == GBA_POWER_ANTENNA) && ((sio_stat->cnt & 0x80) || (!sio_stat->internal_clock)))
@@ -3514,6 +3524,16 @@ void AGB_MMU::process_sio()
 			}
 		}
 
+		//Transfer SO for Link Cable
+		else if((!sio_stat->active_transfer) && ((sio_stat->cnt & 0x80) == 0) && (sio_stat->sio_type == GBA_LINK))
+		{
+			sio_stat->transfer_data = sio_stat->cnt;
+			sio_stat->send_so_status = true;
+			sio_stat->active_transfer = true;
+			sio_stat->shifts_left = 1;
+			sio_stat->shift_counter = sio_stat->shift_clock;
+		}
+
 		//Start transfer - Special case for Turbo File Advance
 		if((sio_stat->cnt & 0x80) && (sio_stat->sio_type == GBA_TURBO_FILE))
 		{
@@ -3522,6 +3542,8 @@ void AGB_MMU::process_sio()
 			sio_stat->transfer_data = memory_map[SIO_DATA_8];
 		}
 	}
+
+	std::cout<<"SIO -> " << sio_stat->sio_mode << "\n";
 }
 
 /****** Continually processes GB Player Rumble SIO communications ******/
