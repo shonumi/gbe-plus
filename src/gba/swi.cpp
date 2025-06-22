@@ -225,7 +225,8 @@ void ARM7::process_swi(u32 comment)
 
 		//Diff16bitUnFilter
 		case 0x18:
-			std::cout<<"SWI::Diff16bitUnFilter (not implemented yet) \n";
+			std::cout<<"SWI::Diff16bitUnFilter \n";
+			swi_diff16unfilter();
 			break;
 
 		//SoundBias
@@ -1189,7 +1190,30 @@ void ARM7::swi_rluncompvram()
 		//Manually adjust data pointer for compressed data to point to next flag
 		if(flag & 0x80) { data_ptr++; }
 	}
-}		
+}
+
+/****** HLE implementation of Diff16bitUnFilter******/
+void ARM7::swi_diff16unfilter()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+	u32 data_size = (data_header >> 8);
+	u16 diff_data = 0;
+
+	for(u32 x = 0; x < data_size; x += 2)
+	{
+		diff_data += mem->read_u16(src_addr + x);
+		mem->write_u16((dest_addr + x), diff_data);
+	}
+}
 	
 /****** HLE implementation of GetBIOSChecksum ******/
 void ARM7::swi_getbioschecksum()

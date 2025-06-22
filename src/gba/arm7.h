@@ -286,6 +286,7 @@ class ARM7
 	void swi_lz77uncompvram();
 	void swi_rluncompvram();
 	void swi_huffuncomp();
+	void swi_diff16unfilter();
 	void swi_getbioschecksum();
 	void swi_bgaffineset();
 	void swi_objaffineset();
