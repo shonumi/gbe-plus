@@ -215,12 +215,14 @@ void ARM7::process_swi(u32 comment)
 
 		//Diff8bitUnFilterWram
 		case 0x16:
-			std::cout<<"SWI::Diff8bitUnFilterWram (not implemented yet) \n";
+			std::cout<<"SWI::Diff8bitUnFilterWram \n";
+			swi_diff8unfilter();
 			break;
 
 		//Diff8bitUnFilterVram
 		case 0x17:
-			std::cout<<"SWI::Diff8bitUnFilterVram (not implemented yet) \n";
+			std::cout<<"SWI::Diff8bitUnFilterVram \n";
+			swi_diff8unfilter();
 			break;
 
 		//Diff16bitUnFilter
@@ -1192,6 +1194,31 @@ void ARM7::swi_rluncompvram()
 	}
 }
 
+/****** HLE implementation of Diff8bitUnFilter******/
+void ARM7::swi_diff8unfilter()
+{
+	bios_read_state = BIOS_SWI_FINISH;
+
+	//Grab source address - R0
+	u32 src_addr = get_reg(0);
+
+	//Grab destination address - R1
+	u32 dest_addr = get_reg(1);
+
+	//Grab data header
+	u32 data_header = mem->read_u32(src_addr);
+	src_addr += 4;
+
+	u32 data_size = (data_header >> 8);
+	u8 diff_data = 0;
+
+	for(u32 x = 0; x < data_size; x++)
+	{
+		diff_data += mem->read_u8(src_addr + x);
+		mem->write_u8((dest_addr + x), diff_data);
+	}
+}
+
 /****** HLE implementation of Diff16bitUnFilter******/
 void ARM7::swi_diff16unfilter()
 {
@@ -1205,6 +1232,8 @@ void ARM7::swi_diff16unfilter()
 
 	//Grab data header
 	u32 data_header = mem->read_u32(src_addr);
+	src_addr += 4;
+
 	u32 data_size = (data_header >> 8);
 	u16 diff_data = 0;
 
