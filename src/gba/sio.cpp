@@ -225,68 +225,68 @@ void AGB_SIO::reset()
 	switch(config::sio_device)
 	{
 		//Ignore invalid DMG/GBC devices
-		case 0x1:
-		case 0x2:
-		case 0x4:
-		case 0x5:
-		case 0x6:
+		case SIO_DMG_LINK_CABLE:
+		case SIO_PRINTER:
+		case SIO_BTB_SCANNER:
+		case SIO_BARCODE_BOY:
+		case SIO_4_PLAYER_ADAPTER:
 			sio_stat.sio_type = INVALID_GBA_DEVICE;
 			break;
 
 		//Mobile Adapter GB
-		case 0x3:
+		case SIO_MOBILE_ADAPTER:
 			sio_stat.sio_type = GBA_MOBILE_ADAPTER;
 			break;
 
 		//GB Player Rumble
-		case 0x8:
+		case SIO_GB_PLAYER_RUMBLE:
 			sio_stat.sio_type = GBA_PLAYER_RUMBLE;
 			break;
 
 		//Soul Doll Adapter
-		case 0x9:
+		case SIO_SOUL_DOLL_ADAPTER:
 			sio_stat.sio_type = GBA_SOUL_DOLL_ADAPTER;
 			break;
 
 		//Battle Chip Gate, Progress Chip Gate, and Beast Link Gate
-		case 0xA:
-		case 0xB:
-		case 0xC:
+		case SIO_BATTLE_CHIP_GATE:
+		case SIO_PROGRESS_CHIP_GATE:
+		case SIO_BEAST_LINK_GATE:
 			sio_stat.sio_type = GBA_BATTLE_CHIP_GATE;
 			break;
 
 		//Power Antenna + Bug Sensor
-		case 0xD:
+		case SIO_POWER_ANTENNA:
 			sio_stat.sio_type = GBA_POWER_ANTENNA;
 			break;
 
 		//Multi Plust On System
-		case 0xF:
+		case SIO_MULTI_PLUST_ON_SYSTEM:
 			sio_stat.sio_type = GBA_MULTI_PLUST_ON_SYSTEM;
 			break;
 
 		//Turbo File Advance
-		case 16:
+		case SIO_TURBO_FILE:
 			sio_stat.sio_type = GBA_TURBO_FILE;
 			break;
 
 		//AGB-006
-		case 17:
+		case SIO_GBA_IR_ADAPTER:
 			sio_stat.sio_type = GBA_IR_ADAPTER;
 			break;
 
 		//Virtureal Racing System
-		case 18:
+		case SIO_VIRTUREAL_RACING_SYSTEM:
 			sio_stat.sio_type = GBA_VRS;
 			break;
 
 		//Magic Watch
-		case 19:
+		case SIO_MAGICAL_WATCH:
 			sio_stat.sio_type = GBA_MAGIC_WATCH;
 			break;
 
 		//GBA Wireless Adapter
-		case 20:
+		case SIO_GBA_WIRELESS_ADAPTER:
 			sio_stat.sio_type = GBA_WIRELESS_ADAPTER;
 			break;
 
@@ -324,7 +324,7 @@ void AGB_SIO::reset()
 	//Soul Doll Adapter
 	soul_doll_adapter_reset();
 
-	if(config::sio_device == 9) { soul_doll_adapter_load_data(config::external_data_file); }
+	if(config::sio_device == SIO_SOUL_DOLL_ADAPTER) { soul_doll_adapter_load_data(config::external_data_file); }
 
 	//Battle Chip Gate
 	chip_gate.data = 0x8E70;
@@ -372,9 +372,9 @@ void AGB_SIO::reset()
 
 	switch(config::sio_device)
 	{
-		case 0xA: chip_gate.unit_code = 0xFFC6; break;
-		case 0xB: chip_gate.unit_code = 0xFFC7; break;
-		case 0xC: chip_gate.unit_code = 0xFFC4; break;
+		case SIO_BATTLE_CHIP_GATE: chip_gate.unit_code = 0xFFC6; break;
+		case SIO_PROGRESS_CHIP_GATE: chip_gate.unit_code = 0xFFC7; break;
+		case SIO_BEAST_LINK_GATE: chip_gate.unit_code = 0xFFC4; break;
 		default: chip_gate.unit_code = 0;
 	}
 
@@ -388,7 +388,7 @@ void AGB_SIO::reset()
 	turbo_file.mem_card_status = 0x5;
 	turbo_file.bank = 0x0;
 
-	if(config::sio_device == 16)
+	if(config::sio_device == SIO_TURBO_FILE)
 	{
 		std::string turbo_save = config::data_path + "turbo_file_advance.sav";
 		turbo_file_load_data(turbo_save);
@@ -450,7 +450,7 @@ void AGB_SIO::reset()
 	vrs.crash_duration[0] = 0;
 	vrs.crash_duration[1] = 0;
 
-	if(config::sio_device == 18) { vrs.active = vrs_load_data(); }
+	if(config::sio_device == SIO_VIRTUREAL_RACING_SYSTEM) { vrs.active = vrs_load_data(); }
 
 	//Magic Watch
 	magic_watch.active = false;
@@ -465,7 +465,7 @@ void AGB_SIO::reset()
 	magic_watch.dummy_reads = 0;
 	magic_watch.active_count = 0;
 
-	if(config::sio_device == 19)
+	if(config::sio_device == SIO_MAGICAL_WATCH)
 	{
 		magic_watch.data.resize(9, 0x00);
 		magic_watch.data[0] = (config::mw_data[0] < 0x63) ? config::mw_data[0] : 0x63;
