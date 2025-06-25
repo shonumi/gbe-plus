@@ -216,13 +216,13 @@ void ARM7::process_swi(u32 comment)
 		//Diff8bitUnFilterWram
 		case 0x16:
 			std::cout<<"SWI::Diff8bitUnFilterWram \n";
-			swi_diff8unfilter();
+			swi_diff8unfilter(false);
 			break;
 
 		//Diff8bitUnFilterVram
 		case 0x17:
 			std::cout<<"SWI::Diff8bitUnFilterVram \n";
-			swi_diff8unfilter();
+			swi_diff8unfilter(true);
 			break;
 
 		//Diff16bitUnFilter
@@ -1195,7 +1195,7 @@ void ARM7::swi_rluncompvram()
 }
 
 /****** HLE implementation of Diff8bitUnFilter******/
-void ARM7::swi_diff8unfilter()
+void ARM7::swi_diff8unfilter(bool is_vram_version)
 {
 	bios_read_state = BIOS_SWI_FINISH;
 
@@ -1210,12 +1210,24 @@ void ARM7::swi_diff8unfilter()
 	src_addr += 4;
 
 	u32 data_size = (data_header >> 8);
-	u8 diff_data = 0;
+	u16 diff_data = 0;
 
-	for(u32 x = 0; x < data_size; x++)
+	if(is_vram_version)
 	{
-		diff_data += mem->read_u8(src_addr + x);
-		mem->write_u8((dest_addr + x), diff_data);
+		for(u32 x = 0; x < data_size; x += 2)
+		{
+			diff_data += mem->read_u8(src_addr++);
+			mem->write_u16((dest_addr + x), diff_data);
+		}
+	}
+
+	else
+	{
+		for(u32 x = 0; x < data_size; x++)
+		{
+			diff_data += mem->read_u8(src_addr++);
+			mem->write_u8(dest_addr++, diff_data);
+		}
 	}
 }
 

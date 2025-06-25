@@ -3542,8 +3542,6 @@ void AGB_MMU::process_sio()
 			sio_stat->transfer_data = memory_map[SIO_DATA_8];
 		}
 	}
-
-	std::cout<<"SIO -> " << sio_stat->sio_mode << "\n";
 }
 
 /****** Continually processes GB Player Rumble SIO communications ******/
