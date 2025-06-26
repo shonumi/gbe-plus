@@ -352,7 +352,7 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		case R_CNT:
 			//Receive data from Magic Watch if necessary
-			if((config::sio_device == 19) && (mw->active)) { magic_watch_recv(); }
+			if((config::sio_device == SIO_MAGICAL_WATCH) && (mw->active)) { magic_watch_recv(); }
 
 			return (sio_stat->r_cnt & 0xFF);
 			break;
@@ -1953,22 +1953,22 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			process_sio();
 
 			//Trigger transfer to emulated Soul Doll Adapter if necessary
-			if((config::sio_device == 9) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
+			if((config::sio_device == SIO_SOUL_DOLL_ADAPTER) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
 
 			//Toggle Power Antenna ON or OFF if necessary
-			if(config::sio_device == 13) { sio_stat->emu_device_ready = true; }
+			if(config::sio_device == SIO_POWER_ANTENNA) { sio_stat->emu_device_ready = true; }
 
 			//Trigger transfer to emulated Multi Plust On System if necessary
-			else if((config::sio_device == 15) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
+			else if((config::sio_device == SIO_MULTI_PLUST_ON_SYSTEM) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
 
 			//Trigger transfer to emulated AGB-006 if necessary
-			else if((config::sio_device == 17) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
+			else if((config::sio_device == SIO_GBA_IR_ADAPTER) && (address == R_CNT+1)) { sio_stat->emu_device_ready = true; }
 
 			//Trigger transfer to emulated Magic Watch if necessary
-			else if((config::sio_device == 19) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
+			else if((config::sio_device == SIO_MAGICAL_WATCH) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
 
 			//Trigger transfer to emulated GBA Wireless Adapter if necessary
-			else if((config::sio_device == 20) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
+			else if((config::sio_device == SIO_GBA_WIRELESS_ADAPTER) && (address == R_CNT)) { sio_stat->emu_device_ready = true; }
 
 			break;
 			
@@ -3487,7 +3487,7 @@ void AGB_MMU::process_sio()
 		}
 
 		//Signal to emulated GB Player rumble that emulated GBA is ready for SIO transfer
-		else if((config::sio_device == 7) && (!sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
+		else if((config::sio_device == SIO_GB_PLAYER_RUMBLE) && (!sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
 			sio_stat->emu_device_ready = true;
 			sio_emu_device_ready = true;

@@ -1632,7 +1632,7 @@ void ARM7::clock_emulated_sio_device()
 {
 	switch(config::sio_device)
 	{
-		case 0x3:
+		case SIO_MOBILE_ADAPTER:
 			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT) || (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
 			{
 				//Reset Bit 7 in SIO_CNT
@@ -1662,17 +1662,17 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
-		case 0x9:
+		case SIO_SOUL_DOLL_ADAPTER:
 			controllers.serial_io.soul_doll_adapter_process();
 			break;
 
-		case 0xA:
-		case 0xB:
-		case 0xC:
+		case SIO_BATTLE_CHIP_GATE:
+		case SIO_PROGRESS_CHIP_GATE:
+		case SIO_BEAST_LINK_GATE:
 			controllers.serial_io.battle_chip_gate_process();
 			break;
 
-		case 0xD:
+		case SIO_POWER_ANTENNA:
 			//Turn on Power Antenna
 			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT) || (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
 			{
@@ -1707,11 +1707,11 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
-		case 0xF:
+		case SIO_MULTI_PLUST_ON_SYSTEM:
 			controllers.serial_io.mpos_process();
 			break;
 
-		case 0x10:
+		case SIO_TURBO_FILE:
 			//Process Turbo File Advance
 			if(controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT)
 			{
@@ -1721,7 +1721,7 @@ void ARM7::clock_emulated_sio_device()
 			controllers.serial_io.sio_stat.emu_device_ready = false;
 			controllers.serial_io.sio_stat.active_transfer = false;
 
-		case 0x11:
+		case SIO_GBA_IR_ADAPTER:
 			//Process AGB-006
 			if(mem->sub_screen_update)
 			{
@@ -1752,7 +1752,7 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
-		case 0x12:
+		case SIO_VIRTUREAL_RACING_SYSTEM:
 			if(!controllers.serial_io.vrs.active) { return; }
 
 			//Process Virtual Racing System
@@ -1774,14 +1774,14 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
-		case 0x13:
+		case SIO_MAGICAL_WATCH:
 			controllers.serial_io.magic_watch_process();
 			controllers.serial_io.sio_stat.emu_device_ready = false;
 			controllers.serial_io.sio_stat.active_transfer = false;
 
 			break;
 
-		case 0x14:
+		case SIO_GBA_WIRELESS_ADAPTER:
 			if(controllers.serial_io.wireless_adapter.is_sending) { controllers.serial_io.wireless_adapter.cycles += system_cycles; }
 			controllers.serial_io.wireless_adapter_process();
 			break;
