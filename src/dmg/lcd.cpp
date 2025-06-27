@@ -1245,7 +1245,7 @@ void DMG_LCD::step(int cpu_clock)
 				if((config::request_resize) && (config::resize_mode > 0))
 				{
 					//DMG/GBC stretch
-					if(config::sio_device != 14)
+					if(config::sio_device != SIO_SEWING_MACHINE)
 					{
 						config::sys_width = 240;
 						config::sys_height = 160;

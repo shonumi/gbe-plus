@@ -484,23 +484,23 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 	}
 
 	//Emulate R Trigger press - DMG/GBC on GBA or sewing machine ONLY
-	else if((pad == config::gbe_key_r_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
+	else if((pad == config::gbe_key_r_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == SIO_SEWING_MACHINE)))
 	{
 		config::request_resize = true;
 		config::resize_mode--;
 		
 		if(config::resize_mode < 0) { config::resize_mode = 0; }
-		if(config::sio_device == 14) { config::resize_mode = 0; }
+		if(config::sio_device == SIO_SEWING_MACHINE) { config::resize_mode = 0; }
 	}
 
 	//Emulate L Trigger press - DMG/GBC on GBA or sewing machine ONLY
-	else if((pad == config::gbe_key_l_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
+	else if((pad == config::gbe_key_l_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == SIO_SEWING_MACHINE)))
 	{
 		config::request_resize = true;
 		config::resize_mode++;
 
 		if(config::resize_mode > 2) { config::resize_mode = 2; }
-		if(config::sio_device == 14) { config::resize_mode = 3; }
+		if(config::sio_device == SIO_SEWING_MACHINE) { config::resize_mode = 3; }
 	}
 
 	//Misc Context Key 1 press
@@ -663,23 +663,23 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	}
 
 	//Emulate R Trigger press - DMG/GBC on GBA or sewing machine ONLY
-	else if((pad == config::gbe_joy_r_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
+	else if((pad == config::gbe_joy_r_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == SIO_SEWING_MACHINE)))
 	{
 		config::request_resize = true;
 		config::resize_mode--;
 		
 		if(config::resize_mode < 0) { config::resize_mode = 0; }
-		if(config::sio_device == 14) { config::resize_mode = 0; }
+		if(config::sio_device == SIO_SEWING_MACHINE) { config::resize_mode = 0; }
 	}
 
 	//Emulate L Trigger press - DMG/GBC on GBA or sewing machine ONLY
-	else if((pad == config::gbe_joy_l_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == 14)))
+	else if((pad == config::gbe_joy_l_trigger) && (pressed) && (config::gba_enhance || (config::sio_device == SIO_SEWING_MACHINE)))
 	{
 		config::request_resize = true;
 		config::resize_mode++;
 
 		if(config::resize_mode > 2) { config::resize_mode = 2; }
-		if(config::sio_device == 14) { config::resize_mode = 3; }
+		if(config::sio_device == SIO_SEWING_MACHINE) { config::resize_mode = 3; }
 	}
 
 	//Misc Context Key 1 press

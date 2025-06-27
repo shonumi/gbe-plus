@@ -1389,7 +1389,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 				sio_stat->shift_counter = 0;
 
 				//Keep track of internal transfers for sewing machines
-				if(config::sio_device == 14) { sio_stat->ping_count = 0; }
+				if(config::sio_device == SIO_SEWING_MACHINE) { sio_stat->ping_count = 0; }
 			}
 
 			//Special handling for 4 Player Adapter - Player 1
@@ -1405,7 +1405,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			else if((!sio_stat->internal_clock) && (sio_stat->sio_type == 6)) { sio_stat->send_data = true; }
 
 			//Special handling for Singer IZEK 1500
-			else if(config::sio_device == 14)
+			else if(config::sio_device == SIO_SEWING_MACHINE)
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;
@@ -1417,7 +1417,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			}
 
 			//Special handling for Turbo File GB
-			else if(config::sio_device == 16)
+			else if(config::sio_device == SIO_TURBO_FILE)
 			{
 				sio_stat->active_transfer = true;
 				sio_stat->shifts_left = 8;

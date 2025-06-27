@@ -254,7 +254,7 @@ bool DMG_SIO::init()
 			sio_stat.use_hard_sync = false;
 		}
 
-		else if((config::sio_device == 1) || (config::sio_device == 6))
+		else if((config::sio_device == SIO_DMG_LINK_CABLE) || (config::sio_device == SIO_4_PLAYER_ADAPTER))
 		{
 			sio_stat.use_hard_sync = true;
 		}
@@ -293,53 +293,43 @@ void DMG_SIO::reset()
 	
 	switch(config::sio_device)
 	{
-		//No Link Cable or Device
-		case 0:
+		case SIO_NONE:
 			sio_stat.sio_type = NO_GB_DEVICE;
 			break;
 
-		//Link Cable
-		case 1:
+		case SIO_DMG_LINK_CABLE:
 			sio_stat.sio_type = GB_LINK;
 			break;
 
-		//GB Printer
-		case 2:
+		case SIO_PRINTER:
 			sio_stat.sio_type = GB_PRINTER;
 			break;
 
-		//GB Mobile Adapter
-		case 3: 
+		case SIO_MOBILE_ADAPTER: 
 			sio_stat.sio_type = GB_MOBILE_ADAPTER;
 			break;
 
-		//Bardigun barcode scanner
-		case 4:
+		case SIO_BTB_SCANNER:
 			sio_stat.sio_type = GB_BARDIGUN_SCANNER;
 			break;
 
-		//Barcode Boy
-		case 5:
+		case SIO_BARCODE_BOY:
 			sio_stat.sio_type = GB_BARCODE_BOY;
 			break;
 
-		//4 Player Adapter
-		case 6:
+		case SIO_4_PLAYER_ADAPTER:
 			sio_stat.sio_type = GB_FOUR_PLAYER_ADAPTER;
 			break;
 
-		//Power Antenna
-		case 13:
+		case SIO_POWER_ANTENNA:
 			sio_stat.sio_type = GB_POWER_ANTENNA;
 			break;
 
-		//Singer IZEK 1500
-		case 14:
+		case SIO_SEWING_MACHINE:
 			sio_stat.sio_type = GB_SINGER_IZEK;
 			break;
 
-		//Turbo File GB
-		case 16:
+		case SIO_TURBO_FILE:
 			sio_stat.sio_type = GB_ASCII_TURBO_FILE;
 			break;
 
@@ -435,7 +425,7 @@ void DMG_SIO::reset()
 	mobile_adapter.http_data = "";
 
 	//Load configuration data + internal server list
-	if(config::sio_device == 3)
+	if(config::sio_device == SIO_MOBILE_ADAPTER)
 	{
 		mobile_adapter_load_config();
 		mobile_adapter_load_server_list();
@@ -446,14 +436,14 @@ void DMG_SIO::reset()
 	bardigun_scanner.current_state = BARDIGUN_INACTIVE;
 	bardigun_scanner.inactive_counter = 0x500;
 	bardigun_scanner.barcode_pointer = 0;
-	if(config::sio_device == 4) { bardigun_load_barcode(config::external_card_file); }
+	if(config::sio_device == SIO_BTB_SCANNER) { bardigun_load_barcode(config::external_card_file); }
 
 	//Barcode Boy
 	barcode_boy.data.clear();
 	barcode_boy.current_state = BARCODE_BOY_INACTIVE;
 	barcode_boy.counter = 0;
 	barcode_boy.send_data = false;
-	if(config::sio_device == 5) { barcode_boy_load_barcode(config::external_card_file); }
+	if(config::sio_device == SIO_BARCODE_BOY) { barcode_boy_load_barcode(config::external_card_file); }
 
 	//Power Antenna
 	power_antenna_on = false;
@@ -509,7 +499,7 @@ void DMG_SIO::reset()
 	turbo_file.mem_card_status = 0x1;
 	turbo_file.bank = 0x0;
 
-	if(config::sio_device == 16)
+	if(config::sio_device == SIO_TURBO_FILE)
 	{
 		std::string turbo_save = config::data_path + "turbo_file_gb.sav";
 		turbo_file_load_data(turbo_save);
