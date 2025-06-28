@@ -599,12 +599,18 @@ void main_menu::select_data_file()
 	if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 	//Automatically save Soul Doll data when switching
-	if((main_menu::gbe_plus != NULL) && (config::gb_type == 3) && (config::sio_device == 9)) { gbe_plus->get_core_data(1); }
+	if((main_menu::gbe_plus != NULL) && (config::gb_type == 3) && (config::sio_device == SIO_SOUL_DOLL_ADAPTER))
+	{
+		gbe_plus->get_core_data(1);
+	}
 
 	config::external_data_file = filename.toStdString();
 
 	//Automatically load Soul Doll data when switching
-	if((main_menu::gbe_plus != NULL) && (config::gb_type == 3) && (config::sio_device == 9)) { gbe_plus->get_core_data(2); }
+	if((main_menu::gbe_plus != NULL) && (config::gb_type == 3) && (config::sio_device == SIO_SOUL_DOLL_ADAPTER))
+	{
+		gbe_plus->get_core_data(2);
+	}
 
 	SDL_PauseAudio(0);
 }

@@ -1844,19 +1844,19 @@ void gen_settings::set_ini_options()
 
 	switch(config::sio_device)
 	{
-		case 1:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		case 10:
-		case 11:
-		case 12:
-		case 15:
-		case 16:
-		case 19:
+		case SIO_DMG_LINK_CABLE:
+		case SIO_MOBILE_ADAPTER:
+		case SIO_BTB_SCANNER:
+		case SIO_BARCODE_BOY:
+		case SIO_4_PLAYER_ADAPTER:
+		case SIO_AGB_LINK_CABLE:
+		case SIO_SOUL_DOLL_ADAPTER:
+		case SIO_BATTLE_CHIP_GATE:
+		case SIO_PROGRESS_CHIP_GATE:
+		case SIO_BEAST_LINK_GATE:
+		case SIO_MULTI_PLUST_ON_SYSTEM:
+		case SIO_TURBO_FILE:
+		case SIO_MAGICAL_WATCH:
 			config_sio->setEnabled(true);
 			break;
 
@@ -2165,8 +2165,8 @@ void gen_settings::set_ini_options()
 	else { real_server->setChecked(false); }
 
 	//Battle Gate Type
-	if(config::sio_device == 11) { chip_gate_type->setCurrentIndex(1); }
-	else if(config::sio_device == 12) { chip_gate_type->setCurrentIndex(2); }
+	if(config::sio_device == SIO_PROGRESS_CHIP_GATE) { chip_gate_type->setCurrentIndex(1); }
+	else if(config::sio_device == SIO_BEAST_LINK_GATE) { chip_gate_type->setCurrentIndex(2); }
 	else { chip_gate_type->setCurrentIndex(0); }
 
 	//Battle Chips 1-4
@@ -2217,19 +2217,19 @@ void gen_settings::sio_dev_change()
 
 	switch(config::sio_device)
 	{
-		case 1:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 9:
-		case 10:
-		case 11:
-		case 12:
-		case 15:
-		case 16:
-		case 19:
+		case SIO_DMG_LINK_CABLE:
+		case SIO_MOBILE_ADAPTER:
+		case SIO_BTB_SCANNER:
+		case SIO_BARCODE_BOY:
+		case SIO_4_PLAYER_ADAPTER:
+		case SIO_AGB_LINK_CABLE:
+		case SIO_SOUL_DOLL_ADAPTER:
+		case SIO_BATTLE_CHIP_GATE:
+		case SIO_PROGRESS_CHIP_GATE:
+		case SIO_BEAST_LINK_GATE:
+		case SIO_MULTI_PLUST_ON_SYSTEM:
+		case SIO_TURBO_FILE:
+		case SIO_MAGICAL_WATCH:
 			config_sio->setEnabled(true);
 			break;
 
@@ -2313,19 +2313,63 @@ void gen_settings::show_sio_config()
 {
 	switch(config::sio_device)
 	{
-		case 1: tabs->setCurrentIndex(4); break;
-		case 3: tabs->setCurrentIndex(4); break;
-		case 4: qt_gui::draw_surface->set_card_file(); break;
-		case 5: qt_gui::draw_surface->set_card_file(); break;
-		case 6: tabs->setCurrentIndex(4); break;
-		case 7: tabs->setCurrentIndex(4); break;
-		case 9: qt_gui::draw_surface->set_data_file(); break;
-		case 10: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(0); break;
-		case 11: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(1); break;
-		case 12: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(3); chip_gate_type->setCurrentIndex(2); break;
-		case 15: multi_plust_menu->show(); break;
-		case 16: turbo_file_menu->show(); break;
-		case 19: magical_watch_menu->show(); break;
+		case SIO_DMG_LINK_CABLE:
+			tabs->setCurrentIndex(4);
+			break;
+
+		case SIO_MOBILE_ADAPTER:
+			tabs->setCurrentIndex(4);
+			break;
+
+		case SIO_BTB_SCANNER:
+			qt_gui::draw_surface->set_card_file();
+			break;
+
+		case SIO_BARCODE_BOY:
+			qt_gui::draw_surface->set_card_file();
+			break;
+
+		case SIO_4_PLAYER_ADAPTER:
+			tabs->setCurrentIndex(4);
+			break;
+
+		case SIO_AGB_LINK_CABLE:
+			tabs->setCurrentIndex(4);
+			break;
+
+		case SIO_SOUL_DOLL_ADAPTER:
+			qt_gui::draw_surface->set_data_file();
+			break;
+
+		case SIO_BATTLE_CHIP_GATE:
+			tabs->setCurrentIndex(3);
+			controls_combo->setCurrentIndex(3);
+			chip_gate_type->setCurrentIndex(0);
+			break;
+
+		case SIO_PROGRESS_CHIP_GATE:
+			tabs->setCurrentIndex(3);
+			controls_combo->setCurrentIndex(3);
+			chip_gate_type->setCurrentIndex(1);
+			break;
+
+		case SIO_BEAST_LINK_GATE:
+			tabs->setCurrentIndex(3);
+			controls_combo->setCurrentIndex(3);
+			chip_gate_type->setCurrentIndex(2);
+			break;
+
+		case SIO_MULTI_PLUST_ON_SYSTEM:
+			multi_plust_menu->show();
+			break;
+
+		case SIO_TURBO_FILE:
+			turbo_file_menu->show();
+			break;
+
+		case SIO_MAGICAL_WATCH:
+			magical_watch_menu->show();
+			break;
 	}
 }
 
