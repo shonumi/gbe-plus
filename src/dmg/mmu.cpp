@@ -328,7 +328,10 @@ u8 DMG_MMU::read_u8(u16 address)
 			std::cout<<"MMU::Exiting BIOS \n";
 
 			//For DMG on GBC games, we switch back to DMG Mode (we just take the colors the BIOS gives us)
-			if((bios_size == 0x900) && (memory_map[ROM_COLOR] != 0x80) && (memory_map[ROM_COLOR] != 0xC0)) { config::gb_type = 1; }
+			if((bios_size == 0x900) && (memory_map[ROM_COLOR] != 0x80) && (memory_map[ROM_COLOR] != 0xC0))
+			{
+				config::gb_type = SYS_DMG;
+			}
 		}
 
 		else if(address < bios_size) { return bios[address]; }
@@ -350,14 +353,14 @@ u8 DMG_MMU::read_u8(u16 address)
 	if((address >= 0x8000) && (address <= 0x9FFF))
 	{
 		//GBC read from VRAM Bank 1
-		if((vram_bank == 1) && (config::gb_type == 2)) { return video_ram[1][address - 0x8000]; }
+		if((vram_bank == 1) && (config::gb_type == SYS_GBC)) { return video_ram[1][address - 0x8000]; }
 		
 		//GBC read from VRAM Bank 0 - DMG read normally, also from Bank 0, though it doesn't use banking technically
 		else { return video_ram[0][address - 0x8000]; }
 	}
 
 	//In GBC mode, read from Working RAM using Banking
-	if((address >= 0xC000) && (address <= 0xDFFF) && (config::gb_type == 2)) 
+	if((address >= 0xC000) && (address <= 0xDFFF) && (config::gb_type == SYS_GBC)) 
 	{
 		//Read from Bank 0 always when address is within 0xC000 - 0xCFFF
 		if((address >= 0xC000) && (address <= 0xCFFF)) { return working_ram_bank[0][address - 0xC000]; }
@@ -410,7 +413,7 @@ u8 DMG_MMU::read_u8(u16 address)
 	else if(address == REG_RP)
 	{
 		//GBC only
-		if(config::gb_type < 2) { return 0x0; }
+		if(config::gb_type < SYS_GBC) { return 0x0; }
 
 		//Initiate manual IR transmission (Full Changer, Pokemon Pikachu 2, Pocket Sakura, TV Remote)
 		if(!ir_stat.signal && (ir_stat.trigger == 1))
@@ -477,7 +480,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	if((address >= 0x8000) && (address <= 0x9FFF))
 	{
 		//GBC write to VRAM Bank 1
-		if((vram_bank == 1) && (config::gb_type == 2)) 
+		if((vram_bank == 1) && (config::gb_type == SYS_GBC)) 
 		{
 			previous_value = video_ram[1][address - 0x8000];
 			video_ram[1][address - 0x8000] = value;
@@ -1179,7 +1182,10 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		//Trigger STAT IRQ when writing to STAT register
 		//This only happens on DMG models (and SGBs???) during HBLANK or VBLANK periods
-		if((lcd_stat->lcd_mode < 2) && (lcd_stat->lcd_enable) && (config::gb_type < 2)) { memory_map[IF_FLAG] |= 0x2; }
+		if((lcd_stat->lcd_mode < 2) && (lcd_stat->lcd_enable) && (config::gb_type < SYS_GBC))
+		{
+			memory_map[IF_FLAG] |= 0x2;
+		}
 
 		u8 read_only_bits = (memory_map[REG_STAT] & 0x7);
 
@@ -1246,14 +1252,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if((address >= 0xC000) && (address <= 0xDFFF)) 
 	{
 		//DMG mode - Normal writes
-		if(config::gb_type != 2)
+		if(config::gb_type != SYS_GBC)
 		{
 			memory_map[address] = value;
 			if(address + 0x2000 < 0xFDFF) { memory_map[address + 0x2000] = value; }
 		}
 
 		//GBC mode - Use banks
-		else if(config::gb_type == 2)
+		else if(config::gb_type == SYS_GBC)
 		{
 			//Write to Bank 0 always when address is within 0xC000 - 0xCFFF
 			if((address >= 0xC000) && (address <= 0xCFFF)) { working_ram_bank[0][address - 0xC000] = value; }
@@ -1313,7 +1319,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_VBK) 
 	{ 
 		vram_bank = value & 0x1; 
-		memory_map[address] = (config::gb_type < 2) ? 0xFF : (value & 0x1); 
+		memory_map[address] = (config::gb_type < SYS_GBC) ? 0xFF : (value & 0x1); 
 	}
 
 	//KEY1 - Double-Normal speed switch
@@ -1327,14 +1333,14 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	//BCPD - Update background color palettes
 	else if(address == REG_BCPD)
 	{
-		memory_map[address] = (config::gb_type < 2) ? 0xFF : value; 
+		memory_map[address] = (config::gb_type < SYS_GBC) ? 0xFF : value; 
 		lcd_stat->update_bg_colors = true;
 	}
 
 	//OCPD - Update sprite color palettes
 	else if(address == REG_OCPD)
 	{
-		memory_map[address] = (config::gb_type < 2) ? 0xFF : value; 
+		memory_map[address] = (config::gb_type < SYS_GBC) ? 0xFF : value; 
 		lcd_stat->update_obj_colors = true;
 	}
 
@@ -1343,7 +1349,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	{
 		wram_bank = (value & 0x7);
 		if(wram_bank == 0) { wram_bank = 1; }
-		memory_map[address] = (config::gb_type < 2) ? 0xFF : (value & 0x7);
+		memory_map[address] = (config::gb_type < SYS_GBC) ? 0xFF : (value & 0x7);
 	}
 
 	//SB - Serial transfer data
@@ -1359,7 +1365,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 		sio_stat->internal_clock = (value & 0x1) ? true : false;
 
 		//DMG uses 8192Hz clock only (512 cycles)
-		if(config::gb_type != 2) { sio_stat->shift_clock = 512; }
+		if(config::gb_type != SYS_GBC) { sio_stat->shift_clock = 512; }
 
 		//GBC has 4 selectable speeds
 		else
@@ -1432,7 +1438,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	else if(address == REG_RP)
 	{
 		//This register does nothing on the DMG, GBC only
-		if(config::gb_type == 2)
+		if(config::gb_type == SYS_GBC)
 		{
 			//Bit 1 is read-only, preserve this bit when writing to RP
 			u8 old_ir_signal = (memory_map[address] & 0x2) ? 0x2 : 0;
@@ -2088,18 +2094,18 @@ bool DMG_MMU::read_file(std::string filename)
 	//Only necessary for Auto system detection.
 	//For now, even if forcing GBC, when encountering DMG carts, revert to DMG mode, dunno how the palettes work yet
 	//When using the DMG bootrom or GBC BIOS, those files determine emulated system type later
-	if((config::gb_type == 0) || (config::gb_type == 2))
+	if((config::gb_type == SYS_AUTO) || (config::gb_type == SYS_GBC))
 	{
 		//Always use GBC mode when booting from the GBC bootrom
-		if((config::gb_type == 2) && (config::use_bios)) { config::gb_type = 2; }
+		if((config::gb_type == SYS_GBC) && (config::use_bios)) { config::gb_type = SYS_GBC; }
 
-		else if(memory_map[ROM_COLOR] == 0) { config::gb_type = 1; }
-		else if(memory_map[ROM_COLOR] == 0x80) { config::gb_type = 2; }
-		else if(memory_map[ROM_COLOR] == 0xC0) { config::gb_type = 2; }
+		else if(memory_map[ROM_COLOR] == 0) { config::gb_type = SYS_DMG; }
+		else if(memory_map[ROM_COLOR] == 0x80) { config::gb_type = SYS_GBC; }
+		else if(memory_map[ROM_COLOR] == 0xC0) { config::gb_type = SYS_GBC; }
 
 		//If another value is present, this is a DMG game
 		//The value is likely part of the ASCII title
-		else { config::gb_type = 1; }
+		else { config::gb_type = SYS_DMG; }
 	}
 
 	//Manually HLE MMIO
@@ -2133,7 +2139,7 @@ bool DMG_MMU::read_file(std::string filename)
 		//Some sound registers are set, however, don't actually play sound
 		for(int x = 0; x < 4; x++) { apu_stat->channel[x].playing = false; }
 
-		if(config::gb_type == 2)
+		if(config::gb_type == SYS_GBC)
 		{
 
 			memory_map[0xFF51] = 0xFF;
@@ -2146,7 +2152,7 @@ bool DMG_MMU::read_file(std::string filename)
 
 	//Manually set some I/O registers
 	//Some I/O registers are 0xFF on DMG units, 0x0 on GBC/GBA units
-	if(config::gb_type < 2)
+	if(config::gb_type < SYS_GBC)
 	{
 		write_u8(REG_OBP0, 0xFF);
 		write_u8(REG_OBP1, 0xFF);
@@ -2158,7 +2164,7 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 
 	//Manually set some GBC I/O registers
-	else if(config::gb_type == 2)
+	else if(config::gb_type == SYS_GBC)
 	{
 		memory_map[REG_RP] = 0x3E;
 	}
@@ -2219,8 +2225,8 @@ bool DMG_MMU::read_bios(std::string filename)
 		file.close();
 
 		//When using the BIOS, set the emulated system type - DMG or GBC respectively
-		if(bios_size == 0x100) { config::gb_type = 1; }
-		else if(bios_size == 0x900) { config::gb_type = 2; }
+		if(bios_size == 0x100) { config::gb_type = SYS_DMG; }
+		else if(bios_size == 0x900) { config::gb_type = SYS_GBC; }
 
 		std::cout<<"MMU::BIOS file " << filename << " loaded successfully. \n";
 

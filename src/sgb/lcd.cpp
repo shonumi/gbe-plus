@@ -411,7 +411,7 @@ void SGB_LCD::update_obj_render_list()
 	u8 obj_sort_length = 0;
 
 	//Update render list for DMG games
-	if(config::gb_type != 2)
+	if(config::gb_type != SYS_GBC)
 	{
 		//Cycle through all of the sprites
 		for(int x = 0; x < 40; x++)

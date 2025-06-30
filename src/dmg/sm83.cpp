@@ -27,7 +27,7 @@ SM83::~SM83()
 void SM83::reset() 
 {
 	//Values represent HLE BIOS
-	reg.a = (config::gb_type == 2) ? 0x11 : 0x01;
+	reg.a = (config::gb_type == SYS_GBC) ? 0x11 : 0x01;
 	reg.b = (config::gba_enhance) ? 0x01 : 0x00;
 	reg.c = 0x13;
 	reg.d = 0x00;
@@ -834,7 +834,7 @@ void SM83::exec_op(u8 opcode)
 		//STOP
 		case 0x10 :
 			//GBC - Normal to double speed mode
-			if((config::gb_type == 2) && (mem->memory_map[REG_KEY1] & 0x1) && ((mem->memory_map[REG_KEY1] & 0x80) == 0))
+			if((config::gb_type == SYS_GBC) && (mem->memory_map[REG_KEY1] & 0x1) && ((mem->memory_map[REG_KEY1] & 0x80) == 0))
 			{
 				double_speed = true;
 				mem->memory_map[REG_KEY1] = 0x80;
@@ -847,7 +847,7 @@ void SM83::exec_op(u8 opcode)
 			}
 
 			//GBC - Double to normal speed mode
-			if((config::gb_type == 2) && (mem->memory_map[REG_KEY1] & 0x1) && (mem->memory_map[REG_KEY1] & 0x80))
+			if((config::gb_type == SYS_GBC) && (mem->memory_map[REG_KEY1] & 0x1) && (mem->memory_map[REG_KEY1] & 0x80))
 			{
 				double_speed = false;
 				mem->memory_map[REG_KEY1] = 0;

@@ -1428,7 +1428,7 @@ void dmg_debug::refresh()
 	mmio_if->setText(QString("%1").arg(temp, 2, 16, QChar('0')).toUpper().prepend("0x"));
 
 	//DMG Palettes
-	if(config::gb_type != 2)
+	if(config::gb_type != SYS_GBC)
 	{
 		//BG
 		u8 ex_bgp[4];
@@ -1845,13 +1845,13 @@ void dmg_debug::show_obj(int obj_id)
 	obj_flip->setText(QString::fromStdString(obj_text));
 
 	//Update VRAM bank
-	if(config::gb_type < 2) { obj_text = "VRAM Bank: N/A"; }
+	if(config::gb_type < SYS_GBC) { obj_text = "VRAM Bank: N/A"; }
 	else { obj_text = "VRAM Bank: " + util::to_str((temp >> 3) & 0x1); }
 
 	obj_bank->setText(QString::fromStdString(obj_text));
 
 	//Update Palette
-	if(config::gb_type < 2) 
+	if(config::gb_type < SYS_GBC) 
 	{
 		temp = (temp >> 4) & 0x1;
 		

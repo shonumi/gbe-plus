@@ -247,7 +247,7 @@ bool DMG_core::set_save_state_info(std::string filename)
 /****** Run the core in a loop until exit ******/
 void DMG_core::run_core()
 {
-	if(config::gb_type == 2) { core_cpu.reg.a = 0x11; }
+	if(config::gb_type == SYS_GBC) { core_cpu.reg.a = 0x11; }
 
 	//Begin running the core
 	while(running)

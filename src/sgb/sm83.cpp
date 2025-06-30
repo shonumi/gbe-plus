@@ -13,10 +13,10 @@
 /****** SGB_SM83 Constructor ******/
 SGB_SM83::SGB_SM83() 
 {
-	if(config::gb_type == 6) { sgb_type = 1; }
+	if(config::gb_type == SYS_SGB2) { sgb_type = 1; }
 	else { sgb_type = 0; } 
 
-	config::gb_type = 1;
+	config::gb_type = SYS_DMG;
 
 	if(config::use_bios) { reset_bios(); }
 	else { reset(); }

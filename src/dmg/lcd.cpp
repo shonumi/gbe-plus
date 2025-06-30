@@ -357,7 +357,7 @@ void DMG_LCD::update_obj_render_list()
 	u8 obj_sort_length = 0;
 
 	//Update render list for DMG games
-	if(config::gb_type != 2)
+	if(config::gb_type != SYS_GBC)
 	{
 		//Cycle through all of the sprites
 		for(int x = 0; x < 40; x++)
@@ -1156,13 +1156,13 @@ void DMG_LCD::step(int cpu_clock)
 	}
 
 	//Update background color palettes on the GBC
-	if((lcd_stat.update_bg_colors) && (config::gb_type == 2)) { update_bg_colors(); }
+	if((lcd_stat.update_bg_colors) && (config::gb_type == SYS_GBC)) { update_bg_colors(); }
 
 	//Update sprite color palettes on the GBC
-	if((lcd_stat.update_obj_colors) && (config::gb_type == 2)) { update_obj_colors(); }
+	if((lcd_stat.update_obj_colors) && (config::gb_type == SYS_GBC)) { update_obj_colors(); }
 
 	//General Purpose DMA
-	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == 2)) { mem->gdma(); }
+	if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 0) && (config::gb_type == SYS_GBC)) { mem->gdma(); }
 
 	//Perform LCD operations if LCD is enabled
 	if(lcd_stat.lcd_enable) 
@@ -1209,14 +1209,17 @@ void DMG_LCD::step(int cpu_clock)
 					lcd_stat.lcd_mode = 0;
 
 					//Horizontal blanking DMA
-					if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 1) && (config::gb_type == 2)) { mem->hdma(); }
+					if((lcd_stat.hdma_in_progress) && (lcd_stat.hdma_type == 1) && (config::gb_type == SYS_GBC))
+					{
+						mem->hdma();
+					}
 
 					//Update OAM
 					if(lcd_stat.oam_update) { update_oam(); }
 					else { update_obj_render_list(); }
 					
 					//Render scanline when first entering Mode 0
-					if(config::gb_type != 2 ) { render_dmg_scanline(); }
+					if(config::gb_type != SYS_GBC) { render_dmg_scanline(); }
 					else { render_gbc_scanline(); }
 
 					//HBlank STAT INT

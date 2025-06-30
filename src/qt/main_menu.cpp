@@ -551,7 +551,7 @@ void main_menu::select_card_file()
 	config::external_card_file = filename.toStdString();
 
 	//Tell DMG-GBC core to update data
-	if((config::gb_type >= 0) && (config::gb_type <= 2) && (main_menu::gbe_plus != NULL))
+	if((config::gb_type >= SYS_AUTO) && (config::gb_type <= SYS_GBC) && (main_menu::gbe_plus != NULL))
 	{
 		if(main_menu::gbe_plus->get_core_data(1) == 0)
 		{
@@ -599,7 +599,7 @@ void main_menu::select_data_file()
 	if(filename.isNull()) { SDL_PauseAudio(0); return; }
 
 	//Automatically save Soul Doll data when switching
-	if((main_menu::gbe_plus != NULL) && (config::gb_type == 3) && (config::sio_device == SIO_SOUL_DOLL_ADAPTER))
+	if((main_menu::gbe_plus != NULL) && (config::gb_type == SYS_GBA) && (config::sio_device == SIO_SOUL_DOLL_ADAPTER))
 	{
 		gbe_plus->get_core_data(1);
 	}
@@ -607,7 +607,7 @@ void main_menu::select_data_file()
 	config::external_data_file = filename.toStdString();
 
 	//Automatically load Soul Doll data when switching
-	if((main_menu::gbe_plus != NULL) && (config::gb_type == 3) && (config::sio_device == SIO_SOUL_DOLL_ADAPTER))
+	if((main_menu::gbe_plus != NULL) && (config::gb_type == SYS_GBA) && (config::sio_device == SIO_SOUL_DOLL_ADAPTER))
 	{
 		gbe_plus->get_core_data(2);
 	}
@@ -860,20 +860,23 @@ void main_menu::boot_game()
 
 		config::gb_type = settings->sys_type->currentIndex();
 	
-		if(ext == ".gba") { config::gb_type = 3; }
-		else if(ext == ".nds") { config::gb_type = 4; }
-		else if(ext == ".min") { config::gb_type = 7; }
-		else if((ext != ".gba") && (config::gb_type == 3)) { config::gb_type = 2; config::gba_enhance = true; }
+		if(ext == ".gba") { config::gb_type = SYS_GBA; }
+		else if(ext == ".nds") { config::gb_type = SYS_NDS; }
+		else if(ext == ".min") { config::gb_type = SYS_MIN; }
+		else if((ext != ".gba") && (config::gb_type == SYS_GBA)) { config::gb_type = SYS_GBC; config::gba_enhance = true; }
 		else { config::gba_enhance = false; }
 
-		if((config::gb_type == 5) || (config::gb_type == 6)) { config::gb_type = get_system_type_from_file(config::rom_file); }
+		if((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2))
+		{
+			config::gb_type = get_system_type_from_file(config::rom_file);
+		}
 
 		//Force GBA system type for AM3 emulation
-		if(config::cart_type == AGB_AM3) { config::gb_type = 3; }
+		if(config::cart_type == AGB_AM3) { config::gb_type = SYS_GBA; }
 	}
 
 	//Start the appropiate system core - DMG, GBC, GBA, NDS, or MIN
-	if(config::gb_type == 3) 
+	if(config::gb_type == SYS_GBA) 
 	{
 		base_width = 240;
 		base_height = 160;
@@ -890,7 +893,7 @@ void main_menu::boot_game()
 		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
 
-	else if(config::gb_type == 4)
+	else if(config::gb_type == SYS_NDS)
 	{
 		base_width = 256;
 		base_height = 384;
@@ -907,7 +910,7 @@ void main_menu::boot_game()
 		findChild<QAction*>("debugging_action")->setEnabled(false);
 	}
 
-	else if(config::gb_type == 7) 
+	else if(config::gb_type == SYS_MIN) 
 	{
 		base_width = 96;
 		base_height = 64;
@@ -926,7 +929,7 @@ void main_menu::boot_game()
 
 	else 
 	{
-		if((config::gb_type == 5) || (config::gb_type == 6))
+		if((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2))
 		{
 			base_width = 160;
 			base_height = 144;
@@ -968,10 +971,10 @@ void main_menu::boot_game()
 	{
 		switch(config::gb_type)
 		{
-			case 0x1 : config::bios_file = config::dmg_bios_path; reset_dmg_colors(); break;
-			case 0x2 : config::bios_file = config::gbc_bios_path; reset_dmg_colors(); break;
-			case 0x3 : config::bios_file = config::agb_bios_path; break;
-			case 0x7 : config::bios_file = config::min_bios_path; break;
+			case SYS_DMG: config::bios_file = config::dmg_bios_path; reset_dmg_colors(); break;
+			case SYS_GBC: config::bios_file = config::gbc_bios_path; reset_dmg_colors(); break;
+			case SYS_GBA: config::bios_file = config::agb_bios_path; break;
+			case SYS_MIN: config::bios_file = config::min_bios_path; break;
 		}
 
 		if(!main_menu::gbe_plus->read_bios(config::bios_file)) { return; } 
@@ -1127,7 +1130,7 @@ void main_menu::keyReleaseEvent(QKeyEvent* event)
 bool main_menu::eventFilter(QObject* target, QEvent* event)
 {
 	//Only process NDS touchscreen events
-	if((config::gb_type != 4) || (main_menu::gbe_plus == NULL)) { return QWidget::eventFilter(target, event); }
+	if((config::gb_type != SYS_NDS) || (main_menu::gbe_plus == NULL)) { return QWidget::eventFilter(target, event); }
 
 	//Single click - Press
 	else if(event->type() == QEvent::MouseButtonPress)
@@ -1372,7 +1375,8 @@ void main_menu::reset()
 	if(main_menu::gbe_plus != NULL) 
 	{
 		//When emulating the GB Memory Cartridge, let the DMG-GBC or SGB cores handle resetting
-		if((config::cart_type == DMG_GBMEM) && (config::gb_type != 3) && (config::gb_type != 4) && (config::gb_type != 7))
+		if((config::cart_type == DMG_GBMEM) && (config::gb_type != SYS_GBA)
+		&& (config::gb_type != SYS_NDS) && (config::gb_type != SYS_MIN))
 		{
 			gbe_plus->feed_key_input(SDLK_F8, true);
 			return;
@@ -1455,7 +1459,7 @@ void main_menu::fullscreen()
 		if(findChild<QAction*>("fullscreen_action")->isChecked())
 		{
 			//Disable cursor except for NDS games
-			if(config::gb_type != 4) { QApplication::setOverrideCursor(Qt::BlankCursor); }
+			if(config::gb_type != SYS_NDS) { QApplication::setOverrideCursor(Qt::BlankCursor); }
 
 			fullscreen_mode = true;
 			setWindowState(Qt::WindowFullScreen);
@@ -1562,7 +1566,7 @@ void main_menu::show_debugger()
 	if(main_menu::gbe_plus != NULL)
 	{
 		//Show DMG-GBC debugger
-		if((config::gb_type <= 2) && (!is_sgb_core)) 
+		if((config::gb_type <= SYS_GBC) && (!is_sgb_core)) 
 		{
 			findChild<QAction*>("pause_action")->setEnabled(false);
 
