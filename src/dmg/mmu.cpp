@@ -146,7 +146,7 @@ void DMG_MMU::reset()
 	kiss_link.is_running = false;
 	kiss_link.mode = 0;
 
-	if(config::ir_device == 9)
+	if(config::ir_device == IR_GB_KISS_LINK)
 	{
 		gb_kiss_link_load_file(config::external_data_file);
 	}

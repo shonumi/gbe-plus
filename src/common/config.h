@@ -98,6 +98,20 @@ enum system_types
 	SYS_MIN = 7,
 };
 
+enum infrared_types
+{
+	IR_GBC = 0,
+	IR_FULL_CHANGER = 1,
+	IR_POCKET_PIKACHU = 2,
+	IR_POCKET_SAKURA = 3,
+	IR_TV_REMOTE = 4,
+	IR_CONSTANT_LIGHT = 5,
+	IR_ZOIDS = 6,
+	IR_ACTIVITY_METER = 7,
+	IR_NOISE = 8,
+	IR_GB_KISS_LINK = 9,
+};
+
 enum pm_config
 {
 	PMC_ENABLE_TRI_COLOR_MODE = 0x01,

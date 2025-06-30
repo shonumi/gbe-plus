@@ -412,7 +412,7 @@ void AGB_SIO::reset()
 	cdz_e.boost = 0;
 	cdz_e.setup_sub_screen = false;
 
-	if(config::ir_device == 6) { cdz_e.active = zoids_cdz_load_data(); }
+	if(config::ir_device == IR_ZOIDS) { cdz_e.active = zoids_cdz_load_data(); }
 
 	//Virtureal Racing System
 	vrs.current_state = VRS_STANDBY;
@@ -1875,7 +1875,7 @@ void AGB_SIO::ir_adapter_process()
 		sio_stat.active_transfer = false;
 
 		//Process Zoid commands if IR device is CDZ model
-		if((config::ir_device == 6) && (cdz_e.active)) { zoids_cdz_process(); }
+		if((config::ir_device == IR_ZOIDS) && (cdz_e.active)) { zoids_cdz_process(); }
 		
 		//Clear IR delay data
 		ir_adapter.delay_data.clear();

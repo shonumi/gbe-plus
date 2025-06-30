@@ -45,7 +45,7 @@ void NTR_MMU::reset()
 			current_slot1_device = SLOT1_NTR_031;
 
 			//Setup NTR-027
-			if(config::ir_device == 7) { setup_ntr_027(); }
+			if(config::ir_device == IR_ACTIVITY_METER) { setup_ntr_027(); }
 
 			break;
 	}
@@ -5959,7 +5959,7 @@ void NTR_MMU::process_aux_spi_bus()
 				nds_aux_spi.eeprom_stat |= (nds_aux_spi.data & 0xC) | 0x2;
 
 				//Process NTR-027 IR communications
-				if((current_slot1_device == SLOT1_NTR_031) && (config::ir_device == 7))
+				if((current_slot1_device == SLOT1_NTR_031) && (config::ir_device == IR_ACTIVITY_METER))
 				{
 					if((ntr_027.connected) && (ntr_027.state == 0))
 					{
@@ -5979,7 +5979,8 @@ void NTR_MMU::process_aux_spi_bus()
 			case 0x2:
 			case 0xA:
 				//Process NTR-027 IR communications
-				if((current_slot1_device == SLOT1_NTR_031) && (config::ir_device == 7) && (nds_aux_spi.state == 2) && (ntr_027.connected))
+				if((current_slot1_device == SLOT1_NTR_031) && (config::ir_device == IR_ACTIVITY_METER)
+				&& (nds_aux_spi.state == 2) && (ntr_027.connected))
 				{
 					ntr_027.state = 0;
 					ntr_027_process();

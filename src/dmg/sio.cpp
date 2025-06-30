@@ -342,38 +342,31 @@ void DMG_SIO::reset()
 
 	switch(config::ir_device)
 	{
-		//Full Changer
-		case 1:
+		case IR_FULL_CHANGER:
 			sio_stat.ir_type = GBC_FULL_CHANGER;
 			break;
 
-		//Pokemon Pikachu 2
-		case 2:
+		case IR_POCKET_PIKACHU:
 			sio_stat.ir_type = GBC_POKEMON_PIKACHU_2;
 			break;
 
-		//Pocket Sakura
-		case 3:
+		case IR_POCKET_SAKURA:
 			sio_stat.ir_type = GBC_POCKET_SAKURA;
 			break;
 
-		//TV Remote
-		case 4:
+		case IR_TV_REMOTE:
 			sio_stat.ir_type = GBC_TV_REMOTE;
 			break;
 
-		//Constant Light Source
-		case 5:
+		case IR_CONSTANT_LIGHT:
 			sio_stat.ir_type = GBC_LIGHT_SOURCE;
 			break;
 
-		//IR Noise
-		case 8:
+		case IR_NOISE:
 			sio_stat.ir_type = GBC_IR_NOISE;
 			break;
 
-		//GB KISS LINK
-		case 9:
+		case IR_GB_KISS_LINK:
 			sio_stat.ir_type = GB_KISS_LINK;
 			break;
 
@@ -530,20 +523,20 @@ void DMG_SIO::reset()
 		tv_remote.data.push_back(random_data);
 	}
 	
-	if(config::ir_device == 1)
+	if(config::ir_device == IR_FULL_CHANGER)
 	{
 		std::string database = config::data_path + "bin/infrared/zzh_db.bin";
 		full_changer_load_db(database);
 	}
 
-	else if(config::ir_device == 2)
+	else if(config::ir_device == IR_POCKET_PIKACHU)
 	{
 		std::string database = config::data_path + "bin/infrared/pokemon_pikachu_db.bin";
 		pocket_ir.db_step = 0x7D7;
 		pocket_ir_load_db(database);
 	}
 
-	else if(config::ir_device == 3)
+	else if(config::ir_device == IR_POCKET_SAKURA)
 	{
 		std::string database = config::data_path + "bin/infrared/pocket_sakura_db.bin";
 		pocket_ir.db_step = 0x647;

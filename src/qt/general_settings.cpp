@@ -1866,8 +1866,8 @@ void gen_settings::set_ini_options()
 	//Emulated IR device
 	ir_dev->setCurrentIndex(config::ir_device);
 
-	if((config::ir_device == 1) || (config::ir_device == 2)
-	|| (config::ir_device == 3) || (config::ir_device == 5))
+	if((config::ir_device == IR_FULL_CHANGER) || (config::ir_device == IR_POCKET_PIKACHU)
+	|| (config::ir_device == IR_POCKET_SAKURA) || (config::ir_device == IR_CONSTANT_LIGHT))
 	{
 		config_ir->setEnabled(true);
 	}
@@ -2252,8 +2252,8 @@ void gen_settings::ir_dev_change()
 
 	config::ir_device = ir_dev->currentIndex();
 
-	if((config::ir_device == 1) || (config::ir_device == 2)
-	|| (config::ir_device == 3) || (config::ir_device == 5))
+	if((config::ir_device == IR_FULL_CHANGER) || (config::ir_device == IR_POCKET_PIKACHU)
+	|| (config::ir_device == IR_POCKET_SAKURA) || (config::ir_device == IR_CONSTANT_LIGHT))
 	{
 		config_ir->setEnabled(true);
 	}
@@ -2378,10 +2378,10 @@ void gen_settings::show_ir_config()
 {
 	switch(config::ir_device)
 	{
-		case 0x1: full_changer_menu->show(); break;
-		case 0x2: pokemon_pikachu_menu->show(); break;
-		case 0x3: pocket_sakura_menu->show(); break;
-		case 0x5: chalien_menu->show(); break;
+		case IR_FULL_CHANGER: full_changer_menu->show(); break;
+		case IR_POCKET_PIKACHU: pokemon_pikachu_menu->show(); break;
+		case IR_POCKET_SAKURA: pocket_sakura_menu->show(); break;
+		case IR_CONSTANT_LIGHT: chalien_menu->show(); break;
 	}	
 }
 
