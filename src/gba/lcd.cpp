@@ -1628,6 +1628,8 @@ void AGB_LCD::step()
 			//Process Turbo Buttons
 			if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
 
+			if(mem->g_pad->is_gb_player) { mem->g_pad->process_gb_rumble(); }
+
 			//Use SDL
 			if(config::sdl_render)
 			{

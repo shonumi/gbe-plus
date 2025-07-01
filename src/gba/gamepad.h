@@ -35,6 +35,7 @@ class AGB_GamePad
 	void process_gyroscope();
 	void process_gyroscope(float x, float y);
 	void process_turbo_buttons();
+	void process_gb_rumble();
 
 	void start_rumble();
 	void stop_rumble();
@@ -57,6 +58,8 @@ class AGB_GamePad
 
 	u8 ext_volume;
 	u32 ext_volume_count;
+
+	u8 gb_player_count;
 
 	bool joypad_irq;
 	bool joy_init;
