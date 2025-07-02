@@ -3489,8 +3489,10 @@ void AGB_MMU::process_sio()
 		//Signal to emulated GB Player rumble that emulated GBA is ready for SIO transfer
 		else if((config::sio_device == SIO_GB_PLAYER_RUMBLE) && (!sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
+			std::cout<<"TRANSFER START\n";
 			sio_stat->emu_device_ready = true;
-			sio_emu_device_ready = true;
+			sio_stat->active_transfer = true;
+			sio_stat->shift_counter = 0;
 		}	
 	}
 

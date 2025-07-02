@@ -876,7 +876,6 @@ void AGB_SIO::gba_player_rumble_process()
 	if(player_rumble.buffer_index == 18)
 	{
 		player_rumble.buffer_index = 0;
-		sio_stat.emu_device_ready = false;
 	}
 
 	else
@@ -885,7 +884,7 @@ void AGB_SIO::gba_player_rumble_process()
 		sio_stat.shift_counter = 0;
 	}
 
-	sio_stat.active_transfer = false;
+	sio_stat.cnt &= ~0x04;
 }
 
 /****** Resets Soul Doll Adapter ******/

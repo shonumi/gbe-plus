@@ -1612,16 +1612,6 @@ void ARM7::clock_sio()
 					//Transfer data over network
 					controllers.serial_io.send_data();
 				}
-
-				//32-bit Normal Mode - GB Player Rumble
-				else if((controllers.serial_io.sio_stat.sio_type == GBA_PLAYER_RUMBLE) && (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
-				{
-					//Reset Bit 7 in SIO_CNT
-					mem->memory_map[SIO_CNT] &= ~0x80;
-
-					//Process GB Player Rumble
-					controllers.serial_io.gba_player_rumble_process();
-				}
 			}
 		}
 	}
@@ -1662,6 +1652,28 @@ void ARM7::clock_emulated_sio_device()
 
 			break;
 
+		case SIO_GB_PLAYER_RUMBLE:
+			if(controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT)
+			{
+				u32 max_cycles = controllers.serial_io.sio_stat.shift_clock * 32;
+				controllers.serial_io.sio_stat.shift_counter += system_cycles;
+
+				if(controllers.serial_io.sio_stat.shift_counter >= max_cycles)
+				{
+					//Reset Bit 7 in SIO_CNT
+					mem->memory_map[SIO_CNT] &= ~0x80;
+
+					//Process GB Player Rumble
+					controllers.serial_io.gba_player_rumble_process();
+
+					controllers.serial_io.sio_stat.shift_counter = 0;
+					controllers.serial_io.sio_stat.emu_device_ready = false;
+					controllers.serial_io.sio_stat.active_transfer = false;
+				}
+			}
+
+			break;
+			
 		case SIO_SOUL_DOLL_ADAPTER:
 			controllers.serial_io.soul_doll_adapter_process();
 			break;
