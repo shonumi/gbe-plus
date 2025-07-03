@@ -1653,7 +1653,7 @@ void ARM7::clock_emulated_sio_device()
 			break;
 
 		case SIO_GB_PLAYER_RUMBLE:
-			if(controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT)
+			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT) && (mem->g_pad->gb_player_start))
 			{
 				u32 max_cycles = controllers.serial_io.sio_stat.shift_clock * 32;
 				controllers.serial_io.sio_stat.shift_counter += system_cycles;

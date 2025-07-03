@@ -64,8 +64,7 @@ class AGB_SIO
 	//GB Player Rumble
 	struct gb_player_rumble
 	{
-		std::vector <u32> sio_buffer;
-		u8 buffer_index;
+		u8 data_count;
 		gb_player_rumble_state current_state;
 	} player_rumble;
 

@@ -1768,8 +1768,12 @@ void AGB_LCD::step()
 			//Process motion controls
 			if((config::cart_type == AGB_GYRO_SENSOR) || (config::cart_type == AGB_TILT_SENSOR)) { mem->process_motion(); }
 
-			//Process GB Player Rumble
-			if((config::sio_device == SIO_GB_PLAYER_RUMBLE) && (mem->sio_emu_device_ready)) { mem->process_player_rumble(); }
+			//Start GB Player Rumble transfers once-per-frame
+			if(config::sio_device == SIO_GB_PLAYER_RUMBLE)
+			{
+				if(!mem->g_pad->is_gb_player) { mem->g_pad->gb_player_count++; }
+				mem->g_pad->gb_player_start = true;
+			}
 
 			//Process Play-Yan interrupts
 			if((config::cart_type == AGB_PLAY_YAN) && (mem->play_yan.irq_delay)) { mem->process_play_yan_irq(); }

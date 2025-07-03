@@ -47,8 +47,11 @@ enum agb_sio_modes
 //GB Player Rumble enumerations
 enum gb_player_rumble_state
 {
-	GB_PLAYER_RUMBLE_INACTIVE,
-	GB_PLAYER_RUMBLE_ACTIVE,
+	GBP_RUMBLE_INIT,
+	GBP_RUMBLE_STRINGS,
+	GBP_RUMBLE_ECHO,
+	GBP_RUMBLE_STATUS,
+	GBP_RUMBLE_RESET,
 };
 
 //Soul Doll Adapter enumerations

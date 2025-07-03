@@ -299,27 +299,8 @@ void AGB_SIO::reset()
 	sio_stat.sio_mode = GENERAL_PURPOSE;
 
 	//GBA Player Rumble
-	player_rumble.sio_buffer.push_back(0x0000494E);
-	player_rumble.sio_buffer.push_back(0x8888494E);
-	player_rumble.sio_buffer.push_back(0xB6B1494E);
-	player_rumble.sio_buffer.push_back(0xB6B1544E);
-	player_rumble.sio_buffer.push_back(0xABB1544E);
-	player_rumble.sio_buffer.push_back(0xABB14E45);
-	player_rumble.sio_buffer.push_back(0xB1BA4E45);
-	player_rumble.sio_buffer.push_back(0xB1BA4F44);
-	player_rumble.sio_buffer.push_back(0xB0BB4F44);
-	player_rumble.sio_buffer.push_back(0xB0BB8002);
-	player_rumble.sio_buffer.push_back(0x10000010);
-	player_rumble.sio_buffer.push_back(0x20000013);
-	player_rumble.sio_buffer.push_back(0x30000003);
-	player_rumble.sio_buffer.push_back(0x30000003);
-	player_rumble.sio_buffer.push_back(0x30000003);
-	player_rumble.sio_buffer.push_back(0x30000003);
-	player_rumble.sio_buffer.push_back(0x30000003);
-	player_rumble.sio_buffer.push_back(0x00000000);
-	
-	player_rumble.buffer_index = 0;
-	player_rumble.current_state = GB_PLAYER_RUMBLE_INACTIVE;
+	player_rumble.data_count = 0;
+	player_rumble.current_state = GBP_RUMBLE_INIT;
 
 	//Soul Doll Adapter
 	soul_doll_adapter_reset();
@@ -855,8 +836,67 @@ void AGB_SIO::process_network_communication()
 /****** Processes GB Player Rumble SIO communications ******/
 void AGB_SIO::gba_player_rumble_process()
 {
+	//Generate messages to GBA
+	u32 rx_msg = mem->read_u32_fast(SIO_DATA_32_L);
+	u32 tx_msg = 0;
+
+	//Enter reset state
+	if(rx_msg == 0x05000003)
+	{
+		player_rumble.current_state = GBP_RUMBLE_RESET;
+		mem->g_pad->gb_player_start = false;
+	}
+
+	switch(player_rumble.current_state)
+	{
+		case GBP_RUMBLE_RESET:
+			player_rumble.current_state = GBP_RUMBLE_INIT;
+			break;
+
+		case GBP_RUMBLE_INIT:
+			tx_msg = 0x494E;
+			player_rumble.current_state = GBP_RUMBLE_STRINGS;
+
+			break;
+
+		case GBP_RUMBLE_STRINGS:
+			tx_msg = (rx_msg << 16) | (rx_msg >> 16);
+
+			if((rx_msg >> 16) == 0x8000)
+			{
+				tx_msg |= 0x02;
+				player_rumble.current_state = GBP_RUMBLE_ECHO;
+			}
+
+			break;
+
+		case GBP_RUMBLE_ECHO:
+			tx_msg = rx_msg;
+
+			if((rx_msg == 0x40000004) || (rx_msg == 0x40000026))
+			{
+				tx_msg = 0x30000003;
+				player_rumble.current_state = GBP_RUMBLE_STATUS;
+				player_rumble.data_count = 0;
+			}
+
+			break;
+
+		case GBP_RUMBLE_STATUS:
+			tx_msg = 0x30000003;
+			player_rumble.data_count++;
+
+			if(player_rumble.data_count == 5)
+			{
+				tx_msg = 0x494E;
+			}
+
+			break;
+	}
+		
+	/*
 	//Check rumble status
-	if(player_rumble.buffer_index == 17)
+	if(player_rumble.buffer_index == 16)
 	{
 		u8 rumble_stat = mem->memory_map[SIO_DATA_32_L];
 
@@ -866,25 +906,17 @@ void AGB_SIO::gba_player_rumble_process()
 		//Turn rumble off
 		else { mem->g_pad->stop_rumble(); }
 	}
+	*/
+
+	//std::cout<<"SEND -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n";
 
 	//Send data to GBA
-	mem->write_u32_fast(SIO_DATA_32_L, player_rumble.sio_buffer[player_rumble.buffer_index++]);
+	mem->write_u32_fast(SIO_DATA_32_L, tx_msg);
+
+	//sstd::cout<<"RECV -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n";
 
 	//Raise SIO IRQ after sending byte
 	if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
-
-	if(player_rumble.buffer_index == 18)
-	{
-		player_rumble.buffer_index = 0;
-	}
-
-	else
-	{
-		sio_stat.shifts_left = 32;
-		sio_stat.shift_counter = 0;
-	}
-
-	sio_stat.cnt &= ~0x04;
 }
 
 /****** Resets Soul Doll Adapter ******/
