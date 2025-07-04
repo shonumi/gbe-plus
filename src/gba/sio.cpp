@@ -841,7 +841,8 @@ void AGB_SIO::gba_player_rumble_process()
 	u32 tx_msg = 0;
 
 	//Enter reset state
-	if(rx_msg == 0x05000003)
+	if((player_rumble.current_state == GBP_RUMBLE_STATUS)
+	&& ((rx_msg & 0xFFFF0000) != 0x40000000))
 	{
 		player_rumble.current_state = GBP_RUMBLE_RESET;
 		mem->g_pad->gb_player_start = false;

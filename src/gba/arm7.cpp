@@ -1661,7 +1661,8 @@ void ARM7::clock_emulated_sio_device()
 				if(controllers.serial_io.sio_stat.shift_counter >= max_cycles)
 				{
 					//Reset Bit 7 in SIO_CNT
-					mem->memory_map[SIO_CNT] &= ~0x80;
+					controllers.serial_io.sio_stat.cnt &= ~0x80;
+					mem->write_u16_fast(SIO_CNT, controllers.serial_io.sio_stat.cnt);
 
 					//Process GB Player Rumble
 					controllers.serial_io.gba_player_rumble_process();

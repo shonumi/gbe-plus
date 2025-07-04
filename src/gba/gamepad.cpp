@@ -660,7 +660,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	//Misc Context Key 2 release
 	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
 
-	if(key_input != old_input) { is_gb_player = false; std::cout<<"\n"; }
+	if(key_input != old_input) { is_gb_player = false; }
 
 	//Terminate Turbo Buttons
 	if(turbo_button_enabled)
