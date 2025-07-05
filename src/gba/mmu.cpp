@@ -273,7 +273,7 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		//Unused memory at 0x10000000 and above
 		default:
-			std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n";
+			//std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n";
 			return 0;
 			
 	}
@@ -669,7 +669,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Unused memory at 0x10000000 and above
 		default:
-			std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n";
+			//std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n";
 			return;
 	}
 

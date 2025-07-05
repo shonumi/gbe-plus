@@ -51,7 +51,6 @@ enum gb_player_rumble_state
 	GBP_RUMBLE_STRINGS,
 	GBP_RUMBLE_ECHO,
 	GBP_RUMBLE_STATUS,
-	GBP_RUMBLE_RESET,
 };
 
 //Soul Doll Adapter enumerations

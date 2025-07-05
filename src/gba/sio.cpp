@@ -844,16 +844,12 @@ void AGB_SIO::gba_player_rumble_process()
 	if((player_rumble.current_state == GBP_RUMBLE_STATUS)
 	&& ((rx_msg & 0xFFFF0000) != 0x40000000))
 	{
-		player_rumble.current_state = GBP_RUMBLE_RESET;
+		player_rumble.current_state = GBP_RUMBLE_INIT;
 		mem->g_pad->gb_player_start = false;
 	}
 
 	switch(player_rumble.current_state)
 	{
-		case GBP_RUMBLE_RESET:
-			player_rumble.current_state = GBP_RUMBLE_INIT;
-			break;
-
 		case GBP_RUMBLE_INIT:
 			tx_msg = 0x494E;
 			player_rumble.current_state = GBP_RUMBLE_STRINGS;
@@ -892,29 +888,19 @@ void AGB_SIO::gba_player_rumble_process()
 				tx_msg = 0x494E;
 			}
 
+			//Set rumble status
+			if(rx_msg == 0x40000026) { mem->g_pad->start_rumble(); }
+			else {  mem->g_pad->stop_rumble(); }
+
 			break;
 	}
-		
-	/*
-	//Check rumble status
-	if(player_rumble.buffer_index == 16)
-	{
-		u8 rumble_stat = mem->memory_map[SIO_DATA_32_L];
 
-		//Turn rumble on
-		if(rumble_stat == 0x26) { mem->g_pad->start_rumble(); }
-
-		//Turn rumble off
-		else { mem->g_pad->stop_rumble(); }
-	}
-	*/
-
-	//std::cout<<"SEND -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n";
+	std::cout<<"RX -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n";
 
 	//Send data to GBA
 	mem->write_u32_fast(SIO_DATA_32_L, tx_msg);
 
-	//sstd::cout<<"RECV -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n";
+	std::cout<<"TX -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n\n";
 
 	//Raise SIO IRQ after sending byte
 	if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
