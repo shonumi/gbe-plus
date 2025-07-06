@@ -60,6 +60,7 @@ class AGB_GamePad
 	u32 ext_volume_count;
 
 	u8 gb_player_count;
+	u32 gb_player_timeout;
 	bool gb_player_start;
 
 	bool joypad_irq;

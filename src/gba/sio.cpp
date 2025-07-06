@@ -841,11 +841,14 @@ void AGB_SIO::gba_player_rumble_process()
 	u32 tx_msg = 0;
 
 	//Enter reset state
-	if((player_rumble.current_state == GBP_RUMBLE_STATUS)
-	&& ((rx_msg & 0xFFFF0000) != 0x40000000))
+	bool reset_normal = ((player_rumble.current_state == GBP_RUMBLE_STATUS) && ((rx_msg >> 16) != 0x4000));
+	bool reset_timeout = (mem->g_pad->gb_player_timeout >= 4);
+
+	if(reset_normal || reset_timeout)
 	{
 		player_rumble.current_state = GBP_RUMBLE_INIT;
 		mem->g_pad->gb_player_start = false;
+		if(reset_timeout) { mem->g_pad->stop_rumble(); }
 	}
 
 	switch(player_rumble.current_state)
@@ -870,7 +873,7 @@ void AGB_SIO::gba_player_rumble_process()
 		case GBP_RUMBLE_ECHO:
 			tx_msg = rx_msg;
 
-			if((rx_msg == 0x40000004) || (rx_msg == 0x40000026))
+			if((rx_msg >> 16) == 0x4000)
 			{
 				tx_msg = 0x30000003;
 				player_rumble.current_state = GBP_RUMBLE_STATUS;
@@ -889,7 +892,7 @@ void AGB_SIO::gba_player_rumble_process()
 			}
 
 			//Set rumble status
-			if(rx_msg == 0x40000026) { mem->g_pad->start_rumble(); }
+			if(rx_msg != 0x40000004) { mem->g_pad->start_rumble(); }
 			else {  mem->g_pad->stop_rumble(); }
 
 			break;
@@ -904,6 +907,9 @@ void AGB_SIO::gba_player_rumble_process()
 
 	//Raise SIO IRQ after sending byte
 	if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+
+	//Reset timeout counter
+	mem->g_pad->gb_player_timeout = 0;
 }
 
 /****** Resets Soul Doll Adapter ******/
