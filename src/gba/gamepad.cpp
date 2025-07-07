@@ -42,8 +42,6 @@ AGB_GamePad::AGB_GamePad()
 
 	gc_sensor = NULL;
 	sensor_init = false;
-
-	gb_player_start = false;
 }
 
 /****** Initialize GamePad ******/

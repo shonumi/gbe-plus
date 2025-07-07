@@ -847,7 +847,6 @@ void AGB_SIO::gba_player_rumble_process()
 	if(reset_normal || reset_timeout)
 	{
 		player_rumble.current_state = GBP_RUMBLE_INIT;
-		mem->g_pad->gb_player_start = false;
 		if(reset_timeout) { mem->g_pad->stop_rumble(); }
 	}
 
@@ -892,18 +891,14 @@ void AGB_SIO::gba_player_rumble_process()
 			}
 
 			//Set rumble status
-			if(rx_msg != 0x40000004) { mem->g_pad->start_rumble(); }
+			if(rx_msg == 0x40000026) { mem->g_pad->start_rumble(); }
 			else {  mem->g_pad->stop_rumble(); }
 
 			break;
 	}
 
-	std::cout<<"RX -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n";
-
 	//Send data to GBA
 	mem->write_u32_fast(SIO_DATA_32_L, tx_msg);
-
-	std::cout<<"TX -> 0x" << mem->read_u32_fast(SIO_DATA_32_L) << "\n\n";
 
 	//Raise SIO IRQ after sending byte
 	if(sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }

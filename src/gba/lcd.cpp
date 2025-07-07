@@ -1774,7 +1774,6 @@ void AGB_LCD::step()
 				if(!mem->g_pad->is_gb_player) { mem->g_pad->gb_player_count++; }
 				if(mem->g_pad->gb_player_timeout < 4) { mem->g_pad->gb_player_timeout++; }
 				else { mem->g_pad->stop_rumble(); }
-				mem->g_pad->gb_player_start = true;
 			}
 
 			//Process Play-Yan interrupts
