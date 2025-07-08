@@ -1653,7 +1653,7 @@ void ARM7::clock_emulated_sio_device()
 			break;
 
 		case SIO_GB_PLAYER_RUMBLE:
-			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT) && (mem->g_pad->gb_player_start))
+			if(controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT)
 			{
 				u32 max_cycles = controllers.serial_io.sio_stat.shift_clock * 32;
 				controllers.serial_io.sio_stat.shift_counter += system_cycles;
@@ -1915,6 +1915,9 @@ void ARM7::handle_interrupt()
 	//Jump into an interrupt, check if the master flag is enabled
 	if((mem->memory_map[REG_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
+		//Wait until pipeline is finished filling
+		if(debug_message == 0xFF) { return; }
+
 		u16 if_check = mem->read_u16_fast(REG_IF);
 		u16 ie_check = mem->read_u16_fast(REG_IE);
 
