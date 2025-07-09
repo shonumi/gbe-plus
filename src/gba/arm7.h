@@ -169,6 +169,7 @@ class ARM7
 	bool sleep;
 
 	bool swi_vblank_wait;
+	bool thumb_long_branch;
 
 	u32 instruction_pipeline[3];
 	arm_instructions instruction_operation[3];

@@ -1604,4 +1604,6 @@ void ARM7::long_branch_link(u16 current_thumb_instruction)
 		clock(reg.r15, false);
 		clock((reg.r15 + 2), false);
 	}
+
+	thumb_long_branch = true;
 }

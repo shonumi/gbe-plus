@@ -401,6 +401,8 @@ void AGB_core::run_core()
 				core_cpu.pipeline_pointer = (core_cpu.pipeline_pointer + 1) % 3;
 				core_cpu.update_pc(); 
 			}
+
+			core_cpu.thumb_long_branch = false;
 		}
 
 		//Stop emulation
@@ -432,6 +434,8 @@ void AGB_core::step()
 			core_cpu.pipeline_pointer = (core_cpu.pipeline_pointer + 1) % 3;
 			core_cpu.update_pc(); 
 		}
+
+		core_cpu.thumb_long_branch = false;
 	}
 }
 	

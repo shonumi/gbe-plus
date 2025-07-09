@@ -61,6 +61,7 @@ void ARM7::reset()
 	sleep = false;
 	needs_reset = false;
 
+	thumb_long_branch = false;
 	swi_vblank_wait = false;
 
 	arm_mode = ARM;
@@ -1916,7 +1917,8 @@ void ARM7::handle_interrupt()
 	if((mem->memory_map[REG_IME] & 0x1) && ((reg.cpsr & CPSR_IRQ) == 0) && (!in_interrupt))
 	{
 		//Wait until pipeline is finished filling
-		if(debug_message == 0xFF) { return; }
+		//Wait until THUMB.19 is finished executing
+		if((debug_message == 0xFF) || (thumb_long_branch)) { return; }
 
 		u16 if_check = mem->read_u16_fast(REG_IF);
 		u16 ie_check = mem->read_u16_fast(REG_IE);
@@ -2009,6 +2011,7 @@ bool ARM7::cpu_read(u32 offset, std::string filename)
 	file.read((char*)&needs_reset, sizeof(needs_reset));
 	file.read((char*)&in_interrupt, sizeof(in_interrupt));
 	file.read((char*)&sleep, sizeof(sleep));
+	file.read((char*)&thumb_long_branch, sizeof(thumb_long_branch));
 	file.read((char*)&swi_vblank_wait, sizeof(swi_vblank_wait));
 	file.read((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
 	file.read((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
@@ -2050,6 +2053,7 @@ bool ARM7::cpu_write(std::string filename)
 	file.write((char*)&needs_reset, sizeof(needs_reset));
 	file.write((char*)&in_interrupt, sizeof(in_interrupt));
 	file.write((char*)&sleep, sizeof(sleep));
+	file.write((char*)&thumb_long_branch, sizeof(thumb_long_branch));
 	file.write((char*)&swi_vblank_wait, sizeof(swi_vblank_wait));
 	file.write((char*)&instruction_pipeline[0], sizeof(instruction_pipeline[0]));
 	file.write((char*)&instruction_pipeline[1], sizeof(instruction_pipeline[1]));
@@ -2086,6 +2090,7 @@ u32 ARM7::size()
 	cpu_size += sizeof(needs_reset);
 	cpu_size += sizeof(in_interrupt);
 	cpu_size += sizeof(sleep);
+	cpu_size += sizeof(thumb_long_branch);
 	cpu_size += sizeof(swi_vblank_wait);
 	cpu_size += sizeof(instruction_pipeline[0]);
 	cpu_size += sizeof(instruction_pipeline[1]);
