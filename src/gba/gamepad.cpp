@@ -658,7 +658,13 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	//Misc Context Key 2 release
 	else if((pad == config::con_key_2) && (!pressed)) { con_flags &= ~0x200; }
 
-	if(key_input != old_input) { is_gb_player = false; }
+	//Disable GB Player detection when user presses any input
+	if((is_gb_player) && (key_input != old_input))
+	{
+		is_gb_player = false;
+		config::osd_message = "GBP DETECTION OFF";
+		config::osd_count = 180;
+	}
 
 	//Terminate Turbo Buttons
 	if(turbo_button_enabled)
@@ -989,7 +995,13 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 	//Misc Context Key 2 release
 	else if((pad == config::con_joy_2) && (!pressed)) { con_flags &= ~0x200; }
 
-	if(key_input != old_input) { is_gb_player = false; }
+	//Disable GB Player detection when user presses any input
+	if((is_gb_player) && (key_input != old_input))
+	{
+		is_gb_player = false;
+		config::osd_message = "GBP DETECTION OFF";
+		config::osd_count = 180;
+	}
 
 	//Terminate Turbo Buttons
 	if(turbo_button_enabled)
