@@ -1081,7 +1081,7 @@ void ARM7::swi_huffuncomp()
 				//Grab data from the node
 				u8 data = 0;
 
-				if(data_size == 4) { data = node & 0xF; }
+				if(bit_size == 4) { data = node & 0xF; }
 				else { data = node; }
 
 				//Add data to 32-bit value
