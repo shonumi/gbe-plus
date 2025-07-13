@@ -388,6 +388,10 @@ void ARM7::dma1()
 			case 0x3:
 				mem->dma[1].enable = false;
 				mem->dma[1].started = true;
+
+				if(mem->dma[1].destination_address == FIFO_A) { controllers.audio.apu_stat.dma[0].channel = 1; }
+				if(mem->dma[1].destination_address == FIFO_B) { controllers.audio.apu_stat.dma[1].channel = 1; }
+
 				break;
 		}
 	}
@@ -578,6 +582,10 @@ void ARM7::dma2()
 			case 0x3:
 				mem->dma[2].enable = false;
 				mem->dma[2].started = true;
+
+				if(mem->dma[2].destination_address == FIFO_A) { controllers.audio.apu_stat.dma[0].channel = 2; }
+				if(mem->dma[2].destination_address == FIFO_B) { controllers.audio.apu_stat.dma[1].channel = 2; }
+
 				break;
 		}
 	}

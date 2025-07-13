@@ -63,6 +63,7 @@ struct agb_apu_data
 		u16 length;
 		u8 timer;
 		u8 master_volume;
+		u8 channel;
 
 		bool playing;
 		bool enable;

@@ -114,6 +114,7 @@ void AGB_APU::reset()
 		apu_stat.dma[x].counter = 0;
 		apu_stat.dma[x].length = 0;
 		apu_stat.dma[x].timer = 0;
+		apu_stat.dma[x].channel = 0;
 		apu_stat.dma[x].master_volume = config::volume;
 
 		apu_stat.dma[x].playing = false;
