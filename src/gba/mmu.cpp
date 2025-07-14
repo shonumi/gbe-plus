@@ -1576,26 +1576,26 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			switch(value & 0x7)
 			{
-				case 0x0: apu_stat->channel_right_volume = 4369 * 0.125; break;
-				case 0x1: apu_stat->channel_right_volume = 4369 * 0.25; break;
-				case 0x2: apu_stat->channel_right_volume = 4369 * 0.375; break;
-				case 0x3: apu_stat->channel_right_volume = 4369 * 0.5; break;
-				case 0x4: apu_stat->channel_right_volume = 4369 * 0.625; break;
-				case 0x5: apu_stat->channel_right_volume = 4369 * 0.75; break;
-				case 0x6: apu_stat->channel_right_volume = 4369 * 0.875; break;
-				case 0x7: apu_stat->channel_right_volume = 4369; break;
+				case 0x0: apu_stat->channel_right_volume = 0.125; break;
+				case 0x1: apu_stat->channel_right_volume = 0.25; break;
+				case 0x2: apu_stat->channel_right_volume = 0.375; break;
+				case 0x3: apu_stat->channel_right_volume = 0.5; break;
+				case 0x4: apu_stat->channel_right_volume = 0.625; break;
+				case 0x5: apu_stat->channel_right_volume = 0.75; break;
+				case 0x6: apu_stat->channel_right_volume = 0.875; break;
+				case 0x7: apu_stat->channel_right_volume = 1.0; break;
 			}
 
 			switch((value >> 4) & 0x7)
 			{
-				case 0x0: apu_stat->channel_left_volume = 4369 * 0.125; break;
-				case 0x1: apu_stat->channel_left_volume = 4369 * 0.25; break;
-				case 0x2: apu_stat->channel_left_volume = 4369 * 0.375; break;
-				case 0x3: apu_stat->channel_left_volume = 4369 * 0.5; break;
-				case 0x4: apu_stat->channel_left_volume = 4369 * 0.625; break;
-				case 0x5: apu_stat->channel_left_volume = 4369 * 0.75; break;
-				case 0x6: apu_stat->channel_left_volume = 4369 * 0.875; break;
-				case 0x7: apu_stat->channel_left_volume = 4369; break;
+				case 0x0: apu_stat->channel_left_volume = 0.125; break;
+				case 0x1: apu_stat->channel_left_volume = 0.25; break;
+				case 0x2: apu_stat->channel_left_volume = 0.375; break;
+				case 0x3: apu_stat->channel_left_volume = 0.5; break;
+				case 0x4: apu_stat->channel_left_volume = 0.625; break;
+				case 0x5: apu_stat->channel_left_volume = 0.75; break;
+				case 0x6: apu_stat->channel_left_volume = 0.875; break;
+				case 0x7: apu_stat->channel_left_volume = 1.0; break;
 			}
 
 			break;

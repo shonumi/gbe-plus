@@ -912,6 +912,9 @@ void AGB_APU::buffer_channel_1()
 	int length = apu_stat.psg_fill_rate;
 	apu_stat.channel[0].buffer_size += length;
 
+	double left_volume = apu_stat.channel_left_volume * 4369;
+	double right_volume = apu_stat.channel_right_volume * 4369;
+
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[0].playing) && (apu_stat.channel[0].left_enable || apu_stat.channel[0].right_enable))
 	{
@@ -1000,7 +1003,7 @@ void AGB_APU::buffer_channel_1()
 				&& (apu_stat.channel[0].frequency_distance < (frequency_samples/8) * apu_stat.channel[0].duty_cycle_end)
 				&& (apu_stat.channel[0].volume != 0))
 				{
-					apu_stat.channel[0].buffer[apu_stat.channel[0].current_index++] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[0].volume);
+					apu_stat.channel[0].buffer[apu_stat.channel[0].current_index++] = -32768 + (right_volume * apu_stat.channel[0].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -1032,6 +1035,9 @@ void AGB_APU::buffer_channel_2()
 {
 	int length = apu_stat.psg_fill_rate;
 	apu_stat.channel[1].buffer_size += length;
+
+	double left_volume = apu_stat.channel_left_volume * 4369;
+	double right_volume = apu_stat.channel_right_volume * 4369;
 
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[1].playing) && (apu_stat.channel[1].left_enable || apu_stat.channel[1].right_enable))
@@ -1070,7 +1076,7 @@ void AGB_APU::buffer_channel_2()
 				&& (apu_stat.channel[1].frequency_distance < (frequency_samples/8) * apu_stat.channel[1].duty_cycle_end)
 				&& (apu_stat.channel[1].volume != 0))
 				{
-					apu_stat.channel[1].buffer[apu_stat.channel[1].current_index++] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[1].volume);
+					apu_stat.channel[1].buffer[apu_stat.channel[1].current_index++] = -32768 + (right_volume * apu_stat.channel[1].volume);
 				}
 
 				//Generate low wave form if duty cycle is off OR volume is muted
@@ -1103,6 +1109,9 @@ void AGB_APU::buffer_channel_3()
 {
 	int length = apu_stat.psg_fill_rate;
 	apu_stat.channel[2].buffer_size += length;
+
+	double left_volume = apu_stat.channel_left_volume * 4369;
+	double right_volume = apu_stat.channel_right_volume * 4369;
 
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[2].playing) && (apu_stat.channel[2].enable) && (apu_stat.channel[2].left_enable || apu_stat.channel[2].right_enable))
@@ -1157,19 +1166,19 @@ void AGB_APU::buffer_channel_3()
 							break;
 
 						case 0x1:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = -32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample);
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = -32768 + (right_volume * apu_stat.waveram_sample);
 							break;
 
 						case 0x2:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.5;
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (right_volume * apu_stat.waveram_sample)) * 0.5;
 							break;
 
 						case 0x3:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.25;
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (right_volume * apu_stat.waveram_sample)) * 0.25;
 							break;
 
 						case 0x4:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.75;
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (right_volume * apu_stat.waveram_sample)) * 0.75;
 							break;
 
 						default:
@@ -1201,19 +1210,19 @@ void AGB_APU::buffer_channel_3()
 							break;
 
 						case 0x1:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = -32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample);
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = -32768 + (right_volume * apu_stat.waveram_sample);
 							break;
 
 						case 0x2:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.5;
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (right_volume * apu_stat.waveram_sample)) * 0.5;
 							break;
 
 						case 0x3:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.25;
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (right_volume * apu_stat.waveram_sample)) * 0.25;
 							break;
 
 						case 0x4:
-							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (apu_stat.channel_right_volume * apu_stat.waveram_sample)) * 0.75;
+							apu_stat.channel[2].buffer[apu_stat.channel[2].current_index++] = (-32768 + (right_volume * apu_stat.waveram_sample)) * 0.75;
 							break;
 
 						default:
@@ -1248,6 +1257,9 @@ void AGB_APU::buffer_channel_4()
 {
 	int length = apu_stat.psg_fill_rate;
 	apu_stat.channel[3].buffer_size += length;
+
+	double left_volume = apu_stat.channel_left_volume * 4369;
+	double right_volume = apu_stat.channel_right_volume * 4369;
 
 	//Generate samples from the last output of the channel
 	if((apu_stat.channel[3].playing) && (apu_stat.channel[3].left_enable || apu_stat.channel[3].right_enable))
@@ -1320,12 +1332,12 @@ void AGB_APU::buffer_channel_4()
 				//Generate high wave if LSFR returns 1 from first byte and volume is not muted
 				if((apu_stat.noise_stages == 15) && (apu_stat.noise_15_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					apu_stat.channel[3].buffer[apu_stat.channel[3].current_index++] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[3].volume); 
+					apu_stat.channel[3].buffer[apu_stat.channel[3].current_index++] = -32768 + (right_volume * apu_stat.channel[3].volume); 
 				}
 
 				else if((apu_stat.noise_stages == 7) && (apu_stat.noise_7_stage_lsfr & 0x1) && (apu_stat.channel[3].volume >= 1)) 
 				{ 
-					apu_stat.channel[3].buffer[apu_stat.channel[3].current_index++] = -32768 + (apu_stat.channel_right_volume * apu_stat.channel[3].volume); 
+					apu_stat.channel[3].buffer[apu_stat.channel[3].current_index++] = -32768 + (right_volume * apu_stat.channel[3].volume); 
 				}
 
 				//Or generate low wave
