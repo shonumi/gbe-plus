@@ -698,9 +698,8 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 			s32 ch5 = apu_link->apu_stat.dma[0].left_enable ? dma_a_stream[x] : -32768;
 			s32 ch6 = apu_link->apu_stat.dma[1].left_enable ? dma_b_stream[x] : -32768;
 
-			s32 out_sample = (ch1 + ch2 + ch3 + ch4) * channel_ratio;
+			s32 out_sample = (ch1 + ch2 + ch3 + ch4) * channel_ratio * apu_link->apu_stat.channel_left_volume;
 			out_sample += (ch5 * dma_a_ratio) + (ch6 * dma_b_ratio);
-			out_sample *= apu_link->apu_stat.channel_left_volume;
 			out_sample /= 6;
 
 			stream[index] = out_sample;
@@ -713,9 +712,8 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 			ch5 = apu_link->apu_stat.dma[0].right_enable ? dma_a_stream[x] : -32768;
 			ch6 = apu_link->apu_stat.dma[1].right_enable ? dma_b_stream[x] : -32768;
 
-			out_sample = (ch1 + ch2 + ch3 + ch4) * channel_ratio;
+			out_sample = (ch1 + ch2 + ch3 + ch4) * channel_ratio * apu_link->apu_stat.channel_right_volume;
 			out_sample += (ch5 * dma_a_ratio) + (ch6 * dma_b_ratio);
-			out_sample *= apu_link->apu_stat.channel_right_volume;
 			out_sample /= 6;
 
 			stream[index + 1] = out_sample;
