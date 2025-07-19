@@ -426,6 +426,9 @@ void main_menu::open_file()
 /****** Boots system as AM3 folder ******/
 void main_menu::open_am3_fldr()
 {
+	QString folder_name = QFileDialog::getExistingDirectory(this, tr("Open"), "");
+	if(folder_name.isNull()) { SDL_PauseAudio(0); return; }
+
 	//Close the core
 	if(main_menu::gbe_plus != NULL) 
 	{
@@ -440,9 +443,6 @@ void main_menu::open_am3_fldr()
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
-
-	QString folder_name = QFileDialog::getExistingDirectory(this, tr("Open"), "");
-	if(folder_name.isNull()) { SDL_PauseAudio(0); return; }
 
 	config::use_am3_folder = true;
 	config::cart_type = AGB_AM3;
