@@ -4756,8 +4756,7 @@ AM_SMID		(R)	0x08010410	128-bit		16-byte SmartMedia ID used for copy-protection
 
 <pre>-----------------------------------------------------------
 Bit 0		(R/W)		Execute Operation
-Bit 1-2		(R/W)		Operation Type
-Bit 3		(R/W)		Internal Operation/External Operation
+Bit 1-3		(R/W)		Operation Type
 ...
 Bit 8		(R)		EOF Reached/Passed Flag
 ...
@@ -4766,24 +4765,7 @@ Bit 14		(R)		I/O Registers Ready Flag
 
 	<p>Whenever AM_BLK_STAT is written, firmware waits indefinitely to validate that the register holds the new value. Every command issued to the adapter must set Bit 0 to &#34;1&#34; to take effect. Afterwards, it waits until Bit 0 returns to &#34;0&#34; to signal the end of the operation. After every operation, the lower 8-bits of AM_BLK_STAT will always read as zero, however, depending on the current status of the adapter, the upper read-only 8-bits may be set.</p>
 
-	<p>Operation Type describes 4 fundamental operations available:</p>
-
-<pre>-----------------------------------------------------------
-Value		| Operation Description
------------------------------------------------------------
-0		| Read Block
-1		| Write I/O Register
-2		| Set File Size Mode
-3		| Set SMID Mode
------------------------------------------------------------</pre>
-
-	<p>The most common operation is &#34;Read Block&#34; which simply copies a data block of a set size from either firmware or the SmartMedia card.</p>
-
-	<p>Writing to an I/O register is exactly that. AM_BLK_STAT needs to signal to the adapter that the CPU will update one of its I/O registers.</p>
-
-	<p>Set File Size Mode and Set SMID Mode refer to the values held in AM_FILE_SIZE and AM_SMID. Since these registers have overlapping addresses, AM_BLK_STAT controls which mode the adapter will use, and which values to return when reading these memory locations. Once the SMID is read, there is usually no need to return to this mode.</p>
-
-	<p>These operations can be further divided as being &#34;internal&#34; or &#34;external&#34;. The first deals with data that resides on the Advance Movie Adapter itself, such as reading firmware or writing to I/O registers. The second deals with data residing on the SmartMedia card, such as the files themselves, file sizes, and SMID. A value of &#34;1&#34; chooses internal operations, while a value of &#34;0&#34; chooses external operations. In practice, however, only a few limited values are ever written to AM_BLK_STAT. These can then be seen as single-byte &#34;commands&#34;.</p>
+	<p>Operation Type describes 5 operations available. Because Bit 0 of AM_BLK_STAT executes these operations, they can be seen as single-byte &#34;commands&#34;:</p>
 
 <pre>-----------------------------------------------------------
 Command		| Description
@@ -4794,6 +4776,12 @@ Command		| Description
 0x09		| Read Firmware Data Block
 0x0B		| Write I/O Register
 -----------------------------------------------------------</pre>
+
+	<p>The most common operations are reading data blocks from SmartMedia Card or firmware. This simply maps data of a specified length from either source to AM_BLK_ADDR.</p>
+
+	<p>Writing to an I/O register is exactly that. AM_BLK_STAT needs to signal to the adapter that the CPU will update one of its I/O registers.</p>
+
+	<p>Set File Size Mode and Set SMID Mode refer to the values held in AM_FILE_SIZE and AM_SMID. Since these registers have overlapping addresses, AM_BLK_STAT controls which mode the adapter will use and which values to return when reading these memory locations. Once the SMID is read, there is usually no need to return to this mode.</p>
 
 	<p>When performing any of these commands, it is recommended to disable interrupts. Any non-zero writes to AM_BLK_STAT will trigger a GamePak IRQ once the value of AM_BLK_STAT is updated. Servicing other interrupts may delay the progam from determining when exactly an operation has finished when AM_BLK_STAT&#39;s Bit 0 reads zero. For AM3 cards, this timing is critical to deliver smooth audio and video playback, so interrupts are disabled frequently in the firmware while it waits in several tight loops.</p>
 
