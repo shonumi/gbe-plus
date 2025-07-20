@@ -385,7 +385,7 @@ Note that sometimes the software sends shifts that result in no movement. These 
 8. Sewing Machine Status
 ***************************************************
 
-The sewing machines report their status whenever the Game Boy sends the value 0x80 via external transfer. This byte describes various aspect of the machine during operation.
+The sewing machines report their status whenever the Game Boy sends the value 0x80 via external transfer. This byte describes various aspects of the machine during operation.
 
 -------------------------------------------------
 Status Byte
