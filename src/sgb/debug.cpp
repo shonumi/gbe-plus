@@ -258,6 +258,57 @@ void SGB_core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Show Block Short - 64 bytes
+		//Show Block Mid - 128 bytes
+		//Show Block Long - 256 bytes
+		else if(((command.substr(0, 3) == "sbs") ||  (command.substr(0, 3) == "sbm") || (command.substr(0, 3) == "sbl"))
+		&& (command.substr(4, 2) == "0x"))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+			std::string hex_string = command.substr(6);
+			std::string cmd_str = command.substr(0, 3);
+
+			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
+
+			//Convert hex string into usable u32
+			valid_command = util::from_hex_str(hex_string, mem_location);
+			mem_location &= 0xFFFFFFF0;
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = cmd_str;
+				u32 index = mem_location;
+				u32 len = 0;
+
+				if(cmd_str == "sbs") { len = 4; }
+				else if(cmd_str == "sbm") { len = 8; }
+				else { len = 16; }
+
+				for(u32 y = 0; y < len; y++)
+				{
+					std::cout<< util::to_hex_str(mem_location + (y * 16))  << " ";
+
+					for(u32 x = 0; x < 16; x++)
+					{
+						std::cout<< std::uppercase << std::setw(2) << std::setfill('0') << std::hex << (u32)core_mmu.read_u8(index++) << " ";
+					}
+
+					std::cout<<"\n";
+				}
+				
+				debug_process_command();
+			}	
+		}
+
 		//Show memory - 1 byte
 		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
 		{
