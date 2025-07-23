@@ -136,7 +136,6 @@ void DMG_MMU::reset()
 	ir_stat.send = false;
 	ir_stat.trigger = false;
 	ir_stat.fade_counter = 0;
-	ir_stat.halt_counter = 0;
 	ir_stat.network_id = 0;
 	ir_stat.try_connection = false;
 

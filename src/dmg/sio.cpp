@@ -245,7 +245,7 @@ bool DMG_SIO::init()
 	}
 
 	//When using HuC-1/HuC-3 IR, wait until transfers start before using hard sync
-	//For the time being, enable hard sync at all times for Link Cable transfers (this may change)
+	//When using the Link Cable, also wait until transfers start before using hard sync
 	//Hard sync is *always* on for the 4-Player Adapter (this probably won't change)
 	if(config::netplay_hard_sync)
 	{
@@ -254,7 +254,7 @@ bool DMG_SIO::init()
 			sio_stat.use_hard_sync = false;
 		}
 
-		else if((config::sio_device == SIO_DMG_LINK_CABLE) || (config::sio_device == SIO_4_PLAYER_ADAPTER))
+		else if(config::sio_device == SIO_4_PLAYER_ADAPTER)
 		{
 			sio_stat.use_hard_sync = true;
 		}
@@ -290,6 +290,7 @@ void DMG_SIO::reset()
 	sio_stat.ping_count = 0;
 	sio_stat.ping_finish = false;
 	sio_stat.send_data = false;
+	sio_stat.halt_counter = 0;
 	
 	switch(config::sio_device)
 	{
@@ -658,6 +659,12 @@ bool DMG_SIO::send_byte()
 		{
 			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
 		}
+
+		//Reset hard sync if new SIO byte sent
+		if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
+		{
+			sio_stat.use_hard_sync = true;
+		}
 	}
 
 	//Otherwise, emulate a disconnected Link Cable
@@ -737,7 +744,7 @@ bool DMG_SIO::receive_byte()
 				return true;
 			}
 
-			//Stop hard sync for IR signals
+			//Stop hard sync for Link Cable bytes and IR signals
 			else if(temp_buffer[1] == 0xF1)
 			{
 				sio_stat.sync = false;
@@ -806,8 +813,8 @@ bool DMG_SIO::receive_byte()
 					else { mem->cart.huc_ir_input = 0x00; }
 				}
 
-				//Start IR hard sync timeout countdown
-				mem->ir_stat.halt_counter = 0x400000;
+				//Start hard sync timeout countdown
+				sio_stat.halt_counter = 0x400000;
 
 				//Reset hard sync if new IR signal received
 				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
@@ -840,6 +847,16 @@ bool DMG_SIO::receive_byte()
 				//Send other Game Boy the old SB value
 				temp_buffer[0] = sio_stat.transfer_byte;
 				sio_stat.transfer_byte = mem->memory_map[REG_SB];
+
+				//Start hard sync timeout countdown
+				sio_stat.halt_counter = 0x400000;
+
+				//Reset hard sync if new SIO byte received
+				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
+				{
+					sio_stat.use_hard_sync = true;
+					
+				}
 			}
 
 			//Otherwise, emulate a disconnected Link Cable
@@ -913,8 +930,7 @@ bool DMG_SIO::stop_sync()
 	sio_stat.sync = false;
 	sio_stat.use_hard_sync = false;
 	sio_stat.sync_counter = 0;
-
-	mem->ir_stat.halt_counter = 0;
+	sio_stat.halt_counter = 0;
 
 	#endif
 
@@ -1932,6 +1948,8 @@ void DMG_SIO::singer_izek_data_process()
 {
 	u8 sio_data = sio_stat.last_transfer;
 	singer_izek.last_internal_transfer = sio_data;
+
+	std::cout<<"SIO -> 0x" << u32(sio_data) << "\n";
 
 	switch(singer_izek.current_state)
 	{

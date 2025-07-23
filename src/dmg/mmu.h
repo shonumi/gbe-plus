@@ -157,7 +157,6 @@ class DMG_MMU
 		bool try_connection;
 		u8 trigger;
 		s32 fade_counter;
-		s32 halt_counter;
 		u8 network_id;
 	} ir_stat;
 

@@ -332,7 +332,7 @@ void DMG_core::run_core()
 
 				//Fade IR signal after a certain amount of time
 				//End hard sync after a certain amount of time
-				if(core_mmu.ir_stat.halt_counter > 0)
+				if(core_cpu.controllers.serial_io.sio_stat.halt_counter > 0)
 				{
 					if(core_mmu.ir_stat.fade_counter > 0)
 					{
@@ -345,11 +345,11 @@ void DMG_core::run_core()
 						}
 					}
 
-					core_mmu.ir_stat.halt_counter -= core_cpu.cycles;
+					core_cpu.controllers.serial_io.sio_stat.halt_counter -= core_cpu.cycles;
 
-					if(core_mmu.ir_stat.halt_counter <= 0)
+					if(core_cpu.controllers.serial_io.sio_stat.halt_counter <= 0)
 					{
-						core_mmu.ir_stat.halt_counter = 0;
+						core_cpu.controllers.serial_io.sio_stat.halt_counter = 0;
 						core_cpu.controllers.serial_io.stop_sync();
 					}
 				}
@@ -633,7 +633,7 @@ void DMG_core::step()
 
 			//Fade IR signal after a certain amount of time
 			//End hard sync after a certain amount of time
-			if(core_mmu.ir_stat.halt_counter > 0)
+			if(core_cpu.controllers.serial_io.sio_stat.halt_counter > 0)
 			{
 				if(core_mmu.ir_stat.fade_counter > 0)
 				{
@@ -646,11 +646,11 @@ void DMG_core::step()
 					}
 				}
 
-				core_mmu.ir_stat.halt_counter -= core_cpu.cycles;
+				core_cpu.controllers.serial_io.sio_stat.halt_counter -= core_cpu.cycles;
 
-				if(core_mmu.ir_stat.halt_counter <= 0)
+				if(core_cpu.controllers.serial_io.sio_stat.halt_counter <= 0)
 				{
-					core_mmu.ir_stat.halt_counter = 0;
+					core_cpu.controllers.serial_io.sio_stat.halt_counter = 0;
 					core_cpu.controllers.serial_io.stop_sync();
 				}
 			}

@@ -251,6 +251,7 @@ struct dmg_sio_data
 	u32 dmg07_clock;
 	sio_types sio_type;
 	ir_types ir_type;
+	s32 halt_counter;
 };
 
 #endif // GB_SIO_DATA 
