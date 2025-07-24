@@ -2838,44 +2838,8 @@ void DMG_SIO::singer_izek_update()
 /****** Adjusts Y coordinate when stitching ******/
 u8 DMG_SIO::singer_izek_adjust_y(u8 y_val)
 {
-	switch(y_val)
-	{
-		case 0x00: return 20;
-		case 0x01: return 19;
-		case 0x02: return 18;
-		case 0x03: return 17;
-		case 0x04: return 16;
-		case 0x05: return 15;
-		case 0x06: return 14;
-		case 0x07: return 13;
-		case 0x08: return 12;
-		case 0x09: return 11;
-		case 0x0A: return 10;
-		case 0x0B: return 9;
-		case 0x0C: return 8;
-		case 0x0D: return 7;
-		case 0x0E: return 6;
-		case 0x0F: return 5;
-		case 0x10: return 4;
-		case 0x11: return 3;
-		case 0x12: return 2;
-		case 0x13: return 1;
-		case 0x14: return 0;
-		case 0x15: return 1;
-		case 0x16: return 2;
-		case 0x17: return 3;
-		case 0x18: return 4;
-		case 0x19: return 5;
-		case 0x1A: return 6;
-		case 0x1B: return 7;
-		case 0x1C: return 8;
-		case 0x1D: return 9;
-		case 0x1E: return 10;
-		case 0x1F: return 11;
-		case 0x20: return 12;
-		case 0x21: return 13;
-		case 0x22: return 14;
-	}
+	if(y_val < 0x15) { y_val = 0x14 - y_val; }
+	else { y_val -= 0x14; }
 
 	return y_val;
 }
