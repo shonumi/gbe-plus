@@ -249,6 +249,7 @@ class AGB_SIO
 	bool send_data();
 	bool receive_byte();
 	bool request_sync();
+	bool stop_sync();
 	void process_network_communication();
 
 	void gba_player_rumble_process();

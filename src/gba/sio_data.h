@@ -138,11 +138,13 @@ struct agb_sio_data
 	bool active_transfer;
 	bool internal_clock;
 	bool sync;
+	bool use_hard_sync;
 	bool connection_ready;
 	bool emu_device_ready;
 	bool send_so_status;
 	u32 sync_counter;
 	u32 sync_clock;
+	u8 sync_delay;
 	u32 transfer_data;
 	u32 shift_counter;
 	u32 shift_clock;
@@ -152,6 +154,7 @@ struct agb_sio_data
 	u8 player_id;
 	agb_sio_types sio_type;
 	agb_sio_modes sio_mode;
+	s32 halt_counter;
 };
 
 #endif // GBA_SIO_DATA 

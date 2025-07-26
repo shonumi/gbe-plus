@@ -352,13 +352,25 @@ void AGB_core::run_core()
 			if(core_cpu.controllers.serial_io.sio_stat.connected)
 			{
 				//Perform syncing operations when hard sync is enabled
-				if(config::netplay_hard_sync) { hard_sync(); }
+				if(core_cpu.controllers.serial_io.sio_stat.use_hard_sync) { hard_sync(); }
 
 				//Receive bytes normally
 				core_cpu.controllers.serial_io.receive_byte();
 
 				//Clock SIO
 				core_cpu.clock_sio();
+
+				//End hard sync after a certain amount of time
+				if(core_cpu.controllers.serial_io.sio_stat.halt_counter > 0)
+				{
+					core_cpu.controllers.serial_io.sio_stat.halt_counter -= core_cpu.system_cycles;
+
+					if(core_cpu.controllers.serial_io.sio_stat.halt_counter <= 0)
+					{
+						core_cpu.controllers.serial_io.sio_stat.halt_counter = 0;
+						core_cpu.controllers.serial_io.stop_sync();
+					}
+				}
 			}
 
 			//Otherwise, try to run any emulate SIO devices attached to GBE+

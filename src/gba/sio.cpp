@@ -195,6 +195,9 @@ bool AGB_SIO::init()
 		sio_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? 64 : 0;
 	}
 
+	//By default, hard sync does not activate until a SIO transfer is initiated
+	sio_stat.use_hard_sync = false;
+
 	#endif
 
 	std::cout<<"SIO::Initialized\n";
@@ -211,6 +214,7 @@ void AGB_SIO::reset()
 	sio_stat.send_so_status = false;
 	sio_stat.sync_counter = 0;
 	sio_stat.sync_clock = config::netplay_sync_threshold;
+	sio_stat.sync_delay = 0;
 	sio_stat.sync = false;
 	sio_stat.connection_ready = false;
 	sio_stat.emu_device_ready = false;
@@ -221,6 +225,7 @@ void AGB_SIO::reset()
 	sio_stat.r_cnt = 0x8000;
 	sio_stat.cnt = 0;
 	sio_stat.player_id = config::netplay_id;
+	sio_stat.halt_counter = 0;
 
 	switch(config::sio_device)
 	{
@@ -613,6 +618,12 @@ bool AGB_SIO::send_data()
 		}
 	}
 
+	//Reset hard sync if new SIO byte sent
+	if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
+	{
+		sio_stat.use_hard_sync = true;
+	}
+
 	#endif
 
 	return true;
@@ -647,8 +658,18 @@ bool AGB_SIO::receive_byte()
 				}
 
 				sio_stat.connection_ready = (temp_buffer[2] == sio_stat.sio_mode) ? true : false;
-
 				sio_stat.sync = false;
+				sio_stat.sync_counter = 0;
+				sio_stat.sync_clock = config::netplay_sync_threshold + temp_buffer[1];
+
+				return true;
+			}
+
+			//Stop hard sync
+			else if(temp_buffer[4] == 0xF1)
+			{
+				sio_stat.sync = false;
+				sio_stat.use_hard_sync = false;
 				sio_stat.sync_counter = 0;
 				return true;
 			}
@@ -752,6 +773,16 @@ bool AGB_SIO::receive_byte()
 					}
 				}
 
+				//Start hard sync timeout countdown
+				sio_stat.halt_counter = 0x400000;
+
+				//Reset hard sync if new IR signal received
+				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
+				{
+					sio_stat.use_hard_sync = true;
+					
+				} 
+
 				return true;
 			}
 		}
@@ -767,7 +798,11 @@ bool AGB_SIO::request_sync()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[5] = {0, 0, sio_stat.sio_mode, sio_stat.player_id, 0xFF} ;
+	//Calculate the number of cycles this instance ran beyond the specified hard sync threshold
+	//Next instance will try to catch up to better stay in sync
+	sio_stat.sync_delay = sio_stat.sync_counter - sio_stat.sync_clock;
+
+	u8 temp_buffer[5] = { 0, sio_stat.sync_delay, sio_stat.sio_mode, sio_stat.player_id, 0xFF } ;
 
 	//Send the sync code 0xFF
 	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
@@ -780,6 +815,33 @@ bool AGB_SIO::request_sync()
 	}
 
 	sio_stat.sync = true;
+
+	#endif
+
+	return true;
+}
+
+/****** Temporarily stops syncronization with another system ******/
+bool AGB_SIO::stop_sync()
+{
+	#ifdef GBE_NETPLAY
+	
+	u8 temp_buffer[5] = { 0, 0, 0, 0, 0xF1 };
+
+	//Send the stop sync code 0xF1
+	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
+	{
+		std::cout<<"SIO::Error - Host failed to send data to client\n";
+		sio_stat.connected = false;
+		server.connected = false;
+		sender.connected = false;
+		return false;
+	}
+
+	sio_stat.sync = false;
+	sio_stat.use_hard_sync = false;
+	sio_stat.sync_counter = 0;
+	sio_stat.halt_counter = 0;
 
 	#endif
 
