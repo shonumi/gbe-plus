@@ -907,7 +907,6 @@ void AGB_core::hard_sync()
 		while(core_cpu.controllers.serial_io.sio_stat.sync)
 		{
 			core_cpu.controllers.serial_io.receive_byte();
-			//if(core_cpu.controllers.serial_io.is_master) { core_cpu.controllers.serial_io.four_player_request_sync(); }
 
 			//Timeout if 10 seconds passes
 			timeout = SDL_GetTicks();

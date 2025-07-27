@@ -555,17 +555,16 @@ bool AGB_SIO::send_data()
 		return false;
 	}
 
-	if(sio_stat.send_so_status)
+	if(sio_stat.send_so_status && ((sio_stat.sio_mode == NORMAL_8BIT) || (sio_stat.sio_mode == NORMAL_32BIT)))
 	{
 		sio_stat.send_so_status = false;
-		return true;
 	}
 
 	//Wait for other GBA to acknowledge
-	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 5) > 0)
+	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 5) >= 5)
 	{
 		//16-bit Multiplayer
-		if(sio_stat.sio_mode == MULTIPLAY_16BIT)
+		if((sio_stat.sio_mode == MULTIPLAY_16BIT) && (temp_buffer[4] == 0x48))
 		{
 			//Only process response if the emulated SIO connection is ready
 			if(sio_stat.connection_ready)
@@ -634,7 +633,7 @@ bool AGB_SIO::receive_byte()
 {
 	#ifdef GBE_NETPLAY
 
-	u8 temp_buffer[5] = {0, 0, 0, 0, 0} ;
+	u8 temp_buffer[5] = { 0, 0, 0, 0, 0 };
 
 	//Check the status of connection
 	SDLNet_CheckSockets(tcp_sockets, 0);
@@ -761,16 +760,16 @@ bool AGB_SIO::receive_byte()
 
 						temp_buffer[4] = sio_stat.player_id;
 					}
+				}
 
-					//Send acknowledgement
-					if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
-					{
-						std::cout<<"SIO::Error - Host failed to send data to client\n";
-						sio_stat.connected = false;
-						server.connected = false;
-						sender.connected = false;
-						return false;
-					}
+				//Send acknowledgement
+				if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 5) < 5)
+				{
+					std::cout<<"SIO::Error - Host failed to send data to client\n";
+					sio_stat.connected = false;
+					server.connected = false;
+					sender.connected = false;
+					return false;
 				}
 
 				//Start hard sync timeout countdown
@@ -780,7 +779,6 @@ bool AGB_SIO::receive_byte()
 				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
 				{
 					sio_stat.use_hard_sync = true;
-					
 				} 
 
 				return true;
