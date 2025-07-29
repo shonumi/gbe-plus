@@ -567,6 +567,10 @@ bool AGB_SIO::send_data()
 		//16-bit Multiplayer
 		if((sio_stat.sio_mode == MULTIPLAY_16BIT) && (temp_buffer[5] == 0x48))
 		{
+			//Reset transfer data
+			mem->write_u32_fast(0x4000120, 0xFFFFFFFF);
+			mem->write_u32_fast(0x4000124, 0xFFFFFFFF);
+
 			//Only process response if the emulated SIO connection is ready
 			if(sio_stat.connection_ready)
 			{
@@ -611,7 +615,7 @@ bool AGB_SIO::send_data()
 			else
 			{
 				sio_stat.active_transfer = true;
-				sio_stat.shifts_left = 16;
+				sio_stat.shifts_left = 1;
 				sio_stat.shift_counter = 0;
 				mem->memory_map[SIO_CNT] |= 0x80;
 			}

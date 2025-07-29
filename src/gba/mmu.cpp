@@ -3394,31 +3394,32 @@ void AGB_MMU::process_sio()
 		sio_stat->sio_mode = MULTIPLAY_16BIT;
 
 		//Convert baud rate to approximate GBA CPU cycles
-		switch(sio_stat->cnt & 0x3)
+		switch(sio_stat->cnt & 0x03)
 		{
-			case 0x0: sio_stat->shift_clock = 1747; break;
-			case 0x1: sio_stat->shift_clock = 436; break;
-			case 0x2: sio_stat->shift_clock = 291; break;
-			case 0x3: sio_stat->shift_clock = 145; break;
+			case 0x00: sio_stat->shift_clock = 27962; break;
+			case 0x01: sio_stat->shift_clock = 69905; break;
+			case 0x02: sio_stat->shift_clock = 4660; break;
+			case 0x03: sio_stat->shift_clock = 2330; break;
 		}
 
 		//Mask out Read-Only bits - Do not mask START bit for master
 		//sio_stat->cnt &= (sio_stat->player_id == 0) ? ~0x7C : ~0xFC;
 
 		//Determine Parent-Child status
-		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x4; }
+		if(sio_stat->player_id != 0) { sio_stat->cnt |= 0x04; }
+		else { sio_stat->cnt &= ~0x04; }
 
 		//Determine connection status
-		if(sio_stat->connection_ready || ((sio_stat->sio_type == GBA_VRS) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE))) { sio_stat->cnt |= 0x8; }
+		if(sio_stat->connection_ready || ((sio_stat->sio_type == GBA_VRS) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE))) { sio_stat->cnt |= 0x08; }
 
 		//Determine Player ID
-		sio_stat->cnt |= ((sio_stat->player_id & 0x3) << 4);
+		sio_stat->cnt |= ((sio_stat->player_id & 0x03) << 4);
 
 		//Start transfer
 		if((sio_stat->player_id == 0) && (!sio_stat->active_transfer) && (sio_stat->cnt & 0x80))
 		{
 			sio_stat->active_transfer = true;
-			sio_stat->shifts_left = 16;
+			sio_stat->shifts_left = 1;
 			sio_stat->shift_counter = 0;
 			sio_stat->transfer_data = (memory_map[SIO_DATA_8 + 1] << 8) | memory_map[SIO_DATA_8];
 
