@@ -32,6 +32,7 @@ enum sio_types
 //Infrared device-type enumeration
 enum ir_types
 {
+	NO_GB_IR,
 	GBC_IR_PORT,
 	GBC_FULL_CHANGER,
 	GBC_POKEMON_PIKACHU_2,

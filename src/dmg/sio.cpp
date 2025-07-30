@@ -343,6 +343,14 @@ void DMG_SIO::reset()
 
 	switch(config::ir_device)
 	{
+		case IR_NONE:
+			sio_stat.ir_type = NO_GB_IR;
+			break;
+
+		case IR_GBC:
+			sio_stat.ir_type = GBC_IR_PORT;
+			break;
+
 		case IR_FULL_CHANGER:
 			sio_stat.ir_type = GBC_FULL_CHANGER;
 			break;
@@ -369,12 +377,6 @@ void DMG_SIO::reset()
 
 		case IR_GB_KISS_LINK:
 			sio_stat.ir_type = GB_KISS_LINK;
-			break;
-
-		//Use standard GBC IR port communication as the default (GBE+ will ignore it for DMG games)
-		//Also, any invalid types are ignored
-		default:
-			sio_stat.ir_type = GBC_IR_PORT;
 			break;
 	}
 
@@ -681,6 +683,8 @@ bool DMG_SIO::send_byte()
 /****** Transfers one bit to another system's IR port ******/
 bool DMG_SIO::send_ir_signal()
 {
+	if(sio_stat.ir_type == NO_GB_IR) { return true; }
+
 	#ifdef GBE_NETPLAY
 
 	u8 temp_buffer[2];
@@ -788,18 +792,21 @@ bool DMG_SIO::receive_byte()
 				//Handle GBC IR signals
 				if(config::cart_type != DMG_HUC_IR)
 				{
-					//Clear out Bit 1 of RP if receiving signal
-					if(temp_buffer[0] == 1)
+					if(sio_stat.ir_type != NO_GB_IR)
 					{
-						mem->memory_map[REG_RP] &= ~0x2;
-						mem->ir_stat.fade_counter = 12672;
-					}
+						//Clear out Bit 1 of RP if receiving signal
+						if(temp_buffer[0] == 1)
+						{
+							mem->memory_map[REG_RP] &= ~0x2;
+							mem->ir_stat.fade_counter = 12672;
+						}
 
-					//Set Bit 1 of RP if IR signal is normal
-					else
-					{
-						mem->memory_map[REG_RP] |= 0x2;
-						mem->ir_stat.fade_counter = 0;
+						//Set Bit 1 of RP if IR signal is normal
+						else
+						{
+							mem->memory_map[REG_RP] |= 0x2;
+							mem->ir_stat.fade_counter = 0;
+						}
 					}
 				}
 

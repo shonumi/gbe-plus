@@ -1454,7 +1454,7 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 			if(ir_stat.signal != old_ir_stat) { ir_stat.send = true; }
 
 			//Emulate constant IR light source - Static Mode
-			if((sio_stat->ir_type == 5) && (value & 0xC0) && (config::ir_db_index == 0))
+			if((sio_stat->ir_type == GBC_LIGHT_SOURCE) && (value & 0xC0) && (config::ir_db_index == 0))
 			{
 				memory_map[address] &= ~0x2;
 			} 
