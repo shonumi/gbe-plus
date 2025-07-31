@@ -199,6 +199,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* ir_label = new QLabel("Infrared Device", ir_set);
 	ir_dev = new QComboBox(ir_set);
 	ir_dev->setToolTip("Changes the emulated IR device that will communicate with the emulated Game Boy");
+	ir_dev->addItem("None");
 	ir_dev->addItem("GBC IR Port");
 	ir_dev->addItem("Full Changer");
 	ir_dev->addItem("Pokemon Pikachu 2");
