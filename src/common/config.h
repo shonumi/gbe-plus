@@ -113,6 +113,20 @@ enum infrared_types
 	IR_GB_KISS_LINK = 10,
 };
 
+enum slot2_device_types
+{
+	NTR_S2_AUTO = 0,
+	NTR_S2_NONE = 1,
+	NTR_S2_PASSME = 2,
+	NTR_S2_RUMBLE_PAK = 3,
+	NTR_S2_GBA_CART = 4,
+	NTR_S2_THRUSTMASTER = 5,
+	NTR_S2_HCV_1000 = 6,
+	NTR_S2_MAGIC_READER = 7,
+	NTR_S2_MEMORY_EXPANSION = 8,
+	NTR_S2_MOTION_PACK = 9,
+};
+
 enum pm_config
 {
 	PMC_ENABLE_TRI_COLOR_MODE = 0x01,

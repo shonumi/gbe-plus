@@ -52,21 +52,38 @@ void NTR_MMU::reset()
 
 	switch(config::nds_slot2_device)
 	{
-		case 0: current_slot2_device = SLOT2_AUTO; break;
-		case 1: current_slot2_device = SLOT2_NONE; break;
-		case 2: current_slot2_device = SLOT2_PASSME; break;
-		case 3: current_slot2_device = SLOT2_RUMBLE_PAK; break;
-		case 4: current_slot2_device = SLOT2_GBA_CART; break;
-		case 5: current_slot2_device = SLOT2_UBISOFT_PEDOMETER; break;
+		case NTR_S2_AUTO:
+			current_slot2_device = SLOT2_AUTO;
+			break;
 
-		case 6:
+		case NTR_S2_NONE:
+			current_slot2_device = SLOT2_NONE;
+			break;
+
+		case NTR_S2_PASSME:
+			current_slot2_device = SLOT2_PASSME;
+			break;
+
+		case NTR_S2_RUMBLE_PAK:
+			current_slot2_device = SLOT2_RUMBLE_PAK;
+			break;
+
+		case NTR_S2_GBA_CART:
+			current_slot2_device = SLOT2_GBA_CART;
+			break;
+
+		case NTR_S2_THRUSTMASTER:
+			current_slot2_device = SLOT2_UBISOFT_PEDOMETER;
+			break;
+
+		case NTR_S2_HCV_1000:
 			current_slot2_device = SLOT2_HCV_1000;
 			hcv.data.clear();
 			hcv.data.resize(0x10, 0x5F);
 			slot2_hcv_load_barcode(config::external_card_file);
 			break;
 
-		case 7:
+		case NTR_S2_MAGIC_READER:
 			current_slot2_device = SLOT2_MAGIC_READER;
 			magic_reader.command = 0;
 			magic_reader.in_data = 0;
@@ -80,14 +97,16 @@ void NTR_MMU::reset()
 			magic_reader.oid_reset = true;
 			break;
 
-		case 8:
+		case NTR_S2_MEMORY_EXPANSION:
 			current_slot2_device = SLOT2_MEMORY_EXPANSION;
 			mem_pak.data.clear();
 			mem_pak.data.resize(0x800000, 0xFF);
 			mem_pak.is_locked = true;
 			break;
 
-		case 9: current_slot2_device = SLOT2_MOTION_PACK; break;
+		case NTR_S2_MOTION_PACK:
+			current_slot2_device = SLOT2_MOTION_PACK;
+			break;
 	}	
 
 	memory_map.clear();

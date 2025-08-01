@@ -1881,9 +1881,9 @@ void gen_settings::set_ini_options()
 	//Emulated Slot-2 device
 	slot2_dev->setCurrentIndex(config::nds_slot2_device);
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 4)
-	|| (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6)
-	|| (config::nds_slot2_device == 7)) 
+	if((config::nds_slot2_device == NTR_S2_RUMBLE_PAK) || (config::nds_slot2_device == NTR_S2_GBA_CART)
+	|| (config::nds_slot2_device == NTR_S2_THRUSTMASTER) || (config::nds_slot2_device == NTR_S2_HCV_1000)
+	|| (config::nds_slot2_device == NTR_S2_MAGIC_READER)) 
 	{ 
 		config_slot2->setEnabled(true);
 	}
@@ -2270,9 +2270,9 @@ void gen_settings::slot2_dev_change()
 {
 	config::nds_slot2_device = slot2_dev->currentIndex();
 
-	if((config::nds_slot2_device == 3) || (config::nds_slot2_device == 4) 
-	|| (config::nds_slot2_device == 5) || (config::nds_slot2_device == 6)
-	|| (config::nds_slot2_device == 7)) 
+	if((config::nds_slot2_device == NTR_S2_RUMBLE_PAK) || (config::nds_slot2_device == NTR_S2_GBA_CART) 
+	|| (config::nds_slot2_device == NTR_S2_THRUSTMASTER) || (config::nds_slot2_device == NTR_S2_HCV_1000)
+	|| (config::nds_slot2_device == NTR_S2_MAGIC_READER)) 
 	{
 		config_slot2->setEnabled(true);
 	}
@@ -2379,10 +2379,21 @@ void gen_settings::show_ir_config()
 {
 	switch(config::ir_device)
 	{
-		case IR_FULL_CHANGER: full_changer_menu->show(); break;
-		case IR_POCKET_PIKACHU: pokemon_pikachu_menu->show(); break;
-		case IR_POCKET_SAKURA: pocket_sakura_menu->show(); break;
-		case IR_CONSTANT_LIGHT: chalien_menu->show(); break;
+		case IR_FULL_CHANGER:
+			full_changer_menu->show();
+			break;
+
+		case IR_POCKET_PIKACHU:
+			pokemon_pikachu_menu->show();
+			break;
+
+		case IR_POCKET_SAKURA:
+			pocket_sakura_menu->show();
+			break;
+
+		case IR_CONSTANT_LIGHT:
+			chalien_menu->show();
+			break;
 	}	
 }
 
@@ -2391,11 +2402,26 @@ void gen_settings::show_slot2_config()
 {
 	switch(config::nds_slot2_device)
 	{
-		case 0x3: tabs->setCurrentIndex(3); controls_combo->setCurrentIndex(1); break;
-		case 0x4: set_slot2_gba_file(); break;
-		case 0x5: ubisoft_pedometer_menu->show(); break;
-		case 0x6: qt_gui::draw_surface->set_card_file(); break;
-		case 0x7: magic_reader_menu->show(); break;
+		case NTR_S2_RUMBLE_PAK:
+			tabs->setCurrentIndex(3);
+			controls_combo->setCurrentIndex(1);
+			break;
+
+		case NTR_S2_GBA_CART:
+			set_slot2_gba_file();
+			break;
+
+		case NTR_S2_THRUSTMASTER:
+			ubisoft_pedometer_menu->show();
+			break;
+
+		case NTR_S2_HCV_1000:
+			qt_gui::draw_surface->set_card_file();
+			break;
+
+		case NTR_S2_MAGIC_READER:
+			magic_reader_menu->show();
+			break;
 	}
 }
 
