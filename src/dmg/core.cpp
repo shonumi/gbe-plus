@@ -542,6 +542,12 @@ void DMG_core::run_core()
 							case GB_ASCII_TURBO_FILE:
 								core_cpu.controllers.serial_io.turbo_file_process();
 								break;
+
+							//Process Vaus Controller communications
+							case GB_VAUS_CONTROLLER:
+								core_cpu.controllers.serial_io.vaus_controller_process();
+								break;
+			
 						}
 
 						switch(core_cpu.controllers.serial_io.sio_stat.ir_type)

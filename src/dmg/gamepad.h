@@ -47,6 +47,8 @@ class DMG_GamePad : virtual public dmg_core_pad
 	bool turbo_button_end[12];
 	u32 turbo_button_val[12];
 
+	u16 vaus_adc;
+
 	private:
 	
 	SDL_GameController* gc_sensor;

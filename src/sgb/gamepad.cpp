@@ -24,6 +24,7 @@ SGB_GamePad::SGB_GamePad()
 	joypad_irq = false;
 	joy_init = false;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
+	vaus_adc = 0;
 
 	packet.state = 0;
 	packet.command = 0;

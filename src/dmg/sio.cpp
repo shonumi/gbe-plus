@@ -334,6 +334,10 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_ASCII_TURBO_FILE;
 			break;
 
+		case SIO_VAUS_CONTROLLER:
+			sio_stat.sio_type = GB_VAUS_CONTROLLER;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -494,6 +498,9 @@ void DMG_SIO::reset()
 	turbo_file.device_status = 0x3;
 	turbo_file.mem_card_status = 0x1;
 	turbo_file.bank = 0x0;
+
+	//Vaus Controller
+	vaus_controller.counter = 0;
 
 	if(config::sio_device == SIO_TURBO_FILE)
 	{
@@ -3318,4 +3325,20 @@ bool DMG_SIO::turbo_file_save_data(std::string filename)
 
 	std::cout<<"SIO::Saved Turbo File GB data.\n";
 	return true;
+}
+
+/****** Processes data sent from the Vaus Controller to the Game Boy ******/
+void DMG_SIO::vaus_controller_process()
+{
+	if((vaus_controller.counter & 0x01) == 0)
+	{
+		mem->memory_map[REG_SB] = (mem->g_pad->vaus_adc & 0xFF);
+		vaus_controller.counter++;
+	}
+
+	else
+	{
+		mem->memory_map[REG_SB] = (mem->g_pad->vaus_adc >> 8);
+		vaus_controller.counter++;
+	}
 }

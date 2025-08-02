@@ -158,6 +158,7 @@ enum sio_devices_types
 	SIO_VIRTUREAL_RACING_SYSTEM = 18,
 	SIO_MAGICAL_WATCH = 19,
 	SIO_GBA_WIRELESS_ADAPTER = 20,
+	SIO_VAUS_CONTROLLER = 21,
 };
 
 namespace config

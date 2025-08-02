@@ -48,6 +48,8 @@ class dmg_core_pad
 	u32 turbo_button_enabled;
 	u32 turbo_button_val[12];
 
+	u16 vaus_adc;
+
 	virtual void handle_input(SDL_Event &event) = 0;
 	virtual void init() = 0;
 

@@ -27,6 +27,7 @@ enum sio_types
 	GB_POWER_ANTENNA,
 	GB_SINGER_IZEK,
 	GB_ASCII_TURBO_FILE,
+	GB_VAUS_CONTROLLER,
 };
 
 //Infrared device-type enumeration

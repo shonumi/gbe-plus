@@ -30,6 +30,7 @@ DMG_GamePad::DMG_GamePad()
 	ddr_was_mapped = false;
 	sensor_init = false;
 	gc_sensor = NULL;
+	vaus_adc = 0;
 
 	//Swap inputs when using DDR Finger Pad mode
 	if(config::use_ddr_mapping)
