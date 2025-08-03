@@ -1475,6 +1475,9 @@ void DMG_LCD::step(int cpu_clock)
 
 				//Process Turbo Buttons
 				if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
+
+				//Process Vaus input
+				if(config::sio_device == SIO_VAUS_CONTROLLER) { mem->g_pad->process_vaus(); }
 			}
 
 			//Processing VBlank

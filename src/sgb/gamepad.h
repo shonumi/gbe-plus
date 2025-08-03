@@ -35,6 +35,7 @@ class SGB_GamePad : virtual public dmg_core_pad
 	void process_joystick(int pad, bool pressed);
 	void process_gyroscope();
 	void process_turbo_buttons();
+	void process_vaus();
 	void start_rumble();
 	void stop_rumble();
 	u8 read();

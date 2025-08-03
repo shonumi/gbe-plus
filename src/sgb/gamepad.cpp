@@ -467,6 +467,9 @@ void SGB_GamePad::process_turbo_buttons()
 	}	
 }
 
+/****** Processes Vaus input ******/
+void SGB_GamePad::process_vaus() { }
+
 /****** Start haptic force-feedback on joypad ******/
 void SGB_GamePad::start_rumble()
 {

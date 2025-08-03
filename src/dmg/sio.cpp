@@ -3247,8 +3247,6 @@ void DMG_SIO::turbo_file_process()
 
 			break;
 	}
-
-	mem->memory_map[IF_FLAG] |= 0x08;
 }
 
 /****** Calculates the checksum for a packet sent by the Turbo File ******/
@@ -3341,4 +3339,6 @@ void DMG_SIO::vaus_controller_process()
 		mem->memory_map[REG_SB] = (mem->g_pad->vaus_adc >> 8);
 		vaus_controller.counter++;
 	}
+
+	mem->memory_map[IF_FLAG] |= 0x08;
 }

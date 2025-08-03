@@ -30,7 +30,9 @@ DMG_GamePad::DMG_GamePad()
 	ddr_was_mapped = false;
 	sensor_init = false;
 	gc_sensor = NULL;
-	vaus_adc = 0;
+	vaus_adc = 0x006B;
+	vaus_magnitude = 0;
+	axis_magnitude = 0;
 
 	//Swap inputs when using DDR Finger Pad mode
 	if(config::use_ddr_mapping)
@@ -200,8 +202,16 @@ void DMG_GamePad::handle_input(SDL_Event &event)
 		if(axis_pos > 0) { pad++; }
 		else { axis_pos *= -1; }
 
-		if(axis_pos > config::dead_zone) { process_joystick(pad, true); }
-		else { process_joystick(pad, false); }
+		if(axis_pos > config::dead_zone)
+		{
+			process_joystick(pad, true);
+			axis_magnitude = axis_pos;
+		}
+
+		else
+		{
+			process_joystick(pad, false);
+		}
 	}
 
 	//Joystick hats
@@ -593,6 +603,11 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 		con_flags |= 0x1;
 		con_flags &= ~0x2;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = axis_magnitude;
+		}
 	}
 
 	//Emulate Gyroscope Left tilt release
@@ -601,6 +616,11 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	{
 		gyro_flags &= ~0x1;
 		con_flags &= ~0x1;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = 0;
+		}
 	}
 
 	//Emulate Gyroscope Right tilt press
@@ -612,6 +632,11 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 		con_flags |= 0x2;
 		con_flags &= ~0x1;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = axis_magnitude;
+		}
 	}
 
 	//Emulate Gyroscope Right tilt release
@@ -620,6 +645,11 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	{
 		gyro_flags &= ~0x2;
 		con_flags &= ~0x2;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = 0;
+		}
 	}
 
 	//Emulate Gyroscope Up tilt press
@@ -684,10 +714,18 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 	}
 
 	//Misc Context Key 1 press
-	else if((pad == config::con_joy_1) && (pressed)) { con_flags |= 0x100; }
+	else if((pad == config::con_joy_1) && (pressed))
+	{
+		con_flags |= 0x100;
+		vaus_adc |= 0x8000;
+	}
 	
 	//Misc Context Key 1 release
-	else if((pad == config::con_joy_1) && (!pressed)) { con_flags &= ~0x100; }
+	else if((pad == config::con_joy_1) && (!pressed))
+	{
+		con_flags &= ~0x100;
+		vaus_adc &= ~0x8000;
+	}
 
 	//Misc Context Key 2 press
 	else if((pad == config::con_joy_2) && (pressed)) { con_flags |= 0x200; }
@@ -883,6 +921,24 @@ void DMG_GamePad::process_turbo_buttons()
 			}
 		}
 	}	
+}
+
+/****** Processes Vaus input ******/
+void DMG_GamePad::process_vaus()
+{
+	u8 vaus_lo = 0x6B;
+
+	if(vaus_magnitude > 0)
+	{
+		float ratio = float(vaus_magnitude - config::dead_zone) / float(0x7FFF - config::dead_zone);
+		vaus_lo = (44 * ratio);
+
+		if(con_flags & 0x02) { vaus_lo = 0x6B + vaus_lo; }
+		else if(con_flags & 0x01) { vaus_lo = 0x6B - vaus_lo; }
+	}
+
+	vaus_adc &= 0xFF00;
+	vaus_adc |= vaus_lo;
 }
 
 /****** Start haptic force-feedback on joypad ******/
