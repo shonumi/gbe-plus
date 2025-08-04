@@ -185,6 +185,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	sio_dev->addItem("V.R.S.");
 	sio_dev->addItem("Magical Watch");
 	sio_dev->addItem("GBA Wireless Adapter");
+	sio_dev->addItem("Vaus Controller");
 
 	config_sio = new QPushButton("Configure");
 

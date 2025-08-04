@@ -61,6 +61,10 @@ class SGB_GamePad : virtual public dmg_core_pad
 		std::vector<u8> data;
 		bool lcd_command;
 	} packet;
+
+	private:
+
+	u32 axis_magnitude;
 };
 
 #endif // SGB_GAMEPAD 

@@ -596,6 +596,7 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Gyroscope Left tilt press
 	//Shift sewing point left
+	//Vaus Controller left
 	else if((pad == config::con_joy_left) && (pressed))
 	{
 		gyro_flags |= 0x1;
@@ -612,6 +613,7 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Gyroscope Left tilt release
 	//Shift sewing point left
+	//Vaus Controller center
 	else if((pad == config::con_joy_left) && (!pressed))
 	{
 		gyro_flags &= ~0x1;
@@ -625,6 +627,7 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Gyroscope Right tilt press
 	//Shift sewing point right
+	//Vaus Controller right
 	else if((pad == config::con_joy_right) && (pressed))
 	{
 		gyro_flags |= 0x2;
@@ -641,6 +644,7 @@ void DMG_GamePad::process_joystick(int pad, bool pressed)
 
 	//Emulate Gyroscope Right tilt release
 	//Shift sewing point right
+	//Vaus Controller center
 	else if((pad == config::con_joy_right) && (!pressed))
 	{
 		gyro_flags &= ~0x2;

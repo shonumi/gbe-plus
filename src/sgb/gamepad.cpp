@@ -24,7 +24,9 @@ SGB_GamePad::SGB_GamePad()
 	joypad_irq = false;
 	joy_init = false;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
-	vaus_adc = 0;
+	vaus_adc = 0x006B;
+	vaus_magnitude = 0;
+	axis_magnitude = 0;
 
 	packet.state = 0;
 	packet.command = 0;
@@ -141,8 +143,16 @@ void SGB_GamePad::handle_input(SDL_Event &event)
 		if(axis_pos > 0) { pad++; }
 		else { axis_pos *= -1; }
 
-		if(axis_pos > config::dead_zone) { process_joystick(pad, true); }
-		else { process_joystick(pad, false); }
+		if(axis_pos > config::dead_zone)
+		{
+			process_joystick(pad, true);
+			axis_magnitude = axis_pos;
+		}
+		
+		else
+		{
+			process_joystick(pad, false);
+		}
 	}
 
 	//Joystick hats
@@ -374,6 +384,52 @@ void SGB_GamePad::process_joystick(int pad, bool pressed)
 	//Emulate Down DPad release
 	else if((pad == config::gbe_joy_down) && (!pressed)) { p15 |= 0x8; p15 |= 0x4; }
 
+	//Vaus Controller left
+	else if((pad == config::con_joy_left) && (pressed))
+	{
+		con_flags |= 0x1;
+		con_flags &= ~0x2;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = axis_magnitude;
+		}
+	}
+
+	//Vaus Controller center
+	else if((pad == config::con_joy_left) && (!pressed))
+	{
+		con_flags &= ~0x1;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = 0;
+		}
+	}
+
+	//Vaus Controller right
+	else if((pad == config::con_joy_right) && (pressed))
+	{
+		con_flags |= 0x2;
+		con_flags &= ~0x1;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = axis_magnitude;
+		}
+	}
+
+	//Vaus Controller center
+	else if((pad == config::con_joy_right) && (!pressed))
+	{
+		con_flags &= ~0x2;
+
+		if(config::sio_device == SIO_VAUS_CONTROLLER)
+		{
+			vaus_magnitude = 0;
+		}
+	}
+
 	//Toggle SGB border on
 	else if((pad == config::gbe_joy_r_trigger) && (pressed))
 	{
@@ -468,7 +524,22 @@ void SGB_GamePad::process_turbo_buttons()
 }
 
 /****** Processes Vaus input ******/
-void SGB_GamePad::process_vaus() { }
+void SGB_GamePad::process_vaus()
+{
+	u8 vaus_lo = 0x6B;
+
+	if(vaus_magnitude > 0)
+	{
+		float ratio = float(vaus_magnitude - config::dead_zone) / float(0x7FFF - config::dead_zone);
+		vaus_lo = (44 * ratio);
+
+		if(con_flags & 0x02) { vaus_lo = 0x6B + vaus_lo; }
+		else if(con_flags & 0x01) { vaus_lo = 0x6B - vaus_lo; }
+	}
+
+	vaus_adc &= 0xFF00;
+	vaus_adc |= vaus_lo;
+}
 
 /****** Start haptic force-feedback on joypad ******/
 void SGB_GamePad::start_rumble()
