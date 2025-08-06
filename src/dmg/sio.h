@@ -317,6 +317,7 @@ class DMG_SIO
 	u8 singer_izek_adjust_y(u8 y_val);
 
 	void vaus_controller_process();
+	void workboy_process();
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);

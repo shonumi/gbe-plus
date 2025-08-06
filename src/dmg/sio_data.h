@@ -28,6 +28,7 @@ enum sio_types
 	GB_SINGER_IZEK,
 	GB_ASCII_TURBO_FILE,
 	GB_VAUS_CONTROLLER,
+	GB_WORKBOY,
 };
 
 //Infrared device-type enumeration

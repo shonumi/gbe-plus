@@ -338,6 +338,10 @@ void DMG_SIO::reset()
 			sio_stat.sio_type = GB_VAUS_CONTROLLER;
 			break;
 
+		case SIO_WORKBOY:
+			sio_stat.sio_type = GB_WORKBOY;
+			break;
+
 		//Always wait until netplay connection is established to change to GB_LINK
 		//Also, any invalid types are ignored
 		default:
@@ -1963,8 +1967,6 @@ void DMG_SIO::singer_izek_data_process()
 	u8 sio_data = sio_stat.last_transfer;
 	singer_izek.last_internal_transfer = sio_data;
 
-	std::cout<<"SIO -> 0x" << u32(sio_data) << "\n";
-
 	switch(singer_izek.current_state)
 	{
 		case SINGER_PING:
@@ -3340,5 +3342,11 @@ void DMG_SIO::vaus_controller_process()
 		vaus_controller.counter++;
 	}
 
+	mem->memory_map[IF_FLAG] |= 0x08;
+}
+
+/****** Processes data sent from the WorkBoy to the Game Boy ******/
+void DMG_SIO::workboy_process()
+{
 	mem->memory_map[IF_FLAG] |= 0x08;
 }
