@@ -177,6 +177,13 @@
 			<p class="list_item"><a href="#ndg">Net de Get: Minigame @ 100</a></p>
 			<p class="list_item"><a href="#zng">Zen Nihon GT Senshuken</a></p>
 		</div>
+
+		<div class="toc_sec">
+			<p class="toc_gray_title">Unreleased Hardware</p>
+
+			<p class="list_head"><strong>DMG and GBC</strong></p>
+			<p class="list_item"><a href="#vaus">Vaus Controller</a></p>
+		</div>
 	</div>
 
 	<a name="about"></a>
@@ -10524,6 +10531,39 @@ Ghost Entry Format
 
 
 
+
+
+
+
+	<!-- Vaus Controller -->
+	<a name="vaus"></a>
+	<p class="gray_title">Vaus Controller</p>
+	<p class="list_item"><a href="#vaus_gen">General Information</a></p>
+	<p class="list_item"><a href="#vaus_opr">Operation</a></p>
+
+	<a name="vaus_gen"></a>
+	<p class="gray_title">[Vaus Controller] : General Information</p>
+
+	<p>The Vaus Controller is a hypothetical accessory for the original Game Boy. In theory, it would have been released alongside the Game Boy in early 1989. Alleyway, a launch title for the system, still has leftover code that appears to communicate with an unknown device via the Link Cable. The data returned from the Link Cable controls the player&#39;s paddle and allows the game to pause/resume and start a new ball.</p>
+
+	<p>Given Alleyway&#39;s similarity to Arkanoid, the device may have been a &#34;Vaus Controller&#34; similar to those found on other platforms (such the one for the NES made by Taito). It would have comprised some sort of rotating control knob and a single button to fire the ball. If it had been released, the &#34;Vaus Controller&#34; would have been the earliest example of analog controls on the Game Boy.</p>
+
+	<p>The exact reason why the Vaus Controller was never realized is unknown. One suggestion is that, as a Link Cable accessory that likely required 2 hands, it may have been cumbersome to deal with on the Game Boy. Additionally, design-wise it may not have been suitable for the image of portability Nintendo wanted project for its new handheld.</p>
+
+	<a name="vaus_opr"></a>
+	<p class="gray_title">[Vaus Controller] : Operation</p>
+
+	<p>The Vaus Controller returns a 16-bit value representing the ADC value of the control knob as well as input for a single button. The Game Boy acts on an internal clock when communicating with the Vaus Controller and must send 2 transfers to grab the 16-bit value. The Vaus Controller does not seem to care about the incoming values from the Game Boy. Data is transferred Least Significant Byte first. Its format is as follows:</p>
+
+<pre>---------------------------------------------------------
+Bit 0 - 7	| 8-bit ADC
+Bit 8 - 14	| N/A
+Bit 15		| Button Input
+---------------------------------------------------------</pre>
+
+	<p>The 8-bit ADC value should have a minimum range of 0x3F and a maximum range of 0x97. These values translate the paddle from left to right across the screen. An ADC value of 0x6B centers the paddle.</p>
+
+	<p>Button Input is a single bit. When Bit 15 is set to 1, a new ball is launched. Alternatively, this will pause/resume gameplay. In effect, Alleyway treats this as a substitute for the START button.</p>
 
 	</body>
 </html>					
