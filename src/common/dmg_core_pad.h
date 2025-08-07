@@ -51,6 +51,8 @@ class dmg_core_pad
 	u16 vaus_adc;
 	s32 vaus_magnitude;
 
+	u8 workboy_key;
+
 	virtual void handle_input(SDL_Event &event) = 0;
 	virtual void init() = 0;
 

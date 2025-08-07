@@ -33,6 +33,7 @@ DMG_GamePad::DMG_GamePad()
 	vaus_adc = 0x006B;
 	vaus_magnitude = 0;
 	axis_magnitude = 0;
+	workboy_key = 0;
 
 	//Swap inputs when using DDR Finger Pad mode
 	if(config::use_ddr_mapping)
@@ -541,6 +542,9 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		else if(pad == config::gbe_key_up) { turbo_button_end[8] = (pressed) ? false : true; }
 		else if(pad == config::gbe_key_down) { turbo_button_end[9] = (pressed) ? false : true; }
 	}
+
+	//Forward input to WorkBoy if applicable
+	if(config::sio_device == SIO_WORKBOY) { process_workboy_keys(pad, pressed); }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/
@@ -943,6 +947,30 @@ void DMG_GamePad::process_vaus()
 
 	vaus_adc &= 0xFF00;
 	vaus_adc |= vaus_lo;
+}
+
+/****** Processes WorkBoy keyboard input ******/
+void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
+{
+	if(!pressed)
+	{
+		workboy_key = 0;
+		return;
+	}
+
+	switch(pad)
+	{
+		case SDLK_1: workboy_key = 0x01; break;
+		case SDLK_2: workboy_key = 0x02; break;
+		case SDLK_3: workboy_key = 0x03; break;
+		case SDLK_4: workboy_key = 0x04; break;
+		case SDLK_5: workboy_key = 0x05; break;
+		case SDLK_6: workboy_key = 0x06; break;
+		case SDLK_7: workboy_key = 0x07; break;
+		case SDLK_8: workboy_key = 0x08; break;
+		case SDLK_9: workboy_key = 0x09; break;
+		default: workboy_key = 0x00;
+	}
 }
 
 /****** Start haptic force-feedback on joypad ******/

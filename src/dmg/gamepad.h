@@ -36,6 +36,7 @@ class DMG_GamePad : virtual public dmg_core_pad
 	void process_gyroscope(float x, float y);
 	void process_turbo_buttons();
 	void process_vaus();
+	void process_workboy_keys(int pad, bool pressed);
 	void start_rumble();
 	void stop_rumble();
 	u8 read();

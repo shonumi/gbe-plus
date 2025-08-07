@@ -506,6 +506,9 @@ void DMG_SIO::reset()
 	//Vaus Controller
 	vaus_controller.counter = 0;
 
+	//WorkBoy
+	workboy.data_out = 0;
+
 	if(config::sio_device == SIO_TURBO_FILE)
 	{
 		std::string turbo_save = config::data_path + "turbo_file_gb.sav";
@@ -3348,5 +3351,29 @@ void DMG_SIO::vaus_controller_process()
 /****** Processes data sent from the WorkBoy to the Game Boy ******/
 void DMG_SIO::workboy_process()
 {
+	u8 data_in = sio_stat.transfer_byte;
+
+	switch(data_in)
+	{
+		//Workboy Init
+		case 0x52:
+			workboy.data_out = 0x44;
+			break;
+
+		//RTC?
+		case 0x44:
+			workboy.data_out = 0x44;
+			break;
+
+		//Keyboard Input
+		case 0x4F:
+			workboy.data_out = mem->g_pad->workboy_key;
+			break;
+
+		default:
+			workboy.data_out = 0;
+	}
+	
+	mem->memory_map[REG_SB] = workboy.data_out;
 	mem->memory_map[IF_FLAG] |= 0x08;
 }

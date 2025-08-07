@@ -219,6 +219,12 @@ class DMG_SIO
 		u8 counter;
 	} vaus_controller;
 
+	//WorkBoy
+	struct gb_workboy
+	{
+		u8 data_out;
+	} workboy;
+
 	//Full Changer
 	struct gb_full_changer
 	{

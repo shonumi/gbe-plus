@@ -27,6 +27,7 @@ SGB_GamePad::SGB_GamePad()
 	vaus_adc = 0x006B;
 	vaus_magnitude = 0;
 	axis_magnitude = 0;
+	workboy_key = 0;
 
 	packet.state = 0;
 	packet.command = 0;
