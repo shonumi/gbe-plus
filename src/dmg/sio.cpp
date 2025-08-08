@@ -508,6 +508,7 @@ void DMG_SIO::reset()
 
 	//WorkBoy
 	workboy.data_out = 0;
+	workboy.last_key = 0;
 
 	if(config::sio_device == SIO_TURBO_FILE)
 	{
@@ -3368,6 +3369,18 @@ void DMG_SIO::workboy_process()
 		//Keyboard Input
 		case 0x4F:
 			workboy.data_out = mem->g_pad->workboy_key;
+
+			//Check for and prevent key repeats
+			if((workboy.last_key == workboy.data_out) && (workboy.data_out))
+			{
+				workboy.data_out = 0;
+			}
+
+			else
+			{
+				workboy.last_key = workboy.data_out;
+			}
+
 			break;
 
 		default:

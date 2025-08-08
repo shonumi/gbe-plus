@@ -223,6 +223,7 @@ class DMG_SIO
 	struct gb_workboy
 	{
 		u8 data_out;
+		u8 last_key;
 	} workboy;
 
 	//Full Changer
