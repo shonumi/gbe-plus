@@ -969,6 +969,44 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_7: workboy_key = 0x07; break;
 		case SDLK_8: workboy_key = 0x08; break;
 		case SDLK_9: workboy_key = 0x09; break;
+
+		case SDLK_q: workboy_key = 0x11; break;
+		case SDLK_w: workboy_key = 0x12; break;
+		case SDLK_e: workboy_key = 0x13; break;
+		case SDLK_r: workboy_key = 0x14; break;
+		case SDLK_t: workboy_key = 0x15; break;
+		case SDLK_y: workboy_key = 0x16; break;
+		case SDLK_u: workboy_key = 0x17; break;
+		case SDLK_i: workboy_key = 0x18; break;
+		case SDLK_o: workboy_key = 0x19; break;
+		case SDLK_p: workboy_key = 0x1A; break;
+
+		case SDLK_a: workboy_key = 0x1C; break;
+		case SDLK_s: workboy_key = 0x1D; break;
+		case SDLK_d: workboy_key = 0x1E; break;
+		case SDLK_f: workboy_key = 0x1F; break;
+		case SDLK_g: workboy_key = 0x20; break;
+		case SDLK_h: workboy_key = 0x21; break;
+		case SDLK_j: workboy_key = 0x22; break;
+		case SDLK_k: workboy_key = 0x23; break;
+		case SDLK_l: workboy_key = 0x24; break;
+		case SDLK_SEMICOLON: workboy_key = 0x25; break;
+		case SDLK_RETURN: workboy_key = 0x26; break;
+
+		case SDLK_LSHIFT: workboy_key = 0x27; break;
+		case SDLK_z: workboy_key = 0x28; break;
+		case SDLK_x: workboy_key = 0x29; break;
+		case SDLK_c: workboy_key = 0x2A; break;
+		case SDLK_v: workboy_key = 0x2B; break;
+		case SDLK_b: workboy_key = 0x2C; break;
+		case SDLK_n: workboy_key = 0x2D; break;
+		case SDLK_m: workboy_key = 0x2E; break;
+		case SDLK_COMMA: workboy_key = 0x2F; break;
+		case SDLK_PERIOD: workboy_key = 0x30; break;
+
+		case SDLK_SPACE: workboy_key = 0x34; break;
+		case SDLK_BACKSPACE: workboy_key = 0x80; break;
+
 		default: workboy_key = 0x00;
 	}
 }

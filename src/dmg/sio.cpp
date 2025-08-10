@@ -3386,7 +3386,7 @@ void DMG_SIO::workboy_process()
 		default:
 			workboy.data_out = 0;
 	}
-	
+
 	mem->memory_map[REG_SB] = workboy.data_out;
 	mem->memory_map[IF_FLAG] |= 0x08;
 }
