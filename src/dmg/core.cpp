@@ -892,8 +892,14 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 	//Disallow key repeats
 	if(event.key.repeat) { return; }
 
+	//Lock keyboard when using WorkBoy
+	if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym != SDLK_F3) && (core_pad.workboy_lock_keyboard))
+	{
+		return;
+	}
+
 	//Quit on Q or ESC
-	if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
+	else if((event.type == SDL_KEYDOWN) && ((event.key.keysym.sym == SDLK_q) || (event.key.keysym.sym == SDLK_ESCAPE)))
 	{
 		running = false; 
 		SDL_Quit();
@@ -1158,6 +1164,24 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 					core_cpu.controllers.serial_io.sio_stat.shifts_left = 8;
 					core_cpu.controllers.serial_io.sio_stat.shift_counter = 0;
 				}
+
+				break;
+
+			//WorkBoy lock/unlock keyboard
+			case GB_WORKBOY:
+				if(core_pad.workboy_lock_keyboard)
+				{
+					core_pad.workboy_lock_keyboard = false;
+					config::osd_message = "KEYS UNLOCKED";
+				}
+
+				else
+				{
+					core_pad.workboy_lock_keyboard = true;
+					config::osd_message = "KEYS LOCKED";
+				}
+
+				config::osd_count = 180;
 
 				break;
 		}

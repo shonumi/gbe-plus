@@ -34,6 +34,7 @@ DMG_GamePad::DMG_GamePad()
 	vaus_magnitude = 0;
 	axis_magnitude = 0;
 	workboy_key = 0;
+	workboy_lock_keyboard = false;
 
 	//Swap inputs when using DDR Finger Pad mode
 	if(config::use_ddr_mapping)
@@ -296,6 +297,13 @@ void DMG_GamePad::handle_input(SDL_Event &event)
 /****** Processes input based on unique pad # for keyboards ******/
 void DMG_GamePad::process_keyboard(int pad, bool pressed)
 {
+	//Forward input to WorkBoy if applicable
+	if(config::sio_device == SIO_WORKBOY)
+	{
+		process_workboy_keys(pad, pressed);
+		if(workboy_lock_keyboard) { return; }
+	}
+
 	//Emulate A button press
 	if((pad == config::gbe_key_a) && (pressed)) { p14 &= ~0x1; }
 
@@ -542,9 +550,6 @@ void DMG_GamePad::process_keyboard(int pad, bool pressed)
 		else if(pad == config::gbe_key_up) { turbo_button_end[8] = (pressed) ? false : true; }
 		else if(pad == config::gbe_key_down) { turbo_button_end[9] = (pressed) ? false : true; }
 	}
-
-	//Forward input to WorkBoy if applicable
-	if(config::sio_device == SIO_WORKBOY) { process_workboy_keys(pad, pressed); }
 }
 
 /****** Processes input based on unique pad # for joysticks ******/

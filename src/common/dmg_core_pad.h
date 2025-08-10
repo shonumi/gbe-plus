@@ -52,6 +52,7 @@ class dmg_core_pad
 	s32 vaus_magnitude;
 
 	u8 workboy_key;
+	bool workboy_lock_keyboard;
 
 	virtual void handle_input(SDL_Event &event) = 0;
 	virtual void init() = 0;

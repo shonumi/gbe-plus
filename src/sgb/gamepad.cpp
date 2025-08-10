@@ -28,6 +28,7 @@ SGB_GamePad::SGB_GamePad()
 	vaus_magnitude = 0;
 	axis_magnitude = 0;
 	workboy_key = 0;
+	workboy_lock_keyboard = false;
 
 	packet.state = 0;
 	packet.command = 0;
