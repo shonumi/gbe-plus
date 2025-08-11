@@ -106,6 +106,14 @@ enum turbo_file_state
 	TURBO_FILE_DATA,
 };
 
+enum workboy_state
+{
+	WORKBOY_INIT,
+	WORKBOY_ACTIVE,
+	WORKBOY_RTC,
+	WORKBOY_KEYBOARD,
+};
+
 enum full_changer_state
 {
 	FULL_CHANGER_INACTIVE,

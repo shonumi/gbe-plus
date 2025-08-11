@@ -509,6 +509,9 @@ void DMG_SIO::reset()
 	//WorkBoy
 	workboy.data_out = 0;
 	workboy.last_key = 0;
+	workboy.state = WORKBOY_INIT;
+	workboy.rtc_index = 0;
+	for(u32 x = 0; x < 42; x++) { workboy.rtc_data[x] = 0x30; }
 
 	if(config::sio_device == SIO_TURBO_FILE)
 	{
@@ -3354,37 +3357,59 @@ void DMG_SIO::workboy_process()
 {
 	u8 data_in = sio_stat.transfer_byte;
 
-	switch(data_in)
+	//Handle RTC data
+	if(workboy.state == WORKBOY_RTC)
 	{
-		//Workboy Init
-		case 0x52:
-			workboy.data_out = 0x44;
-			break;
+		if(workboy.rtc_index < 42)
+		{
+			workboy.data_out = workboy.rtc_data[workboy.rtc_index++];
+		}
 
-		//RTC?
-		case 0x44:
-			workboy.data_out = 0x44;
-			break;
+		if(workboy.rtc_index >= 42)
+		{
+			workboy.state = WORKBOY_ACTIVE;
+		}
+	}
 
-		//Keyboard Input
-		case 0x4F:
-			workboy.data_out = mem->g_pad->workboy_key;
+	//Handle the rest of WorkBoy states
+	else
+	{
+		switch(data_in)
+		{
+			//Workboy Init
+			case 0x52:
+				workboy.data_out = 0x44;
+				workboy.state = WORKBOY_ACTIVE;
+				break;
 
-			//Check for and prevent key repeats
-			if((workboy.last_key == workboy.data_out) && (workboy.data_out))
-			{
+			//Begin RTC data
+			case 0x44:
+				workboy.rtc_index = 0;
+				workboy.data_out = workboy.rtc_data[workboy.rtc_index++];
+				workboy.state = WORKBOY_RTC;
+				break;
+
+			//Keyboard Input
+			case 0x4F:
+				workboy.data_out = mem->g_pad->workboy_key;
+				workboy.state = WORKBOY_KEYBOARD;
+
+				//Check for and prevent key repeats
+				if((workboy.last_key == workboy.data_out) && (workboy.data_out))
+				{
+					workboy.data_out = 0;
+				}
+
+				else
+				{
+					workboy.last_key = workboy.data_out;
+				}
+
+				break;
+
+			default:
 				workboy.data_out = 0;
-			}
-
-			else
-			{
-				workboy.last_key = workboy.data_out;
-			}
-
-			break;
-
-		default:
-			workboy.data_out = 0;
+		}
 	}
 
 	mem->memory_map[REG_SB] = workboy.data_out;

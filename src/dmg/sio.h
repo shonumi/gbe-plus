@@ -224,6 +224,9 @@ class DMG_SIO
 	{
 		u8 data_out;
 		u8 last_key;
+		u8 rtc_data[42];
+		u8 rtc_index;
+		workboy_state state;
 	} workboy;
 
 	//Full Changer
