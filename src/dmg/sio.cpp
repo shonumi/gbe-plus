@@ -3384,6 +3384,8 @@ void DMG_SIO::workboy_process()
 
 			//Begin RTC data
 			case 0x44:
+				workboy_get_time();
+
 				workboy.rtc_index = 0;
 				workboy.data_out = workboy.rtc_data[workboy.rtc_index++];
 				workboy.state = WORKBOY_RTC;
@@ -3414,4 +3416,45 @@ void DMG_SIO::workboy_process()
 
 	mem->memory_map[REG_SB] = workboy.data_out;
 	mem->memory_map[IF_FLAG] |= 0x08;
+}
+
+/****** Gets the current time and converts it into data for the WorkBoy ******/
+void DMG_SIO::workboy_get_time()
+{
+	time_t system_time = time(0);
+	tm* current_time = localtime(&system_time);
+
+	std::string num_str = "";
+
+	//Seconds
+	num_str = util::to_str(current_time->tm_sec);
+	while(num_str.length() < 2) { num_str = "0" + num_str; }
+	workboy.rtc_data[4] = num_str[0];
+	workboy.rtc_data[5] = num_str[1];
+
+	//Minutes
+	num_str = util::to_str(current_time->tm_min);
+	while(num_str.length() < 2) { num_str = "0" + num_str; }
+	workboy.rtc_data[6] = num_str[0];
+	workboy.rtc_data[7] = num_str[1];
+
+	//Hour
+	num_str = util::to_str(current_time->tm_hour);
+	while(num_str.length() < 2) { num_str = "0" + num_str; }
+	workboy.rtc_data[8] = num_str[0];
+	workboy.rtc_data[9] = num_str[1];
+
+	//Day
+	num_str = util::to_str(current_time->tm_mday);
+	while(num_str.length() < 2) { num_str = "0" + num_str; }
+	workboy.rtc_data[10] = num_str[0];
+	workboy.rtc_data[11] = num_str[1];
+
+	//Month
+	num_str = util::to_str(current_time->tm_mon + 1);
+	while(num_str.length() < 2) { num_str = "0" + num_str; }
+	workboy.rtc_data[12] = num_str[0];
+	workboy.rtc_data[13] = num_str[1];
+
+
 }

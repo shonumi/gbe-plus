@@ -328,6 +328,7 @@ class DMG_SIO
 
 	void vaus_controller_process();
 	void workboy_process();
+	void workboy_get_time();
 
 	void full_changer_process();
 	bool full_changer_load_db(std::string filename);
