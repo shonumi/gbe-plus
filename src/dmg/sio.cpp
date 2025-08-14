@@ -3426,6 +3426,7 @@ void DMG_SIO::workboy_get_time()
 
 	std::string num_str = "";
 	u16 years = 0;
+	u16 year_data = 0;
 
 	//Seconds
 	num_str = util::to_str(current_time->tm_sec);
@@ -3457,30 +3458,9 @@ void DMG_SIO::workboy_get_time()
 	workboy.rtc_data[12] = num_str[0];
 	workboy.rtc_data[13] = num_str[1];
 
-	//Year - Only seems to handle 1992 to 2055.
-	years = (current_time->tm_year % 100);
-
-	if(years >= 92)
-	{
-		workboy.rtc_data[30] = 3;
-		workboy.rtc_data[31] = years - 44;
-	}
-
-	else if(years <= 1)
-	{
-		workboy.rtc_data[30] = 3;
-		workboy.rtc_data[31] = years + 56;
-	}
-
-	else if((years >= 2) && (years <= 48))
-	{
-		workboy.rtc_data[30] = 3;
-		workboy.rtc_data[31] = years - 1;
-	}
-
-	else if(years >= 49)
-	{
-		workboy.rtc_data[30] = 2;
-		workboy.rtc_data[31] = years - 17;
-	}	
+	//Year - Only seems to handle 1900 to 2155.
+	years = current_time->tm_year;
+	year_data = (years / 16);
+	workboy.rtc_data[30] = 0x30 + year_data;
+	workboy.rtc_data[31] = 0x30 + (years - (year_data * 16));
 }
