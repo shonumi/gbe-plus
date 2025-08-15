@@ -30,7 +30,7 @@ DMG_GamePad::DMG_GamePad()
 	ddr_was_mapped = false;
 	sensor_init = false;
 	gc_sensor = NULL;
-	vaus_adc = 0x006B;
+	vaus_adc = 0x0035;
 	vaus_magnitude = 0;
 	axis_magnitude = 0;
 	workboy_key = 0;
@@ -974,6 +974,11 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_7: workboy_key = 0x07; break;
 		case SDLK_8: workboy_key = 0x08; break;
 		case SDLK_9: workboy_key = 0x09; break;
+
+		case SDLK_LEFT: workboy_key = 0x10; break;
+		case SDLK_UP: workboy_key = 0x36; break;
+		case SDLK_DOWN: workboy_key = 0x37; break;
+		case SDLK_RIGHT: workboy_key = 0x38; break;
 
 		case SDLK_q: workboy_key = 0x11; break;
 		case SDLK_w: workboy_key = 0x12; break;
