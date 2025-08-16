@@ -3429,19 +3429,19 @@ void DMG_SIO::workboy_get_time()
 	u16 year_data = 0;
 
 	//Seconds
-	num_str = util::to_str(current_time->tm_sec);
+	num_str = util::to_str((current_time->tm_sec + config::rtc_offset[0]) % 60);
 	while(num_str.length() < 2) { num_str = "0" + num_str; }
 	workboy.rtc_data[4] = num_str[0];
 	workboy.rtc_data[5] = num_str[1];
 
 	//Minutes
-	num_str = util::to_str(current_time->tm_min);
+	num_str = util::to_str((current_time->tm_min + config::rtc_offset[1]) % 60);
 	while(num_str.length() < 2) { num_str = "0" + num_str; }
 	workboy.rtc_data[6] = num_str[0];
 	workboy.rtc_data[7] = num_str[1];
 
 	//Hour
-	num_str = util::to_str(current_time->tm_hour);
+	num_str = util::to_str((current_time->tm_hour + config::rtc_offset[2]) % 24);
 	while(num_str.length() < 2) { num_str = "0" + num_str; }
 	workboy.rtc_data[8] = num_str[0];
 	workboy.rtc_data[9] = num_str[1];
@@ -3453,13 +3453,13 @@ void DMG_SIO::workboy_get_time()
 	workboy.rtc_data[11] = num_str[1];
 
 	//Month
-	num_str = util::to_str(current_time->tm_mon + 1);
+	num_str = util::to_str(((current_time->tm_mon + config::rtc_offset[4]) % 12) + 1);
 	while(num_str.length() < 2) { num_str = "0" + num_str; }
 	workboy.rtc_data[12] = num_str[0];
 	workboy.rtc_data[13] = num_str[1];
 
 	//Year - Only seems to handle 1900 to 2155.
-	years = current_time->tm_year;
+	years = current_time->tm_year + config::rtc_offset[5];
 	year_data = (years / 16);
 	workboy.rtc_data[30] = 0x30 + year_data;
 	workboy.rtc_data[31] = 0x30 + (years - (year_data * 16));
