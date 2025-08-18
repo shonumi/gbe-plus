@@ -3357,8 +3357,10 @@ void DMG_SIO::workboy_process()
 {
 	u8 data_in = sio_stat.transfer_byte;
 
+	std::cout<<"DATA IN -> 0x" << u32(data_in) << "\n";
+
 	//Handle RTC data
-	if(workboy.state == WORKBOY_RTC)
+	if(workboy.state == WORKBOY_RTC_READ)
 	{
 		if(workboy.rtc_index < 42)
 		{
@@ -3366,6 +3368,17 @@ void DMG_SIO::workboy_process()
 		}
 
 		if(workboy.rtc_index >= 42)
+		{
+			workboy.state = WORKBOY_ACTIVE;
+		}
+	}
+
+	else if(workboy.state == WORKBOY_RTC_WRITE)
+	{
+		//For now, ignore new RTC data
+		workboy.rtc_index++;
+
+		if(workboy.rtc_index >= 24)
 		{
 			workboy.state = WORKBOY_ACTIVE;
 		}
@@ -3388,7 +3401,7 @@ void DMG_SIO::workboy_process()
 
 				workboy.rtc_index = 0;
 				workboy.data_out = workboy.rtc_data[workboy.rtc_index++];
-				workboy.state = WORKBOY_RTC;
+				workboy.state = WORKBOY_RTC_READ;
 				break;
 
 			//Keyboard Input
@@ -3407,6 +3420,13 @@ void DMG_SIO::workboy_process()
 					workboy.last_key = workboy.data_out;
 				}
 
+				break;
+
+			//Receive new RTC data
+			case 0x57:
+				workboy.rtc_index = 0;
+				workboy.data_out = 0x30;
+				workboy.state = WORKBOY_RTC_WRITE;
 				break;
 
 			default:
