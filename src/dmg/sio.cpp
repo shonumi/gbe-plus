@@ -3357,8 +3357,6 @@ void DMG_SIO::workboy_process()
 {
 	u8 data_in = sio_stat.transfer_byte;
 
-	std::cout<<"DATA IN -> 0x" << u32(data_in) << "\n";
-
 	//Handle RTC data
 	if(workboy.state == WORKBOY_RTC_READ)
 	{

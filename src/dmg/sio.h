@@ -227,6 +227,7 @@ class DMG_SIO
 		u8 rtc_data[42];
 		u8 rtc_index;
 		workboy_state state;
+		bool is_caps_lock_on;
 	} workboy;
 
 	//Full Changer
