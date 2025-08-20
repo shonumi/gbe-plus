@@ -957,7 +957,7 @@ void DMG_GamePad::process_vaus()
 /****** Processes WorkBoy keyboard input ******/
 void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 {
-	if(!pressed)
+	if(!pressed || !workboy_lock_keyboard)
 	{
 		workboy_key = 0;
 		return;
@@ -1016,8 +1016,11 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_m: workboy_key = 0x2E; break;
 		case SDLK_COMMA: workboy_key = 0x2F; break;
 		case SDLK_PERIOD: workboy_key = 0x30; break;
+		case SDLK_SLASH: workboy_key = 0x31; break;
+		case SDLK_QUOTE: workboy_key = 0x33; break;
 
 		case SDLK_SPACE: workboy_key = 0x34; break;
+		case SDLK_INSERT: workboy_key = 0x79; break;
 		case SDLK_BACKSPACE: workboy_key = 0x80; break;
 		case SDLK_ESCAPE: workboy_key = 0x98; break;
 
