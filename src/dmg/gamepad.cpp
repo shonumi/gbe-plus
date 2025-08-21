@@ -963,9 +963,16 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		return;
 	}
 
+	bool is_cap_on = (SDL_GetModState() & KMOD_CAPS);
+	bool is_shift_on = (SDL_GetModState() & KMOD_SHIFT);
+
 	switch(pad)
 	{
-		case SDLK_1: workboy_key = 0x01; break;
+		case SDLK_1:
+			if(is_cap_on && is_shift_on) { workboy_key = 0x18; }
+			else { workboy_key = 0x01; }
+			break;
+
 		case SDLK_2: workboy_key = 0x02; break;
 		case SDLK_3: workboy_key = 0x03; break;
 		case SDLK_4: workboy_key = 0x04; break;
@@ -973,7 +980,14 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_6: workboy_key = 0x06; break;
 		case SDLK_7: workboy_key = 0x07; break;
 		case SDLK_8: workboy_key = 0x08; break;
-		case SDLK_9: workboy_key = 0x09; break;
+
+		case SDLK_9:
+			workboy_key = is_cap_on ? 0x23 : 0x09;
+			break;
+
+		case SDLK_0:
+			workboy_key = is_cap_on ? 0x24 : 0x00;
+			break;
 
 		case SDLK_LEFT: workboy_key = 0x10; break;
 		case SDLK_UP: workboy_key = 0x36; break;
@@ -1004,7 +1018,7 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_RETURN: workboy_key = 0x26; break;
 
 		case SDLK_CAPSLOCK:
-			workboy_key = (SDL_GetModState() & KMOD_CAPS) ? 0x27 : 0x32;
+			workboy_key = is_cap_on ? 0x27 : 0x32;
 			break;
 
 		case SDLK_z: workboy_key = 0x28; break;
@@ -1017,7 +1031,19 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_COMMA: workboy_key = 0x2F; break;
 		case SDLK_PERIOD: workboy_key = 0x30; break;
 		case SDLK_SLASH: workboy_key = 0x31; break;
-		case SDLK_QUOTE: workboy_key = 0x33; break;
+
+		case SDLK_QUOTE:
+			workboy_key = is_shift_on ? 0x33 : 0x35;
+			break;
+
+		case SDLK_EQUALS:
+			if(is_cap_on && is_shift_on) { workboy_key = 0x1F; }
+			else { workboy_key = is_cap_on ? 0x2D : 0x00; }
+			break;
+
+		case SDLK_MINUS:
+			workboy_key = is_cap_on ? 0x20 : 0x00;
+			break;
 
 		case SDLK_SPACE: workboy_key = 0x34; break;
 		case SDLK_INSERT: workboy_key = 0x79; break;
