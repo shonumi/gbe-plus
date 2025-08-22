@@ -30,7 +30,7 @@ DMG_GamePad::DMG_GamePad()
 	ddr_was_mapped = false;
 	sensor_init = false;
 	gc_sensor = NULL;
-	vaus_adc = 0x006B;
+	vaus_adc = 0x0030;
 	vaus_magnitude = 0;
 	axis_magnitude = 0;
 	workboy_key = 0;
@@ -968,6 +968,8 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 
 	switch(pad)
 	{
+		//1 - 9 -> Dedicated hotkeys to apps
+		//1 -> Exclamation Point, 9 -> "(", 0 -> ")"
 		case SDLK_1:
 			if(is_cap_on && is_shift_on) { workboy_key = 0x18; }
 			else { workboy_key = 0x01; }
@@ -988,6 +990,11 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_0:
 			workboy_key = is_cap_on ? 0x24 : 0x00;
 			break;
+
+		//These are 1:1 functionality on a real QWERTY keyboard
+		case SDLK_INSERT: workboy_key = 0x0C; break;
+		case SDLK_BACKSPACE: workboy_key = 0x0D; break;
+		case SDLK_ESCAPE: workboy_key = 0x0A; break;
 
 		case SDLK_LEFT: workboy_key = 0x10; break;
 		case SDLK_UP: workboy_key = 0x36; break;
@@ -1017,10 +1024,14 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_SEMICOLON: workboy_key = 0x25; break;
 		case SDLK_RETURN: workboy_key = 0x26; break;
 
+		//Caps lock is special. Doesn't seem like a way to get lowercase letters from keyboard input
+		//This functionality is mixed with the WorkBoy's version of NumLock
+		//Allows for a lot of keys that need SHIFT modifiers on a real keyboard
 		case SDLK_CAPSLOCK:
 			workboy_key = is_cap_on ? 0x27 : 0x32;
 			break;
 
+		//These are 1:1 functionality on a real keyboard
 		case SDLK_z: workboy_key = 0x28; break;
 		case SDLK_x: workboy_key = 0x29; break;
 		case SDLK_c: workboy_key = 0x2A; break;
@@ -1032,24 +1043,26 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_PERIOD: workboy_key = 0x30; break;
 		case SDLK_SLASH: workboy_key = 0x31; break;
 
+		//Single quote = no Shift Modifier, Double Quote = Shift Modifier applied
 		case SDLK_QUOTE:
 			workboy_key = is_shift_on ? 0x33 : 0x35;
 			break;
 
+		//Equals and Plus sign when Caps Lock + Shift
 		case SDLK_EQUALS:
 			if(is_cap_on && is_shift_on) { workboy_key = 0x1F; }
 			else { workboy_key = is_cap_on ? 0x2D : 0x00; }
 			break;
 
+		//Minus sign needs Caps Lock, unlike real QWERTY keyboard
 		case SDLK_MINUS:
 			workboy_key = is_cap_on ? 0x20 : 0x00;
 			break;
 
+		//These are 1:1 functionality on a real QWERTY keyboard
 		case SDLK_SPACE: workboy_key = 0x34; break;
-		case SDLK_INSERT: workboy_key = 0x79; break;
-		case SDLK_BACKSPACE: workboy_key = 0x80; break;
-		case SDLK_ESCAPE: workboy_key = 0x98; break;
 
+		//These are 1:1 functionality on a real QWERTY keyboard with dedicated keypad
 		case SDLK_KP_1: workboy_key = 0x11; break;
 		case SDLK_KP_2: workboy_key = 0x12; break;
 		case SDLK_KP_3: workboy_key = 0x13; break;
@@ -1060,6 +1073,13 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 		case SDLK_KP_8: workboy_key = 0x29; break;
 		case SDLK_KP_9: workboy_key = 0x2A; break;
 		case SDLK_KP_0: workboy_key = 0x33; break;
+
+		case SDLK_KP_PLUS: workboy_key = 0x1F; break;
+		case SDLK_KP_MINUS: workboy_key = 0x20; break;
+		case SDLK_KP_MULTIPLY: workboy_key = 0x21; break;
+		case SDLK_KP_DIVIDE: workboy_key = 0x22; break;
+		case SDLK_KP_ENTER: workboy_key = 0x2D; break;
+		case SDLK_KP_PERIOD: workboy_key = 0x2B; break;
 
 		default: workboy_key = 0x00;
 	}
