@@ -27,6 +27,8 @@ The WorkBoy is a cancelled Game Boy accessory made by Fabtek. It would have been
 The WorkBoy communicates via the Link Cable using several commands. The Game Boy runs on an Internal Clock and is responsible for driving the protocol. The known commands are listed below:
 
 ---------------------------------------------------------
+Command	| Description
+---------------------------------------------------------
 0x44	| Read RTC Data
 0x4F	| Poll Keyboard Input
 0x52	| WorkBoy Init
@@ -34,3 +36,40 @@ The WorkBoy communicates via the Link Cable using several commands. The Game Boy
 ---------------------------------------------------------
 
 When booting, software will issue the WorkBoy Init command. This is a single byte command with no parameters, however, the WorkBoy should eventually respond with a 0x44 byte to indicate that the RTC can be read. The following sections deal with RTC reading/writing and keyboard input in detail.
+
+
+
+***************************************************
+4. Real-Time Clock
+***************************************************
+
+To read the RTC, the Game Boy must first send the command byte 0x44. The WorkBoy should immediately respond with a series of 42 bytes representing the current time and date as well as other data that is currently undocumented. After the command byte, the Game Boy continually transfers the value 0x00 while the WorkBoy is replying. Evidently, all data from the WorkBoy must be non-zero, otherwise it seems to indicate an error. The following bytes from the WorkBoy are the known data for the RTC:
+
+---------------------------------------------------------
+Byte	| Description
+---------------------------------------------------------
+0x04	| Seconds - First Digit
+0x05	| Seconds - Second Digit
+0x06	| Minutes - First Digit
+0x07	| Minutes - Second Digit
+0x08	| Hours - First Digit
+0x09	| Hours - Second Digit
+0x0A	| Day - First Digit
+0x0B	| Day - Second Digit
+0x0C	| Month - First Digit
+0x0D	| Month - Second Digit
+0x1E	| Year - MSB
+0x1F	| Year - LSB
+---------------------------------------------------------
+
+Every value except the year is expressed as ASCII values that represent a 2 digit number. That is to say, representing something like 37 seconds would use the ASCII values "3" and "7", or 0x33 and 0x37 in hexadecimal.
+
+Years are slightly more elaborate. The lowest year possible is 1900, and this is used as a base. The current year is then an offset from that, calculated as such, using whole integers for division:
+
+---------------------------------------------------------
+YEAR_DIFF = CURRENT_YEAR - 1900
+YEAR_DIV = (DIFF / 16)
+
+YEAR MSB = 0x30 + YEAR_DIV
+YEAR LSB = 0x30 + (CURRENT_YEAR - (YEAR_DIFF * 16))
+---------------------------------------------------------
