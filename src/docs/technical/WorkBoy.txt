@@ -1,0 +1,36 @@
+WorkBoy Documentation 0.1
+August 23rd, 2025
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************  
+
+The WorkBoy is a cancelled Game Boy accessory made by Fabtek. It would have been released in December 1992, but circumstances prevented the product from launched. The device itself is a small, handheld keyboard that connects to the Game Boy via the Link Cable. In conjunction with specialized software, the WorkBoy allows users to send keyboard input to the Game Boy in order to perform small office-related tasks. Previously, both the software and the hardware were believed to be lost to time but have since been found.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+* Uses 2 coin-cell batteries for power.
+* Features a miniature QWERTY keyboard.
+* Has a built-in real-time clock.
+* Has a built-in speaker for alarm functionality.
+* Contains a small amount of DRAM to save some data.
+
+
+***************************************************
+3. Communication Protocol
+***************************************************
+
+The WorkBoy communicates via the Link Cable using several commands. The Game Boy runs on an Internal Clock and is responsible for driving the protocol. The known commands are listed below:
+
+---------------------------------------------------------
+0x44	| Read RTC Data
+0x4F	| Poll Keyboard Input
+0x52	| WorkBoy Init
+0x57	| Write RTC Data
+---------------------------------------------------------
+
+When booting, software will issue the WorkBoy Init command. This is a single byte command with no parameters, however, the WorkBoy should eventually respond with a 0x44 byte to indicate that the RTC can be read. The following sections deal with RTC reading/writing and keyboard input in detail.
