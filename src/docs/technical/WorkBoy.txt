@@ -73,3 +73,20 @@ YEAR_DIV = (DIFF / 16)
 YEAR MSB = 0x30 + YEAR_DIV
 YEAR LSB = 0x30 + (CURRENT_YEAR - (YEAR_DIFF * 16))
 ---------------------------------------------------------
+
+To write to the RTC, the Game Boy must first send the command byte 0x57. Afterwards, the Game Boy sends a stream of 23 bytes to set the time and date. The format of the data is as follows:
+
+---------------------------------------------------------
+Byte	| Description
+---------------------------------------------------------
+0x06	| Always 0x04
+0x08	| Seconds
+0x09	| Minutes
+0x0A	| Hours
+0x0B	| Days + Some Bits of Years
+0x0C	| Month + Some Bits of Years
+0x15	| Years
+0x16	| Years (Copy)
+---------------------------------------------------------
+
+For Seconds, Minutes, and Hours, the values written to the WorkBoy are binary coded decimals. This is also true of Bits 0-5 of Days value and Bits 0-4 of Month value. The upper-bits of both, however, store information about the Year value. The Year value is the current number of years since 1900 with the lower 2 bits masked off. Those same 2 bits, however, are the upper-bits of the Days value. The upper 3 bits of the Months value is incremented once for every year since 1900 *and* it is also incremented again every 4 years.
