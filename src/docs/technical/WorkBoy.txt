@@ -90,3 +90,71 @@ Byte	| Description
 ---------------------------------------------------------
 
 For Seconds, Minutes, and Hours, the values written to the WorkBoy are binary coded decimals. This is also true of Bits 0-5 of Days value and Bits 0-4 of Month value. The upper-bits of both, however, store information about the Year value. The Year value is the current number of years since 1900 with the lower 2 bits masked off. Those same 2 bits, however, are the upper-bits of the Days value. The upper 3 bits of the Months value is incremented once for every year since 1900 *and* it is also incremented again every 4 years.
+
+
+***************************************************
+5. Keyboard Input
+***************************************************
+
+The WorkBoy has a semi-standard QWERTY keyboard that can be used as input in addition to the Game Boy's buttons. Software can poll the WorkBoy to receive the latest key that was pressed. Only a single value from the keyboard will be read at any given time, so it is important to poll the keyboard frequently to catch user input. To read from the keyboard, the Game Boy simply sends the command byte 0x4F. The following values represent the key selected:
+
+----------------------------------------------------------------------------------------------------------------------
+Byte	| CAPS Mode				| NUM Mode
+----------------------------------------------------------------------------------------------------------------------
+0x00	| No Keyboard Input			|
+0x01	| App Key -> Clock			|
+0x02	| App Key -> Tempurature Conversion	|
+0x03	| App Key -> Currency and Checkbook	|
+0x04	| App Key -> Calculator			|
+0x05	| App Key -> Calendar and Appointments	|
+0x06	| App Key -> Unit Conversion		|
+0x07	| App Key -> Database and Phone Records	|
+0x08	| App Key -> Translator and World Map	|
+0x09	| App Key -> Phone Dialer		|
+0x0A	| Escape				|
+0x0B	| Delete / Backspace			|
+0x0C	| Insert				|
+0x10	| Left Arrow				|
+0x11	| Q					| 1
+0x12	| W					| 2
+0x13	| E					| 3
+0x14	| R					| M+ (for calculator only)
+0x15	| T					| M- (for calculator only)
+0x16	| Y					| MR (for calculator only)
+0x17	| U					| MC (for calculator only)
+0x18	| I					| !
+0x19	| O					| £
+0x1A	| P					| *
+0x1B	| $					| #
+0x1C	| A					| 4
+0x1D	| S					| 5
+0x1E	| D					| 6
+0x1F	| F					| +
+0x20	| G					| -
+0x21	| H					| × (for calculator only)
+0x22	| J					| ÷ (for calculator only)
+0x23	| K					| (
+0x24	| L					| )
+0x25	| ;					| :
+0x26	| Return / Enter			|
+0x27	| NUMS Mode				|
+0x28	| Z					| 7
+0x29	| X					| 8
+0x2A	| C					| 9
+0x2B	| V					| .
+0x2C	| B					| %
+0x2D	| N					| =
+0x2E	| M					| C (for calculator only)
+0x2F	| ,					| <
+0x30	| .					| >
+0x31	| /					| ?
+0x32	| CAPS Mode				|
+0x33	| "					| 0
+0x34	| Space					|
+0x35	| '					| @
+0x36	| Up Arrow 				|
+0x37	| Down Arrow				|
+0x38	| Right Arrow				|
+----------------------------------------------------------------------------------------------------------------------
+
+The WorkBoy's keyboard does not appear to have a dedicated shift key to modify values. Instead, it relies on the CAPS and NUM keys to swap between each mode. Unlike most PC keyboards, the WorkBoy does not have any built-in lighting to indicate which mode is active. Instead, the software typically puts a "C" or "N" character inside a colored block for the cursor. Note that some applications (such as the telephone dialer) can force CAPS or NUM mode.
