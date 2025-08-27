@@ -6,7 +6,7 @@ Shonumi aka D.S. Baxter
 1. Introduction
 ***************************************************  
 
-The WorkBoy is a cancelled Game Boy accessory made by Fabtek. It would have been released in December 1992, but circumstances prevented the product from launched. The device itself is a small, handheld keyboard that connects to the Game Boy via the Link Cable. In conjunction with specialized software, the WorkBoy allows users to send keyboard input to the Game Boy in order to perform small office-related tasks. Previously, both the software and the hardware were believed to be lost to time but have since been found.
+The WorkBoy is a cancelled Game Boy accessory made by Fabtek. It would have been released in December 1992, but circumstances prevented the product from launching. The device itself is a small, handheld keyboard that connects to the Game Boy via the Link Cable. In conjunction with specialized software, the WorkBoy allows users to send keyboard input to the Game Boy in order to perform small office-related tasks. Previously, both the software and the hardware were believed to be lost to time but have since been found.
 
 
 ***************************************************

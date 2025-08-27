@@ -183,6 +183,7 @@
 
 			<p class="list_head"><strong>DMG and GBC</strong></p>
 			<p class="list_item"><a href="#vaus">Vaus Controller</a></p>
+			<p class="list_item"><a href="#work">WorkBoy</a></p>
 		</div>
 	</div>
 
@@ -10564,6 +10565,168 @@ Bit 15		| Button Input
 	<p>The 8-bit ADC value should have a minimum range of 0x3F and a maximum range of 0x97. These values translate the paddle from left to right across the screen. An ADC value of 0x6B centers the paddle.</p>
 
 	<p>Button Input is a single bit. When Bit 15 is set to 1, a new ball is launched. Alternatively, this will pause/resume gameplay. In effect, Alleyway treats this as a substitute for the START button.</p>
+
+
+
+
+
+
+
+
+	<!-- WorkBoy -->
+	<a name="work"></a>
+	<p class="gray_title">WorkBoy</p>
+	<p class="list_item"><a href="#work_gen">General Information</a></p>
+	<p class="list_item"><a href="#work_com">Communication Protocol</a></p>
+	<p class="list_item"><a href="#work_rtc">Real-Time Clock</a></p>
+	<p class="list_item"><a href="#work_key">Keyboard Input</a></p>
+
+	<a name="work_gen"></a>
+	<p class="gray_title">[WorkBoy] : General Information</p>
+
+	<p>The WorkBoy is a cancelled Game Boy accessory made by Fabtek. It would have been released in December 1992, but circumstances prevented the product from launching. The device itself is a small, handheld keyboard that connects to the Game Boy via the Link Cable. In conjunction with specialized software, the WorkBoy allows users to send keyboard input to the Game Boy in order to perform small office-related tasks. Previously, both the software and the hardware were believed to be lost to time but have since been found.</p>
+
+	<ul>
+		<li class="list_item">Uses 2 coin-cell batteries for power.</li>
+		<li class="list_item">Features a miniature QWERTY keyboard.</li>
+		<li class="list_item">Has a built-in real-time clock.</li>
+		<li class="list_item">Has a built-in speaker for alarm functionality.</li>
+		<li class="list_item">Contains a small amount of DRAM to save some data.</li>
+	</ul>
+
+	<a name="work_com"></a>
+	<p class="gray_title">[WorkBoy] : Communication Protocol</p>
+
+	<p>The WorkBoy communicates via the Link Cable using several commands. The Game Boy runs on an Internal Clock and is responsible for driving the protocol. The known commands are listed below:</p>
+
+<pre>---------------------------------------------------------
+Command	| Description
+---------------------------------------------------------
+0x44	| Read RTC Data
+0x4F	| Poll Keyboard Input
+0x52	| WorkBoy Init
+0x57	| Write RTC Data
+---------------------------------------------------------</pre>
+
+	<p>When booting, software will issue the WorkBoy Init command. This is a single byte command with no parameters, however, the WorkBoy should eventually respond with a 0x44 byte to indicate that the RTC can be read. The following sections deal with RTC reading/writing and keyboard input in detail.</p>
+
+	<a name="work_rtc"></a>
+	<p class="gray_title">[WorkBoy] : Real-Time Clock</p>
+
+	<p>To read the RTC, the Game Boy must first send the command byte 0x44. The WorkBoy should immediately respond with a series of 42 bytes representing the current time and date as well as other data that is currently undocumented. After the command byte, the Game Boy continually transfers the value 0x00 while the WorkBoy is replying. Evidently, all data from the WorkBoy must be non-zero, otherwise it seems to indicate an error. The following bytes from the WorkBoy are the known data for the RTC:</p>
+
+<pre>---------------------------------------------------------
+Byte	| Description
+---------------------------------------------------------
+0x04	| Seconds - First Digit
+0x05	| Seconds - Second Digit
+0x06	| Minutes - First Digit
+0x07	| Minutes - Second Digit
+0x08	| Hours - First Digit
+0x09	| Hours - Second Digit
+0x0A	| Day - First Digit
+0x0B	| Day - Second Digit
+0x0C	| Month - First Digit
+0x0D	| Month - Second Digit
+0x1E	| Year - MSB
+0x1F	| Year - LSB
+---------------------------------------------------------</pre>
+
+	<p>Every value except the year is expressed as ASCII values that represent a 2 digit number. That is to say, representing something like 37 seconds would use the ASCII values &#34;3&#34; and &#34;7&#34;, or 0x33 and 0x37 in hexadecimal.</p>
+
+	<p>Years are slightly more elaborate. The lowest year possible is 1900, and this is used as a base. The current year is then an offset from that, calculated as such, using whole integers for division:</p>
+
+<pre>---------------------------------------------------------
+YEAR_DIFF = CURRENT_YEAR - 1900
+YEAR_DIV = (DIFF / 16)
+
+YEAR MSB = 0x30 + YEAR_DIV
+YEAR LSB = 0x30 + (CURRENT_YEAR - (YEAR_DIFF * 16))
+---------------------------------------------------------</pre>
+
+	<p>To write to the RTC, the Game Boy must first send the command byte 0x57. Afterwards, the Game Boy sends a stream of 23 bytes to set the time and date. The format of the data is as follows:</p>
+
+<pre>---------------------------------------------------------
+Byte	| Description
+---------------------------------------------------------
+0x06	| Always 0x04
+0x08	| Seconds
+0x09	| Minutes
+0x0A	| Hours
+0x0B	| Days + Some Bits of Years
+0x0C	| Month + Some Bits of Years
+0x15	| Years
+0x16	| Years (Copy)
+---------------------------------------------------------</pre>
+
+	<p>For Seconds, Minutes, and Hours, the values written to the WorkBoy are binary coded decimals. This is also true of Bits 0-5 of Days value and Bits 0-4 of Month value. The upper-bits of both, however, store information about the Year value. The Year value is the current number of years since 1900 with the lower 2 bits masked off. Those same 2 bits, however, are the upper-bits of the Days value. The upper 3 bits of the Months value is incremented once for every year since 1900 *and* it is also incremented again every 4 years.</p>
+
+	<a name="work_key"></a>
+	<p class="gray_title">[WorkBoy] : Keyboard Input</p>
+
+	<p>The WorkBoy has a semi-standard QWERTY keyboard that can be used as input in addition to the Game Boy&#39;s buttons. Software can poll the WorkBoy to receive the latest key that was pressed. Only a single value from the keyboard will be read at any given time, so it is important to poll the keyboard frequently to catch user input. To read from the keyboard, the Game Boy simply sends the command byte 0x4F. The following values represent the key selected:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------
+Byte	| CAPS Mode				| NUM Mode
+----------------------------------------------------------------------------------------------------------------------
+0x00	| No Keyboard Input			|
+0x01	| App Key -> Clock			|
+0x02	| App Key -> Tempurature Conversion	|
+0x03	| App Key -> Currency and Checkbook	|
+0x04	| App Key -> Calculator			|
+0x05	| App Key -> Calendar and Appointments	|
+0x06	| App Key -> Unit Conversion		|
+0x07	| App Key -> Database and Phone Records	|
+0x08	| App Key -> Translator and World Map	|
+0x09	| App Key -> Phone Dialer		|
+0x0A	| Escape				|
+0x0B	| Delete / Backspace			|
+0x0C	| Insert				|
+0x10	| Left Arrow				|
+0x11	| Q					| 1
+0x12	| W					| 2
+0x13	| E					| 3
+0x14	| R					| M+ (for calculator only)
+0x15	| T					| M- (for calculator only)
+0x16	| Y					| MR (for calculator only)
+0x17	| U					| MC (for calculator only)
+0x18	| I					| !
+0x19	| O					| £
+0x1A	| P					| *
+0x1B	| $					| #
+0x1C	| A					| 4
+0x1D	| S					| 5
+0x1E	| D					| 6
+0x1F	| F					| +
+0x20	| G					| -
+0x21	| H					| × (for calculator only)
+0x22	| J					| ÷ (for calculator only)
+0x23	| K					| (
+0x24	| L					| )
+0x25	| ;					| :
+0x26	| Return / Enter			|
+0x27	| NUMS Mode				|
+0x28	| Z					| 7
+0x29	| X					| 8
+0x2A	| C					| 9
+0x2B	| V					| .
+0x2C	| B					| %
+0x2D	| N					| =
+0x2E	| M					| C (for calculator only)
+0x2F	| ,					| <
+0x30	| .					| >
+0x31	| /					| ?
+0x32	| CAPS Mode				|
+0x33	| &#34;					| 0
+0x34	| Space					|
+0x35	| &#39;					| @
+0x36	| Up Arrow 				|
+0x37	| Down Arrow				|
+0x38	| Right Arrow				|
+----------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>The WorkBoy&#39;s keyboard does not appear to have a dedicated shift key to modify values. Instead, it relies on the CAPS and NUM keys to swap between each mode. Unlike most PC keyboards, the WorkBoy does not have any built-in lighting to indicate which mode is active. Instead, the software typically puts a &#34;C&#34; or &#34;N&#34; character inside a colored block for the cursor. Note that some applications (such as the telephone dialer) can force CAPS or NUM mode.</p>
+
 
 	</body>
 </html>					
