@@ -969,31 +969,48 @@ void DMG_GamePad::process_workboy_keys(int pad, bool pressed)
 	switch(pad)
 	{
 		//1 - 9 -> Dedicated hotkeys to apps
-		//1 -> Exclamation Point, 9 -> "(", 0 -> ")"
+		//App Key 1 = No Caps Lock, ! Symbole = Caps Lock
 		case SDLK_1:
-			if(is_cap_on && is_shift_on) { workboy_key = 0x18; }
-			else { workboy_key = 0x01; }
+			workboy_key = is_cap_on ? 0x18 : 0x01;
 			break;
 
-		case SDLK_2: workboy_key = 0x02; break;
-		case SDLK_3: workboy_key = 0x03; break;
-		case SDLK_4: workboy_key = 0x04; break;
+		//App Key 2 = No Caps Lock, @ Symbol = Caps Lock
+		case SDLK_2:
+			workboy_key = is_cap_on ? 0x35 : 0x02;
+			break;
+
+		//App Key 3 = No Caps Lock, # Symbol = Caps Lock
+		case SDLK_3:
+			workboy_key = is_cap_on ? 0x1B : 0x03;
+			break;
+
+		//App Key 4 = No Shift, $ Symbol = Shift On
+		case SDLK_4:
+			workboy_key = is_shift_on ? 0x1B : 0x04;
+			break;
+
 		case SDLK_5: workboy_key = 0x05; break;
 		case SDLK_6: workboy_key = 0x06; break;
 		case SDLK_7: workboy_key = 0x07; break;
-		case SDLK_8: workboy_key = 0x08; break;
+		
+		//App Key 8 = No Caps Lock, Asterisk = Caps Lock
+		case SDLK_8:
+			workboy_key = is_cap_on ? 0x1A : 0x08;
+			break;
 
+		//App Key 9 = No Caps Lock, Left Parantheses = Caps Lock
 		case SDLK_9:
 			workboy_key = is_cap_on ? 0x23 : 0x09;
 			break;
 
+		//Right Parantheses = Caps Lock
 		case SDLK_0:
 			workboy_key = is_cap_on ? 0x24 : 0x00;
 			break;
 
 		//These are 1:1 functionality on a real QWERTY keyboard
 		case SDLK_INSERT: workboy_key = 0x0C; break;
-		case SDLK_BACKSPACE: workboy_key = 0x0D; break;
+		case SDLK_BACKSPACE: workboy_key = 0x0B; break;
 		case SDLK_ESCAPE: workboy_key = 0x0A; break;
 
 		case SDLK_LEFT: workboy_key = 0x10; break;
