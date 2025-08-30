@@ -333,6 +333,14 @@ class NTR_MMU
 		u8 raw_cnt[4];
 	} dma[8];
 
+	//Structure to handle microphone sound capture
+	struct sound_capture
+	{
+		u8 cnt;
+		u32 destination_address;
+		u32 length;
+	} sound_cap[2];
+
 	//KEY1 key table
 	std::vector<u8> key1_table;
 

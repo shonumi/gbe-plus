@@ -201,7 +201,7 @@ void NTR_MMU::reset()
 	firmware_state = 0;
 	firmware_index = 0;
 
-	//Setup NDS_DMA info
+	//Setup NDS DMA info
 	for(int x = 0; x < 8; x++)
 	{
 		dma[x].enable = false;
@@ -216,6 +216,14 @@ void NTR_MMU::reset()
 		dma[x].dest_addr_ctrl = 0;
 		dma[x].src_addr_ctrl = 0;
 		dma[x].delay = 0;
+	}
+
+	//Setup NDS Sound Capture info
+	for(int x = 0; x < 2; x++)
+	{
+		sound_cap[x].cnt = 0;
+		sound_cap[x].destination_address = 0;
+		sound_cap[x].length = 0;
 	}
 
 	//Clear IPC FIFO if necessary
@@ -6792,8 +6800,9 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&fetch_request, sizeof(fetch_request));
 	file.read((char*)&gx_command, sizeof(gx_command));
 
-	//Serialize DMA data from save state
+	//Serialize DMA and Sound Capture data from save state
 	file.read((char*)&dma, sizeof(dma));
+	file.read((char*)&sound_cap, sizeof(sound_cap));
 
 	//Serialize even more misc data from MMU from save state
 	file.read((char*)&nds9_ie, sizeof(nds9_ie));
@@ -6971,8 +6980,9 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&fetch_request, sizeof(fetch_request));
 	file.write((char*)&gx_command, sizeof(gx_command));
 
-	//Serialize DMA data to save state
+	//Serialize DMA and Sound Capture data to save state
 	file.write((char*)&dma, sizeof(dma));
+	file.write((char*)&sound_cap, sizeof(sound_cap));
 
 	//Serialize even more misc data to MMU to save state
 	file.write((char*)&nds9_ie, sizeof(nds9_ie));
@@ -7062,6 +7072,7 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(gx_command);
 
 	mmu_size += sizeof(dma);
+	mmu_size += sizeof(sound_cap);
 
 	mmu_size += sizeof(nds9_ie);
 	mmu_size += sizeof(nds9_if);
