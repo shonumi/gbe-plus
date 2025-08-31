@@ -338,7 +338,7 @@ class NTR_MMU
 	{
 		u8 cnt;
 		u32 destination_address;
-		u32 length;
+		u16 length;
 	} sound_cap[2];
 
 	//KEY1 key table

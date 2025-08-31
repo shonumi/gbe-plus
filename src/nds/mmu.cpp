@@ -859,6 +859,37 @@ u8 NTR_MMU::read_u8(u32 address)
 		return ((apu_stat->channel[apu_io_id].cnt >> addr_shift) & 0xFF);
 	}
 
+	//Check for SOUNDCAP_CNT - NDS7
+	else if((address == NDS_SOUNDCAP_CNT0) || (address == NDS_SOUNDCAP_CNT1))
+	{
+		//Only NDS7 can access these registers, return 0 for NDS9
+		if(access_mode) { return 0; }
+
+		return sound_cap[address & 0x01].cnt;
+	}
+
+	//Check for SOUNDCAP_DAD - NDS7
+	else if(((address & ~0x3) == NDS_SOUNDCAP_DAD0) || ((address & ~0x3) == NDS_SOUNDCAP_CNT1))
+	{
+		//Only NDS7 can access these registers, return 0 for NDS9
+		if(access_mode) { return 0; }
+
+		u8 addr_shift = (address & 0x3) << 3;
+		u8 cap_select = (address & 0x8) ? 1 : 0;
+		return ((sound_cap[cap_select].destination_address >> addr_shift) & 0xFF);
+	}
+
+	//Check for SOUNDCAP_LEN - NDS7
+	else if(((address & ~0x1) == NDS_SOUNDCAP_LEN0) || ((address & ~0x1) == NDS_SOUNDCAP_LEN1))
+	{
+		//Only NDS7 can access these registers, return 0 for NDS9
+		if(access_mode) { return 0; }
+
+		u8 addr_shift = (address & 0x1) << 3;
+		u8 cap_select = (address & 0x8) ? 1 : 0;
+		return ((sound_cap[cap_select].length >> addr_shift) & 0xFF);
+	}
+
 	//Check for DMA0CNT
 	else if((address & ~0x3) == NDS_DMA0CNT)
 	{
@@ -4984,6 +5015,54 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SOUNDCNT + 2:
 		case NDS_SOUNDCNT + 3:
 			return;
+
+		case NDS_SOUNDCAP_CNT0:
+			if(access_mode) { return; }
+			sound_cap[0].cnt = value;
+
+			break;
+
+		case NDS_SOUNDCAP_CNT1:
+			if(access_mode) { return; }
+			sound_cap[1].cnt = value;
+
+			break;
+
+		case NDS_SOUNDCAP_DAD0:
+		case NDS_SOUNDCAP_DAD0 + 1:
+		case NDS_SOUNDCAP_DAD0 + 2:
+		case NDS_SOUNDCAP_DAD0 + 3:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+			sound_cap[0].destination_address = read_u32_fast(NDS_SOUNDCAP_DAD0);
+
+			break;
+
+		case NDS_SOUNDCAP_LEN0:
+		case NDS_SOUNDCAP_LEN0 + 1:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+			sound_cap[0].length = read_u16_fast(NDS_SOUNDCAP_LEN0);
+
+			break;
+
+		case NDS_SOUNDCAP_DAD1:
+		case NDS_SOUNDCAP_DAD1 + 1:
+		case NDS_SOUNDCAP_DAD1 + 2:
+		case NDS_SOUNDCAP_DAD1 + 3:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+			sound_cap[1].destination_address = read_u32_fast(NDS_SOUNDCAP_DAD1);
+
+			break;
+
+		case NDS_SOUNDCAP_LEN1:
+		case NDS_SOUNDCAP_LEN1 + 1:
+			if(access_mode) { return; }
+			memory_map[address] = value;
+			sound_cap[1].length = read_u16_fast(NDS_SOUNDCAP_LEN1);
+
+			break;
 
 		//GX - CLEAR_COLOR
 		case 0x4000350:
