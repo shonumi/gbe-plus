@@ -637,6 +637,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			if(config::cart_type == AGB_AM3) { write_am3(address, value); }
 			else if(config::cart_type == AGB_CAMPHO) { write_campho(address, value); }
 			else if(config::cart_type == AGB_TV_TUNER) { write_tv_tuner(address, value); }
+			else if((gpio.type == GPIO_DISABLED) && ((address < 0x80000C4) || (address > 0x80000C8))) { return; }
 			break;
 
 		//ROM Waitstate 1 (mirror of Waitstate 0)
