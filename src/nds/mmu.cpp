@@ -440,10 +440,48 @@ u8 NTR_MMU::read_u8(u32 address)
 			break;
 
 		case 0x4:
-			if((!access_mode) && (address >= 0x4000400) && (address < 0x4000500))
+			//Access Sound Channel Registers
+			if((address >= 0x4000400) && (address < 0x4000500))
 			{
+				if(access_mode) { return 0; }
+
 				apu_io_id = (address >> 4) & 0xF;
-				address &= 0x400040F;
+				u8 shift_32 = (address & 0x3) << 3;
+				u8 shift_16 = (address & 0x1) << 3;
+				
+				switch(address & 0x0F)
+				{
+					//Control Register
+					case 0x00:
+					case 0x01:
+					case 0x02:
+					case 0x03:
+						return ((apu_stat->channel[apu_io_id].cnt >> shift_32) & 0xFF);
+
+					//Source Address
+					case 0x04:
+					case 0x05:
+					case 0x06:
+					case 0x07:
+						return ((apu_stat->channel[apu_io_id].data_src >> shift_32) & 0xFF);
+
+					//Timer
+					case 0x08:
+					case 0x09:
+						return ((apu_stat->channel[apu_io_id].timer >> shift_16) & 0xFF);
+
+					//Loop Start
+					case 0x0A:
+					case 0x0B:
+						return ((apu_stat->channel[apu_io_id].loop_start >> shift_16) & 0xFF);
+
+					//Length
+					case 0x0C:
+					case 0x0D:
+					case 0x0E:
+					case 0x0F:
+						return ((apu_stat->channel[apu_io_id].length >> shift_32) & 0xFF);
+				}
 			}
 
 			break;
@@ -848,16 +886,6 @@ u8 NTR_MMU::read_u8(u32 address)
 
 	//Check POSTFLG - NDS7
 	else if((address == NDS_POSTFLG) && (!access_mode)) { return memory_map[address] & 0x1; }
-
-	//Check for SOUNDXCNT - NDS7
-	else if((address & ~0x3) == NDS_SOUNDXCNT)
-	{
-		//Only NDS7 can access this register, return 0 for NDS9
-		if(access_mode) { return 0; }
-
-		u8 addr_shift = (address & 0x3) << 3;
-		return ((apu_stat->channel[apu_io_id].cnt >> addr_shift) & 0xFF);
-	}
 
 	//Check for SOUNDCAP_CNT - NDS7
 	else if((address == NDS_SOUNDCAP_CNT0) || (address == NDS_SOUNDCAP_CNT1))
@@ -4963,6 +4991,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				s16 raw_freq = 0;
 				u16 tmr = read_u16_fast(NDS_SOUNDXTMR | (apu_io_id << 8));
+				apu_stat->channel[apu_io_id].timer = tmr;
 
 				if(tmr & 0x8000)
 				{
