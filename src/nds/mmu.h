@@ -86,7 +86,9 @@ class NTR_MMU
 	std::vector <u8> save_data;
 	std::vector <u8> nds7_vwram;
 
-	std::vector<u32> capture_buffer;
+	std::vector <u32> capture_buffer;
+
+	u8 gx_fifo_mem[4];
 	
 	//NDS7 IPC FIFO
 	struct nds7_interprocess
