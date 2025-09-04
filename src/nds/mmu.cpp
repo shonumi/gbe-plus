@@ -863,6 +863,12 @@ u8 NTR_MMU::read_u8(u32 address)
 		//TODO - This really probably return the same as other unused IO
 		if((nds7_spi.cnt & 0x8000) == 0) { return 0; }
 
+		//Special handling for microphone input
+		if((touchscreen_state == 0x0C) || (touchscreen_state == 0x0D))
+		{
+			return (address & 0x1) ? (apu_stat->mic_out >> 8) : apu_stat->mic_out;
+		} 
+
 		//Return SPIDATA
 		u8 addr_shift = (address & 0x1) << 3;
 		return ((nds7_spi.data >> addr_shift) & 0xFF);

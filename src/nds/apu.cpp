@@ -81,6 +81,8 @@ void NTR_APU::reset()
 	apu_stat.index_table[5] = 4;
 	apu_stat.index_table[6] = 6;
 	apu_stat.index_table[7] = 8;
+
+	apu_stat.mic_out = 0;
 }
 
 /****** Initialize APU with SDL ******/
