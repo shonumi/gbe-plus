@@ -127,6 +127,15 @@ enum slot2_device_types
 	NTR_S2_MOTION_PACK = 9,
 };
 
+enum microphone_device_types
+{
+	MIC_NONE = 0,
+	MIC_NDS = 1,
+	MIC_WAV_FILE = 2,
+	MIC_NOISE = 3,
+	MIC_WANTAME = 4,
+};
+
 enum pm_config
 {
 	PMC_ENABLE_TRI_COLOR_MODE = 0x01,
@@ -230,7 +239,8 @@ namespace config
 	extern bool use_legacy_save_size;
 
 	extern u32 sio_device;
-	extern u32 ir_device;	
+	extern u32 ir_device;
+	extern u32 mic_device;
 	extern bool use_opengl;
 	extern bool use_debugger;
 	extern bool turbo;
