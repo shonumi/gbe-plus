@@ -6479,7 +6479,7 @@ void NTR_MMU::process_touchscreen()
 
 		//Read AUX Input Byte 1
 		case 0xC:
-			if(nds7_spi.data & 0x4) { }
+			if(nds7_spi.data & 0x4) { process_microphone(); }
 			else { nds7_spi.data = 0x0; }
 
 			touchscreen_state++;
@@ -6510,6 +6510,30 @@ void NTR_MMU::process_touchscreen()
 			break;
 
 		default: nds7_spi.data = 0;
+	}
+}
+
+/****** Handles microphone output when polling via NDS7 SPI ******/
+void NTR_MMU::process_microphone()
+{
+	switch(config::mic_device)
+	{
+		case MIC_NONE:
+			apu_stat->mic_out = 0;
+			break;
+
+		case MIC_NDS:
+			break;
+
+		case MIC_WAV_FILE:
+			break;
+
+		case MIC_NOISE:
+			apu_stat->mic_out = (rand() % 0xFF);
+			break;
+
+		case MIC_WANTAME:
+			break;
 	}
 }
 

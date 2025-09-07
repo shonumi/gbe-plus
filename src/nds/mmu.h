@@ -450,6 +450,7 @@ class NTR_MMU
 	void process_card_bus();
 	void process_firmware();
 	void process_touchscreen();
+	void process_microphone();
 	void write_rtc();
 	u8 read_rtc();
 	void setup_default_firmware();
