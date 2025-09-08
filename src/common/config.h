@@ -134,6 +134,7 @@ enum microphone_device_types
 	MIC_WAV_FILE = 2,
 	MIC_NOISE = 3,
 	MIC_WANTAME = 4,
+	MIC_WAVE_SCANNER = 5,
 };
 
 enum pm_config

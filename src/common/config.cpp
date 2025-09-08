@@ -1239,7 +1239,7 @@ bool parse_ini_file()
 		if(!parse_ini_number(ini_item, "#ir_device", config::ir_device, ini_opts, x, 0, 10)) { return false; }
 
 		//Emulated microphone device
-		if(!parse_ini_number(ini_item, "#mic_device", config::mic_device, ini_opts, x, 0, 4)) { return false; }
+		if(!parse_ini_number(ini_item, "#mic_device", config::mic_device, ini_opts, x, 0, 5)) { return false; }
 
 		//Emulated Slot1 device
 		if(!parse_ini_number(ini_item, "#slot1_device", config::nds_slot1_device, ini_opts, x, 0, 1)) { return false; }

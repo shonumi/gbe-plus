@@ -161,7 +161,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//General settings - Emulated SIO device
 	QWidget* sio_set = new QWidget(general);
-	QLabel* sio_label = new QLabel("Serial IO Device", sio_set);
+	QLabel* sio_label = new QLabel("Serial IO Device : ", sio_set);
 	sio_dev = new QComboBox(sio_set);
 	sio_dev->setToolTip("Changes the emulated Serial Input-Output device connected to the emulated Game Boy");
 	sio_dev->addItem("None");
@@ -198,7 +198,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//General settings - Emulated IR device
 	QWidget* ir_set = new QWidget(general);
-	QLabel* ir_label = new QLabel("Infrared Device", ir_set);
+	QLabel* ir_label = new QLabel("Infrared Device : ", ir_set);
 	ir_dev = new QComboBox(ir_set);
 	ir_dev->setToolTip("Changes the emulated IR device that will communicate with the emulated Game Boy");
 	ir_dev->addItem("None");
@@ -223,7 +223,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//General settings - Emulated Slot-2 device
 	QWidget* slot2_set = new QWidget(general);
-	QLabel* slot2_label = new QLabel("Slot-2 Device", slot2_set);
+	QLabel* slot2_label = new QLabel("Slot-2 Device : ", slot2_set);
 	slot2_dev = new QComboBox(slot2_set);
 	slot2_dev->setToolTip("Changes the emulated Slot-2 device inserted into an NDS");
 	slot2_dev->addItem("Auto");
@@ -244,6 +244,26 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_layout->addWidget(slot2_dev, 1, Qt::AlignLeft);
 	slot2_layout->addWidget(config_slot2, 0, Qt::AlignRight);
 	slot2_set->setLayout(slot2_layout);
+
+	//General settings - Emulated microphone device (NDS)
+	QWidget* mic_set = new QWidget(general);
+	QLabel* mic_label = new QLabel("Microphone Device : ", mic_set);
+	mic_dev = new QComboBox(mic_set);
+	mic_dev->setToolTip("Changes the emulated microphone device for the NDS");
+	mic_dev->addItem("None");
+	mic_dev->addItem("NDS Microphone");
+	mic_dev->addItem("WAV File");
+	mic_dev->addItem("Noise");
+	mic_dev->addItem("Wantame Card Scanner");
+	mic_dev->addItem("Wave Scanner");
+
+	config_mic = new QPushButton("Configure");
+
+	QHBoxLayout* mic_layout = new QHBoxLayout;
+	mic_layout->addWidget(mic_label, 0, Qt::AlignLeft);
+	mic_layout->addWidget(mic_dev, 1, Qt::AlignLeft);
+	mic_layout->addWidget(config_mic, 0, Qt::AlignRight);
+	mic_set->setLayout(mic_layout);
 
 	//General settings - Emulated CPU Speed
 	QWidget* overclock_set = new QWidget(general);
@@ -279,6 +299,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gen_layout->addWidget(sio_set);
 	gen_layout->addWidget(ir_set);
 	gen_layout->addWidget(slot2_set);
+	gen_layout->addWidget(mic_set);
 	gen_layout->addWidget(special_cart_set);
 	gen_layout->addWidget(overclock_set);
 	gen_layout->addWidget(bios_set);
@@ -1530,6 +1551,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(sio_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(sio_dev_change()));
 	connect(ir_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(ir_dev_change()));
 	connect(slot2_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(slot2_dev_change()));
+	connect(mic_dev, SIGNAL(currentIndexChanged(int)), this, SLOT(mic_dev_change()));
 	connect(overclock, SIGNAL(currentIndexChanged(int)), this, SLOT(overclock_change()));
 	connect(auto_patch, SIGNAL(stateChanged(int)), this, SLOT(set_patches()));
 	connect(edit_cheats, SIGNAL(clicked()), this, SLOT(show_cheats()));
@@ -1537,6 +1559,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(config_sio, SIGNAL(clicked()), this, SLOT(show_sio_config()));
 	connect(config_ir, SIGNAL(clicked()), this, SLOT(show_ir_config()));
 	connect(config_slot2, SIGNAL(clicked()), this, SLOT(show_slot2_config()));
+	connect(config_mic, SIGNAL(clicked()), this, SLOT(show_mic_config()));
 	connect(ogl, SIGNAL(stateChanged(int)), this, SLOT(set_ogl()));
 	connect(screen_scale, SIGNAL(currentIndexChanged(int)), this, SLOT(screen_scale_change()));
 	connect(aspect_ratio, SIGNAL(stateChanged(int)), this, SLOT(aspect_ratio_change()));
@@ -1893,6 +1916,21 @@ void gen_settings::set_ini_options()
 	else
 	{
 		config_slot2->setEnabled(false);
+	}
+
+
+	//Emulated microphone device
+	mic_dev->setCurrentIndex(config::mic_device);
+
+	if((config::mic_device == MIC_WAV_FILE) || (config::mic_device == MIC_WANTAME)
+	|| (config::mic_device == MIC_WAVE_SCANNER)) 
+	{ 
+		config_mic->setEnabled(true);
+	}
+
+	else
+	{
+		config_mic->setEnabled(false);
 	}
 
 	//Emulated CPU speed
@@ -2285,6 +2323,23 @@ void gen_settings::slot2_dev_change()
 	}
 }
 
+/****** Changes the emulated microphone device ******/
+void gen_settings::mic_dev_change()
+{
+	config::mic_device = mic_dev->currentIndex();
+
+	if((config::mic_device == MIC_WAV_FILE) || (config::mic_device == MIC_WANTAME)
+	|| (config::mic_device == MIC_WAVE_SCANNER)) 
+	{ 
+		config_mic->setEnabled(true);
+	}
+
+	else
+	{
+		config_mic->setEnabled(false);
+	}
+}
+
 /****** Changes the emulated CPU speed ******/
 void gen_settings::overclock_change()
 {
@@ -2423,6 +2478,31 @@ void gen_settings::show_slot2_config()
 
 		case NTR_S2_MAGIC_READER:
 			magic_reader_menu->show();
+			break;
+	}
+}
+
+/****** Displays relevant microphone configuration window ******/
+void gen_settings::show_mic_config()
+{
+	switch(config::mic_device)
+	{
+		case MIC_NONE:
+			break;
+
+		case MIC_NDS:
+			break;
+
+		case MIC_WAV_FILE:
+			break;
+
+		case MIC_NOISE:
+			break;
+
+		case MIC_WANTAME:
+			break;
+
+		case MIC_WAVE_SCANNER:
 			break;
 	}
 }
