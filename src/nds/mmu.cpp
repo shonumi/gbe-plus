@@ -107,7 +107,17 @@ void NTR_MMU::reset()
 		case NTR_S2_MOTION_PACK:
 			current_slot2_device = SLOT2_MOTION_PACK;
 			break;
-	}	
+	}
+
+	switch(config::mic_device)
+	{
+		case MIC_WANTAME:
+			wcs.data.clear();
+			wcs.data.resize(0x400, 0x00);
+			wcs.barcode = 0;
+			wcs.index = 0;
+			break;
+	}
 
 	memory_map.clear();
 	memory_map.resize(0x10000000, 0);
@@ -6533,6 +6543,10 @@ void NTR_MMU::process_microphone()
 			break;
 
 		case MIC_WANTAME:
+			wantame_scanner_process();
+			break;
+
+		case MIC_WAVE_SCANNER:
 			break;
 	}
 }

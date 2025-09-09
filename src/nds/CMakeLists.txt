@@ -21,6 +21,7 @@ set(SRCS
 	gx_render.cpp
 	slot2.cpp
 	ntr_027.cpp
+	microphone.cpp
 	)
 
 set(HEADERS

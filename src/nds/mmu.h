@@ -248,6 +248,14 @@ class NTR_MMU
 		bool oid_reset;
 	} magic_reader;
 
+	//Wantame Card Scanner
+	struct wantame_card_scanner
+	{
+		u32 index;
+		u32 barcode;
+		std::vector <u8> data;
+	} wcs;	
+	
 	//NTR-027
 	struct activity_meter
 	{
@@ -483,6 +491,10 @@ class NTR_MMU
 	//Slot-2 device functions
 	bool slot2_hcv_load_barcode(std::string filename);
 	void magic_reader_process();
+
+	//Microphone device functions
+	void wantame_scanner_process();
+	void wantame_scanner_set_barcode(u32 barcode);
 
 	void parse_header();
 
