@@ -495,6 +495,7 @@ class NTR_MMU
 	//Microphone device functions
 	void wantame_scanner_process();
 	void wantame_scanner_set_barcode(u32 barcode);
+	void wantame_scanner_set_pulse(u32 lo, u32 hi);
 
 	void parse_header();
 
