@@ -113,7 +113,6 @@ void NTR_MMU::reset()
 	{
 		case MIC_WANTAME:
 			wcs.data.clear();
-			wcs.data.resize(0x400, 0x00);
 			wcs.barcode = 0;
 			wcs.index = 0;
 			break;

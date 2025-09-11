@@ -12,13 +12,20 @@
 
 void NTR_MMU::wantame_scanner_process()
 {
-
-	apu_stat->mic_out = wcs.data[wcs.index++];
-
-	if(wcs.index < wcs.data.size())
+	if(wcs.data.empty())
 	{
-		wcs.index = 0;
-	} 
+		apu_stat->mic_out = 0;
+	}
+
+	else
+	{
+		if(wcs.index >= wcs.data.size())
+		{
+			wcs.index = 0;
+		}
+
+		apu_stat->mic_out = wcs.data[wcs.index++];
+	}
 }
 
 void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
