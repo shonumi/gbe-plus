@@ -30,7 +30,18 @@ void NTR_MMU::wantame_scanner_process()
 
 void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
 {
+	wcs.data.clear();
 	wcs.barcode = barcode;
+
+	//Generate initial ACK signal
+	wantame_scanner_set_pulse(10, 10);
+
+	for(u32 x = 0; x < 50; x++)
+	{
+		wantame_scanner_set_pulse(4, 9);
+	}
+
+	wantame_scanner_set_pulse(256, 0);
 }
 
 void NTR_MMU::wantame_scanner_set_pulse(u32 lo, u32 hi)
