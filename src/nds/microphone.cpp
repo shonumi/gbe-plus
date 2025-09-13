@@ -22,6 +22,10 @@ void NTR_MMU::wantame_scanner_process()
 		if(wcs.index >= wcs.data.size())
 		{
 			wcs.index = 0;
+			wcs.data.clear();
+			apu_stat->mic_out = 0;
+
+			return;
 		}
 
 		apu_stat->mic_out = wcs.data[wcs.index++];
@@ -35,13 +39,12 @@ void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
 
 	//Generate initial ACK signal
 	wantame_scanner_set_pulse(10, 10);
+	wantame_scanner_set_pulse(10, 10);
 
-	for(u32 x = 0; x < 50; x++)
+	for(u32 x = 0; x < 60; x++)
 	{
-		wantame_scanner_set_pulse(4, 9);
+		wantame_scanner_set_pulse(3, 9);
 	}
-
-	wantame_scanner_set_pulse(256, 0);
 }
 
 void NTR_MMU::wantame_scanner_set_pulse(u32 lo, u32 hi)

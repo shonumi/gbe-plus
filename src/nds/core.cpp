@@ -1022,16 +1022,6 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 				break;
 		}
 	}
-
-	else if((event.type == SDL_KEYUP) && (event.key.keysym.sym == SDLK_F11))
-	{
-		switch(config::mic_device)
-		{
-			case MIC_WANTAME:
-				core_mmu.wcs.data.clear();
-				break;
-		}
-	}
 }
 
 /****** Process hotkey input - Use exsternally when not using SDL ******/
@@ -1075,16 +1065,6 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 		{
 			case MIC_WANTAME:
 				core_mmu.wantame_scanner_set_barcode(0);
-				break;
-		}
-	}
-
-	else if((input == SDLK_F11) && (!pressed))
-	{
-		switch(config::mic_device)
-		{
-			case MIC_WANTAME:
-				core_mmu.wcs.data.clear();
 				break;
 		}
 	}
