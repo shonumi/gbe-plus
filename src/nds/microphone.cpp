@@ -41,9 +41,36 @@ void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
 	wantame_scanner_set_pulse(10, 10);
 	wantame_scanner_set_pulse(10, 10);
 
-	for(u32 x = 0; x < 60; x++)
+	//Unknown data sent from scanner (in this order)
+	//10-bit number
+	//32-bit mask
+	//7-bit number
+	u16 data_a = 0x3BB;
+	u32 mask = 0xDEADBEEF;
+	u8 data_b = 0x22;
+
+	for(u32 x = 0, bit = 0x200; x < 10; x++)
 	{
-		wantame_scanner_set_pulse(3, 9);
+		if(data_a & bit) { wantame_scanner_set_pulse(6, 3); }
+		else { wantame_scanner_set_pulse(3, 6); }
+
+		bit >>= 1;
+	}
+
+	for(u32 x = 0, bit = 0x80000000; x < 32; x++)
+	{
+		if(mask & bit) { wantame_scanner_set_pulse(6, 3); }
+		else { wantame_scanner_set_pulse(3, 6); }
+
+		bit >>= 1;
+	}
+
+	for(u32 x = 0, bit = 0x40; x < 7; x++)
+	{
+		if(data_b & bit) { wantame_scanner_set_pulse(6, 3); }
+		else { wantame_scanner_set_pulse(3, 6); }
+
+		bit >>= 1;
 	}
 }
 
