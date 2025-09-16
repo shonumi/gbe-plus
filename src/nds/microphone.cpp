@@ -8,7 +8,8 @@
 //
 // Handles output of various microphone devices for the NDS
 
-#include "mmu.h" 
+#include "mmu.h"
+#include "common/util.h"
 
 void NTR_MMU::wantame_scanner_process()
 {
@@ -51,23 +52,22 @@ void NTR_MMU::wantame_scanner_set_barcode()
 		return;
 	}
 
-	else
-	{
-		barcode_hi = wcs.barcode.substr(0, 6);
-		barcode_lo = wcs.barcode.substr(6);
-	}
-
 	//Generate initial ACK signal + 1st 6 characters
 	wantame_scanner_set_pulse(10, 10);
 	wantame_scanner_set_pulse(10, 10);
 
 	//Convert barcode characters to hexadecimal format + calculate check digit
-	for(u32 x = 0; x < 6; x++)
+	//Code-128 C uses pairs, i.e. 2 characters of barcode -> 1 value
+	for(u32 x = 0, index = 0; x < 6; x++)
 	{
-		u8 code_val = barcode_hi[x];
-		u64 temp = 0;
+		std::string bc_str = "";
+		bc_str += wcs.barcode[index++];
+		bc_str += wcs.barcode[index++];
 
-		code_val -= 0x20;		
+		u32 code_val = 0;
+		util::from_str(bc_str, code_val);
+
+		u64 temp = 0;
 		temp = code_val;
 		temp <<= sum_shift;
 
