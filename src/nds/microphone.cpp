@@ -32,26 +32,58 @@ void NTR_MMU::wantame_scanner_process()
 	}
 }
 
-void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
+void NTR_MMU::wantame_scanner_set_barcode()
 {
 	wcs.data.clear();
-	wcs.barcode = barcode;
+	std::string barcode_hi = "";
+	std::string barcode_lo = "";
 
-	//Generate initial ACK signal
+	u64 sum = 0;
+	u32 sum_shift = 35;
+	u16 check_digit = 0x69;
+
+	u16 barcode_msb = 0;
+	u32 barcode_lsb = 0;
+
+	//Verify Code-128 C barcode length. *ALWAYS* Fixed 12-chars for Wantame
+	if(wcs.barcode.length() != 12)
+	{
+		return;
+	}
+
+	else
+	{
+		barcode_hi = wcs.barcode.substr(0, 6);
+		barcode_lo = wcs.barcode.substr(6);
+	}
+
+	//Generate initial ACK signal + 1st 6 characters
 	wantame_scanner_set_pulse(10, 10);
 	wantame_scanner_set_pulse(10, 10);
 
-	//Unknown data sent from scanner (in this order)
-	//10-bit number
-	//32-bit mask
-	//7-bit number
-	u16 data_a = 0x3BB;
-	u32 mask = 0xDEADBEEF;
-	u8 data_b = 0x22;
+	//Convert barcode characters to hexadecimal format + calculate check digit
+	for(u32 x = 0; x < 6; x++)
+	{
+		u8 code_val = barcode_hi[x];
+		u64 temp = 0;
+
+		code_val -= 0x20;		
+		temp = code_val;
+		temp <<= sum_shift;
+
+		sum += temp;
+		sum_shift -= 7;
+
+		check_digit += (code_val * (x + 1));
+	}
+
+	check_digit = (check_digit % 0x67);
+	barcode_msb = (sum >> 32);
+	barcode_lsb = (sum & 0xFFFFFFFF);
 
 	for(u32 x = 0, bit = 0x200; x < 10; x++)
 	{
-		if(data_a & bit) { wantame_scanner_set_pulse(6, 3); }
+		if(barcode_msb & bit) { wantame_scanner_set_pulse(6, 3); }
 		else { wantame_scanner_set_pulse(3, 6); }
 
 		bit >>= 1;
@@ -59,7 +91,7 @@ void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
 
 	for(u32 x = 0, bit = 0x80000000; x < 32; x++)
 	{
-		if(mask & bit) { wantame_scanner_set_pulse(6, 3); }
+		if(barcode_lsb & bit) { wantame_scanner_set_pulse(6, 3); }
 		else { wantame_scanner_set_pulse(3, 6); }
 
 		bit >>= 1;
@@ -67,7 +99,7 @@ void NTR_MMU::wantame_scanner_set_barcode(u32 barcode)
 
 	for(u32 x = 0, bit = 0x40; x < 7; x++)
 	{
-		if(data_b & bit) { wantame_scanner_set_pulse(6, 3); }
+		if(check_digit & bit) { wantame_scanner_set_pulse(6, 3); }
 		else { wantame_scanner_set_pulse(3, 6); }
 
 		bit >>= 1;

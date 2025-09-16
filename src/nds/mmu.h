@@ -252,7 +252,7 @@ class NTR_MMU
 	struct wantame_card_scanner
 	{
 		u32 index;
-		u32 barcode;
+		std::string barcode;
 		std::vector <u8> data;
 	} wcs;	
 	
@@ -494,7 +494,7 @@ class NTR_MMU
 
 	//Microphone device functions
 	void wantame_scanner_process();
-	void wantame_scanner_set_barcode(u32 barcode);
+	void wantame_scanner_set_barcode();
 	void wantame_scanner_set_pulse(u32 lo, u32 hi);
 
 	void parse_header();

@@ -1018,7 +1018,7 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		switch(config::mic_device)
 		{
 			case MIC_WANTAME:
-				core_mmu.wantame_scanner_set_barcode(0);
+				core_mmu.wantame_scanner_set_barcode();
 				break;
 		}
 	}
@@ -1064,7 +1064,7 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 		switch(config::mic_device)
 		{
 			case MIC_WANTAME:
-				core_mmu.wantame_scanner_set_barcode(0);
+				core_mmu.wantame_scanner_set_barcode();
 				break;
 		}
 	}
