@@ -115,6 +115,7 @@ void NTR_MMU::reset()
 			wcs.data.clear();
 			wcs.barcode = "";
 			wcs.index = 0;
+			wantame_scanner_load_barcode(config::external_card_file);
 			break;
 	}
 

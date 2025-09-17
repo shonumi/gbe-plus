@@ -111,3 +111,35 @@ void NTR_MMU::wantame_scanner_set_pulse(u32 lo, u32 hi)
 	for(u32 x = 0; x < lo; x++) { wcs.data.push_back(0x00); }
 	for(u32 x = 0; x < hi; x++) { wcs.data.push_back(0x24); }
 }
+
+bool NTR_MMU::wantame_scanner_load_barcode(std::string filename)
+{
+	std::ifstream barcode(filename.c_str(), std::ios::binary);
+
+	if(!barcode.is_open()) 
+	{ 
+		std::cout<<"MMU::Wantame barcode data could not be read. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get file size
+	barcode.seekg(0, barcode.end);
+	u32 barcode_size = barcode.tellg();
+	barcode.seekg(0, barcode.beg);
+
+	if(barcode_size != 12)
+	{
+		std::cout<<"MMU::Wantame barcode data file is incorrect size. \n";
+		return false;
+	}
+
+	char ex_data[12];
+
+	barcode.read((char*)ex_data, barcode_size); 
+	barcode.close();
+
+	wcs.barcode.assign(ex_data, 12);
+	std::cout<<"MMU::Loaded Wantame barcode data.\n";
+	
+	return true;
+}

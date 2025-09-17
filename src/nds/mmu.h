@@ -496,6 +496,7 @@ class NTR_MMU
 	void wantame_scanner_process();
 	void wantame_scanner_set_barcode();
 	void wantame_scanner_set_pulse(u32 lo, u32 hi);
+	bool wantame_scanner_load_barcode(std::string filename);
 
 	void parse_header();
 

@@ -207,7 +207,7 @@ bool NTR_MMU::slot2_hcv_load_barcode(std::string filename)
 	//Fill empty data with 0x5F
 	while(hcv.data.size() < 16) { hcv.data.push_back(0x5F); }
 
-	std::cout<<"SIO::Loaded HCV-1000 barcode data.\n";
+	std::cout<<"MMU::Loaded HCV-1000 barcode data.\n";
 	return true;
 }
 
