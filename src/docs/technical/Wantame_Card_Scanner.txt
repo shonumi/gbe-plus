@@ -30,7 +30,7 @@ Doko Demo Style shares some gameplay concepts with Oshare Majo and Sega's HCV-10
 3. Barcode Transmission Protocol
 ***************************************************
 
-The Wantame Card Scanner translates barcodes into sound pulses via the DS microphone. By reading samples, the game grabs the barcode data as individual bits, verifies the integrity of the data, then checks to see if the barcode is valid for the game. Note that the arcade version was continually updated all the way through the Fall 2009, therefore, some cards are incompatible with the DS version. The transmission protocol consists of the following parts:
+The Wantame Card Scanner translates barcodes into sound pulses via the DS microphone. By reading samples, the game grabs the barcode data as individual bits, verifies the integrity of the data, then checks to see if the barcode is valid for the game. Note that the arcade version was continually updated all the way through Fall 2009, therefore, some cards are incompatible with the DS version. The transmission protocol consists of the following parts:
 
 ---------------------------------------------------------
 Protocol Stage	| Description

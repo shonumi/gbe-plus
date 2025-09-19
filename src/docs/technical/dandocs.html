@@ -158,6 +158,7 @@
 			<p class="list_item"><a href="#utp">Ubisoft Thrustmaster Pedometer</a></p>
 			<p class="list_item"><a href="#hcv">HCV-1000</a></p>
 			<p class="list_item"><a href="#kmr">Magic Reader</a></p>
+			<p class="list_item"><a href="#wcs">Wantame Card Scanner</a></p>
 			
 		</div>
 
@@ -8356,6 +8357,104 @@ JS1-57	| 0038	| いでよ鋼の盾
 JS1-59	| 003A	| 炎の闘技場</pre>
 
 	<p>The cards themselves use tiny carbon dots to produce an index value. According to the OID specification, carbon ink can replace K when using CMYK. Black colors would need to be reproduced by merging CMY dots in close proximity to one another. At any rate, these dots are meant to absorb light rather than reflect it. The CMOS inside the Magic Reader can&#39;t detect these dots, so these &#34;empty&#34; spots form a pattern that can be recognized and converted into a number. These dots are not completely invisible to the human eye, however. Ordinary cameras are capable of capturing them. The dots occupy the entire face of the card with the exception of the borders and likely the silver text of some cards.</p>
+
+
+
+
+
+	<!-- Wantame Card Scanner -->
+	<a name="wcs"></a>
+	<p class="gray_title">Wantame Card Scanner</p>
+	<p class="list_item"><a href="#wcs_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#wcs_btp">Barcode Transmission Protocol</a></p>
+
+	<a name="wcs_gen"></a>
+	<p class="gray_title">[Wantame Card Scanner] : General Hardware Information</p>
+
+	<p>On November 22, 2007, Capcom released an action-rhythm game called Wantame Music Channel: Doko Demo Style for the Nintendo DS. It was part of the &#34;Won!Tertainment&#34; franchise developed in conjunction with Takara Tomy. Players can dress up as different dogs wearing various outfits by scanning physical cards with barcodes printed on them. This game was a port of the larger arcade version that was also capable of scanning the very same cards. The portable scanner for the DS offically was never officially given a name or product code, so for the purposes of this documentation is referred to simple as the Wantame Card Scanner.</p>
+
+	<p>Doko Demo Style shares some gameplay concepts with Oshare Majo and Sega&#39;s HCV-1000. Design-wise, the Wantame Card Scanner is also very similar in operation to the Wave Scanner, another device that Capcom and Takara Tomy collaborated on.</p>
+
+	<ul>
+		<li class="list_item">Uses DS microphone plug to transmit data.</li>
+		<li class="list_item">Uses Slot-2 only for stability. There is no ROM chip or PCB connected to the Slot-2 pins.</li>
+		<li class="list_item">Powered by 3 LR44 batteries.</li>
+		<li class="list_item">Features a detachable guard for Slot-2 to better fit the original DS or DS Lite.</li>
+		<li class="list_item">Compatible with DSi models thanks to microphone cable.</li>
+		<li class="list_item">Has a red LED to indicate card scanning or errors.</li>
+		<li class="list_item">Microphone cable is tucked under the bottom of the unit.</li>
+		<li class="list_item">Has a reset button on the backside.</li>
+		<li class="list_item">Uses 12 character barcodes in Code-128 C format.</li>
+	</ul>
+
+	<a name="wcs_btp"></a>
+	<p class="gray_title">[Wantame Card Scanner] : Barcode Transmission Protocol</p>
+
+	<p>The Wantame Card Scanner translates barcodes into sound pulses via the DS microphone. By reading samples, the game grabs the barcode data as individual bits, verifies the integrity of the data, then checks to see if the barcode is valid for the game. Note that the arcade version was continually updated all the way through Fall 2009, therefore, some cards are incompatible with the DS version. The transmission protocol consists of the following parts:</p>
+
+<pre>---------------------------------------------------------
+Protocol Stage	| Description
+---------------------------------------------------------
+ACK Signal	| Initial pulses
+Barcode MSB	| Upper 10-bits
+Barcode LSB	| Lower 32-bits
+Check Digit	| Code-128 C checksum
+---------------------------------------------------------</pre>
+
+	<p>The ACK Signal alerts the game of incoming data. Normally, microphone input would be zero (assuming no noise from the Wantame Card Scanner). The game will wait for 2 separate LOW-to-HIGH transitions. At a minimum, each LOW and HIGH period should be sampled at least 9 times, but less than 16. The following psuedo-code can be used to determine whether a sample from the microphone is LOW or HIGH:</p>
+
+<pre>MIC_SAMPLE = READ_DS_MIC()
+MIC_SAMPLE = MIC_SAMPLE * 2
+MIC_SAMPLE = MIC_SAMPLE AND 0xFF
+
+IF MIC_SAMPLE LESS THAN 0x48
+	SAMPLE_TYPE = LOW
+
+ELSE
+	SAMPLE_TYPE = HIGH</pre>
+
+	<p>After sending the ACK Signal, the Wantame Card Scanner sends a continuous stream of 49 bits. Depending on the length of the LOW part of the the LOW-to-HIGH transition, a &#34;0&#34; or a &#34;1&#34; will be recorded. If the LOW portion measures at 6 or more samples, this represents a &#34;1&#34; in the bitstream, otherwise it represents a &#34;0&#34;. Importantly, each LOW and HIGH portion must measure at least 3 samples, and the total LOW-to-HIGH transition must not exceed 16 samples.</p>
+
+	<p>The first 42-bits of the stream represent the barcode as a hexadecimal number, and the final 7 bits represent the barcode&#39;s checksum. The barcode is split across 2 32-bit integers, with the the upper 10-bits received first, and lower 32-bits received immediately afterwards. However, each integer receives its bits big endian first, and the same is true of the Check Digit.</p>
+
+	<p>The format of the barcode data itself uses 7-bits to represent Code-128 C values. These values range from 00 to 99. Each barcode uses 12 characters, but these are &#34;doubled up&#34; in pairs so that only 6 Code-128 C values are necessary. As an example, a barcode such as &#34;011128531729&#34; can be encoded into hexadecimal as such:</p>
+
+<pre>---------------------------------------------------------
+Barcode Pair	| Raw Hex Value		| Shift
+---------------------------------------------------------
+&#34;01&#34;		| 0x01			| 35		
+&#34;11&#34;		| 0x0B			| 28
+&#34;28&#34;		| 0x1C			| 21
+&#34;53&#34;		| 0x35			| 14
+&#34;17&#34;		| 0x11			| 7
+&#34;29&#34;		| 0x1D			| 0
+---------------------------------------------------------
+
+FINAL_VALUE = ((0x01 LSL 35) OR (0x0B LSL 28) OR (0x1C LSL 21) OR (0x35 LSL 14) OR (0x11 LSL 7) OR (0x1D))</pre>
+
+	<p>The result for this case would be 0x8B38D489D, which would get split up into 0x08 for the 10-bit segment and 0xB38D489D for the 32-bit segment. Continuing with the example barcode of &#34;011128531729&#34;, the Check Digit can be calculated as such:</p>
+
+<pre>---------------------------------------------------------
+Barcode Pair	| Sum
+---------------------------------------------------------
+&#34;01&#34;		| Sum += (1 * 1)
+&#34;11&#34;		| Sum += (11 * 2)
+&#34;28&#34;		| Sum += (28 * 3)
+&#34;53&#34;		| Sum += (53 * 4)
+&#34;17&#34;		| Sum += (17 * 5)
+&#34;29&#34;		| Sum += (29 * 6)
+---------------------------------------------------------
+		| Sum += 105
+		| Sum = (Sum % 103)
+---------------------------------------------------------</pre>
+
+	<p>Essentially, the first pair is multiplied by 1 and added to the sum, the second pair is multiplied by 2 and added to the sum, and so on and so forth for the other pairs. After that, a value of 105 is added to the sum, then a modulo of 103 is applied to the sum for the final result. For this example it would be 0x41.</p>
+
+	<p>After all of these signals are transferred from the Wantame Card Scanner via microphone input, the rest of the samples should go LOW until a new scan.</p>
+
+
+
+
 
 	<!-- Mobile Adapter GB -->
 	<a name="magb"></a>
