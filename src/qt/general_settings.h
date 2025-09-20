@@ -29,6 +29,7 @@
 #include "utp_menu.h"
 #include "magic_reader_menu.h"
 #include "mw_menu.h"
+#include "wantame_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -219,6 +220,7 @@ class gen_settings : public QDialog
 	utp_menu* ubisoft_pedometer_menu;
 	mr_menu* magic_reader_menu;
 	mw_menu* magical_watch_menu;
+	wcs_menu* wantame_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();

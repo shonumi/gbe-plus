@@ -1851,6 +1851,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	ubisoft_pedometer_menu = new utp_menu;
 	magic_reader_menu = new mr_menu;
+	wantame_menu = new wcs_menu;
 
 	get_chip_list();
 
@@ -2500,6 +2501,7 @@ void gen_settings::show_mic_config()
 			break;
 
 		case MIC_WANTAME:
+			wantame_menu->show();
 			break;
 
 		case MIC_WAVE_SCANNER:
