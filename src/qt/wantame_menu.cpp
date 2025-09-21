@@ -42,10 +42,31 @@ wcs_menu::wcs_menu(QWidget *parent) : QDialog(parent)
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(barcode_line, SIGNAL(textChanged(const QString)), this, SLOT(update_wcs_barcode()));
 }
 
 /****** Sets the raw barcode (alphanumerical value) when updating QLineEdit ******/
 void wcs_menu::update_wcs_barcode()
 {
+	std::string barcode = barcode_line->text().toStdString();
+	std::string edit = "";
 
+	//Limit all input to ASCII numerals + 12 characters max
+	for(u32 x = 0; x < barcode.length(); x++)
+	{
+		u8 chr = barcode[x];
+
+		if((chr >= 0x30) && (chr <= 0x39))
+		{
+			edit += barcode[x];
+		}
+	}
+
+	if(edit.length() > 12)
+	{
+		edit = edit.substr(0, 12);
+	}
+
+	barcode_line->setText(QString::fromStdString(edit));
+	printf("YO\n");
 }
