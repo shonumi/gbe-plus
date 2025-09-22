@@ -68,5 +68,5 @@ void wcs_menu::update_wcs_barcode()
 	}
 
 	barcode_line->setText(QString::fromStdString(edit));
-	printf("YO\n");
+	config::raw_barcode = edit;
 }

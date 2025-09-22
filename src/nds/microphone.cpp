@@ -35,6 +35,9 @@ void NTR_MMU::wantame_scanner_process()
 
 void NTR_MMU::wantame_scanner_set_barcode()
 {
+	//Use latest barcode (e.g. from GUI)
+	if(!config::raw_barcode.empty()) { wcs.barcode = config::raw_barcode; }
+
 	wcs.data.clear();
 	std::string barcode_hi = "";
 	std::string barcode_lo = "";
@@ -139,6 +142,7 @@ bool NTR_MMU::wantame_scanner_load_barcode(std::string filename)
 	barcode.close();
 
 	wcs.barcode.assign(ex_data, 12);
+	config::raw_barcode = wcs.barcode;
 	std::cout<<"MMU::Loaded Wantame barcode data.\n";
 	
 	return true;

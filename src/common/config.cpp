@@ -40,6 +40,7 @@ namespace config
 	std::string external_card_file = "";
 	std::string external_image_file = "";
 	std::string external_data_file = "";
+	std::string raw_barcode = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	std::vector <std::string> bin_files;
