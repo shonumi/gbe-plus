@@ -25,9 +25,11 @@ class wcs_menu : public QDialog
 	QWidget* barcode_set;
 	QLabel* barcode_label;
 	QLineEdit* barcode_line;
+	QPushButton* barcode_button;
 
 	private slots:
 	void update_wcs_barcode();
+	bool load_barcode();
 };
 
 #endif //WCSMENU_GBE_QT  

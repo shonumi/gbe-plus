@@ -8,6 +8,8 @@
 //
 // Sets the barcode for the Wantame Card Scanner
 
+#include <fstream>
+
 #include "wantame_menu.h"
 
 #include "common/config.h"
@@ -23,10 +25,13 @@ wcs_menu::wcs_menu(QWidget *parent) : QDialog(parent)
 
 	barcode_line = new QLineEdit;
 
+	QPushButton* barcode_button = new QPushButton("Load Barcode File");
+
 	QHBoxLayout* barcode_layout = new QHBoxLayout;
 	barcode_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	barcode_layout->addWidget(barcode_label);
 	barcode_layout->addWidget(barcode_line);
+	barcode_layout->addWidget(barcode_button);
 	barcode_set->setLayout(barcode_layout);
 
 	QVBoxLayout* final_layout = new QVBoxLayout;
@@ -43,6 +48,7 @@ wcs_menu::wcs_menu(QWidget *parent) : QDialog(parent)
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(barcode_line, SIGNAL(textChanged(const QString)), this, SLOT(update_wcs_barcode()));
+	connect(barcode_button, SIGNAL(clicked()), this, SLOT(load_barcode()));
 }
 
 /****** Sets the raw barcode (alphanumerical value) when updating QLineEdit ******/
@@ -69,4 +75,44 @@ void wcs_menu::update_wcs_barcode()
 
 	barcode_line->setText(QString::fromStdString(edit));
 	config::raw_barcode = edit;
+}
+
+/****** Loads a barcode from a file and updates it as well (including current QLineEdit text) ******/
+bool wcs_menu::load_barcode()
+{
+	SDL_PauseAudio(1);
+
+	QString filename = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("Binary card data (*.bin)"));
+	if(filename.isNull()) { SDL_PauseAudio(0); return false; }
+
+	std::ifstream file(filename.toStdString().c_str(), std::ios::binary);
+
+	if(!file.is_open()) 
+	{
+		return false;
+	}
+
+	//Get file size
+	file.seekg(0, file.end);
+	u32 file_size = file.tellg();
+	file.seekg(0, file.beg);
+
+	if(file_size != 12)
+	{
+		return false;
+	}
+
+	char ex_data[12];
+
+	file.read((char*)ex_data, file_size); 
+	file.close();
+
+
+	std::string result = "";
+	result.assign(ex_data, 12);
+	barcode_line->setText(QString::fromStdString(result));
+
+	SDL_PauseAudio(0);
+
+	return true;
 }
