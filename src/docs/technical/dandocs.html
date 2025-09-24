@@ -4741,7 +4741,7 @@ AM_SMC_EOF	(R)	0x0801040E	16-bit		Remaining bytes from current read pointer to E
 
 	<p>AM_SMC_SIZE determines the size of data to read from the SmartMedia card. As the Advance Movie Adapter only maps in a maximum of 1KB for data blocks, this value is never greater than 0x400 as far as the firmware is concerned. Note that setting the size of data for firmware reads is a separate register.</p>
 
-	<p>AM_SMC_FILE selects the current file to begin reading data from. Below in further section, a thorough explanation of the AM3 file hierarchy is provided.</p>
+	<p>AM_SMC_FILE selects the current file to begin reading data from. Below in a further section, a thorough explanation of the AM3 file hierarchy is provided.</p>
 
 	<p>AM_SMC_EOF returns the remaining bytes from the current read pointer until the current End-Of-File is reached. This value normally reports the same 16-bit value as AM_SMC_SIZE when at least that many bytes remain between the read pointer and EOF. If the read pointer advances after mapping in new data, and the distance between the read pointer and the EOF is less than AM_SMC_SIZE, AM_SMC_EOF will report the smaller value. Note that AM_SMC_EOF can also change when simply switching to a new file (by writing to AM_SMC_FILE) that is smaller than AM_SMC_SIZE.</p>
 
@@ -4754,9 +4754,9 @@ AM_SMID		(R)	0x08010410	128-bit		16-byte SmartMedia ID used for copy-protection
 
 	<p>AM_FILE_SIZE returns the current file size as determined by the FAT of the SmartMedia card. Note that this register overlaps with AM_SMID. To switch, the CPU must write the value 0x05 to AM_BLK_STAT.</p>
 
-	<p>AM_SMID returns the 128-bit (16-byte) SmartMedia ID (SMID) that the firmware verifies for copy-protection purposes. This ID is unique to every SmartMedia cards and is embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter, these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.</p>
+	<p>AM_SMID returns the 128-bit (16-byte) SmartMedia ID (SMID) that the firmware verifies for copy-protection purposes. This ID is unique to every SmartMedia card and is embedded in a region not normally accessible by standard card readers. When no SmartMedia card is inserted in the adapter, these bytes return zero. Note that this register partially overlaps with AM_FILE_SIZE. To switch, the CPU must write the value 0x03 to AM_BLK_STAT.</p>
 
-	<p>To properly access any of the I/O registers, the PHI terminal output should be set to 16.78MHz. On that note, the amount of cycles spent in various waitstates does not appear to affect the overall operation of the adapter. However, slower access, if significant, could potentially degrade the firmware&#39;s video playback functions. The firmware should handle a small amount slower access without issue. For example, on the DS Lite, there is a brief pause during the initial setup (before the AM3 logo appears) with a small loading icon. This screen is not shown on an original Game Boy Advance due to apparent timing differences.</p>
+	<p>To properly access any of the I/O registers, the PHI terminal output should be set to 16.78MHz. On that note, the amount of cycles spent in various waitstates does not appear to affect the overall operation of the adapter. However, slower access, if significant, could potentially degrade the firmware&#39;s video playback functions. The firmware should handle a small amount of slower access without issue. For example, on the DS Lite, there is a brief pause during the initial setup (before the AM3 logo appears) with a small loading icon. This screen is not shown on an original Game Boy Advance due to apparent timing differences.</p>
 
 	<a name="ama_sta"></a>
 	<p class="gray_title">[Advance Movie Adapter] : AM_BLK_STAT</p>
@@ -4807,7 +4807,7 @@ Command		| Description
 	<p class="list_item">After issuing this command, the 16 bytes beginning at AM_SMID (0x08010410 - 0x0801041F) will return the 128-bit SmartMedia ID whenever read.</p><p class="spc"></p>
 
 	<p class="list_item"><strong>Command 0x05 - Set File Size Mode</strong></p>
-	<p class="list_item">After issuing this command, the 4 bytes at AM_FILE_SIZE (0x08010410 - 0x08010413) will return the current file size. These values are pulled from the File Allocation Table written to the SmartMedia card. Most importantly, when switching to a new file by writing to AM_SMC_FILE, this commands updates the current file size the CPU will read. When a new file is chosen, AM_SMC_FILE <strong>does not</strong> update automatically. That is to say, the old value will be read unless the Set File Size Mode command is called.</p><p class="spc"></p>
+	<p class="list_item">After issuing this command, the 4 bytes at AM_FILE_SIZE (0x08010410 - 0x08010413) will return the current file size. These values are pulled from the File Allocation Table written to the SmartMedia card. Most importantly, when switching to a new file by writing to AM_SMC_FILE, this command updates the current file size the CPU will read. When a new file is chosen, AM_SMC_FILE <strong>does not</strong> update automatically. That is to say, the old value will be read unless the Set File Size Mode command is called.</p><p class="spc"></p>
 
 	<p class="list_item"><strong>Command 0x09 - Read Firmware Data Block</strong></p>
 	<p class="list_item">Data Source: Current Read Pointer</p>
