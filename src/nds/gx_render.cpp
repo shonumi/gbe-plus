@@ -122,6 +122,7 @@ void NTR_LCD::render_geometry()
 		{
 			plot_z[a] = temp_matrix[2];
 			
+			/*
 			if(temp_matrix[3])
 			{
 				u64 z = get_u32_fixed(temp_matrix[2]);
@@ -129,6 +130,7 @@ void NTR_LCD::render_geometry()
 				z = ((((z << 14) / w) + 0x3FFF) << 9) & 0xFFFFFF;
 				plot_z[a] = (z >> 12) + ((z & 0xFFF) / 4096.0);
 			}
+			*/
 		}
 
 		//Otherwise, use W value for depth
