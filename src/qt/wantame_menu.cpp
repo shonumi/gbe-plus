@@ -22,21 +22,28 @@ wcs_menu::wcs_menu(QWidget *parent) : QDialog(parent)
 	//Cosmic character drop down menu
 	QWidget* barcode_set = new QWidget;
 	QLabel* barcode_label = new QLabel("Barcode : ");
-
 	barcode_line = new QLineEdit;
-
-	QPushButton* barcode_button = new QPushButton("Load Barcode File");
 
 	QHBoxLayout* barcode_layout = new QHBoxLayout;
 	barcode_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	barcode_layout->addWidget(barcode_label);
 	barcode_layout->addWidget(barcode_line);
-	barcode_layout->addWidget(barcode_button);
 	barcode_set->setLayout(barcode_layout);
+
+	QWidget* load_set = new QWidget;
+	QLabel* load_label = new QLabel(" ", load_set);
+	load_button = new QPushButton("Load Barcode File");
+	load_button->setMinimumWidth(250);
+
+	QHBoxLayout* load_layout = new QHBoxLayout;
+	load_layout->addWidget(load_button, 0, Qt::AlignCenter);
+	load_layout->addWidget(load_label, 1, Qt::AlignRight);
+	load_set->setLayout(load_layout);
 
 	QVBoxLayout* final_layout = new QVBoxLayout;
 	final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	final_layout->addWidget(barcode_set);
+	final_layout->addWidget(load_set);
 	final_layout->addWidget(close_button);
 	setLayout(final_layout);
 
@@ -48,7 +55,7 @@ wcs_menu::wcs_menu(QWidget *parent) : QDialog(parent)
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(barcode_line, SIGNAL(textChanged(const QString)), this, SLOT(update_wcs_barcode()));
-	connect(barcode_button, SIGNAL(clicked()), this, SLOT(load_barcode()));
+	connect(load_button, SIGNAL(clicked()), this, SLOT(load_barcode()));
 }
 
 /****** Sets the raw barcode (alphanumerical value) when updating QLineEdit ******/
