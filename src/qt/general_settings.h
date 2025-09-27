@@ -107,6 +107,8 @@ class gen_settings : public QDialog
 	QLineEdit* gbc_bios;
 	QLineEdit* gba_bios;
 	QLineEdit* min_bios;
+	QLineEdit* arm7_bios;
+	QLineEdit* arm9_bios;
 	QLineEdit* nds_firmware;
 	QLineEdit* screenshot;
 	QLineEdit* game_saves;
@@ -116,6 +118,8 @@ class gen_settings : public QDialog
 	QLabel* gbc_bios_label;
 	QLabel* gba_bios_label;
 	QLabel* min_bios_label;
+	QLabel* arm7_bios_label;
+	QLabel* arm9_bios_label;
 	QLabel* nds_firmware_label;
 	QLabel* screenshot_label;
 	QLabel* game_saves_label;
