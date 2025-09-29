@@ -114,13 +114,14 @@ void NTR_LCD::render_geometry()
 
 		//Generate NDS XY screen coordinate from clip matrix
 		temp_matrix = temp_matrix * clip_matrix;
- 		plot_x[a] = round(((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
-  		plot_y[a] = round(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
+ 		plot_x[a] = ceil(((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
+  		plot_y[a] = ceil(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
 
 		//Get Z coordinate, use existing data from vertex
 		if(lcd_3D_stat.z_buffering)
 		{
 			plot_z[a] = temp_matrix[2];
+			if(temp_matrix[3]) { plot_z[a] /= temp_matrix[3]; }
 			
 			/*
 			if(temp_matrix[3])
@@ -412,7 +413,7 @@ void NTR_LCD::fill_poly_solid()
 	u8 edge_x1 = lcd_3D_stat.poly_min_x;
 	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -475,7 +476,7 @@ void NTR_LCD::fill_poly_interpolated()
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -577,7 +578,7 @@ void NTR_LCD::fill_poly_textured()
 	u32 tw = lcd_3D_stat.tex_src_width;
 	u32 th = lcd_3D_stat.tex_src_height;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
