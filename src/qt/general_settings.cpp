@@ -2766,7 +2766,7 @@ void gen_settings::set_paths(int index)
 	QString path;
 
 	//Open file browser for Boot ROMs, BIOS, Firmware, cheats,
-	if((index != 7) || (index != 8))
+	if((index != 7) && (index != 8))
 	{
 		path = QFileDialog::getOpenFileName(this, tr("Open"), "", tr("All files (*)"));
 		if(path.isNull()) { return; }
