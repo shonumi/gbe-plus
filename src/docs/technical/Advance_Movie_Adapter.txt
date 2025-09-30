@@ -255,10 +255,10 @@ Read SMID in 32-bit Chunks
 WHILE [AM_BLK_STAT] NOT EQUAL TO 0x03
 	READ [AM_BLK_STAT] AGAIN
 
-SMID_0 = [AM_SMID + 0x00]			//Read 0x08010410 - 0x08010413
-SMID_1 = [AM_SMID + 0x04]			//Read 0x08010414 - 0x08010417
-SMID_2 = [AM_SMID + 0x08]			//Read 0x08010418 - 0x0801041B
-SMID_3 = [AM_SMID + 0x0C]			//Read 0x0801041C - 0x0801041F
+SMID_0 = [AM_SMID + 0x00]		//Read 0x08010410 - 0x08010413
+SMID_1 = [AM_SMID + 0x04]		//Read 0x08010414 - 0x08010417
+SMID_2 = [AM_SMID + 0x08]		//Read 0x08010418 - 0x0801041B
+SMID_3 = [AM_SMID + 0x0C]		//Read 0x0801041C - 0x0801041F
 
 
 ***************************************************
@@ -354,7 +354,14 @@ Additionally, when the adapter needs to handle SmartMedia card errors, Bit 8 of 
 
 
 ***************************************************
-10. List of AM3 Cards and Products
+10. Game Boy Player Copy Protection
+***************************************************
+
+In addition to the encrypted "lock file", the Advance Movie Adapter's firmware can also enable or disable compatibility with the Game Boy Player. Depending on the data on the SmartMedia card, publishers could choose whether or not they wanted to protect their videos from potentially playing on TVs (and thus susceptible to recording devices). Unlike the Game Boy Advance Video series by Majesco, not every video for the Advance Movie Adapter was locked down in this regard. For example, while the Pokemon videos prohibited use of the Game Boy Player, the Detective Conan episodes did not.
+
+
+***************************************************
+11. List of AM3 Cards and Products
 ***************************************************
 
 -----------------------------------------------------------

@@ -4685,6 +4685,7 @@ Bit		| Function
 	<p class="list_item"><a href="#ama_sys">File System And Hierarchy</a></p>
 	<p class="list_item"><a href="#ama_lok">00.AM3</a></p>
 	<p class="list_item"><a href="#ama_err">Error Handling</a></p>
+	<p class="list_item"><a href="#ama_gbp">Game Boy Player Copy Protection</a></p>
 	<p class="list_item"><a href="#ama_lst">List of AM3 Cards and Products</a></p>
 
 	<a name="ama_gen"></a>
@@ -4907,10 +4908,10 @@ Read SMID in 32-bit Chunks
 WHILE [AM_BLK_STAT] NOT EQUAL TO 0x03
 	READ [AM_BLK_STAT] AGAIN
 
-SMID_0 = [AM_SMID + 0x00]			//Read 0x08010410 - 0x08010413
-SMID_1 = [AM_SMID + 0x04]			//Read 0x08010414 - 0x08010417
-SMID_2 = [AM_SMID + 0x08]			//Read 0x08010418 - 0x0801041B
-SMID_3 = [AM_SMID + 0x0C]			//Read 0x0801041C - 0x0801041F</pre>
+SMID_0 = [AM_SMID + 0x00]		//Read 0x08010410 - 0x08010413
+SMID_1 = [AM_SMID + 0x04]		//Read 0x08010414 - 0x08010417
+SMID_2 = [AM_SMID + 0x08]		//Read 0x08010418 - 0x0801041B
+SMID_3 = [AM_SMID + 0x0C]		//Read 0x0801041C - 0x0801041F</pre>
 
 	<a name="ama_ptr"></a>
 	<p class="gray_title">[Advance Movie Adapter] : Read Pointer</p>
@@ -4986,6 +4987,11 @@ INFO.AM3
 	<p>The Advance Movie Adapter behaves slightly differently when the SmartMedia card cannot be read. While the first 1KB section of the firmware is loaded normally for the initial bootloader, trying to read subsequent 1KB blocks of the firmware returns a repeating 5KB section of code dedicated to error handling. This 5KB section is distinct from the regular firmware 11KB that deals with decoding and playing audio/video files. It can only be accessed when a SmartMedia card related issue occurs. Examples include a missing/improperly inserted card, an unsupported SmartMedia card type, or a damaged SmartMedia card. The error handling code helpfully displays an on-screen message in Japanese and English (with a typo) in such an event.</p>
 
 	<p>Additionally, when the adapter needs to handle SmartMedia card errors, Bit 8 of AM_BLK_STAT no longer serves as an EOF flag. The GBA can read an indefinite amount of repeating 1KB blocks from firmware (the 5KB section) without ever changing the status of Bit 8. Lastly, AM_SMID will return zeroes for each of its 16-bytes. These two conditions can be used for software to manually check whether or not a SmartMedia card is inside the adapter.</p>
+
+	<a name="ama_gbp"></a>
+	<p class="gray_title">[Advance Movie Adapter] : Game Boy Player Copy Protection</p>
+
+	<p>In addition to the encrypted &#34;lock file&#34;, the Advance Movie Adapter&#39;s firmware can also enable or disable compatibility with the Game Boy Player. Depending on the data on the SmartMedia card, publishers could choose whether or not they wanted to protect their videos from potentially playing on TVs (and thus susceptible to recording devices). Unlike the Game Boy Advance Video series by Majesco, not every video for the Advance Movie Adapter was locked down in this regard. For example, while the Pokemon videos prohibited use of the Game Boy Player, the Detective Conan episodes did not.</p>
 
 	<a name="ama_lst"></a>
 	<p class="gray_title">[Advance Movie Adapter] : List of AM3 Cards and Products</p>
