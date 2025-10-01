@@ -53,7 +53,16 @@ void hue_to_rgb(in float hue_f1, in float hue_f2, in float hue, out float rgb_co
 	else if((2 * hue) < 1.0) { rgb_comp = hue_f2; }
 	else if((3 * hue) < 2.0) { rgb_comp = (hue_f1 + (hue_f2 - hue_f1) * ((2.0/3.0) - hue) * 6); }
 	else { rgb_comp = hue_f1; }
-} 
+}
+
+void brighten_color(in vec4 input_color, out vec4 output_color)
+{
+	input_color.r = min((input_color.r * 1.50), 1.0);
+	input_color.g = min((input_color.g * 1.50), 1.0);
+	input_color.b = min((input_color.b * 1.50), 1.0);
+
+	output_color = input_color;
+}
 
 void rgb_to_hsl(in vec4 input_color, out vec4 hsl_values)
 {
@@ -141,14 +150,14 @@ void main()
 	//Convert texture coordinates to pixel space
 	float screen_y_mod = mod(gl_FragCoord.y, scanline_size);
 
-	//On odd sections, darken all fragments
+	hsl_to_rgb(hsl, current_color);
+
+	//On odd sections, brighten all fragments
 	if(screen_y_mod < (scanline_size/2.0))
 	{
-		hsl[2] += 0.15;
-		if(hsl[2] > 1.0) { hsl[2] == 1.0; }
+		vec4 temp_color = current_color;
+		brighten_color(temp_color, current_color);
 	}
-
-	hsl_to_rgb(hsl, current_color);
 
 	vec2 adj_coords = current_pos;
 	adj_coords.x += (1.0 / screen_x_size);
