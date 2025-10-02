@@ -650,6 +650,12 @@ void validate_system_type()
 	else if(ext == ".nds") { config::gb_type = SYS_NDS; }
 	else if(ext == ".min") { config::gb_type = SYS_MIN; }
 
+	else if(ext == ".am3")
+	{
+		config::gb_type = SYS_GBA;
+		config::cart_type = AGB_AM3;
+	}
+
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	else if((ext != ".gba") && (config::gb_type == SYS_GBA)) 
 	{
@@ -693,6 +699,12 @@ u8 get_system_type_from_file(std::string filename)
 	if(ext == ".gba") { gb_type = SYS_GBA; }
 	else if(ext == ".nds") { gb_type = SYS_NDS; }
 	else if(ext == ".min") { gb_type = SYS_MIN; }
+
+	else if(ext == ".am3")
+	{
+		config::gb_type = SYS_GBA;
+		config::cart_type = AGB_AM3;
+	}
 
 	//Force GBC mode if system type is set to GBA, but a GB/GBC game is loaded
 	else if((ext != ".gba") && (gb_type == SYS_GBA))
