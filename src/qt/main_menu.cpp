@@ -863,7 +863,19 @@ void main_menu::boot_game()
 		if(ext == ".gba") { config::gb_type = SYS_GBA; }
 		else if(ext == ".nds") { config::gb_type = SYS_NDS; }
 		else if(ext == ".min") { config::gb_type = SYS_MIN; }
-		else if((ext != ".gba") && (config::gb_type == SYS_GBA)) { config::gb_type = SYS_GBC; config::gba_enhance = true; }
+
+		else if(ext == ".am3")
+		{
+			config::gb_type = SYS_GBA;
+			config::cart_type = AGB_AM3;
+		}
+		
+		else if((ext != ".gba") && (config::gb_type == SYS_GBA))
+		{
+			config::gb_type = SYS_GBC;
+			config::gba_enhance = true;
+		}
+		
 		else { config::gba_enhance = false; }
 
 		if((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2))
