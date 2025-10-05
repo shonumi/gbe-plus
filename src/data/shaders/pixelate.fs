@@ -1,4 +1,4 @@
-// EXT_DATA_USAGE_0
+// EXT_DATA_USAGE_1
 // GB Enhanced+ Copyright Daniel Baxter 2025
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
@@ -19,31 +19,26 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
-//Grabs surrounding texel from current position
-vec4 get_texel(in float x_shift, in float y_shift)
-{
-	float tex_x = 1.0 / screen_x_size;
-	float tex_y = 1.0 / screen_y_size;
-
-	vec2 src_pos = texture_coordinates;
-
-	//Shift texel position in XY directions
-	src_pos.x += (tex_x * x_shift);
-	src_pos.y += (tex_y * -y_shift);
-
-	return texture(screen_texture, src_pos);
-}
-
 void main()
 {
+	vec2 final_pos;
 	vec2 current_pos = texture_coordinates;
 	vec4 current_color = texture(screen_texture, texture_coordinates);
 
-	int pixel_x = int(current_pos.x * screen_x_size) % 2;
-	int pixel_y = int(current_pos.y * screen_y_size) % 2;
+	int win_x_ratio = int(ext_data_1 / screen_x_size);
+	int win_y_ratio = int(ext_data_2 / screen_y_size);
 
-	float x_offset = float(2.0 - pixel_x);
-	float y_offset = float(2.0 - pixel_y);
+	int block_x_size = win_x_ratio * 2;
+	int block_y_size = win_y_ratio * 2; 
 
-	color = get_texel(x_offset, y_offset);
+	int pixel_x = int(current_pos.x * screen_x_size * win_x_ratio);
+	int pixel_y = int(current_pos.y * screen_y_size * win_y_ratio);
+
+	pixel_x -= (pixel_x % block_x_size);
+	pixel_y -= (pixel_y % block_y_size);
+
+	final_pos.x = (1.0 / ext_data_1) * float(pixel_x);
+	final_pos.y = (1.0 / ext_data_2) * float(pixel_y);
+
+	color = texture(screen_texture, final_pos);
 }
