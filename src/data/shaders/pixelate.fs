@@ -19,6 +19,11 @@ uniform int screen_y_size;
 uniform float ext_data_1;
 uniform float ext_data_2;
 
+//Control variables - Adjust these to change how the shader's effects work
+
+//Pixelate effect size in pixels. Should be power of 2.
+int block_scale = 2;
+
 void main()
 {
 	vec2 final_pos;
@@ -28,8 +33,8 @@ void main()
 	int win_x_ratio = int(ext_data_1 / screen_x_size);
 	int win_y_ratio = int(ext_data_2 / screen_y_size);
 
-	int block_x_size = win_x_ratio * 2;
-	int block_y_size = win_y_ratio * 2; 
+	int block_x_size = win_x_ratio * block_scale;
+	int block_y_size = win_y_ratio * block_scale; 
 
 	int pixel_x = int(current_pos.x * screen_x_size * win_x_ratio);
 	int pixel_y = int(current_pos.y * screen_y_size * win_y_ratio);
