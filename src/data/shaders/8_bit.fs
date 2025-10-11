@@ -85,6 +85,9 @@ const vec4 palette[37] = vec4[37]
 //Pixelate effect size in pixels. Should be power of 2.
 int block_scale = 2;
 
+//Mixes all pixels within a block
+bool block_blur = true;
+
 //Get the weighted "distance" between two colors
 float get_color_distance(in vec4 color_1, in vec4 color_2)
 {
@@ -123,7 +126,36 @@ vec4 pixelate_color()
 	final_pos.x = (1.0 / ext_data_1) * float(pixel_x);
 	final_pos.y = (1.0 / ext_data_2) * float(pixel_y);
 
-	return texture(screen_texture, final_pos);
+	//Simply repeat the 1st color of a block for the entirety of a block
+	//This works, but is rather choppy in motion
+	if(block_blur == false)
+	{
+		return texture(screen_texture, final_pos);
+	}
+
+	//Take average of all pixels within a block
+	//Looks better/more consistent in motion
+	else
+	{
+		vec4 mix_color = vec4(0.0, 0.0, 0.0, 1.0);
+		vec4 temp_color = vec4(0.0, 0.0, 0.0, 1.0);
+		vec2 temp_pos = vec2(0.0, 0.0);
+
+		for(int y = 0; y < block_y_size; y++)
+		{
+			temp_pos.y = (1.0 / ext_data_2) * float(pixel_y + y);
+
+			for(int x = 0; x < block_x_size; x++)
+			{
+				temp_pos.x = (1.0 / ext_data_1) * float(pixel_x + x);
+				temp_color = texture(screen_texture, temp_pos);
+				mix_color += temp_color;
+			}
+		}
+
+		mix_color /= float(block_x_size * block_y_size);
+		return mix_color;
+	}
 }
 
 void main()
