@@ -494,7 +494,7 @@ bool main_menu::check_firmware_hashes(u8 system_type)
 		bool arm9_check = false;
 
 		//Check if any DMG/GBC BIOS exists
-		if((system_type == 1) || (system_type == 2))
+		if((system_type == SYS_DMG) || (system_type == SYS_GBC))
 		{
 			if((hash == 0x41884E46) || (hash == 0xE8EF5318) || (hash == 0xE6920754) || (hash == 0x59C8598E) || (hash == 0xC2F5CC97))
 			{
@@ -504,7 +504,7 @@ bool main_menu::check_firmware_hashes(u8 system_type)
 		}
 
 		//Check if any GBA BIOS exists
-		else if(system_type == 3)
+		else if(system_type == SYS_GBA)
 		{
 			if((hash == 0x81977335) || (hash == 0x3F02EA8F) || (hash == 0xA6473709))
 			{
@@ -514,7 +514,7 @@ bool main_menu::check_firmware_hashes(u8 system_type)
 		}
 
 		//Check if any NDS BIOS (ARM7 and ARM9) exists
-		else if(system_type == 4)
+		else if(system_type == SYS_NDS)
 		{
 			if(hash == 0x1280F0D5) { arm7_check = true; }
 			else if(hash == 0x2AB23573) { arm9_check = true; }
@@ -527,7 +527,7 @@ bool main_menu::check_firmware_hashes(u8 system_type)
 		}
 
 		//Check if any Pokemon Mini BIOS exists
-		else if(system_type == 7)
+		else if(system_type == SYS_MIN)
 		{
 			if(hash == 0xAED3C14D)
 			{
@@ -685,12 +685,12 @@ void main_menu::boot_game()
 
 	switch(system_type)
 	{
-		case 0x1: test_bios_path = config::dmg_bios_path; break;
-		case 0x2: test_bios_path = config::gbc_bios_path; break;
-		case 0x3: test_bios_path = config::agb_bios_path; break;
-		case 0x4: test_bios_path = config::nds7_bios_path; break;
-		case 0x7: test_bios_path = config::min_bios_path; break;
-		case 0x5: config::use_bios = false;
+		case SYS_DMG: test_bios_path = config::dmg_bios_path; break;
+		case SYS_GBC: test_bios_path = config::gbc_bios_path; break;
+		case SYS_GBA: test_bios_path = config::agb_bios_path; break;
+		case SYS_NDS: test_bios_path = config::nds7_bios_path; break;
+		case SYS_MIN: test_bios_path = config::min_bios_path; break;
+		case SYS_SGB: config::use_bios = false;
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
@@ -707,7 +707,7 @@ void main_menu::boot_game()
 		return;
 	}
 
-	if((system_type == 7) && (!config::use_bios))
+	if((system_type == SYS_MIN) && (!config::use_bios))
 	{
 		std::string mesg_text = "A BIOS file must be used when booting the Pokemon Mini core\n";
 		warning_box->setText(QString::fromStdString(mesg_text));
@@ -723,7 +723,7 @@ void main_menu::boot_game()
 		
 		else
 		{
-			if(system_type == 4)
+			if(system_type == SYS_NDS)
 			{
 				mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
 			} 
@@ -740,7 +740,7 @@ void main_menu::boot_game()
 	}
 
 	//Perform a second test for NDS9 BIOS
-	if(system_type == 4)
+	if(system_type == SYS_NDS)
 	{
 		test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
 
@@ -1403,12 +1403,12 @@ void main_menu::reset()
 
 		switch(system_type)
 		{
-			case 0x1: test_bios_path = config::dmg_bios_path; break;
-			case 0x2: test_bios_path = config::gbc_bios_path; break;
-			case 0x3: test_bios_path = config::agb_bios_path; break;
-			case 0x4: test_bios_path = config::nds7_bios_path; break;
-			case 0x7: test_bios_path = config::min_bios_path; break;
-			case 0x5: config::use_bios = false;
+			case SYS_DMG: test_bios_path = config::dmg_bios_path; break;
+			case SYS_GBC: test_bios_path = config::gbc_bios_path; break;
+			case SYS_GBA: test_bios_path = config::agb_bios_path; break;
+			case SYS_NDS: test_bios_path = config::nds7_bios_path; break;
+			case SYS_MIN: test_bios_path = config::min_bios_path; break;
+			case SYS_SGB: config::use_bios = false;
 		}
 
 		test_file.setFileName(QString::fromStdString(test_bios_path));
@@ -1424,7 +1424,7 @@ void main_menu::reset()
 		
 			else
 			{
-				if(system_type == 4)
+				if(system_type == SYS_NDS)
 				{
 					mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
 				} 
@@ -1441,7 +1441,7 @@ void main_menu::reset()
 		}
 
 		//Perform a second test for NDS9 BIOS
-		if(system_type == 4)
+		if(system_type == SYS_NDS)
 		{
 			test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
 
@@ -1621,12 +1621,12 @@ void main_menu::load_recent(int file_id)
 
 	switch(system_type)
 	{
-		case 0x1: test_bios_path = config::dmg_bios_path; break;
-		case 0x2: test_bios_path = config::gbc_bios_path; break;
-		case 0x3: test_bios_path = config::agb_bios_path; break;
-		case 0x4: test_bios_path = config::nds7_bios_path; break;
-		case 0x7: test_bios_path = config::min_bios_path; break;
-		case 0x5: config::use_bios = false;
+		case SYS_DMG: test_bios_path = config::dmg_bios_path; break;
+		case SYS_GBC: test_bios_path = config::gbc_bios_path; break;
+		case SYS_GBA: test_bios_path = config::agb_bios_path; break;
+		case SYS_NDS: test_bios_path = config::nds7_bios_path; break;
+		case SYS_MIN: test_bios_path = config::min_bios_path; break;
+		case SYS_SGB: config::use_bios = false;
 	}
 
 	test_file.setFileName(QString::fromStdString(test_bios_path));
@@ -1642,7 +1642,7 @@ void main_menu::load_recent(int file_id)
 		
 		else
 		{
-			if(system_type == 4)
+			if(system_type == SYS_NDS)
 			{
 				mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
 			} 
@@ -1659,7 +1659,7 @@ void main_menu::load_recent(int file_id)
 	}
 
 	//Perform a second test for NDS9 BIOS
-	if(system_type == 4)
+	if(system_type == SYS_NDS)
 	{
 		test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
 
