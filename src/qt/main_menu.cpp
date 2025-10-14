@@ -1397,67 +1397,6 @@ void main_menu::reset()
 		main_menu::gbe_plus->shutdown();
 		main_menu::gbe_plus->core_emu::~core_emu();
 
-		QFile test_file;
-		std::string test_bios_path = "";
-		u8 system_type = get_system_type_from_file(config::rom_file);
-
-		switch(system_type)
-		{
-			case SYS_DMG: test_bios_path = config::dmg_bios_path; break;
-			case SYS_GBC: test_bios_path = config::gbc_bios_path; break;
-			case SYS_GBA: test_bios_path = config::agb_bios_path; break;
-			case SYS_NDS: test_bios_path = config::nds7_bios_path; break;
-			case SYS_MIN: test_bios_path = config::min_bios_path; break;
-			case SYS_SGB: config::use_bios = false;
-		}
-
-		test_file.setFileName(QString::fromStdString(test_bios_path));
-		bool bios_exists = test_file.exists();
-
-		if(!bios_exists) { bios_exists = check_firmware_hashes(system_type); }
-
-		if(!bios_exists && config::use_bios)
-		{
-			std::string mesg_text;
-
-			if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
-		
-			else
-			{
-				if(system_type == SYS_NDS)
-				{
-					mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
-				} 
-				
-				else 
-				{
-					mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
-				}
-			} 
-
-			warning_box->setText(QString::fromStdString(mesg_text));
-			warning_box->show();
-			return;
-		}
-
-		//Perform a second test for NDS9 BIOS
-		if(system_type == SYS_NDS)
-		{
-			test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
-
-			if(!test_file.exists() && config::use_bios)
-			{
-				std::string mesg_text;
-
-				if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
-				else { mesg_text = "ARM9 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
-
-				warning_box->setText(QString::fromStdString(mesg_text));
-				warning_box->show();
-				return;
-			}
-		}
-
 		boot_game();
 	}
 }	
@@ -1614,66 +1553,6 @@ void main_menu::load_recent(int file_id)
 		warning_box->setText(QString::fromStdString(mesg_text));
 		warning_box->show();
 		return;
-	}
-
-	std::string test_bios_path = "";
-	u8 system_type = get_system_type_from_file(config::recent_files[file_id]);
-
-	switch(system_type)
-	{
-		case SYS_DMG: test_bios_path = config::dmg_bios_path; break;
-		case SYS_GBC: test_bios_path = config::gbc_bios_path; break;
-		case SYS_GBA: test_bios_path = config::agb_bios_path; break;
-		case SYS_NDS: test_bios_path = config::nds7_bios_path; break;
-		case SYS_MIN: test_bios_path = config::min_bios_path; break;
-		case SYS_SGB: config::use_bios = false;
-	}
-
-	test_file.setFileName(QString::fromStdString(test_bios_path));
-	bool bios_exists = test_file.exists();
-
-	if(!bios_exists) { bios_exists = check_firmware_hashes(system_type); }
-
-	if(!bios_exists && config::use_bios)
-	{
-		std::string mesg_text;
-
-		if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
-		
-		else
-		{
-			if(system_type == SYS_NDS)
-			{
-				mesg_text = "ARM7 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
-			} 
-				
-			else 
-			{
-				mesg_text = "No BIOS file specified for this system.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option";
-			}
-		} 
-
-		warning_box->setText(QString::fromStdString(mesg_text));
-		warning_box->show();
-		return;
-	}
-
-	//Perform a second test for NDS9 BIOS
-	if(system_type == SYS_NDS)
-	{
-		test_file.setFileName(QString::fromStdString(config::nds9_bios_path));
-
-		if(!test_file.exists() && config::use_bios)
-		{
-			std::string mesg_text;
-
-			if(!test_bios_path.empty()) { mesg_text = "The BIOS file: '" + test_bios_path + "' could not be loaded"; }
-			else { mesg_text = "ARM9 BIOS file not specified.\nPlease check your Paths settings or disable the 'Use BIOS/Boot ROM' option"; } 
-
-			warning_box->setText(QString::fromStdString(mesg_text));
-			warning_box->show();
-			return;
-		}
 	}
 
 	//Close the core
