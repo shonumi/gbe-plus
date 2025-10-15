@@ -354,6 +354,8 @@ bool load_virtual_cursor()
 		config::vc_data.push_back(0xFF000000 | (pixel_data[b+2] << 16) | (pixel_data[b+1] << 8) | (pixel_data[b]));
 	}
 
+	SDL_FreeSurface(source);
+
 	//Check final size
 	if(config::vc_data.size() != 64)
 	{

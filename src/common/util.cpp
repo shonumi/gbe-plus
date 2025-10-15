@@ -950,6 +950,8 @@ SDL_Surface* load_icon(std::string filename)
 		SDL_SetColorKey(output, SDL_TRUE, 0xFF00FF00);
 	}
 
+	SDL_FreeSurface(source);
+
 	return output;
 }
 
