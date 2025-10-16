@@ -8,11 +8,25 @@
 //
 // Provides miscellaneous utilities for the emulator
 
+#ifndef GL3_PROTOTYPES
+#define GL3_PROTOTYPES 1
+#endif
+
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES 1
+#endif
+
+#ifdef GBE_GLEW
+#include "GL/glew.h"
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <filesystem>
 
+#include "SDL_opengl.h"
+#include "config.h"
 #include "util.h"
 
 namespace util
@@ -958,15 +972,44 @@ SDL_Surface* load_icon(std::string filename)
 /****** Saves an image file as BMP or PNG ******/
 bool save_image(SDL_Surface* src, std::string filename)
 {
+	SDL_Surface* src_copy = src;
+	bool result = false;
+
+	//Special handling for OpenGL for SDL/CLI version
+	//Manually grab data by glReadPixels for SDL_Surface conversion
+	if(config::use_opengl)
+	{
+		std::vector<u8> img;
+		img.resize(config::win_width * config::win_height * 4, 0);
+		glReadPixels(0, 0, config::win_width, config::win_height, GL_RGBA, GL_UNSIGNED_BYTE, img.data());
+
+		src_copy = SDL_CreateRGBSurface(SDL_SWSURFACE, config::win_width, config::win_height, 32, 0, 0, 0, 0);
+
+		if(SDL_MUSTLOCK(src_copy)){ SDL_LockSurface(src_copy); }
+		u8* out_pixel_data = (u8*)src_copy->pixels;
+
+		for(u32 x = 0; x < img.size(); x++)
+		{
+			out_pixel_data[x] = img[x];
+		}
+
+		if(SDL_MUSTLOCK(src_copy)){ SDL_UnlockSurface(src_copy); }
+	}
+
 	#ifdef GBE_IMAGE_FORMATS
 	filename += ".png";
-	return IMG_SavePNG(src, filename.c_str());
+	result = IMG_SavePNG(src_copy, filename.c_str());
 	#endif
 		
 	#ifndef GBE_IMAGE_FORMATS
 	filename += ".bmp";
-	return SDL_SaveBMP(src, filename.c_str());
+	result = SDL_SaveBMP(src_copy, filename.c_str());
 	#endif
+
+	//Make sure to free surface *only* if it's a local copy!
+	if(config::use_opengl) { SDL_FreeSurface(src_copy); }
+
+	return result;
 }
 
 /****** Converts an integer into a BCD ******/
