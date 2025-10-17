@@ -979,18 +979,29 @@ bool save_image(SDL_Surface* src, std::string filename)
 	//Manually grab data by glReadPixels for SDL_Surface conversion
 	if(config::use_opengl)
 	{
-		std::vector<u8> img;
-		img.resize(config::win_width * config::win_height * 4, 0);
-		glReadPixels(0, 0, config::win_width, config::win_height, GL_RGBA, GL_UNSIGNED_BYTE, img.data());
+		std::vector<u8> temp_img;
+		std::vector<u8> final_img;
+		temp_img.resize(config::win_width * config::win_height * 4, 0);
+		glReadPixels(0, 0, config::win_width, config::win_height, GL_BGRA, GL_UNSIGNED_BYTE, temp_img.data());
+
+		//Vertically invert pixel data before further processing
+		for(s32 y = (config::win_height - 1); y >= 0; y--)
+		{
+			for(u32 x = 0; x < (config::win_width * 4); x++)
+			{
+				u32 current_pos = (y * config::win_width * 4) + x;
+				final_img.push_back(temp_img[current_pos]);
+			}
+		}
 
 		src_copy = SDL_CreateRGBSurface(SDL_SWSURFACE, config::win_width, config::win_height, 32, 0, 0, 0, 0);
 
 		if(SDL_MUSTLOCK(src_copy)){ SDL_LockSurface(src_copy); }
 		u8* out_pixel_data = (u8*)src_copy->pixels;
 
-		for(u32 x = 0; x < img.size(); x++)
+		for(u32 x = 0; x < final_img.size(); x++)
 		{
-			out_pixel_data[x] = img[x];
+			out_pixel_data[x] = final_img[x];
 		}
 
 		if(SDL_MUSTLOCK(src_copy)){ SDL_UnlockSurface(src_copy); }
