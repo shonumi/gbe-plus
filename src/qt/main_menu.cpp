@@ -680,6 +680,8 @@ void main_menu::boot_game()
 		return;
 	}
 
+	u32 old_cart_type = config::cart_type;
+
 	std::string test_bios_path = "";
 	u8 system_type = get_system_type_from_file(config::rom_file);
 
@@ -885,6 +887,14 @@ void main_menu::boot_game()
 
 		//Force GBA system type for AM3 emulation
 		if(config::cart_type == AGB_AM3) { config::gb_type = SYS_GBA; }
+
+		//Force GBA save type to auto-detect when previous file loaded was AM3
+		//System type checks do not affect save type, so it must be forced here
+		//Should *not* be done in GBA core resets since that will override some CLI args for SDL version!
+		if((config::gb_type == SYS_GBA) && (old_cart_type == AGB_AM3) && (config::cart_type != AGB_AM3))
+		{
+			config::agb_save_type = AGB_AUTO_DETECT;
+		}
 	}
 
 	//Start the appropiate system core - DMG, GBC, GBA, NDS, or MIN
