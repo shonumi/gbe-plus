@@ -2269,7 +2269,7 @@ bool AGB_MMU::read_file(std::string filename)
 		}
 
 		//Next read 16-byte SmartMedia ID from file
-		std::string smid_file = filename + ".smid";
+		std::string smid_file = util::get_filename_no_ext(filename) + ".smid";
 		if((!config::use_am3_folder) && (!read_smid(smid_file)) && (!config::auto_gen_am3_id))
 		{
 			file.close();
