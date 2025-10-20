@@ -703,6 +703,7 @@ void main_menu::boot_game()
 
 	if((config::rom_file == "NOCART") && (!config::use_bios))
 	{
+		config::no_cart = false;
 		std::string mesg_text = "A BIOS/Boot ROM file must be used when booting without a cartridge\n";
 		warning_box->setText(QString::fromStdString(mesg_text));
 		warning_box->show();
