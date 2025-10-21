@@ -710,6 +710,15 @@ void main_menu::boot_game()
 		return;
 	}
 
+	else if((config::rom_file == "NOCART") && ((config::gb_type == SYS_AUTO) || (settings->sys_type->currentIndex() == 0)))
+	{
+		config::no_cart = false;
+		std::string mesg_text = "A system type must be specified when booting without a cartridge\n";
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	if((system_type == SYS_MIN) && (!config::use_bios))
 	{
 		std::string mesg_text = "A BIOS file must be used when booting the Pokemon Mini core\n";
