@@ -460,6 +460,24 @@ void main_menu::open_am3_fldr()
 /****** Boots system without a cartridge ******/
 void main_menu::open_no_cart()
 {
+	if(!config::use_bios)
+	{
+		config::no_cart = false;
+		std::string mesg_text = "A BIOS/Boot ROM file must be used when booting without a cartridge\n";
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
+	else if((config::gb_type == SYS_AUTO) || (settings->sys_type->currentIndex() == SYS_AUTO))
+	{
+		config::no_cart = false;
+		std::string mesg_text = "A system type must be specified when booting without a cartridge\n";
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	//Close the core
 	if(main_menu::gbe_plus != NULL) 
 	{
@@ -705,24 +723,6 @@ void main_menu::boot_game()
 
 	//If BIOS file specified by path is not found, look for relevant file in data/bin/firmware
 	if(!bios_exists) { bios_exists = check_firmware_hashes(system_type); }
-
-	if((config::rom_file == "NOCART") && (!config::use_bios))
-	{
-		config::no_cart = false;
-		std::string mesg_text = "A BIOS/Boot ROM file must be used when booting without a cartridge\n";
-		warning_box->setText(QString::fromStdString(mesg_text));
-		warning_box->show();
-		return;
-	}
-
-	else if((config::rom_file == "NOCART") && (config::gb_type == SYS_AUTO))
-	{
-		config::no_cart = false;
-		std::string mesg_text = "A system type must be specified when booting without a cartridge\n";
-		warning_box->setText(QString::fromStdString(mesg_text));
-		warning_box->show();
-		return;
-	}
 
 	if((system_type == SYS_MIN) && (!config::use_bios))
 	{
