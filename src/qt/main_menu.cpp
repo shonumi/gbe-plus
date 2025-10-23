@@ -420,6 +420,8 @@ void main_menu::open_file()
 		connect(list_mapper, SIGNAL(mapped(int)), this, SLOT(load_recent(int)));
 	}
 
+	config::no_cart = false;
+
 	boot_game();
 }
 
@@ -450,6 +452,8 @@ void main_menu::open_am3_fldr()
 
 	config::rom_file = folder_name.toStdString();
 
+	config::no_cart = false;
+
 	boot_game();
 }
 
@@ -472,6 +476,7 @@ void main_menu::open_no_cart()
 	qt_gui::screen = NULL;
 
 	config::rom_file = "NOCART";
+	config::gb_type = settings->sys_type->currentIndex();
 
 	boot_game();
 }
@@ -710,7 +715,7 @@ void main_menu::boot_game()
 		return;
 	}
 
-	else if((config::rom_file == "NOCART") && ((config::gb_type == SYS_AUTO) || (settings->sys_type->currentIndex() == 0)))
+	else if((config::rom_file == "NOCART") && (config::gb_type == SYS_AUTO))
 	{
 		config::no_cart = false;
 		std::string mesg_text = "A system type must be specified when booting without a cartridge\n";
@@ -1615,6 +1620,8 @@ void main_menu::load_recent(int file_id)
 
 	if(qt_gui::screen != NULL) { delete qt_gui::screen; }
 	qt_gui::screen = NULL;
+
+	config::no_cart = false;
 
 	boot_game();
 }
