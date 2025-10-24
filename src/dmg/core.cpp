@@ -1452,6 +1452,19 @@ void DMG_core::start_netplay()
 	//Do nothing if netplay is not enabled
 	if(!config::use_netplay) { return; }
 
+	//Validate SIO or IR type before starting netplay - Prevents needless waits if not compatible
+	//Also, HuC-1/HuC-3 IR comms should  *not* start via this hotkey! Will segfault otherwise!
+	if((config::sio_device != SIO_DMG_LINK_CABLE) && (config::sio_device != SIO_4_PLAYER_ADAPTER)
+	&& (config::ir_device != IR_GBC))
+	{
+		if(config::cart_type != DMG_HUC_IR)
+		{
+			std::cout<<"SIO::Netplay could not start. No compatible peripheral selected.\n";
+		}
+
+		return;
+	}
+
 	#ifdef GBE_NETPLAY
 
 	//Wait 10 seconds before timing out
