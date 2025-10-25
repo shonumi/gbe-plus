@@ -863,6 +863,13 @@ void AGB_core::start_netplay()
 	//Do nothing if netplay is not enabled
 	if(!config::use_netplay) { return; }
 
+	//Validate emulated hardware before starting netplay - Prevents needless waits if not compatible
+	if(config::sio_device != SIO_AGB_LINK_CABLE)
+	{
+		std::cout<<"SIO::Netplay could not start. No compatible peripheral selected.\n";
+		return;
+	}
+
 	//Wait 10 seconds before timing out
 	u32 time_out = 0;
 
