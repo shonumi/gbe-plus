@@ -1372,4 +1372,66 @@ bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	return true;
 }
 
+/****** Applies an IPS patch to a ROM loaded in memory ******/
+bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size)
+{
+	std::ifstream patch_file(filename.c_str(), std::ios::binary);
+
+	if(!patch_file.is_open()) 
+	{ 
+		std::cout<<"MMU::" << filename << " BPS patch file could not be opened. Check file path or permissions. \n";
+		return false;
+	}
+
+	//Get the file size
+	patch_file.seekg(0, patch_file.end);
+	u32 file_size = patch_file.tellg();
+	patch_file.seekg(0, patch_file.beg);
+
+	std::vector<u8> patch_data;
+	patch_data.resize(file_size, 0);
+
+	//Read patch file into buffer
+	u8* ex_patch = &patch_data[0];
+	patch_file.read((char*)ex_patch, file_size);
+
+	//Check header for PATCH string
+	if((patch_data[0] != 0x42) || (patch_data[1] != 0x50) || (patch_data[2] != 0x53) || (patch_data[3] != 0x31))
+	{
+		std::cout<<"MMU::" << filename << " BPS patch file has invalid header\n";
+		return false;
+	}
+
+	bool end_of_file = false;
+	u64 patch_pos = 4;
+	u32 mem_map_pos = 0;
+
+	u64 source_size = get_bps_num(patch_data, patch_pos);
+	u64 target_size = get_bps_num(patch_data, patch_pos);
+	u64 meta_size = get_bps_num(patch_data, patch_pos);
+
+	patch_pos += meta_size;
+
+	return true;
+}
+
+/****** Reads a variable-length number from BPS patch data ******/
+u64 get_bps_num(std::vector<u8>& patch_data, u64& pos)
+{
+	bool is_number_finished = false;
+	u64 number = 0;
+	u32 shift = 0;
+
+	while((pos < patch_data.size()) && (!is_number_finished))
+	{
+		u8 patch_byte = patch_data[pos++];
+		number |= ((patch_byte & 0x7F) << shift);
+		shift += 7;
+
+		if(patch_byte & 0x80) { is_number_finished = true; }	
+	}
+
+	return number;
+}
+
 } //Namespace

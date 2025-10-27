@@ -114,6 +114,9 @@ namespace util
 
 	bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size);
 	bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size);
+	bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size);
+
+	u64 get_bps_num(std::vector<u8>& patch_data, u64& pos);
 
 	extern u32 crc32_table[256];
 	extern u32 poly32;
