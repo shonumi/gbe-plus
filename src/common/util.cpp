@@ -1404,13 +1404,62 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 
 	bool end_of_file = false;
 	u64 patch_pos = 4;
-	u32 mem_map_pos = 0;
+	u64 patch_end = patch_data.size() - 12;
+	u32 output_pos = 0;
 
 	u64 source_size = get_bps_num(patch_data, patch_pos);
 	u64 target_size = get_bps_num(patch_data, patch_pos);
 	u64 meta_size = get_bps_num(patch_data, patch_pos);
 
 	patch_pos += meta_size;
+
+	std::vector<u8> final_data;
+	final_data.resize(target_size, 0x00);
+
+	//Process all BPS commands until end of patch data is reached
+	while(patch_pos < patch_end)
+	{
+		u64 patch_bytes = get_bps_num(patch_data, patch_pos);
+		u64 len = (patch_bytes >> 2) + 1;
+		s64 offset = 0;
+		u8 cmd = patch_bytes & 0x3;
+
+		switch(cmd)
+		{
+			//Source Read
+			case 0x00:
+				while(len--)
+				{
+					final_data[output_pos] = mem_map[mem_pos + output_pos];
+					output_pos++;
+				}
+				
+				break;
+
+			//Target Read
+			case 0x01:
+				while(len--)
+				{
+					final_data[output_pos++] = patch_data[patch_pos++];
+				}
+
+				break;
+
+			//Source Copy
+			case 0x02:
+				patch_bytes = get_bps_num(patch_data, patch_pos);
+				return false;
+				
+				break;
+
+			//Target Copy
+			case 0x03:
+				patch_bytes = get_bps_num(patch_data, patch_pos);
+				return false;
+
+				break;
+		}
+	}
 
 	return true;
 }
