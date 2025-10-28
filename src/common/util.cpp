@@ -1420,15 +1420,23 @@ u64 get_bps_num(std::vector<u8>& patch_data, u64& pos)
 {
 	bool is_number_finished = false;
 	u64 number = 0;
-	u32 shift = 0;
+	u32 shift = 1;
 
 	while((pos < patch_data.size()) && (!is_number_finished))
 	{
 		u8 patch_byte = patch_data[pos++];
-		number |= ((patch_byte & 0x7F) << shift);
-		shift += 7;
+		number += ((patch_byte & 0x7F) * shift);
 
-		if(patch_byte & 0x80) { is_number_finished = true; }	
+		if(patch_byte & 0x80)
+		{
+			is_number_finished = true;
+		}
+
+		else
+		{
+			shift <<= 7;
+			number += shift;
+		}
 	}
 
 	return number;
