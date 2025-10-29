@@ -1405,6 +1405,9 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	bool end_of_file = false;
 	u64 patch_pos = 4;
 	u64 patch_end = patch_data.size() - 12;
+
+	s64 source_offset = 0;
+	s64 target_offset = 0;
 	u32 output_pos = 0;
 
 	u64 source_size = get_bps_num(patch_data, patch_pos);
@@ -1448,17 +1451,37 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 			//Source Copy
 			case 0x02:
 				patch_bytes = get_bps_num(patch_data, patch_pos);
-				return false;
+				offset = (patch_bytes & 0x01) ? -1 : 1;
+				offset *= (patch_bytes >> 1);
+				source_offset += offset;
+
+				while(len--)
+				{
+					final_data[output_pos++] = mem_map[mem_pos + source_offset++];
+				}
 				
 				break;
 
 			//Target Copy
 			case 0x03:
 				patch_bytes = get_bps_num(patch_data, patch_pos);
-				return false;
+				offset = (patch_bytes & 0x01) ? -1 : 1;
+				offset *= (patch_bytes >> 1);
+				target_offset += offset;
+
+				while(len--)
+				{
+					final_data[output_pos++] = final_data[target_offset++];
+				}
 
 				break;
 		}
+	}
+
+	//Copy patched data to destination in memory map
+	for(u32 x = 0; x < target_size; x++)
+	{
+		mem_map[mem_pos + x] = final_data[x];
 	}
 
 	return true;
