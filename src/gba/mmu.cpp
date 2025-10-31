@@ -2371,6 +2371,13 @@ bool AGB_MMU::read_file(std::string filename)
 		{
 			patch_pass = util::patch_ups((patch_file + ".ups"), memory_map, 0x8000000, 0x2000000);
 		}
+
+		//Attempt a BPS patch
+		if(!patch_pass)
+		{
+			patch_pass = util::patch_bps((patch_file + ".bps"), memory_map, 0x8000000, 0x2000000);
+		}
+			
 	}
 
 	//Calculate 8-bit checksum
