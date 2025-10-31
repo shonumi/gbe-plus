@@ -1484,6 +1484,17 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 		mem_map[mem_pos + x] = final_data[x];
 	}
 
+	patch_pos = patch_end + 4;
+	u32 target_checksum = (patch_data[patch_pos] | (patch_data[patch_pos + 1] << 8) | (patch_data[patch_pos + 2] << 16) | (patch_data[patch_pos + 3] << 24));
+	u32 actual_checksum = get_crc32(&final_data[0], target_size);
+
+	if(target_checksum != actual_checksum)
+	{
+		std::cout<<"MMU::Warning - BPS Patched File CRC32 is different than expected.\n";
+		std::cout<<"MMU::Expected Checksum: 0x" << target_checksum << "\n";
+		std::cout<<"MMU::Calculated Checksum: 0x" << actual_checksum << "\n";
+	}
+
 	return true;
 }
 
