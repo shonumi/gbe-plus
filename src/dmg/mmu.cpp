@@ -1720,9 +1720,10 @@ bool DMG_MMU::read_file(std::string filename)
 			if(pos > 0)
 			{
 				//Read the last 32KB and put it as Bank 0
-				file.seekg(pos);
-				file.read((char*)ex_mem, 0x8000);
-				file.seekg(0, file.beg);
+				for(u32 x = 0; x < 0x8000; x++)
+				{
+					memory_map[x] = rom_file[pos + x];
+				}
 			}
 
 			else
@@ -1736,7 +1737,10 @@ bool DMG_MMU::read_file(std::string filename)
 		else
 		{
 			//Read 32KB worth of data from ROM file
-			file.read((char*)ex_mem, 0x8000);
+			for(u32 x = 0; x < 0x8000; x++)
+			{
+				memory_map[x] = rom_file[x];
+			}
 		}
 	}
 
@@ -2032,8 +2036,6 @@ bool DMG_MMU::read_file(std::string filename)
 		cart.ram = false;
 		cart.battery = false;
 		rom_bank = 0;
-
-		std::cout<<"ROM BANK \n";
 	}
 
 	//Calculate 8-bit checksum
@@ -2058,9 +2060,11 @@ bool DMG_MMU::read_file(std::string filename)
 
 		while(file_pos < (cart.rom_size * 1024))
 		{
-			u8* ex_rom = &read_only_bank[bank_count][0];
-			file.read((char*)ex_rom, 0x4000);
-			file_pos += 0x4000;
+			for(u32 x = 0; x < 0x4000; x++)
+			{
+				read_only_bank[bank_count][x] = rom_file[file_pos++];
+			}
+
 			bank_count++;
 		}
 	}
@@ -2140,7 +2144,6 @@ bool DMG_MMU::read_file(std::string filename)
 
 		if(config::gb_type == SYS_GBC)
 		{
-
 			memory_map[0xFF51] = 0xFF;
 			memory_map[0xFF52] = 0xFF;
 			memory_map[0xFF53] = 0xFF;
