@@ -2358,10 +2358,7 @@ bool AGB_MMU::read_file(std::string filename)
 	//Apply patches to the ROM data
 	if(config::use_patches)
 	{
-		std::size_t dot = filename.find_last_of(".");
-		if(dot == std::string::npos) { dot = filename.size(); }
-
-		std::string patch_file = filename.substr(0, dot);
+		std::string patch_file = util::get_filename_no_ext(filename);
 
 		//Attempt a IPS patch
 		bool patch_pass = util::patch_ips((patch_file + ".ips"), memory_map, 0x8000000, 0x2000000);
@@ -2376,8 +2373,7 @@ bool AGB_MMU::read_file(std::string filename)
 		if(!patch_pass)
 		{
 			patch_pass = util::patch_bps((patch_file + ".bps"), memory_map, 0x8000000, 0x2000000);
-		}
-			
+		}		
 	}
 
 	//Calculate 8-bit checksum

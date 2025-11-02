@@ -1704,6 +1704,27 @@ bool DMG_MMU::read_file(std::string filename)
 	file.read((char*)ex_mem, file_size);
 	file.seekg(0, file.beg);
 
+	//Apply patches to the ROM data
+	if(config::use_patches)
+	{
+		std::string patch_file = util::get_filename_no_ext(filename);
+
+		//Attempt a IPS patch
+		bool patch_pass = util::patch_ips((patch_file + ".ips"), rom_file, 0x00, file_size);
+
+		//Attempt a UPS patch
+		if(!patch_pass)
+		{
+			patch_pass = util::patch_ups((patch_file + ".ups"), rom_file, 0x00, file_size);
+		}
+
+		//Attempt a BPS patch
+		if(!patch_pass)
+		{
+			patch_pass = util::patch_bps((patch_file + ".bps"), rom_file, 0x00, file_size);
+		}		
+	}
+
 	//Grab CRC32
 	u32 crc32 = util::get_crc32(&rom_file[0], file_size);
 
@@ -2072,23 +2093,6 @@ bool DMG_MMU::read_file(std::string filename)
 	file.close();
 	std::cout<<"MMU::ROM CRC32: " << std::hex << crc32 << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
-
-	//Apply patches to the ROM data
-	if(config::use_patches)
-	{
-		bool patch_pass = false;
-
-		std::size_t dot = filename.find_last_of(".");
-		if(dot == std::string::npos) { dot = filename.size(); }
-
-		std::string patch_file = filename.substr(0, dot);
-
-		//Attempt a IPS patch
-		patch_pass = patch_ips(patch_file + ".ips");
-
-		//Attempt a UPS patch
-		if(!patch_pass) { patch_pass = patch_ups(patch_file + ".ups"); }
-	}
 
 	//Apply Game Genie codes to ROM data
 	if(config::use_cheats) { set_gg_cheats(); }
