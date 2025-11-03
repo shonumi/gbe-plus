@@ -233,9 +233,6 @@ class DMG_MMU
 	bool save_backup(std::string filename);
 	bool load_backup(std::string filename);
 
-	bool patch_ips(std::string filename);
-	bool patch_ups(std::string filename);
-
 	//Memory Bank Controller dedicated read/write operations
 	void mbc_write(u16 address, u8 value);
 	u8 mbc_read(u16 address);
