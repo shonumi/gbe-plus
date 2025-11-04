@@ -710,6 +710,27 @@ bool MIN_MMU::read_file(std::string filename)
 
 	file.close();
 
+	//Apply patches to the ROM data
+	if(config::use_patches)
+	{
+		std::string patch_file = util::get_filename_no_ext(filename);
+
+		//Attempt a IPS patch
+		bool patch_pass = util::patch_ips((patch_file + ".ips"), memory_map, 0x2100, file_size);
+
+		//Attempt a UPS patch
+		if(!patch_pass)
+		{
+			patch_pass = util::patch_ups((patch_file + ".ups"), memory_map, 0x2100, file_size);
+		}
+
+		//Attempt a BPS patch
+		if(!patch_pass)
+		{
+			patch_pass = util::patch_bps((patch_file + ".bps"), memory_map, 0x2100, file_size);
+		}		
+	}
+
 	for(u32 x = (file_size + 0x2100); x < 0x200000; x++) { memory_map[x] = 0xFF; }
 
 	std::string title = "";
