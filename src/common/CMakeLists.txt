@@ -3,6 +3,7 @@ set(SRCS
 	util.cpp
 	gx_util.cpp
 	osd.cpp
+	debug_util.cpp
 	)
 
 set(HEADERS
@@ -12,6 +13,7 @@ set(HEADERS
 	util.h
 	gx_util.h
 	dmg_core_pad.h
+	debug_util.h
 	)
 
 
