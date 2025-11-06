@@ -8,6 +8,7 @@
 //
 // Provides miscellaneous utilities for debugging each core
 
+#include "util.h"
 #include "debug_util.h"
 
 namespace dbg_util
@@ -18,6 +19,12 @@ bool check_command_len(std::string full_cmd, std::string cmd, debug_param_types 
 {
 	bool result = false;
 	u32 min_size = cmd.length();
+
+	//Make sure command is correct, instant abort!
+	if(full_cmd.substr(0, min_size) != cmd)
+	{
+		return false;
+	}
 
 	switch(pt)
 	{
@@ -43,6 +50,38 @@ bool check_command_len(std::string full_cmd, std::string cmd, debug_param_types 
 			if(full_cmd.length() >= min_size)
 			{
 				result = true;
+			}
+
+			break;
+	}
+
+	return result;
+}
+
+//Ensures debug string has proper parameters
+bool validate_command(std::string full_cmd, std::string cmd, debug_param_types pt, u32 &param)
+{
+	bool result = false;
+	u32 start_pos = cmd.length();
+
+	switch(pt)
+	{
+		case HEX_PARAMETER:
+			start_pos += 3;
+
+			if(start_pos < full_cmd.length())
+			{ 
+				result = util::from_hex_str(full_cmd.substr(start_pos), param);
+			}
+
+			break;
+
+		case INT_PARAMETER:
+			start_pos += 1;
+
+			if(start_pos < full_cmd.length())
+			{
+				result = util::from_str(full_cmd.substr(start_pos), param);
 			}
 
 			break;

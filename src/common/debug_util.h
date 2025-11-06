@@ -23,7 +23,8 @@ namespace dbg_util
 		INT_PARAMETER,
 	};
 
-	bool parse_debug_command(std::string full_cmd, std::string cmd, debug_param_types pt);
+	bool check_command_len(std::string full_cmd, std::string cmd, debug_param_types pt);
+	bool validate_command(std::string full_cmd, std::string cmd, debug_param_types pt, u32 &param);
 }
 
 #endif // GBE_DBG_UTIL 
