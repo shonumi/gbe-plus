@@ -657,14 +657,13 @@ void DMG_core::debug_process_command()
 		{
 			bool valid_value = false;
 			u32 slot = 0;
-			std::string slot_string = command.substr(3);
 
 			//Convert string into a usable u32
 			valid_value = dbg_util::validate_command(command, "ls", dbg_util::INT_PARAMETER, slot);
 
 			if(!valid_value)
 			{
-				std::cout<<"\nInvalid save state slot : " << slot_string << "\n";
+				std::cout<<"\nInvalid save state slot : " << command.substr(3) << "\n";
 			}
 
 			else
@@ -673,7 +672,7 @@ void DMG_core::debug_process_command()
 
 				else
 				{
-					std::cout<<"Loading Save State " << slot_string << "\n";
+					std::cout<<"Loading Save State " << command.substr(3) << "\n";
 					load_state(slot);
 				}
 			}
