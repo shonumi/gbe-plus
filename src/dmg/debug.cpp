@@ -12,6 +12,7 @@
 #include <iomanip>
 
 #include "common/util.h"
+#include "common/debug_util.h"
 
 #include "core.h"
 
@@ -273,16 +274,13 @@ void DMG_core::debug_process_command()
 		else if(command == "dq") { valid_command = true; db_unit.debug_mode = false; std::cout<<"\n"; }
 
 		//Add breakpoint
-		else if((command.substr(0, 2) == "bp") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "bp", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 bp = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, bp);
+			valid_command = dbg_util::validate_command(command, "bp", dbg_util::HEX_PARAMETER, bp);
 		
 			//Request valid input again
 			if(!valid_command)
@@ -324,18 +322,15 @@ void DMG_core::debug_process_command()
 		//Show Block Short - 64 bytes
 		//Show Block Mid - 128 bytes
 		//Show Block Long - 256 bytes
-		else if(((command.substr(0, 3) == "sbs") ||  (command.substr(0, 3) == "sbm") || (command.substr(0, 3) == "sbl"))
-		&& (command.substr(4, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "sbs", dbg_util::HEX_PARAMETER) || dbg_util::check_command_len(command, "sbm", dbg_util::HEX_PARAMETER)
+		|| dbg_util::check_command_len(command, "sbl", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(6);
 			std::string cmd_str = command.substr(0, 3);
 
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
-
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, cmd_str, dbg_util::HEX_PARAMETER, mem_location);
 			mem_location &= 0xFFFFFFF0;
 
 			//Request valid input again
@@ -373,16 +368,13 @@ void DMG_core::debug_process_command()
 		}
 
 		//Show memory - 1 byte
-		else if((command.substr(0, 2) == "u8") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "u8", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "u8", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -395,22 +387,19 @@ void DMG_core::debug_process_command()
 			else
 			{
 				db_unit.last_command = "u8";
-				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
+				std::cout<<"Memory @ " << command.substr(5) << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location) << "\n";
 				debug_process_command();
 			}
 		}
 
 		//Show memory - 16 bytes
-		else if((command.substr(0, 3) == "u8s") && (command.substr(4, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "u8s", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(6);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "u8s", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -434,16 +423,13 @@ void DMG_core::debug_process_command()
 		}
 
 		//Show memory - 2 bytes
-		else if((command.substr(0, 3) == "u16") && (command.substr(4, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "u16", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(6);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "u16", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -456,24 +442,21 @@ void DMG_core::debug_process_command()
 			else
 			{
 				db_unit.last_command = "u16";
-				std::cout<<"Memory @ " << hex_string << " : 0x" << std::hex << (int)core_mmu.read_u16(mem_location) << "\n";
+				std::cout<<"Memory @ " << command.substr(6) << " : 0x" << std::hex << (int)core_mmu.read_u16(mem_location) << "\n";
 				debug_process_command();
 			}
 		}
 
 		//Write memory - 1 byte
-		else if((command.substr(0, 2) == "w8") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "w8", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			bool valid_value = false;
 			u32 mem_location = 0;
 			u32 mem_value = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "w8", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -514,18 +497,15 @@ void DMG_core::debug_process_command()
 		}
 
 		//Write memory - 2 bytes
-		else if((command.substr(0, 3) == "w16") && (command.substr(4, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "w16", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			bool valid_value = false;
 			u32 mem_location = 0;
 			u32 mem_value = 0;
-			std::string hex_string = command.substr(6);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "w16", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -566,16 +546,15 @@ void DMG_core::debug_process_command()
 		}
 
 		//Write to register
-		else if(command.substr(0, 3) == "reg")
+		else if(dbg_util::check_command_len(command, "reg", dbg_util::INT_PARAMETER))
 		{
 			valid_command = true;
 			bool valid_value = false;
 			u32 reg_index = 0;
 			u32 reg_value = 0;
-			std::string reg_string = command.substr(4);
 
 			//Convert string into a usable u32
-			valid_command = util::from_str(reg_string, reg_index);
+			valid_command = dbg_util::validate_command(command, "reg", dbg_util::INT_PARAMETER, reg_index);
 
 			//Request valid input again
 			if((!valid_command) || (reg_index > 0x9))
@@ -674,14 +653,14 @@ void DMG_core::debug_process_command()
 		}
 
 		//Load save state
-		else if(command.substr(0, 2) == "ls")
+		else if(dbg_util::check_command_len(command, "ls", dbg_util::INT_PARAMETER))
 		{
 			bool valid_value = false;
 			u32 slot = 0;
 			std::string slot_string = command.substr(3);
 
 			//Convert string into a usable u32
-			valid_value = util::from_str(slot_string, slot);
+			valid_value = dbg_util::validate_command(command, "ls", dbg_util::INT_PARAMETER, slot);
 
 			if(!valid_value)
 			{
@@ -705,18 +684,17 @@ void DMG_core::debug_process_command()
 		}
 
 		//Make save state
-		else if(command.substr(0, 2) == "ss")
+		else if(dbg_util::check_command_len(command, "ss", dbg_util::INT_PARAMETER))
 		{
 			bool valid_value = false;
 			u32 slot = 0;
-			std::string slot_string = command.substr(3);
 
 			//Convert string into a usable u32
-			valid_value = util::from_str(slot_string, slot);
+			valid_value = dbg_util::validate_command(command, "ss", dbg_util::INT_PARAMETER, slot);
 
 			if(!valid_value)
 			{
-				std::cout<<"\nInvalid save state slot : " << slot_string << "\n";
+				std::cout<<"\nInvalid save state slot : " << command.substr(3) << "\n";
 			}
 
 			else
@@ -725,7 +703,7 @@ void DMG_core::debug_process_command()
 
 				else
 				{
-					std::cout<<"Saving State " << slot_string << "\n";
+					std::cout<<"Saving State " << command.substr(3) << "\n";
 					save_state(slot);
 				}
 			}
@@ -736,18 +714,15 @@ void DMG_core::debug_process_command()
 		}
 
 		//Break on memory change
-		else if((command.substr(0, 2) == "bc") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "bc", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			bool valid_value = false;
 			u32 mem_location = 0;
 			u32 mem_value = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "bc", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -793,16 +768,13 @@ void DMG_core::debug_process_command()
 		#ifdef GBE_DEBUG
 
 		//Set write breakpoint
-		else if((command.substr(0, 2) == "bw") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "bw", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "bw", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -822,16 +794,13 @@ void DMG_core::debug_process_command()
 		}
 
 		//Set write breakpoint
-		else if((command.substr(0, 2) == "br") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "br", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "br", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -853,17 +822,14 @@ void DMG_core::debug_process_command()
 		#endif
 
 		//Disassembles 16 SM83 instructions from specified address
-		else if((command.substr(0, 2) == "dz") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "dz", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
 			bool valid_value = false;
 			u32 mem_location = 0;
-			std::string hex_string = command.substr(5);
-
-			if(hex_string.size() > 4) { hex_string = hex_string.substr(hex_string.size() - 4); }
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, mem_location);
+			valid_command = dbg_util::validate_command(command, "dz", dbg_util::HEX_PARAMETER, mem_location);
 
 			//Request valid input again
 			if(!valid_command)
@@ -928,15 +894,13 @@ void DMG_core::debug_process_command()
 		}
 
 		//Run emulation for a given amount of instructions before halting
-		else if((command.substr(0, 2) == "ri") && (command.substr(3, 2) == "0x"))
+		else if(dbg_util::check_command_len(command, "ri", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
-			bool valid_value = false;
 			u32 instruction_count = 0;
-			std::string hex_string = command.substr(5);
 
 			//Convert hex string into usable u32
-			valid_command = util::from_hex_str(hex_string, instruction_count);
+			valid_command = dbg_util::validate_command(command, "ri", dbg_util::HEX_PARAMETER, instruction_count);
 
 			//Request valid input again
 			if(!valid_command)
@@ -1064,6 +1028,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
+			std::cout<<"ri \t\t Runs emulation for a # of instructions, format 0x1234\n";
 			std::cout<<"rs \t\t Reset emulation\n";
 			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
 			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n";
