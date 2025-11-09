@@ -1062,7 +1062,7 @@ void AGB_core::debug_process_command()
 			}
 		}
 
-		//Set write breakpoint
+		//Set read breakpoint
 		else if(dbg_util::check_command_len(command, "br", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
