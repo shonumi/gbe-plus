@@ -526,7 +526,7 @@ void AGB_core::debug_process_command()
 			}
 		}
 
-		//Show memory - 2 bytes
+		//Show memory - 4 bytes
 		else if(dbg_util::check_command_len(command, "u32", dbg_util::HEX_PARAMETER))
 		{
 			valid_command = true;
