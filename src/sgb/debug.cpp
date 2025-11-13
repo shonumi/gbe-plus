@@ -29,8 +29,25 @@ void SGB_core::debug_step()
 	//Use CLI for all debugging
 	bool printed = false;
 
+	//When running until next VBlank, stop when done
+	if((db_unit.vb_count) || (db_unit.last_command == "vb"))
+	{
+		if((db_unit.vb_count == 2) && (core_cpu.controllers.video.lcd_stat.current_scanline < 0x90)) { db_unit.vb_count--; }
+
+		if((db_unit.vb_count == 1) && (core_cpu.controllers.video.lcd_stat.current_scanline == 0x90))
+		{
+			db_unit.vb_count = 0;
+			db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+			db_unit.last_command = "n";
+
+			debug_display();
+			debug_process_command();
+			printed = true;
+		}
+	}
+
 	//In continue mode, if breakpoints exist, try to stop on one
-	if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
+	else if((db_unit.breakpoints.size() > 0) && (db_unit.last_command == "c"))
 	{
 		for(int x = 0; x < db_unit.breakpoints.size(); x++)
 		{
@@ -77,6 +94,22 @@ void SGB_core::debug_step()
 		debug_display();
 		debug_process_command();
 		printed = true;
+	}
+
+	//When running for a given amount of instructions, stop when done.
+	else if(db_unit.run_count)
+	{
+		db_unit.run_count--;
+
+		//Stop run count and re-enter debugging mode
+		if(!db_unit.run_count)
+		{
+			db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+
+			debug_display();
+			debug_process_command();
+			printed = true;
+		}
 	}
 
 	//Advanced debugging
@@ -329,6 +362,36 @@ void SGB_core::debug_process_command()
 			}
 		}
 
+		//Show memory - 16 bytes
+		else if(dbg_util::check_command_len(command, "u8s", dbg_util::HEX_PARAMETER))
+		{
+			valid_command = true;
+			u32 mem_location = 0;
+
+			//Convert hex string into usable u32
+			valid_command = dbg_util::validate_command(command, "u8s", dbg_util::HEX_PARAMETER, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				db_unit.last_command = "u8s";
+				
+				for(u32 x = 0; x < 16; x++)
+				{
+					std::cout<<"Memory @ " << util::to_hex_str(mem_location + x) << " : 0x" << std::hex << (int)core_mmu.read_u8(mem_location + x) << "\n";
+				}
+				
+				debug_process_command();
+			}
+		}
+
 		//Show memory - 2 bytes
 		else if(dbg_util::check_command_len(command, "u16", dbg_util::HEX_PARAMETER))
 		{
@@ -559,6 +622,66 @@ void SGB_core::debug_process_command()
 			}
 		}
 
+		//Load save state
+		else if(dbg_util::check_command_len(command, "ls", dbg_util::INT_PARAMETER))
+		{
+			bool valid_value = false;
+			u32 slot = 0;
+
+			//Convert string into a usable u32
+			valid_value = dbg_util::validate_command(command, "ls", dbg_util::INT_PARAMETER, slot);
+
+			if(!valid_value)
+			{
+				std::cout<<"\nInvalid save state slot : " << command.substr(3) << "\n";
+			}
+
+			else
+			{
+				if(slot >= 10) { std::cout<<"Save state slot too high\n"; }
+
+				else
+				{
+					std::cout<<"Loading Save State " << command.substr(3) << "\n";
+					load_state(slot);
+				}
+			}
+
+			valid_command = true;
+			db_unit.last_command = "ls";
+			debug_process_command();
+		}
+
+		//Make save state
+		else if(dbg_util::check_command_len(command, "ss", dbg_util::INT_PARAMETER))
+		{
+			bool valid_value = false;
+			u32 slot = 0;
+
+			//Convert string into a usable u32
+			valid_value = dbg_util::validate_command(command, "ss", dbg_util::INT_PARAMETER, slot);
+
+			if(!valid_value)
+			{
+				std::cout<<"\nInvalid save state slot : " << command.substr(3) << "\n";
+			}
+
+			else
+			{
+				if(slot >= 10) { std::cout<<"Save state slot too high\n"; }
+
+				else
+				{
+					std::cout<<"Saving State " << command.substr(3) << "\n";
+					save_state(slot);
+				}
+			}
+
+			valid_command = true;
+			db_unit.last_command = "ss";
+			debug_process_command();
+		}
+
 		//Break on memory change
 		else if(dbg_util::check_command_len(command, "bc", dbg_util::HEX_PARAMETER))
 		{
@@ -739,6 +862,41 @@ void SGB_core::debug_process_command()
 			debug_process_command();
 		}
 
+		//Run emulation for a given amount of instructions before halting
+		else if(dbg_util::check_command_len(command, "ri", dbg_util::HEX_PARAMETER))
+		{
+			valid_command = true;
+			u32 instruction_count = 0;
+
+			//Convert hex string into usable u32
+			valid_command = dbg_util::validate_command(command, "ri", dbg_util::HEX_PARAMETER, instruction_count);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				std::cout<<"\n";
+				db_unit.run_count = instruction_count;
+				valid_command = true;
+				db_unit.last_command = "ri";
+			}
+		}
+
+		//Run emulation until next system VBlank
+		else if(command == "vb")
+		{
+			db_unit.vb_count = 2;
+			
+			valid_command = true;
+			db_unit.last_command = "vb";
+		}
+
 		//Print all instructions to the screen
 		else if(command == "pa")
 		{
@@ -815,6 +973,7 @@ void SGB_core::debug_process_command()
 
 			std::cout<<"del \t\t Deletes ALL current breakpoints\n";
 			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234\n";
+			std::cout<<"u8s \t\t Show 16 BYTES @ memory, format 0x1234\n";
 			std::cout<<"u16 \t\t Show WORD @ memory, format 0x1234\n";
 			std::cout<<"w8 \t\t Write BYTE @ memory, format 0x1234 for addr, 0x12 for value\n";
 			std::cout<<"w16 \t\t Write WORD @ memory, format 0x1234 for addr, 0x1234 for value\n";
@@ -825,9 +984,13 @@ void SGB_core::debug_process_command()
 			std::cout<<"dq \t\t Quit the debugger\n";
 			std::cout<<"dc \t\t Toggle CPU cycle display\n";
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
+			std::cout<<"ri \t\t Runs emulation for a # of instructions, format 0x1234\n";
 			std::cout<<"rs \t\t Reset emulation\n";
+			std::cout<<"vb \t\t Run emulation until next VBlank\n";
 			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
 			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n";
+			std::cout<<"ls \t\t Loads a given save state (0-9)\n";
+			std::cout<<"ss \t\t Saves a given save state (0-9)\n"; 
 			std::cout<<"q \t\t Quit GBE+\n\n";
 
 			valid_command = true;

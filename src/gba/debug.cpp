@@ -1313,6 +1313,7 @@ void AGB_core::debug_process_command()
 			std::cout<<"cr \t\t Reset CPU cycle counter\n";
 			std::cout<<"ri \t\t Runs emulation for a # of instructions, format 0x1234ABCD\n";
 			std::cout<<"rs \t\t Reset emulation\n";
+			std::cout<<"vb \t\t Run emulation until next VBlank\n";
 			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
 			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n";
 			std::cout<<"ls \t\t Loads a given save state (0-9)\n";
