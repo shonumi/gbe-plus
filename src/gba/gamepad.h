@@ -40,6 +40,8 @@ class AGB_GamePad
 	void start_rumble();
 	void stop_rumble();
 
+	void close_joystick();
+
 	int pad;
 	u16 key_input;
 	bool is_rumbling;

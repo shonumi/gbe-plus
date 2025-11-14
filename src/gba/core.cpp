@@ -142,6 +142,7 @@ void AGB_core::sleep()
 
 		//Hotplug joypad
 		else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
+		else if((event.type == SDL_JOYDEVICEREMOVED) && (core_pad.joy_init)) { core_pad.close_joystick(); }
 
 		//Exit on Joypad IRQ
 		if(core_pad.joypad_irq)
@@ -343,6 +344,7 @@ void AGB_core::run_core()
 
 			//Hotplug joypad
 			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
+			else if((event.type == SDL_JOYDEVICEREMOVED) && (core_pad.joy_init)) { core_pad.close_joystick(); }
 		}
 
 		//Run the CPU
