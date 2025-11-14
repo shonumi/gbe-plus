@@ -87,7 +87,7 @@ void DMG_GamePad::init()
 	jstick = SDL_JoystickOpen(config::joy_id);
 	config::joy_sdl_id = SDL_JoystickInstanceID(jstick);
 
-	joy_init = (jstick == NULL) ? true : false;
+	joy_init = (jstick != NULL) ? true : false;
 
 	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
 	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; return; }
