@@ -39,6 +39,8 @@ class NTR_GamePad
 	void start_rumble(s32 len);
 	void stop_rumble();
 
+	void close_joystick();
+
 	int pad;
 	u8 sdl_fs_ratio;
 	u16 key_input;

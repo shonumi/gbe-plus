@@ -42,6 +42,8 @@ class MIN_GamePad
 	void start_rumble();
 	void stop_rumble();
 
+	void close_joystick();
+
 	u32 turbo_button_enabled;
 	bool turbo_button_stat[12];
 	bool turbo_button_end[12];

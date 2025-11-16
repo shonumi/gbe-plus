@@ -82,6 +82,15 @@ void MIN_GamePad::init()
 /****** GamePad Destructor *******/
 MIN_GamePad::~MIN_GamePad() { }
 
+/****** Close SDL Joystick - Only used for hot plugging ******/
+void MIN_GamePad::close_joystick()
+{
+	joy_init = false;
+
+	if(jstick != NULL) { SDL_JoystickClose(jstick); }
+	if(rumble != NULL) { SDL_HapticClose(rumble); }
+}
+
 /****** Handle Input From Keyboard ******/
 void MIN_GamePad::handle_input(SDL_Event &event)
 {

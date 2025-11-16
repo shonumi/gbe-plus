@@ -43,6 +43,8 @@ class SGB_GamePad : virtual public dmg_core_pad
 	u32 get_pad_data(u32 index);
 	void set_pad_data(u32 index, u32 value);
 
+	void close_joystick();
+
 	u32 turbo_button_enabled;
 	bool turbo_button_stat[12];
 	bool turbo_button_end[12];

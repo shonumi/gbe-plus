@@ -275,6 +275,7 @@ void MIN_core::run_core()
 
 			//Hotplug joypad
 			else if((event.type == SDL_JOYDEVICEADDED) && (!core_pad.joy_init)) { core_pad.init(); }
+			else if((event.type == SDL_JOYDEVICEREMOVED) && (core_pad.joy_init)) { core_pad.close_joystick(); }
 		}
 
 		//Run the CPU

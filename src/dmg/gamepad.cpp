@@ -156,6 +156,17 @@ DMG_GamePad::~DMG_GamePad()
 	}
 }
 
+/****** Close SDL Joystick - Only used for hot plugging ******/
+void DMG_GamePad::close_joystick()
+{
+	joy_init = false;
+	sensor_init = false;
+
+	if(jstick != NULL) { SDL_JoystickClose(jstick); }
+	if(rumble != NULL) { SDL_HapticClose(rumble); }
+	if(gc_sensor != NULL) { SDL_GameControllerClose(gc_sensor); }
+}
+
 /****** Handle Input From Keyboard ******/
 void DMG_GamePad::handle_input(SDL_Event &event)
 {

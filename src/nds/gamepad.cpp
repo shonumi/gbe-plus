@@ -100,6 +100,15 @@ void NTR_GamePad::init()
 /****** GamePad Destructor ******/
 NTR_GamePad::~NTR_GamePad() { } 
 
+/****** Close SDL Joystick - Only used for hot plugging ******/
+void NTR_GamePad::close_joystick()
+{
+	joy_init = false;
+
+	if(jstick != NULL) { SDL_JoystickClose(jstick); }
+	if(rumble != NULL) { SDL_HapticClose(rumble); }
+}
+
 /****** Handle input from keyboard or joystick for processing ******/
 void NTR_GamePad::handle_input(SDL_Event &event)
 {
