@@ -96,6 +96,8 @@ namespace util
 
 	std::string make_ascii_printable(std::string input);
 	std::string get_utc_string();
+	std::string get_short_date();
+	std::string get_long_date();
 
 	std::string get_filename_from_path(std::string path);
 	std::string get_filename_no_ext(std::string filename);

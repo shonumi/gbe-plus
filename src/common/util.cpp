@@ -728,6 +728,55 @@ std::string get_utc_string()
 	return result;
 }
 
+/****** Gets short date in form of YYYY_MM_DD ******/
+std::string get_short_date()
+{
+	std::string result = "";
+
+	//Grab local time
+	time_t system_time = time(0);
+	tm* current_time = localtime(&system_time);
+
+	std::string year = to_str(current_time->tm_year + 1900);
+	std::string month = to_str(current_time->tm_mon);
+	std::string day = to_str(current_time->tm_mday);
+
+	if(month.length() == 1) { month = "0" + month; }
+	if(day.length() == 1) { day = "0" + day; }
+
+	result = year + "_" + month + "_" + day;
+	
+	return result;
+}
+
+/****** Gets long date in form of YYYY_MM_DD_HOUR_MINS_SECS ******/
+std::string get_long_date()
+{
+	std::string result = "";
+
+	//Grab local time
+	time_t system_time = time(0);
+	tm* current_time = localtime(&system_time);
+
+	std::string year = to_str(current_time->tm_year + 1900);
+	std::string month = to_str(current_time->tm_mon);
+	std::string day = to_str(current_time->tm_mday);
+
+	std::string hour = to_str(current_time->tm_hour);
+	std::string min = to_str(current_time->tm_min);
+	std::string sec = to_str(current_time->tm_sec);
+
+	if(month.length() == 1) { month = "0" + month; }
+	if(day.length() == 1) { day = "0" + day; }
+	if(hour.length() == 1) { hour = "0" + hour; }
+	if(min.length() == 1) { min = "0" + min; }
+	if(sec.length() == 1) { sec = "0" + sec; }
+
+	result = year + "_" + month + "_" + day + "_" + hour + "_" + min + "_" + sec;
+	
+	return result;
+}
+
 /****** Converts a string IP address to an integer value ******/
 bool ip_to_u32(std::string ip_addr, u32 &result)
 {
