@@ -1461,18 +1461,12 @@ void main_menu::screenshot()
 {
 	if(main_menu::gbe_plus != NULL)
 	{
-		std::stringstream save_stream;
 		std::string save_name = config::ss_path;
+		std::string hex_ticks = util::to_hex_str(SDL_GetTicks()).substr(2);
 
-		//Prefix SDL Ticks to screenshot name
-		save_stream << SDL_GetTicks();
-		save_name += save_stream.str();
-		save_stream.str(std::string());
-
-		//Append random number to screenshot name
-		srand(SDL_GetTicks());
-		save_stream << rand() % 1024 << rand() % 1024 << rand() % 1024;
-		save_name += save_stream.str() + ".png";
+		//Filename = Date + Ticks
+		while(hex_ticks.length() < 8) { hex_ticks = "0" + hex_ticks; }
+		save_name += (util::get_long_date() + "_" + hex_ticks + ".png");
 
 		QString qt_save_name = QString::fromStdString(save_name);
 
