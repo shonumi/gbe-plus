@@ -1482,21 +1482,22 @@ void main_menu::screenshot()
 			//Crop image to fit aspect ratio (no black bars)
 			if((config::maintain_aspect_ratio) && (original_ratio != current_ratio))
 			{
-				float original_ratio = float(config::sys_width) / config::sys_height;
-				float current_ratio = float(img.width()) / img.height();
-
+				//Eliminate horizontal bars
 				if(current_ratio > original_ratio)
 				{
 					u32 crop_len = img.height() * original_ratio;
 					u32 crop_offset = (img.width() - crop_len) / 2;
-					crop.setRect(crop_offset, 0, crop_len, img.height()); 
+					crop.setRect(crop_offset, 0, crop_len, img.height());
 				}
 
+				//Eliminate vertical bars
 				else
 				{
+					original_ratio = (1 / original_ratio);
+
 					u32 crop_len = img.width() * original_ratio;
 					u32 crop_offset = (img.height() - crop_len) / 2;
-					crop.setRect(0, crop_offset, img.width(), crop_len); 
+					crop.setRect(0, crop_offset, img.width(), crop_len);
 				}
 			}
 
