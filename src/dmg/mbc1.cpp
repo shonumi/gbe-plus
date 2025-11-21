@@ -373,5 +373,7 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 
 	std::cout<<"MMU::Pocket Sonar image " << filename << " successfully loaded\n";
 
+	SDL_FreeSurface(src_img);
+
 	return true;
 }

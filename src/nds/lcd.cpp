@@ -4686,6 +4686,7 @@ bool NTR_LCD::save_cart_icon(std::string nds_icon_file)
 	if(SDL_MUSTLOCK(nds_icon)){ SDL_UnlockSurface(nds_icon); }
 
 	SDL_SaveBMP(nds_icon, nds_icon_file.c_str());
+	SDL_FreeSurface(nds_icon);
 
 	return true;
 }

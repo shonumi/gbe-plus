@@ -2547,6 +2547,8 @@ bool AGB_SIO::zoids_cdz_load_data()
 		cdz_e.sprite_buffer.push_back(temp_pixels);
 		cdz_e.sprite_width.push_back(source->w);
 		cdz_e.sprite_height.push_back(source->h);
+
+		SDL_FreeSurface(source);
 	}
 
 	std::cout<<"SIO::CDZ-E sprite data loaded\n";
@@ -3179,6 +3181,8 @@ bool AGB_SIO::vrs_load_data()
 		vrs.sprite_buffer.push_back(temp_pixels);
 		vrs.sprite_width.push_back(source->w);
 		vrs.sprite_height.push_back(source->h);
+
+		SDL_FreeSurface(source);
 	}
 
 	//Parse Lane 1 and Lane 2 starting positions

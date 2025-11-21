@@ -214,5 +214,7 @@ bool DMG_MMU::cam_load_snapshot(std::string filename)
 	//Copy buffer to SRAM
 	for(u32 x = 0; x < cart.cam_buffer.size(); x++) { random_access_bank[0][0x100 + x] = cart.cam_buffer[x]; }
 
+	SDL_FreeSurface(src_img);
+
 	return true;
 }
