@@ -1629,12 +1629,12 @@ void DMG_SIO::print_image()
 	else { print_color_3 *= diff; }
 	print_color_3 = 0xFF000000 | (print_color_3 << 16) | (print_color_3 << 8) | print_color_3;
 
-	srand(SDL_GetTicks());
+	//Filename = Date + Ticks
+	std::string filename = config::ss_path + "GB_PRINT_";
+	std::string hex_ticks = util::to_hex_str(SDL_GetTicks()).substr(2);
 
-	std::string filename = config::ss_path + "gb_print_";
-	filename += util::to_str(rand() % 1024);
-	filename += util::to_str(rand() % 1024);
-	filename += util::to_str(rand() % 1024);
+	while(hex_ticks.length() < 8) { hex_ticks = "0" + hex_ticks; }
+	filename += (util::get_long_date() + "_" + hex_ticks);
 
 	//Create a 160x144 image from the buffer, save as BMP
 	SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);
@@ -1701,7 +1701,7 @@ void DMG_SIO::print_image()
 		//Unlock source surface
 		if(SDL_MUSTLOCK(full_screen)){ SDL_UnlockSurface(full_screen); }
 
-		filename = "full_" + filename;
+		filename = "FULL_" + filename;
 
 		util::save_image(full_screen, filename);
 		SDL_FreeSurface(full_screen);
