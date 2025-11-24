@@ -117,6 +117,12 @@ void NTR_MMU::reset()
 			wcs.index = 0;
 			wantame_scanner_load_barcode(config::external_card_file);
 			break;
+
+		case MIC_WAVE_SCANNER:
+			wave_scanner.data.clear();
+			wave_scanner.barcode = "";
+			wave_scanner.index = 0;
+			break;
 	}
 
 	memory_map.clear();
@@ -6568,6 +6574,7 @@ void NTR_MMU::process_microphone()
 			break;
 
 		case MIC_WAVE_SCANNER:
+			wave_scanner_process();
 			break;
 	}
 }

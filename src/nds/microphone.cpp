@@ -147,3 +147,25 @@ bool NTR_MMU::wantame_scanner_load_barcode(std::string filename)
 	
 	return true;
 }
+
+void NTR_MMU::wave_scanner_process()
+{
+	if(wave_scanner.data.empty())
+	{
+		apu_stat->mic_out = 0;
+	}
+
+	else
+	{
+		if(wave_scanner.index >= wave_scanner.data.size())
+		{
+			wave_scanner.index = 0;
+			wave_scanner.data.clear();
+			apu_stat->mic_out = 0;
+
+			return;
+		}
+
+		apu_stat->mic_out = wave_scanner.data[wave_scanner.index++];
+	}
+}
