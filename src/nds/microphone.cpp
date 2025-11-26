@@ -169,3 +169,18 @@ void NTR_MMU::wave_scanner_process()
 		apu_stat->mic_out = wave_scanner.data[wave_scanner.index++];
 	}
 }
+
+void NTR_MMU::wave_scanner_set_data()
+{
+	wave_scanner.data.clear();
+
+	//Generate initial ACK signal + 1st 6 characters
+	wave_scanner_set_pulse(10, 10);
+	wave_scanner_set_pulse(10, 10);
+}
+
+void NTR_MMU::wave_scanner_set_pulse(u32 lo, u32 hi)
+{
+	for(u32 x = 0; x < lo; x++) { wave_scanner.data.push_back(0x00); }
+	for(u32 x = 0; x < hi; x++) { wave_scanner.data.push_back(0x24); }
+}

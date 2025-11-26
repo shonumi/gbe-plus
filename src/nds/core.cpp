@@ -1001,6 +1001,7 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 	//Initiate various communication functions
 	//HCV-1000 - Swipe barcode
 	//Wantame Card Scanner - Swipe barcode
+	//Wave Scanner - Set level / Swipe barcode
 	else if((event.type == SDL_KEYDOWN) && (event.key.keysym.sym == SDLK_F11))
 	{
 		switch(core_mmu.current_slot2_device)
@@ -1014,6 +1015,10 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		{
 			case MIC_WANTAME:
 				core_mmu.wantame_scanner_set_barcode();
+				break;
+
+			case MIC_WAVE_SCANNER:
+				core_mmu.wave_scanner_set_data();
 				break;
 		}
 	}
@@ -1046,6 +1051,8 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 
 	//Initiate various communication functions
 	//HCV-1000 - Swipe barcode
+	//Wantame Card Scanner - Swipe barcode
+	//Wave Scanner - Set level / Swipe barcode
 	else if((input == SDLK_F11) && (pressed))
 	{
 		switch(core_mmu.current_slot2_device)
@@ -1060,6 +1067,10 @@ void NTR_core::handle_hotkey(int input, bool pressed)
 		{
 			case MIC_WANTAME:
 				core_mmu.wantame_scanner_set_barcode();
+				break;
+
+			case MIC_WAVE_SCANNER:
+				core_mmu.wave_scanner_set_data();
 				break;
 		}
 	}
