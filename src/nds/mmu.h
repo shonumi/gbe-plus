@@ -260,6 +260,9 @@ class NTR_MMU
 	struct starforce_wave_scanner
 	{
 		u32 index;
+		u8 level;
+		bool is_data_barcode;
+		bool is_type_dragon;
 		std::string barcode;
 		std::vector <u8> data;
 	} wave_scanner;

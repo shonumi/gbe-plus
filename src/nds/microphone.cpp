@@ -177,15 +177,35 @@ void NTR_MMU::wave_scanner_set_data()
 	//Generate initial ACK signal + 1st 6 characters
 	wave_scanner_set_pulse(10, 10);
 
-	u32 my_data = 0x4241292A;
-	u32 bit = 0x80000000;
-
-	for(u32 x = 0; x < 32; x++)
+	//Generate barcode data
+	if(wave_scanner.is_data_barcode)
 	{
-		if(my_data & bit) { wave_scanner_set_pulse(6, 8); }
-		else { wave_scanner_set_pulse(3, 8); }
 
-		bit >>= 1;
+	}
+
+	//Generate level data
+	else
+	{
+		//Test value
+		wave_scanner.level = 41;
+
+		//Send 32-bits. MSB 16-bit is always 0x4241
+		//Lower 16-bits is level and XOR value of other 3 bytes
+		u8 lvl_data_1 = 0x42;
+		u8 lvl_data_2 = 0x41;
+		u8 lvl_data_3 = wave_scanner.is_type_dragon ? (wave_scanner.level | 0x80) : wave_scanner.level;
+		u8 lvl_data_4 = (lvl_data_1 ^ lvl_data_2 ^ lvl_data_3);
+
+		u32 final_data = (lvl_data_1 << 24) | (lvl_data_2 << 16) | (lvl_data_3 << 8) | lvl_data_4;
+		u32 bit = 0x80000000;
+
+		for(u32 x = 0; x < 32; x++)
+		{
+			if(final_data & bit) { wave_scanner_set_pulse(6, 8); }
+			else { wave_scanner_set_pulse(3, 8); }
+
+			bit >>= 1;
+		}
 	}
 }
 

@@ -122,6 +122,9 @@ void NTR_MMU::reset()
 			wave_scanner.data.clear();
 			wave_scanner.barcode = "";
 			wave_scanner.index = 0;
+			wave_scanner.level = 1;
+			wave_scanner.is_data_barcode = false;
+			wave_scanner.is_type_dragon = false;
 			break;
 	}
 
