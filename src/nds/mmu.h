@@ -507,7 +507,7 @@ class NTR_MMU
 	bool wantame_scanner_load_barcode(std::string filename);
 
 	void wave_scanner_process();
-	void wave_scanner_set_pulse(u32 lo, u32 hi);
+	void wave_scanner_set_pulse(u32 hi, u32 lo);
 	void wave_scanner_set_data();
 
 	void parse_header();

@@ -176,11 +176,21 @@ void NTR_MMU::wave_scanner_set_data()
 
 	//Generate initial ACK signal + 1st 6 characters
 	wave_scanner_set_pulse(10, 10);
-	wave_scanner_set_pulse(10, 10);
+
+	u32 my_data = 0x4241292A;
+	u32 bit = 0x80000000;
+
+	for(u32 x = 0; x < 32; x++)
+	{
+		if(my_data & bit) { wave_scanner_set_pulse(6, 8); }
+		else { wave_scanner_set_pulse(3, 8); }
+
+		bit >>= 1;
+	}
 }
 
-void NTR_MMU::wave_scanner_set_pulse(u32 lo, u32 hi)
+void NTR_MMU::wave_scanner_set_pulse(u32 hi, u32 lo)
 {
+	for(u32 x = 0; x < hi; x++) { wave_scanner.data.push_back(0x58); }
 	for(u32 x = 0; x < lo; x++) { wave_scanner.data.push_back(0x00); }
-	for(u32 x = 0; x < hi; x++) { wave_scanner.data.push_back(0x24); }
 }
