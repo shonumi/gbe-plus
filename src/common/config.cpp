@@ -292,6 +292,8 @@ namespace config
 	u16 campho_input_port = 1981;
 	u16 campho_web_port = 1212;
 
+	u8 wave_scanner_level = 0;
+
 	//On-screen display settings
 	bool use_osd = false;
 	std::vector <u32> osd_font;
@@ -1949,6 +1951,9 @@ bool parse_ini_file()
 		//Glucoboy - Days Until Bonus
 		if(!parse_ini_number(ini_item, "#glucoboy_days_until_bonus", config::glucoboy_days_until_bonus, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
+		//Wave Scanner Level
+		if(!parse_ini_number(ini_item, "#wave_scanner_level", config::wave_scanner_level, ini_opts, x, 0, 99)) { return false; }
+
 		//Recent files
 		if(ini_item == "#recent_files")
 		{
@@ -2891,6 +2896,14 @@ bool save_ini_file()
 			line_pos = output_count[x];
 
 			output_lines[line_pos] = "[#glucoboy_days_until_bonus:" + util::to_str(config::glucoboy_days_until_bonus) + "]";
+		}
+
+		//Wave Scanner Level
+		else if(ini_item == "#wave_scanner_level")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#wave_scanner_level:" + util::to_str(config::wave_scanner_level) + "]";
 		}
 
 		else if(ini_item == "#recent_files")

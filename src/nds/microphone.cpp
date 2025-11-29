@@ -186,8 +186,8 @@ void NTR_MMU::wave_scanner_set_data()
 	//Generate level data
 	else
 	{
-		//Test value
-		wave_scanner.level = 41;
+		//Copy most recent level from updated config
+		wave_scanner.level = config::wave_scanner_level;
 
 		//Send 32-bits. MSB 16-bit is always 0x4241
 		//Lower 16-bits is level and XOR value of other 3 bytes

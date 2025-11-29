@@ -343,6 +343,8 @@ namespace config
 	extern u16 campho_input_port;
 	extern u16 campho_web_port;
 
+	extern u8 wave_scanner_level;
+
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;
 	extern std::string osd_message;
