@@ -174,13 +174,37 @@ void NTR_MMU::wave_scanner_set_data()
 {
 	wave_scanner.data.clear();
 
-	//Generate initial ACK signal + 1st 6 characters
-	wave_scanner_set_pulse(10, 10);
+	u32 final_data = 0;
+	u32 bit = 0x80000000;
 
 	//Generate barcode data
 	if(wave_scanner.is_data_barcode)
 	{
+		//Verify Code-128 C barcode length. *ALWAYS* Fixed 12-chars for Wave Scanner
+		if(wave_scanner.barcode.length() != 12)
+		{
+			return;
+		}
 
+		//Last 3 digits of Code-128 barcode are encoded as 6-bits for final 32-bit value
+		//Uses Bits 8 - 26 of final 32-bit value
+		//Bits 27-32 are constant, however
+		u32 bc1 = 0;
+		u32 bc2 = 0;
+		u32 bc3 = 0;
+
+		util::from_str(wave_scanner.barcode.substr(6, 2), bc1);
+		util::from_str(wave_scanner.barcode.substr(8, 2), bc2);
+		util::from_str(wave_scanner.barcode.substr(10, 2), bc3);
+		
+		final_data = 0x40000000 | (bc1 << 20) | (bc2 << 14) | (bc3 << 8);
+
+		u8 check_1 = (final_data >> 24);
+		u8 check_2 = (final_data >> 16);
+		u8 check_3 = (final_data >> 8);
+
+		//XOR-based check digit occupies LSB
+		final_data |= (check_1 ^ check_2 ^ check_3);
 	}
 
 	//Generate level data
@@ -196,16 +220,20 @@ void NTR_MMU::wave_scanner_set_data()
 		u8 lvl_data_3 = wave_scanner.is_type_dragon ? (wave_scanner.level | 0x80) : wave_scanner.level;
 		u8 lvl_data_4 = (lvl_data_1 ^ lvl_data_2 ^ lvl_data_3);
 
-		u32 final_data = (lvl_data_1 << 24) | (lvl_data_2 << 16) | (lvl_data_3 << 8) | lvl_data_4;
-		u32 bit = 0x80000000;
+		//XOR-based check digit occupies LSB
+		final_data = (lvl_data_1 << 24) | (lvl_data_2 << 16) | (lvl_data_3 << 8) | lvl_data_4;
+	}
 
-		for(u32 x = 0; x < 32; x++)
-		{
-			if(final_data & bit) { wave_scanner_set_pulse(6, 8); }
-			else { wave_scanner_set_pulse(3, 8); }
+	//Generate initial ACK signal
+	wave_scanner_set_pulse(10, 10);
 
-			bit >>= 1;
-		}
+	//Generate signals for barcode or level data
+	for(u32 x = 0; x < 32; x++)
+	{
+		if(final_data & bit) { wave_scanner_set_pulse(6, 8); }
+		else { wave_scanner_set_pulse(3, 8); }
+
+		bit >>= 1;
 	}
 }
 
