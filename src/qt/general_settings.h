@@ -30,6 +30,7 @@
 #include "magic_reader_menu.h"
 #include "mw_menu.h"
 #include "wantame_menu.h"
+#include "wave_scanner_menu.h"
 
 class gen_settings : public QDialog
 {
@@ -225,6 +226,7 @@ class gen_settings : public QDialog
 	mr_menu* magic_reader_menu;
 	mw_menu* magical_watch_menu;
 	wcs_menu* wantame_menu;
+	wav_menu* wave_scanner_menu;
 	QMessageBox* warning_box;
 
 	void update_volume();

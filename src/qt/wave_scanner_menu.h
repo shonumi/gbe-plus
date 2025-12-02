@@ -13,12 +13,12 @@
 
 #include <QtWidgets>
 
-class wave_scanner_menu : public QDialog
+class wav_menu : public QDialog
 {
 	Q_OBJECT
 
 	public:
-	wave_scanner_menu(QWidget *parent = 0);
+	wav_menu(QWidget *parent = 0);
 
 	QDialogButtonBox* close_button;
 

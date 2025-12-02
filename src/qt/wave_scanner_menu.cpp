@@ -15,7 +15,7 @@
 #include "common/config.h"
 
 /****** Wave Scanner menu constructor ******/
-wave_scanner_menu::wave_scanner_menu(QWidget *parent) : QDialog(parent)
+wav_menu::wav_menu(QWidget *parent) : QDialog(parent)
 {
 	close_button = new QDialogButtonBox(QDialogButtonBox::Close);
 
@@ -59,7 +59,7 @@ wave_scanner_menu::wave_scanner_menu(QWidget *parent) : QDialog(parent)
 }
 
 /****** Sets the raw barcode (alphanumerical value) when updating QLineEdit ******/
-void wave_scanner_menu::update_wave_barcode()
+void wav_menu::update_wave_barcode()
 {
 	std::string barcode = barcode_line->text().toStdString();
 	std::string edit = "";
@@ -85,7 +85,7 @@ void wave_scanner_menu::update_wave_barcode()
 }
 
 /****** Loads a barcode from a file and updates it as well (including current QLineEdit text) ******/
-bool wave_scanner_menu::load_barcode()
+bool wav_menu::load_barcode()
 {
 	SDL_PauseAudio(1);
 
