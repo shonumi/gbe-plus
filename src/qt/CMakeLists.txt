@@ -22,6 +22,7 @@ set(SRCS
 	magic_reader_menu.cpp
 	mw_menu.cpp
 	wantame_menu.cpp
+	wave_scanner_menu.cpp
 	)
 
 set(HEADERS
@@ -45,6 +46,7 @@ set(HEADERS
 	magic_reader_menu.h
 	mw_menu.h
 	wantame_menu.h
+	wave_scanner_menu.h
 	)
 
 add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
