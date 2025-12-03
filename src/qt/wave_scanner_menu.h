@@ -26,9 +26,11 @@ class wav_menu : public QDialog
 	QLabel* barcode_label;
 	QLineEdit* barcode_line;
 	QPushButton* load_button;
+	QSpinBox* level;
 
 	private slots:
 	void update_wave_barcode();
+	void update_wave_level();
 	bool load_barcode();
 };
 

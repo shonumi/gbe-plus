@@ -40,10 +40,23 @@ wav_menu::wav_menu(QWidget *parent) : QDialog(parent)
 	load_layout->addWidget(load_label, 1, Qt::AlignRight);
 	load_set->setLayout(load_layout);
 
+	QWidget* level_set = new QWidget;
+	QLabel* level_label = new QLabel("Level : ");
+	level = new QSpinBox;
+	level->setMinimum(1);
+	level->setMaximum(99);
+
+	QHBoxLayout* level_layout = new QHBoxLayout;
+	level_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	level_layout->addWidget(level_label);
+	level_layout->addWidget(level);
+	level_set->setLayout(level_layout);
+
 	QVBoxLayout* final_layout = new QVBoxLayout;
 	final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	final_layout->addWidget(barcode_set);
 	final_layout->addWidget(load_set);
+	final_layout->addWidget(level_set);
 	final_layout->addWidget(close_button);
 	setLayout(final_layout);
 
@@ -122,4 +135,10 @@ bool wav_menu::load_barcode()
 	SDL_PauseAudio(0);
 
 	return true;
+}
+
+/****** Sets the Wave Scanner level when updating QSpinBox ******/
+void wav_menu::update_wave_level()
+{
+	config::wave_scanner_level = level->value();
 }

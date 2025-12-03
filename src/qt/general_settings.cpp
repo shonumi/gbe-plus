@@ -2259,6 +2259,9 @@ void gen_settings::set_ini_options()
 		if(chip_list[x] == init_chip_list[3]) { battle_chip_4->setCurrentIndex(x); }
 	}
 
+	//Wave Scanner Level
+	wave_scanner_menu->level->setValue(config::wave_scanner_level);
+
 	sync_threshold->setValue(config::netplay_sync_threshold);
 	server_port->setValue(config::netplay_server_port);
 	client_port->setValue(config::netplay_client_port);
