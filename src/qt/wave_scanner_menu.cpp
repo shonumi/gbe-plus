@@ -52,11 +52,39 @@ wav_menu::wav_menu(QWidget *parent) : QDialog(parent)
 	level_layout->addWidget(level);
 	level_set->setLayout(level_layout);
 
+	QWidget* data_type_set = new QWidget;
+	QLabel* data_type_label = new QLabel("Data Type : ");
+
+	data_type = new QComboBox;
+	data_type->addItem("Wave Scanner Level");
+	data_type->addItem("Wave Card Barcode");
+
+	QHBoxLayout* data_type_layout = new QHBoxLayout;
+	data_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	data_type_layout->addWidget(data_type_label);
+	data_type_layout->addWidget(data_type);
+	data_type_set->setLayout(data_type_layout);
+
+	QWidget* wave_type_set = new QWidget;
+	QLabel* wave_type_label = new QLabel("Wave Scanner Type : ");
+
+	wave_type = new QComboBox;
+	wave_type->addItem("Pegasus/Leo");
+	wave_type->addItem("Dragon");
+
+	QHBoxLayout* wave_type_layout = new QHBoxLayout;
+	wave_type_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	wave_type_layout->addWidget(wave_type_label);
+	wave_type_layout->addWidget(wave_type);
+	wave_type_set->setLayout(wave_type_layout);
+
 	QVBoxLayout* final_layout = new QVBoxLayout;
 	final_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	final_layout->addWidget(barcode_set);
 	final_layout->addWidget(load_set);
 	final_layout->addWidget(level_set);
+	final_layout->addWidget(data_type_set);
+	final_layout->addWidget(wave_type_set);
 	final_layout->addWidget(close_button);
 	setLayout(final_layout);
 
@@ -141,4 +169,16 @@ bool wav_menu::load_barcode()
 void wav_menu::update_wave_level()
 {
 	config::wave_scanner_level = level->value();
+}
+
+/****** Sets the Wave Scanner data type (Barcode or Level) when update QCheckBox ******/
+void wav_menu::update_data_type()
+{
+	config::wave_scanner_is_barcode = data_type->currentIndex();
+}
+
+/****** Sets the Wave Scanner level type is Dragon or Pegasus/Leo when update QCheckBox ******/
+void wav_menu::update_wave_type()
+{
+	config::wave_scanner_is_dragon = wave_type->currentIndex();
 }

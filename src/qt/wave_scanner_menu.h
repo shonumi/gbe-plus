@@ -27,10 +27,14 @@ class wav_menu : public QDialog
 	QLineEdit* barcode_line;
 	QPushButton* load_button;
 	QSpinBox* level;
+	QComboBox* data_type;
+	QComboBox* wave_type;
 
 	private slots:
 	void update_wave_barcode();
 	void update_wave_level();
+	void update_data_type();
+	void update_wave_type();
 	bool load_barcode();
 };
 
