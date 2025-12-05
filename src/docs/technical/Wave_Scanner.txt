@@ -1,0 +1,79 @@
+Wantame Card Scanner Documentation 0.1
+December 5th, 2025
+Shonumi aka D.S. Baxter
+
+***************************************************
+1. Introduction
+***************************************************  
+
+On December 14, 2006, Capcom released an action role-playing game called Ryuusei no Rockman in Japan, later renamed Mega Man Star Force in other territories. It was something of a continuation of the Mega Man Battle Network series. Like the earlier Battle Network games, Capcom partnered with Takara Tomy to create an accessory known as the Wave Scanner. It was combination electronic LCD toy and video game peripheral. As a standalone unit, it let users fight viruses with swipeable cards and level up. When attached to the Nintendo DS, the user's level could be used in-game to boost their stats and power up Mega Man by granting an immediate Star Force transformation. During battle, users could swipe cards to enhance their attacks as well.
+
+The peripheral shares some heritage with the Battle Chip Gates on the GBA. Additionally, it served as a template for the Wantame Card Scanner that Capcom and Takara released less than a year later.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+* Features a small LCD screen to display limited graphics.
+* Features a small rotating dial that can be pressed in 3 directions.
+* Features a 2 face buttons.
+* Uses DS microphone plug to transmit data.
+* Microphone cable is tucked under the bottom of the unit.
+* Uses a separate 3.5mm headphone jack for audio output (unrelated to DS connectivity).
+* Uses Slot-2 only for stability. There is no ROM chip or PCB connected to the Slot-2 pins.
+* Powered by 3 AAA batteries.
+* Compatible with DSi models thanks to microphone cable.
+* Uses 12 character barcodes in Code-128 C format.
+* Came in 4 versions: Pegasus, Leo, Dragon, and DX (Pegasus).
+
+
+***************************************************
+3. Data Transmission Protocol
+***************************************************
+
+The Wave Scanner translates data into sound pulses via the DS microphone. By reading samples, the game grabs the barcode or level data as individual bits, verifies the integrity of the data, then checks to see if the data is valid for the current game mode. The transmission protocol is very basic and consists of the following 2 parts:
+
+---------------------------------------------------------
+Protocol Stage	| Description
+---------------------------------------------------------
+ACK Signal	| Initial pulses
+Barcode/Level	| 32-bits
+---------------------------------------------------------
+
+The ACK signal alerts the game to incoming data. It consists of a single HIGH-to-LOW transition of microphone samples. At a minimum, each LOW and HIGH period should be sampled at least 9 times, but less than 16. The following psuedo-code can be used to determine whether a sample from the microphone is LOW or HIGH:
+
+MIC_SAMPLE = READ_DS_MIC()
+MIC_SAMPLE = MIC_SAMPLE * 2
+MIC_SAMPLE = MIC_SAMPLE AND 0xFF
+
+IF MIC_SAMPLE LESS THAN 0x58
+	SAMPLE_TYPE = LOW
+
+ELSE
+	SAMPLE_TYPE = HIGH
+
+After sending the ACK Signal, the Wave Scanner sends a continuous stream of 32 bits. Depending on the length of the HIGH part of the the HIGH-to-LOW transition, a "0" or a "1" will be recorded. If the HIGH portion measures at 6 or more samples, this represents a bit whose value is "1", otherwise it represents a bit whose value is "0". Importantly, each HIGH and LOW portion must measure at least 3 samples, and the total duration of the HIGH-to-LOW transition must not exceed 16 samples.
+
+As both barcode data and level data are 32-bits long, the data type being transmitted is generally determined by the top 8 or 6 most significant bits (i.e. Bits 24-31 for level data, and Bits 26-31 for barcode data). Additionally, Ryuusei no Rockman will manually validate the data on its own. The format for each type of data is listed below:
+
+---------------------------------------------------------
+Wave Scanner Level Data
+---------------------------------------------------------
+Bits 00 - 07	| XOR Sum
+Bits 08 - 15	| Wave Scanner Level
+Bits 16 - 23	| 0x41
+Bits 24 - 31	| 0x42
+---------------------------------------------------------
+
+
+---------------------------------------------------------
+Wave Card Barcode Data
+---------------------------------------------------------
+Bits 00 - 07	| XOR Sum
+Bits 08 - 13	| 6th Barcode Character
+Bits 14 - 19	| 5th Barcode Character
+Bits 20 - 25	| 4th Barcode Character
+Bits 26 - 31	| 0x10
+--------------------------------------------------------- 
+
