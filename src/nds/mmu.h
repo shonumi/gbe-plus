@@ -261,8 +261,8 @@ class NTR_MMU
 	{
 		u32 index;
 		u8 level;
+		u8 type;
 		bool is_data_barcode;
-		bool is_type_dragon;
 		std::string barcode;
 		std::vector <u8> data;
 	} wave_scanner;

@@ -344,8 +344,8 @@ namespace config
 	extern u16 campho_web_port;
 
 	extern u8 wave_scanner_level;
+	extern u8 wave_scanner_type;
 	extern bool wave_scanner_is_barcode;
-	extern bool wave_scanner_is_dragon;
 
 	extern bool use_osd;
 	extern std::vector <u32> osd_font;

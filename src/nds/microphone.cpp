@@ -173,6 +173,8 @@ void NTR_MMU::wave_scanner_process()
 void NTR_MMU::wave_scanner_set_data()
 {
 	wave_scanner.data.clear();
+	wave_scanner.is_data_barcode = config::wave_scanner_is_barcode;
+	wave_scanner.type = config::wave_scanner_type;
 
 	u32 final_data = 0;
 	u32 bit = 0x80000000;
@@ -213,14 +215,33 @@ void NTR_MMU::wave_scanner_set_data()
 		//Copy most recent level from updated config
 		wave_scanner.level = config::wave_scanner_level;
 
-		//Send 32-bits. MSB 16-bit is always 0x4241
-		//Lower 16-bits is level and XOR value of other 3 bytes
+		//Send 32-bits. MSB 16-bit is always 0x4240
 		u8 lvl_data_1 = 0x42;
-		u8 lvl_data_2 = 0x41;
-		u8 lvl_data_3 = wave_scanner.is_type_dragon ? (wave_scanner.level | 0x80) : wave_scanner.level;
-		u8 lvl_data_4 = (lvl_data_1 ^ lvl_data_2 ^ lvl_data_3);
+		u8 lvl_data_2 = 0x40;
+		u8 lvl_data_3 = wave_scanner.level;
+
+		//Set Wave Scanner Type
+		switch(wave_scanner.type)
+		{
+			//Leo
+			case 0:
+				lvl_data_3 |= 0x80;
+				break;
+
+			//Pegasus
+			case 1:
+				lvl_data_2 |= 0x01;
+				break;
+
+			//Dragon
+			case 2:
+				lvl_data_2 |= 0x01;
+				lvl_data_3 |= 0x80;
+				break;
+		}
 
 		//XOR-based check digit occupies LSB
+		u8 lvl_data_4 = (lvl_data_1 ^ lvl_data_2 ^ lvl_data_3);				
 		final_data = (lvl_data_1 << 24) | (lvl_data_2 << 16) | (lvl_data_3 << 8) | lvl_data_4;
 	}
 

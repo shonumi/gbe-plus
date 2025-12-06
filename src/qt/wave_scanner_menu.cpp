@@ -69,7 +69,8 @@ wav_menu::wav_menu(QWidget *parent) : QDialog(parent)
 	QLabel* wave_type_label = new QLabel("Wave Scanner Type : ");
 
 	wave_type = new QComboBox;
-	wave_type->addItem("Pegasus/Leo");
+	wave_type->addItem("Leo");
+	wave_type->addItem("Pegasus");
 	wave_type->addItem("Dragon");
 
 	QHBoxLayout* wave_type_layout = new QHBoxLayout;
@@ -97,6 +98,10 @@ wav_menu::wav_menu(QWidget *parent) : QDialog(parent)
 	connect(close_button, SIGNAL(rejected()), this, SLOT(reject()));
 	connect(barcode_line, SIGNAL(textChanged(const QString)), this, SLOT(update_wave_barcode()));
 	connect(load_button, SIGNAL(clicked()), this, SLOT(load_barcode()));
+
+	connect(level, SIGNAL(valueChanged(int)), this, SLOT(update_wave_level()));
+	connect(data_type, SIGNAL(currentIndexChanged(int)), this, SLOT(update_data_type()));
+	connect(wave_type, SIGNAL(currentIndexChanged(int)), this, SLOT(update_wave_type()));
 }
 
 /****** Sets the raw barcode (alphanumerical value) when updating QLineEdit ******/
@@ -180,5 +185,5 @@ void wav_menu::update_data_type()
 /****** Sets the Wave Scanner level type is Dragon or Pegasus/Leo when update QCheckBox ******/
 void wav_menu::update_wave_type()
 {
-	config::wave_scanner_is_dragon = wave_type->currentIndex();
+	config::wave_scanner_type = wave_type->currentIndex();
 }

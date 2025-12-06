@@ -293,8 +293,8 @@ namespace config
 	u16 campho_web_port = 1212;
 
 	u8 wave_scanner_level = 0;
+	u8 wave_scanner_type = 0;
 	bool wave_scanner_is_barcode = false;
-	bool wave_scanner_is_dragon = false;
 
 	//On-screen display settings
 	bool use_osd = false;
