@@ -8419,7 +8419,7 @@ IF MIC_SAMPLE LESS THAN 0x48
 ELSE
 	SAMPLE_TYPE = HIGH</pre>
 
-	<p>After sending the ACK Signal, the Wantame Card Scanner sends a continuous stream of 49 bits. Depending on the length of the LOW part of the the LOW-to-HIGH transition, a &#34;0&#34; or a &#34;1&#34; will be recorded. If the LOW portion measures at 6 or more samples, this represents a &#34;1&#34; in the bitstream, otherwise it represents a &#34;0&#34;. Importantly, each LOW and HIGH portion must measure at least 3 samples, and the total LOW-to-HIGH transition must not exceed 16 samples.</p>
+	<p>After sending the ACK Signal, the Wantame Card Scanner sends a continuous stream of 49 bits. Depending on the length of the LOW part of the the LOW-to-HIGH transition, a &#34;0&#34; or a &#34;1&#34; will be recorded. If the LOW portion measures at 6 or more samples, this represents a &#34;1&#34; in the bitstream, otherwise it represents a &#34;0&#34;. Importantly, each LOW and HIGH portion must measure at least 3 samples, and the total duration of the LOW-to-HIGH transition must not exceed 16 samples.</p>
 
 	<p>The first 42-bits of the stream represent the barcode as a hexadecimal number, and the final 7 bits represent the barcode&#39;s checksum. The barcode is split across 2 32-bit integers, with the the upper 10-bits received first, and lower 32-bits received immediately afterwards. However, each integer receives its bits big endian first, and the same is true of the Check Digit.</p>
 

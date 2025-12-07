@@ -55,25 +55,36 @@ ELSE
 
 After sending the ACK Signal, the Wave Scanner sends a continuous stream of 32 bits. Depending on the length of the HIGH part of the the HIGH-to-LOW transition, a "0" or a "1" will be recorded. If the HIGH portion measures at 6 or more samples, this represents a bit whose value is "1", otherwise it represents a bit whose value is "0". Importantly, each HIGH and LOW portion must measure at least 3 samples, and the total duration of the HIGH-to-LOW transition must not exceed 16 samples.
 
-As both barcode data and level data are 32-bits long, the data type being transmitted is generally determined by the top 8 or 6 most significant bits (i.e. Bits 24-31 for level data, and Bits 26-31 for barcode data). Additionally, Ryuusei no Rockman will manually validate the data on its own. The format for each type of data is listed below:
+As both barcode data and level data are 32-bits long, the data type being transmitted is generally determined by the top 8 or 6 most significant bits (i.e. Bits 24-31 for level data, and Bits 26-31 for barcode data). Additionally, Ryuusei no Rockman will manually validate the data on its own. The format for each type of data is listed and explained below:
 
 ---------------------------------------------------------
 Wave Scanner Level Data
 ---------------------------------------------------------
-Bits 00 - 07	| XOR Sum
-Bits 08 - 15	| Wave Scanner Level
-Bits 16 - 23	| 0x41
-Bits 24 - 31	| 0x42
+Bits 00 - 07	| XOR Check Digit
+Bits 08 - 14	| Wave Scanner Level (1 - 99)
+Bits 15 - 16	| Wave Scanner Type (1, 2, or 3)
+Bits 17 - 23	| Constant (0x40)
+Bits 24 - 31	| Constant (0x42)
 ---------------------------------------------------------
 
+The Wave Scanner's level occupies Bits 8 - 14 and has a valid decimal integer range of 1 - 99.
+
+The Wave Scanner Type (Leo, Pegasus, and Dragon) is determined by Bit 15 - 16. A value of "1" indicates a Leo Wave Scanner. A value of "2" represents a Pegasus Wave Scanner. A value of "3" represents a Dragon Wave Scanner.
+
+The upper 15-bits are constant values, 0x42 and 0x40. That is to say, only Bits 23, 25, and 30 are set.
+
+The XOR Check Digit ensures a small amount of data integrity during transmission. It is simply the XOR'd values of the upper 24-bits of data split into 8-bit values. In other words, the XOR Check Digit is calculated as follows:
+
+CHECK DIGIT = (BITS 8 - 15) XOR (BITS 16 - 23) XOR (BITS 24 - 31)
 
 ---------------------------------------------------------
 Wave Card Barcode Data
 ---------------------------------------------------------
-Bits 00 - 07	| XOR Sum
-Bits 08 - 13	| 6th Barcode Character
-Bits 14 - 19	| 5th Barcode Character
-Bits 20 - 25	| 4th Barcode Character
-Bits 26 - 31	| 0x10
---------------------------------------------------------- 
+Bits 00 - 07	| XOR Check Digit
+Bits 08 - 13	| 6th Barcode Character Code
+Bits 14 - 19	| 5th Barcode Character Code
+Bits 20 - 25	| 4th Barcode Character Code
+Bits 26 - 31	| Constant (0x10)
+---------------------------------------------------------
 
+Although the Wave Scanner's Wave Cards are in Code-128 C format, only use the last 3 character codes identify any specific card. The alphanumeric representation of each barcode for all Wave Cards uses the format 040000XXYYZZ, where only XXYYZZ change. As Code-128 C converts a single character code into 2 alphanumeric characters, XXYYZZ are the 4th, 5th, and 6th character codes of the barcode. These are encoded as individual 6-bit values when transmitted via the Wave Scanner. The upper 6-bits of the 32-bit barcode data is a simple constant value where only Bit 30 is set.
