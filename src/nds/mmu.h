@@ -69,6 +69,7 @@ class NTR_MMU
 		SLOT2_MAGIC_READER,
 		SLOT2_MEMORY_EXPANSION,
 		SLOT2_MOTION_PACK,
+		SLOT2_FACENING_SCAN,
 	};
 
 	backup_types current_save_type;

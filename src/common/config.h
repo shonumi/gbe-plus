@@ -125,6 +125,7 @@ enum slot2_device_types
 	NTR_S2_MAGIC_READER = 7,
 	NTR_S2_MEMORY_EXPANSION = 8,
 	NTR_S2_MOTION_PACK = 9,
+	NTR_S2_FACENING_SCAN = 10,
 };
 
 enum microphone_device_types

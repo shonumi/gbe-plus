@@ -107,6 +107,10 @@ void NTR_MMU::reset()
 		case NTR_S2_MOTION_PACK:
 			current_slot2_device = SLOT2_MOTION_PACK;
 			break;
+
+		case NTR_S2_FACENING_SCAN:
+			current_slot2_device = SLOT2_FACENING_SCAN;
+			break;
 	}
 
 	switch(config::mic_device)

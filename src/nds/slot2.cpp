@@ -122,6 +122,26 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 				slot_byte = (address & 0x1) ? 0xFC : data;
 			}
 
+		case SLOT2_FACENING_SCAN:
+			//Reading these cart addresses is for detection
+			if(address < 0x8020000)
+			{
+				switch(address)
+				{
+					case 0x80000B5: slot_byte = 0x25; break;
+					case 0x80000BE: slot_byte = 0xFF; break;
+					case 0x80000BF: slot_byte = 0x7F; break;
+					case 0x801FFFE: slot_byte = 0xFF; break;
+					case 0x801FFFF: slot_byte = 0x7F; break;
+					default: slot_byte = 0;
+				}
+			}
+
+			else
+			{
+				std::cout<<"NTR-014 READ -> 0x" << std::hex << address << "\n";
+			}
+
 			break;
 	}
 
@@ -176,6 +196,14 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 			break;
 
 		case SLOT2_MOTION_PACK:
+			break;
+
+		case SLOT2_FACENING_SCAN:
+			if(address >= 0x8020000)
+			{
+				std::cout<<"NTR-014 WRITE -> 0x" << std::hex << (u32)address << " :: 0x" << (u32)value << "\n";
+			}
+
 			break;
 	}
 }
