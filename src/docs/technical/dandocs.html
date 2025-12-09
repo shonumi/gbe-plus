@@ -159,6 +159,7 @@
 			<p class="list_item"><a href="#hcv">HCV-1000</a></p>
 			<p class="list_item"><a href="#kmr">Magic Reader</a></p>
 			<p class="list_item"><a href="#wcs">Wantame Card Scanner</a></p>
+			<p class="list_item"><a href="#wav">Wave Scanner</a></p>
 			
 		</div>
 
@@ -8457,6 +8458,109 @@ Barcode Pair	| Sum
 	<p>Essentially, the first pair is multiplied by 1 and added to the sum, the second pair is multiplied by 2 and added to the sum, and so on and so forth for the other pairs. After that, a value of 105 is added to the sum, then a modulo of 103 is applied to the sum for the final result. For this example it would be 0x41.</p>
 
 	<p>After all of these signals are transferred from the Wantame Card Scanner via microphone input, the rest of the samples should go LOW until a new scan.</p>
+
+
+
+
+
+
+
+
+	<!-- Wave Scanner -->
+	<a name="wav"></a>
+	<p class="gray_title">Wave Scanner</p>
+	<p class="list_item"><a href="#wav_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#wav_dtp">Data Transmission Protocol</a></p>
+
+	<a name="wav_gen"></a>
+	<p class="gray_title">[Wave Scanner] : General Hardware Information</p>
+
+	<p>On December 14, 2006, Capcom released an action role-playing game called Ryuusei no Rockman in Japan, later renamed Mega Man Star Force in other territories. It was something of a continuation of the Mega Man Battle Network series. Like the earlier Battle Network games, Capcom partnered with Takara Tomy to create an accessory known as the Wave Scanner. It was combination electronic LCD toy and video game peripheral. As a standalone unit, it let users fight viruses with swipeable cards and level up. When attached to the Nintendo DS, the player&#39;s level could be used in-game to boost their stats and power up Mega Man by granting an immediate Star Force transformation. During battle, users could swipe cards to enhance their attacks as well.</p>
+
+	<p>The peripheral shares some heritage with the Battle Chip Gates on the GBA. Additionally, it served as a template for the Wantame Card Scanner that Capcom and Takara released less than a year later.</p>
+
+	<ul>
+		<li class="list_item">Features a small LCD screen to display limited graphics.</li>
+		<li class="list_item">Features a small rotating dial that can be pressed in 3 directions.</li>
+		<li class="list_item">Features a 2 face buttons.</li>
+		<li class="list_item">Uses DS microphone plug to transmit data.</li>
+		<li class="list_item">Microphone cable is tucked under the bottom of the unit.</li>
+		<li class="list_item">Uses a separate 3.5mm headphone jack for audio output (unrelated to DS connectivity).</li>
+		<li class="list_item">Uses Slot-2 only for stability. There is no ROM chip or PCB connected to the Slot-2 pins.</li>
+		<li class="list_item">Powered by 3 AAA batteries.</li>
+		<li class="list_item">Compatible with DSi models thanks to microphone cable.</li>
+		<li class="list_item">Uses 12 character barcodes in Code-128 C format.</li>
+		<li class="list_item">Came in 4 versions: Pegasus, Leo, Dragon, and DX (Pegasus).</li>
+	</ul>
+
+	<a name="wav_dtp"></a>
+	<p class="gray_title">[Wave Scanner] : Data Transmission Protocol</p>
+
+	<p>The Wave Scanner translates data into sound pulses via the DS microphone. By reading samples, the game grabs the barcode or level data as individual bits, verifies the integrity of the data, then checks to see if the data is valid for the current game mode. The transmission protocol is very basic and consists of the following 2 parts:</p>
+
+<pre>---------------------------------------------------------
+Protocol Stage	| Description
+---------------------------------------------------------
+ACK Signal	| Initial pulses
+Barcode/Level	| 32-bits
+---------------------------------------------------------</pre>
+
+	<p>The ACK signal alerts the game to incoming data. It consists of a single HIGH-to-LOW transition of microphone samples. At a minimum, each LOW and HIGH period should be sampled at least 9 times, but less than 16. The following psuedo-code can be used to determine whether a sample from the microphone is LOW or HIGH:</p>
+
+<pre>MIC_SAMPLE = READ_DS_MIC()
+MIC_SAMPLE = MIC_SAMPLE * 2
+MIC_SAMPLE = MIC_SAMPLE AND 0xFF
+
+IF MIC_SAMPLE LESS THAN 0x58
+	SAMPLE_TYPE = LOW
+
+ELSE
+	SAMPLE_TYPE = HIGH</pre>
+
+	<p>After sending the ACK Signal, the Wave Scanner sends a continuous stream of 32 bits. Depending on the length of the HIGH part of the the HIGH-to-LOW transition, a &#34;0&#34; or a &#34;1&#34; will be recorded. If the HIGH portion measures at 6 or more samples, this represents a bit whose value is &#34;1&#34;, otherwise it represents a bit whose value is &#34;0&#34;. Importantly, each HIGH and LOW portion must measure at least 3 samples, and the total duration of the HIGH-to-LOW transition must not exceed 16 samples.</p>
+
+	<p>As both barcode data and level data are 32-bits long, the data type being transmitted is generally determined by the top 8 or 6 most significant bits (i.e. Bits 24-31 for level data, and Bits 26-31 for barcode data). Additionally, Ryuusei no Rockman will manually validate the data on its own. The format for each type of data is listed and explained below:</p>
+
+<pre>---------------------------------------------------------
+Wave Scanner Level Data
+---------------------------------------------------------
+Bits 00 - 07	| XOR Check Digit
+Bits 08 - 14	| Wave Scanner Level (1 - 99)
+Bits 15 - 16	| Wave Scanner Type (1, 2, or 3)
+Bits 17 - 23	| Constant (0x40)
+Bits 24 - 31	| Constant (0x42)
+---------------------------------------------------------</pre>
+
+	<p>The Wave Scanner&#39;s level occupies Bits 8 - 14 and has a valid decimal integer range of 1 - 99.</p>
+
+	<p>The Wave Scanner Type (Leo, Pegasus, and Dragon) is determined by Bit 15 - 16. A value of &#34;1&#34; indicates a Leo Wave Scanner. A value of &#34;2&#34; represents a Pegasus Wave Scanner. A value of &#34;3&#34; represents a Dragon Wave Scanner.</p>
+
+	<p>The upper 15-bits are constant values, 0x42 and 0x40. That is to say, only Bits 23, 25, and 30 are set.</p>
+
+	<p>The XOR Check Digit ensures a small amount of data integrity during transmission. It is simply the XOR&#39;d values of the upper 24-bits of data split into 8-bit values. In other words, the XOR Check Digit is calculated as follows:</p>
+
+<pre>CHECK DIGIT = (BITS 8 - 15) XOR (BITS 16 - 23) XOR (BITS 24 - 31)</pre>
+
+<p></p>
+<p></p>
+
+<pre>---------------------------------------------------------
+Wave Card Barcode Data
+---------------------------------------------------------
+Bits 00 - 07	| XOR Check Digit
+Bits 08 - 13	| 6th Barcode Character Code
+Bits 14 - 19	| 5th Barcode Character Code
+Bits 20 - 25	| 4th Barcode Character Code
+Bits 26 - 31	| Constant (0x10)
+---------------------------------------------------------</pre>
+
+	<p>Although the Wave Scanner&#39;s Wave Cards are in Code-128 C format, only use the last 3 character codes identify any specific card. The alphanumeric representation of each barcode for all Wave Cards uses the format 040000XXYYZZ, where only XXYYZZ change. As Code-128 C converts a single character code into 2 alphanumeric characters, XXYYZZ are the 4th, 5th, and 6th character codes of the barcode. These are encoded as individual 6-bit values when transmitted via the Wave Scanner. The upper 6-bits of the 32-bit barcode data is a simple constant value where only Bit 30 is set.</p>
+
+
+
+
+
+
 
 
 
