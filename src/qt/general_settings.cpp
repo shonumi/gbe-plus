@@ -236,6 +236,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_dev->addItem("Magic Reader");
 	slot2_dev->addItem("Memory Expansion Pak");
 	slot2_dev->addItem("Motion Pack");
+	slot2_dev->addItem("Facening Scan");
 
 	config_slot2 = new QPushButton("Configure");
 
