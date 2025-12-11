@@ -110,7 +110,14 @@ Interestingly enough, a vast majority of the barcodes for Family Jockey 2 are co
 
 
 ***************************************************
-8. Barcodes
+8. Link Cable Compatibility
+***************************************************
+
+The Barcode Boy requires 5V power via Pin 1 of the Link Cable. As such it is incompatible with all official Link Cables (DMG-04, MGB-008, MGB-010, and CGB-003) since each one lacks Pin 1. However, the Link Cable included with the Barcode Boy is a special case that does have Pin 1 present. When using the Barcode Boy's Link Cable, it is possible to connect it to a Game Boy Pocket/Light/Color system with the MGB-004, as the adapter exposes Pin 1.
+
+
+***************************************************
+9. Barcodes
 ***************************************************
 
 Below are the full 13 digit barcodes for all known Barcode Boy cards along with any names, other identifying information found on the card, or important notes.
