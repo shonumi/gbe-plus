@@ -249,6 +249,16 @@ class NTR_MMU
 		bool oid_reset;
 	} magic_reader;
 
+	//NTR-014 aka "NEON" aka Facening Scan
+	struct ntr_014
+	{
+		std::vector <u8> mmap;
+		std::vector <u8> i2c_transfer;
+		u16 index;
+		u8 i2c_data;
+		u8 i2c_cnt;
+	} neon;
+
 	//Wantame Card Scanner
 	struct wantame_card_scanner
 	{

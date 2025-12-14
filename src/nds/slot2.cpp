@@ -139,7 +139,17 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 
 			else
 			{
-				std::cout<<"NTR-014 READ -> 0x" << std::hex << address << "\n";
+				switch(address)
+				{
+					case NEON_I2C_ACK_LO:
+					case NEON_I2C_ACK_HI:
+						slot_byte = 0;
+						break;
+
+					default:
+						std::cout<<"NTR-014 READ -> 0x" << std::hex << address << "\n";
+						slot_byte = 0;
+				}
 			}
 
 			break;
@@ -201,7 +211,57 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 		case SLOT2_FACENING_SCAN:
 			if(address >= 0x8020000)
 			{
-				std::cout<<"NTR-014 WRITE -> 0x" << std::hex << (u32)address << " :: 0x" << (u32)value << "\n";
+				switch(address)
+				{
+					case NEON_I2C_DATA_LO:
+						neon.i2c_data = value;
+						break;
+
+					case NEON_I2C_DATA_HI:
+						break;
+
+					case NEON_I2C_CNT_LO:
+						neon.i2c_cnt = value;
+
+						//Start Transfer
+						if((neon.i2c_cnt & 0xF0) == 0x90)
+						{
+							neon.i2c_transfer.clear();
+							neon.i2c_transfer.push_back(neon.i2c_data);
+						}
+
+						//Continue Transfer
+						else if((neon.i2c_cnt & 0xF0) == 0x10)
+						{
+							neon.i2c_transfer.push_back(neon.i2c_data);
+						}
+
+						//End Transfer
+						else if((neon.i2c_cnt & 0xF0) == 0x50)
+						{
+							neon.i2c_transfer.push_back(neon.i2c_data);
+
+							//Ensure minimum data for transfer was received (4 Bytes)
+							if(neon.i2c_transfer.size() >= 4)
+							{
+								neon.index = (neon.i2c_transfer[1] << 8 | neon.i2c_transfer[2]);
+
+								std::cout<<"I2C Transfer Complete\n";
+								std::cout<<"Transfer Size: " << std::dec << (neon.i2c_transfer.size() - 3) << std::hex << "\n";
+								if(neon.i2c_transfer.size() == 4) { std::cout<<"Transfer Data -> 0x" << u32(neon.i2c_transfer[3]) << "\n"; }
+								std::cout<<"Transfer Index: 0x" << neon.index << "\n\n";
+							}
+						}
+
+						break;
+
+					case NEON_I2C_CNT_HI:
+						break;
+
+					default:
+						std::cout<<"NTR-014 WRITE -> 0x" << std::hex << (u32)address << " :: 0x" << (u32)value << "\n";
+
+				}
 			}
 
 			break;

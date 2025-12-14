@@ -110,6 +110,11 @@ void NTR_MMU::reset()
 
 		case NTR_S2_FACENING_SCAN:
 			current_slot2_device = SLOT2_FACENING_SCAN;
+			neon.mmap.clear();
+			neon.i2c_transfer.clear();
+			neon.index = 0;
+			neon.i2c_data = 0;
+			neon.i2c_cnt = 0;
 			break;
 	}
 
