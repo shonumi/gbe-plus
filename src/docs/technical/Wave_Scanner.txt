@@ -95,49 +95,53 @@ Although the Wave Scanner's Wave Cards are in Code-128 C format, only use the la
 4. Barcodes
 ***************************************************
 
+Character Cards are special cards that effectively end up being duplicates of other cards in terms of overall effect, and in some cases they even duplicate the actual barcodes. For example, C-02 "Rockman" has the same barcode as S-133 "Recover 200", and the Character Card makes explicit note of this as well. Often, Character Cards will have the same effect as using the "SP" version of a Mega Card. These ones seem to be denoted with the barcode pattern 04000024xxxx.
+
+For whatever reason, the Ice Meteor cards are marked as "BC-xxx" instead of "S-xxx". This may stand for "Battle Card" and is perhaps a typo. It's possible it also stands for "Best Combo", however, outside of glitches, attacks powered up by the Wave Scanner disqualify players from achieving a Best Combo. 
+
 Standard Cards
 ----------------------------------------------------------------------------------------------------------------------
 Card ID	| Barcode	| English Name			| Japanese Name	
 ----------------------------------------------------------------------------------------------------------------------
 S-001	| 040000060019	| Canon				| キャノン
 S-002	| 400000060026	| Plus Canon			| プラスキャノン
-S-003	| 400000060031	| Heavy Canon			|
+S-003	| 400000060031	| Heavy Canon			| ヘビーキャノン
 S-004	| 040000060044	| Plasma Gun 1			| プラズマガン 1
 S-005	| 040000060055	| Plasma Gun 2			| プラズマガン 2
 S-006	| 040000060100	| Plasma Gun 3			| プラズマガン 3
 S-007	| 040000060107	| Gatling Gun 1			| ガトリング 1
 S-008	| 040000060122	| Gatling Gun 2			| ガトリング 2
 S-009	| 040000060135	| Gatling Gun 3			| ガトリング 3
-S-010	| 040000060136	| Air Spread			| 
+S-010	| 040000060136	| Air Spread			| エアスプレッド
 S-011	| 040000060154	| Radar Missile 1		| レーダーミサイル 1
 S-012	| 040000060160	| Radar Missile 2		| レーダーミサイル 2
 S-013	| 040000060210	| Radar Missile 3		| レーダーミサイル 3
-S-014	| 040000000212	| Heat Ball 1			|
-S-015	| 040000000222	| Heat Ball 2			|
-S-016	| 040000000240	| Heat Ball 3			|
+S-014	| 040000000212	| Heat Ball 1			| ヒートボール 1
+S-015	| 040000000222	| Heat Ball 2			| ヒートボール 2
+S-016	| 040000000240	| Heat Ball 3			| ヒートボール 3
 BC-017	| 040000060246	| Ice Meteor 1			| アイスメテオ 1
 BC-018	| 040000060260	| Ice Meteor 2			| アイスメテオ 2
 BC-019	| 040000060262	| Ice Meteor 3			| アイスメテオ 3
 S-020	| 040000060317	| Stun Knuckle			| スタンナックル
-S-021	| 040000060325	| Poison Knuckle		|
-S-022	| 040000060330	| Freeze Knuckle		|
+S-021	| 040000060325	| Poison Knuckle		| ポイズンナックル
+S-022	| 040000060330	| Freeze Knuckle		| フリーズナックル
 S-023	| 040000060343	| Sword				| ソード
 S-024	| 040000060354	| Wide Sword			| ワイドソード
 S-025	| 040000060363	| Long Sword			| ロングソード
-S-026	| 040000060406	| Blazing Edge			|
+S-026	| 040000060406	| Blazing Edge			| リュウエンザン
 S-027	| 040000060421	| Tidal Edge			| スイゲツザン
 S-028	| 040000060424	| Strike Edge			| ライメイザン
 S-029	| 040000060435	| Arbo Edge			| タイボクゼン
-S-030	| 040000060444	| Break Sabre			|
+S-030	| 040000060444	| Break Sabre			| ブレイクサーベル
 S-031	| 040000060460	| Ground Wave 1			| グランドウェーブ 1
 S-032	| 040000060500	| Ground Wave 2			| グランドウェーブ 2
 S-033	| 040000060512	| Ground Wave 3			| グランドウェーブ 3
 S-034	| 040000060522	| Jet Attack 1			| ジェットアタック 1
 S-035	| 040000060530	| Jet Attack 2			| ジェットアタック 2
 S-036	| 040000060546	| Jet Attack 3			| ジェットアタック 3
-S-037	| 040000060550	| Power Bomb 1			|
-S-038	| 040000060562	| Power Bomb 2			|
-S-039	| 040000060608	| Power Bomb 3			|
+S-037	| 040000060550	| Power Bomb 1			| パワーボム 1
+S-038	| 040000060562	| Power Bomb 2			| パワーボム 2
+S-039	| 040000060608	| Power Bomb 3			| パワーボム 3
 S-040	| 040000060616	| Ghost Pulse 1			| ゴーストパルス 1
 S-041	| 040000060631	| Ghost Pulse 2			| ゴーストパルス 2
 S-042	| 040000060644	| Ghost Pulse 3			| ゴーストパルス 3
@@ -150,18 +154,18 @@ S-048	| 040000060736	| Time Bomb 3			| カウントボム 3
 S-049	| 040000060745	| Fire Bazooka 1		| ファイアバズーカ 1
 S-050	| 040000060752	| Fire Bazooka 2		| ファイアバズーカ 2
 S-051	| 040000060802	| Fire Bazooka 3		| ファイアバズーカ 3
-S-052	| 040000060814	| Tail Burner 1			|
-S-053	| 040000060824	| Tail Burner 2			|
-S-054	| 040000060832	| Tail Burner 3			|
+S-052	| 040000060814	| Tail Burner 1			| テイルバーナー 1
+S-053	| 040000060824	| Tail Burner 2			| テイルバーナー 2
+S-054	| 040000060832	| Tail Burner 3			| テイルバーナー 3
 S-055	| 040000060838	| Wide Wave 1			| ワイドワェーブ 1
 S-056	| 040000060852	| Wide Wave 2			| ワイドワェーブ 2
 S-057	| 040000060900	| Wide Wave 3			| ワイドワェーブ 3
 S-058	| 040000060910	| Chain Bubble 1		| チェインバブル 1
 S-059	| 040000060918	| Chain Bubble 2		| チェインバブル 2
 S-060	| 040000060924	| Chain Bubble 3		| チェインバブル 3
-S-061	| 040000060937	| Green Ink			|
-S-062	| 040000060948	| Blue Ink			|
-S-063	| 040000060957	| Purple Ink			|
+S-061	| 040000060937	| Green Ink			| グリーンインク
+S-062	| 040000060948	| Blue Ink			| ブルーインク
+S-063	| 040000060957	| Purple Ink			| パープルインク
 S-064	| 040000061000	| Sticky Rain 1			| ネバーレイン 1
 S-065	| 040000061015	| Sticky Rain 2			| ネバーレイン 2
 S-066	| 040000061028	| Sticky Rain 3			| ネバーレイン 3
@@ -189,17 +193,17 @@ S-087	| 040000061343	| Fokx-Fu 3			| ヘンゲノジュツ 3
 S-088	| 040000061350	| Vulcan Seed 1			| バルカンシード 1
 S-089	| 040000061401	| Vulcan Seed 2			| バルカンシード 2
 S-090	| 040000061404	| Vulcan Seed 3			| バルカンシード 3
-S-091	| 004000061414	| Brave Sword 1			|
-S-092	| 004000061432	| Brave Sword 2			|
-S-093	| 004000061438	| Brave Sword 3			|
+S-091	| 004000061414	| Brave Sword 1			| ブレイブソード 1
+S-092	| 004000061432	| Brave Sword 2			| ブレイブソード 2
+S-093	| 004000061438	| Brave Sword 3			| ブレイブソード 3
 S-094	| 040000061452	| Junk Cube 1			| ジャンクキューブ 1
 S-095	| 040000061454	| Junk Cube 2			| ジャンクキューブ 2
 S-096	| 040000061500	| Junk Cube 3			| ジャンクキューブ 3
 S-097	| 040000061518	| Synchro Hook 1		| シンクロフック 1
 S-098	| 040000061524	| Synchro Hook 2		| シンクロフック 2
 S-099	| 040000061538	| Synchro Hook 3		| シンクロフック 3
-S-100	| 040000061540	| Power Song			|
-S-101	| 040000061550	| Quake Song			|
+S-100	| 040000061540	| Power Song			| パワーソング
+S-101	| 040000061550	| Quake Song			| クエイクソング
 S-102	| 040000061562	| Trip Song			| トリップソング
 S-103	| 040000061612	| Maoi Fall 1			| モアイフォール 1
 S-104	| 040000061618	| Maoi Fall 2			| モアイフォール 2
@@ -207,23 +211,23 @@ S-105	| 040000061626	| Maoi Fall 3			| モアイフォール 3
 S-106	| 040000061636	| Big Axe 1			| ビッグアックス 1
 S-107	| 040000061648	| Big Axe 2			| ビッグアックス 2
 S-108	| 040000061662	| Big Axe 3			| ビッグアックス 3
-S-109	| 040000061704	| Magic Crystal 1		|
-S-110	| 040000061712	| Magic Crystal 2		|
-S-111	| 040000061723	| Magic Crystal 3		|
-S-112	| 040000061736	| Black Hole 1			|
-S-113	| 040000061751	| Black Hole 2			|
-S-114	| 040000061758	| Black Hole 3			|
+S-109	| 040000061704	| Magic Crystal 1		| マジクリスタル 1
+S-110	| 040000061712	| Magic Crystal 2		| マジクリスタル 2
+S-111	| 040000061723	| Magic Crystal 3		| マジクリスタル 3
+S-112	| 040000061736	| Black Hole 1			| ブラックホール 1
+S-113	| 040000061751	| Black Hole 2			| ブラックホール 2
+S-114	| 040000061758	| Black Hole 3			| ブラックホール 3
 S-115	| 040000061803	| Berserk Sword 1		| ベルセルカソード 1
 S-116	| 040000061814	| Berserk Sword 2		| ベルセルカソード 2
 S-117	| 040000061827	| Berserk Sword 3		| ベルセルカソード 3
 S-118	| 040000061832	| Green Burst			| グリーンバースト
 S-119	| 040000061839	| Ice Burst			| アイスバースト
-S-120	| 040000061848	| Poison Burst			|
-S-121	| 040000061860	| Typhoon Dance			|
-S-122	| 040000061910	| Jamming Punch			|
-S-123	| 040000061916	| Jamming Machine Gun		|
-S-124	| 040000061924	| Whistle			|
-S-125	| 040000061934	| Bombalizer			|
+S-120	| 040000061848	| Poison Burst			| ポイズンバースト
+S-121	| 040000061860	| Typhoon Dance			| タイフーンダンス
+S-122	| 040000061910	| Jamming Punch			| ジャミングパンチ
+S-123	| 040000061916	| Jamming Machine Gun		| ジャミングマシンガン
+S-124	| 040000061924	| Whistle			| ホイッスル
+S-125	| 040000061934	| Bombalizer			| ボムライザー
 S-126	| 040000061946	| Anti Sword			| シラハドリ
 S-127	| 040000061960	| Recover 10			| リカバリー 10
 S-128	| 040000062002	| Recover 30			| リカバリー 30
@@ -237,16 +241,16 @@ S-135	| 040000062111	| Barrier			| バリア
 S-136	| 040000062118	| Barrier 100			| バリア 100
 S-137	| 040000062129	| Barrier 200			| バリア 200
 S-138	| 040000062136	| Aura				| オーラ
-S-139	| 040000062155	| Invisible			|
-S-140	| 040000062156	| Spirit Fury			|
+S-139	| 040000062155	| Invisible			| インビジブル
+S-140	| 040000062156	| Spirit Fury			| セイレイノイカリ
 S-141	| 040000062206	| Poison Apple			| ドクリンゴ
 S-142	| 040000062212	| Double Cross			| ウラギリノススメ
-S-143	| 040000062230	| Giga Mine			|
-S-144	| 040000062240	| Grass Stage			|
+S-143	| 040000062230	| Giga Mine			| ギガマイン
+S-144	| 040000062240	| Grass Stage			| クサムラステージ
 S-145	| 040000062242	| Ice Stage			| アイスステージ
-S-146	| 040000062256	| Gravity Stage			|	
+S-146	| 040000062256	| Gravity Stage			| グラビティステージ	
 S-147	| 040000062262	| Guard Null Stage		| ゼシエンステージ
-S-148	| 040000062316	| Holy Panel			|
+S-148	| 040000062316	| Holy Panel			| ホーリーパネル
 S-149	| 040000062326	| Paralyze Plus			| マビプラス
 S-150	| 040000062328	| Attack+10			| アタック＋10
 ----------------------------------------------------------------------------------------------------------------------
@@ -300,10 +304,20 @@ Giga Cards
 Card ID	| Barcode	| English Name			| Japanese Name	
 ----------------------------------------------------------------------------------------------------------------------
 G-231	| 040000063613	| Pegasus Magic GX		| ペガサスマジック GX
-G-234	| 040000063636	| Break Count Bomb		| ブレイクカウントボム
+G-232	| 040000063622	| Aqua+50			| アクア+50
+G-233	| 040000063633	| Ox Tackle			| オックスタックル
+G-234	| 040000063636	| Break Time Bomb		| ブレイクカウントボム
 G-235	| 040000063651	| Dark Sword			| ダークソード
+G-236	| 040000063658	| Leo Kingdom GX		| レオキングダム GX
+G-237	| 040000063703	| Fire+50			| ファイア+50
 G-238	| 040000063714	| Gemini Thunder		| ジェミニサンダー
+G-239	| 040000063727	| Darkness Hole			| ダークネスホール
+G-240	| 040000063732	| Life Aura			| ドリームオーラ
+G-241	| 040000063751	| Dragon Sky GX			| ドラゴンスカイ GX
+G-242	| 040000063752	| Wood+50			| ウッド+50
 G-243	| 040000063801	| Gorgon Eye			| ゴルゴンアイ
+G-244	| 040000063816	| Destroy Missle		| デストロイミサイル
+G-245	| 040000063823	| Poison Pharoah		| ポイズンファラオ
 G-247	| 040000063843	| Andromeda			| アンドロメダ
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -315,7 +329,10 @@ Card ID	| Barcode	| English Name			| Japanese Name
 C-01	| 040000060031	| Rockman			| ロックマン
 C-02	| 040000062055	| Rockman			| ロックマン
 C-06	| 040000063236	| Ice Pegasus			| アイスペガサス
+C-09	| 040000240020	| Taurus Fire			| オックスファイア
+C-10	| 040000240027	| Cygnus Wing			| キグナスウィング
 C-11	| 040000240032	| Harp Note			| ハープ・ノート
+C-12	| 040000240045	| Libra Scales			| リブラ・バランス
 C-13	| 040000240056	| Queen Ophiuca			| オヒュカス・クイーン
 C-14	| 040000240101	| Gemini Spark			| ジェミ・スパーク
 C-15	| 040000240108	| Cancer Bubble			| キャンサ・バブル
