@@ -257,18 +257,41 @@ Mega Cards
 Card ID	| Barcode	| English Name			| Japanese Name	
 ----------------------------------------------------------------------------------------------------------------------
 M-181	| 040000062826	| Taurus Fire			| オックスファイア
+M-182	| 040000062836	| Taurus Fire EX		| オックスファイア EX
+M-183	| 040000062838	| Taurus Fire SP		| オックスファイア SP
+M-184	| 040000062852	| Cygnus Wing			| キグナスウィング
 M-185	| 040000062858	| Cygnus Wing EX		| キグナスウィング EX
+M-186	| 040000062912	| Cygnus Wing SP		| キグナスウィング SP
 M-187	| 040000062922	| Harp Note			| ハープ・ノート
+M-188	| 040000062924	| Harp Note EX			| ハープ・ノート EX
 M-189	| 040000062938	| Harp Note SP			| ハープ・ノート SP
 M-190	| 040000062944	| Libra Scales			| リブラ・バランス
+M-191	| 040000062963	| Libra Scales EX		| リブラ・バランス EX
+M-192	| 040000063000	| Libra Scales SP		| リブラ・バランス SP
+M-193	| 040000063013	| Queen Ophiuca			| オヒュカスクイーン
 M-194	| 040000063028	| Queen Ophiuca EX		| オヒュカスクイーン EX
+M-195	| 040000063056	| Queen Ophiuca SP		| オヒュカスクイーン SP
 M-196	| 040000063044	| Gemini Spark			| ジェミニスパーク
+M-197	| 040000063055	| Gemini Spark EX		| ジェミニスパーク EX
+M-198	| 040000063104	| Gemini Spark SP		| ジェミニスパーク SP
+M-199	| 040000063109	| Cancer Bubble			| キャンサバブル
 M-200	| 040000063116	| Cancer Bubble EX		| キャンサバブル EX
+M-201	| 040000063127	| Cancer Bubble SP		| キャンサバブル SP
+M-202	| 040000063140	| Wolf Woods			| ウルフフォレスト
 M-203	| 040000063155	| Wolf Woods EX			| ウルフフォレスト EX
+M-204	| 040000063162	| Wolf Woods SP			| ウルフフォレスト SP
+M-205	| 040000063207	| Crown Thunder			| クラウンサンダー
 M-206	| 040000063218	| Crown Thunder EX		| クラウンサンダー EX
+M-207	| 040000063231	| Crown Thunder SP		| クラウンサンダー SP
+M-208	| 040000063236	| Pegasus Magic			| ペガサスマジック
+M-209	| 040000063243	| Pegasus Magic EX		| ペガサスマジック EX
 M-210	| 040000063252	| Pegasus Magic SP		| ペガサスマジック SP
+M-211	| 040000063301	| Leo Kingdom			| レオキングダム
 M-212	| 040000063316	| Leo Kingdom EX		| レオキングダム EX
+M-213	| 040000063323	| Leo Kingdom SP		| レオキングダム SP
+M-214	| 040000063332	| Dragon Sky			| ドラゴンスカイ
 M-215	| 040000063343	| Dragon Sky EX			| ドラゴンスカイ EX
+M-216	| 040000063356	| Dragon Sky SP			| ドラゴンスカイ SP
 ----------------------------------------------------------------------------------------------------------------------
 
 
