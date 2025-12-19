@@ -68,7 +68,7 @@ Bits 17 - 23	| Constant (0x40)
 Bits 24 - 31	| Constant (0x42)
 ---------------------------------------------------------
 
-The Wave Scanner's level occupies Bits 8 - 14 and has a valid decimal integer range of 1 - 99.
+The Wave Scanner's level occupies Bits 8 - 14 and has a valid decimal integer in the range of 1 - 99.
 
 The Wave Scanner Type (Leo, Pegasus, and Dragon) is determined by Bit 15 - 16. A value of "1" indicates a Leo Wave Scanner. A value of "2" represents a Pegasus Wave Scanner. A value of "3" represents a Dragon Wave Scanner.
 
@@ -95,7 +95,7 @@ Although the Wave Scanner's Wave Cards are in Code-128 C format, only use the la
 4. Barcodes
 ***************************************************
 
-Character Cards are special cards that effectively end up being duplicates of other cards in terms of overall effect, and in some cases they even duplicate the actual barcodes. For example, C-02 "Rockman" has the same barcode as S-133 "Recover 200", and the Character Card makes explicit note of this as well. Often, Character Cards will have the same effect as using the "SP" version of a Mega Card. These ones seem to be denoted with the barcode pattern 04000024xxxx.
+Character Cards are special cards that effectively end up being duplicates of other cards in terms of overall effect, and in some cases they even duplicate the actual barcodes. For example, C-02 "Rockman" has the same barcode as S-133 "Recover 200", and the Character Card makes explicit note that it restores 200 HP. Often, Character Cards will have the same outcome as using the "SP" version of a Mega Card. These ones seem to be denoted with the barcode pattern 04000024xxxx.
 
 For whatever reason, the Ice Meteor cards are marked as "BC-xxx" instead of "S-xxx". This may stand for "Battle Card" and is perhaps a typo. It's possible it also stands for "Best Combo", however, outside of glitches, attacks powered up by the Wave Scanner disqualify players from achieving a Best Combo. 
 
@@ -252,7 +252,7 @@ S-146	| 040000062256	| Gravity Stage			| グラビティステージ
 S-147	| 040000062262	| Guard Null Stage		| ゼシエンステージ
 S-148	| 040000062316	| Holy Panel			| ホーリーパネル
 S-149	| 040000062326	| Paralyze Plus			| マビプラス
-S-150	| 040000062328	| Attack+10			| アタック＋10
+S-150	| 040000062328	| Attack+10			| アタック+10
 ----------------------------------------------------------------------------------------------------------------------
 
 

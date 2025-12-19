@@ -24,6 +24,7 @@ Doko Demo Style shares some gameplay concepts with Oshare Majo and Sega's HCV-10
 * Microphone cable is tucked under the bottom of the unit.
 * Has a reset button on the backside.
 * Uses 12 character barcodes in Code-128 C format.
+* Produces samples at approximately 400.005Hz.
 
 
 ***************************************************
