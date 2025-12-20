@@ -141,8 +141,9 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			{
 				switch(address)
 				{
-					case NEON_I2C_ACK_LO:
-					case NEON_I2C_ACK_HI:
+					//I2C Shift Register - Forced to zero here to indicate end of transfer
+					case NEON_I2C_SR:
+					case NEON_I2C_SR+1:
 						slot_byte = 0;
 						break;
 
@@ -213,14 +214,14 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 			{
 				switch(address)
 				{
-					case NEON_I2C_DATA_LO:
+					case NEON_I2C_TX:
 						neon.i2c_data = value;
 						break;
 
-					case NEON_I2C_DATA_HI:
+					case NEON_I2C_TX+1:
 						break;
 
-					case NEON_I2C_CNT_LO:
+					case NEON_I2C_CNT:
 						neon.i2c_cnt = value;
 
 						//Start Transfer
@@ -255,7 +256,7 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 
 						break;
 
-					case NEON_I2C_CNT_HI:
+					case NEON_I2C_CNT+1:
 						break;
 
 					default:

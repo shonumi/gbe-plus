@@ -249,7 +249,7 @@ class NTR_MMU
 		bool oid_reset;
 	} magic_reader;
 
-	//NTR-014 aka "NEON" aka Facening Scan
+	//NTR-014 aka "NEON" aka Facening Scan/DS Scanner
 	struct ntr_014
 	{
 		std::vector <u8> mmap;
