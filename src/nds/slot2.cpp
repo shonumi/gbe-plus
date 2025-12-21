@@ -243,7 +243,7 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 							neon.i2c_transfer.push_back(neon.i2c_data);
 
 							//Ensure minimum data for transfer was received (4 Bytes)
-							if(neon.i2c_transfer.size() >= 4)
+							if((neon.i2c_transfer.size() >= 4) && (neon.mmap.size() >= 0x10000))
 							{
 								neon.index = (neon.i2c_transfer[1] << 8 | neon.i2c_transfer[2]);
 
@@ -251,6 +251,12 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 								std::cout<<"Transfer Size: " << std::dec << (neon.i2c_transfer.size() - 3) << std::hex << "\n";
 								if(neon.i2c_transfer.size() == 4) { std::cout<<"Transfer Data -> 0x" << u32(neon.i2c_transfer[3]) << "\n"; }
 								std::cout<<"Transfer Index: 0x" << neon.index << "\n\n";
+
+								for(u32 x = 3; x < neon.i2c_transfer.size(); x++)
+								{
+									neon_set_stm_register(neon.index, neon.i2c_transfer[x]);
+									neon.index++;
+								}
 							}
 						}
 
@@ -445,3 +451,33 @@ void NTR_MMU::magic_reader_process()
 	//Update new SCK in Magic Reader structure
 	magic_reader.sck = new_sck;
 }
+
+/****** Sets the register for STM VL6524 camera ******/
+void NTR_MMU::neon_set_stm_register(u16 index, u8 value)
+{
+	neon.mmap[index] = value;
+
+	switch(index)
+	{
+		case STM_MICRO_ENABLE:
+			if(value == 0x06)
+			{
+				std::cout<<"MMU::STM VL6524 Clocks Enabled\n";
+			}
+
+			break;
+
+		case STM_IO_ENABLE:
+			if(value & 0x01)
+			{
+				std::cout<<"MMU::STM VL6524 IO Enabled\n";
+			}
+
+			break;
+
+		case STM_USER_CMD:
+			std::cout<<"MMU::STM VL6524 Mode - " << u32(value) << "\n";
+			break;
+	}
+}
+

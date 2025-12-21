@@ -524,6 +524,8 @@ class NTR_MMU
 	void wave_scanner_set_pulse(u32 hi, u32 lo);
 	void wave_scanner_set_data();
 
+	void neon_set_stm_register(u16 index, u8 value);
+
 	void parse_header();
 
 	NTR_GamePad* g_pad;
