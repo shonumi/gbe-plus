@@ -2094,7 +2094,7 @@ bool save_ini_file()
 		}
 
 		//Emulated microphone device
-		if(ini_item == "#ir_device")
+		if(ini_item == "#mic_device")
 		{
 			line_pos = output_count[x];
 
