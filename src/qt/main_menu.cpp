@@ -1167,198 +1167,120 @@ void main_menu::keyReleaseEvent(QKeyEvent* event)
 bool main_menu::eventFilter(QObject* target, QEvent* event)
 {
 	//Only process NDS touchscreen events
-	if((config::gb_type != SYS_NDS) || (main_menu::gbe_plus == NULL)) { return QWidget::eventFilter(target, event); }
-
-	//Single click - Press
-	else if(event->type() == QEvent::MouseButtonPress)
+	if((config::gb_type != SYS_NDS) || (main_menu::gbe_plus == NULL))
 	{
-		if((target == sw_screen) || (target == hw_screen))
-		{
-			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			float x_scaling_factor, y_scaling_factor = 0.0;
-			u32 x, y = 0;
-
-			if(config::maintain_aspect_ratio)
-			{
-				u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
-				u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
-				u32 off_x, off_y = 0;
-
-				get_nds_ar_size(w, h, off_x, off_y);
-
-				x_scaling_factor = w / 256.0;
-				y_scaling_factor = h / 384.0;
-
-				x = ((mouse_event->x() - off_x) / x_scaling_factor);
-				y = ((mouse_event->y() - off_y) / y_scaling_factor);
-
-				if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
-				if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
-			}
-
-			else
-			{
-				x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
-				y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
-
-				x = (mouse_event->x() / x_scaling_factor);
-			 	y = (mouse_event->y() / y_scaling_factor);
-			}
-
-			//Adjust Y for bottom touchscreen
-			bool is_bottom = false;
-
-			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
-			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
-			{
-				is_bottom = true;
-				y -= 192;
-			}
-
-			if(is_bottom)
-			{
-				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
-				x &= 0xFF;
-				y &= 0xFF;
-
-				u8 pad = 0;
-
-				if(mouse_event->buttons() == Qt::LeftButton) { pad = 1; }
-				else if(mouse_event->buttons() == Qt::RightButton) { pad = 2; }
-				else { return QWidget::eventFilter(target, event); }
-
-				u32 pack = (pad << 16) | (y << 8) | (x);
-
-				main_menu::gbe_plus->feed_key_input(pack, true);
-			}
-		}
+		return QWidget::eventFilter(target, event);
 	}
 
-	//Single click - Release
-	else if(event->type() == QEvent::MouseButtonRelease)
+	//Only process mouse events from Qt
+	else if((event->type() != QEvent::MouseButtonPress) && (event->type() != QEvent::MouseButtonRelease)
+	&& (event->type() != QEvent::MouseMove))
 	{
-		if((target == sw_screen) || (target == hw_screen))
-		{
-			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			float x_scaling_factor, y_scaling_factor = 0.0;
-			u32 x, y = 0;
-
-			if(config::maintain_aspect_ratio)
-			{
-				u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
-				u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
-				u32 off_x, off_y = 0;
-
-				get_nds_ar_size(w, h, off_x, off_y);
-
-				x_scaling_factor = w / 256.0;
-				y_scaling_factor = h / 384.0;
-
-				x = ((mouse_event->x() - off_x) / x_scaling_factor);
-				y = ((mouse_event->y() - off_y) / y_scaling_factor);
-
-				if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
-				if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
-			}
-
-			else
-			{
-				x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
-				y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
-
-				x = (mouse_event->x() / x_scaling_factor);
-			 	y = (mouse_event->y() / y_scaling_factor);
-			}
-
-			//Adjust Y for bottom touchscreen
-			bool is_bottom = false;
-
-			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
-			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
-			{
-				is_bottom = true;
-				y -= 192;
-			}
-
-			if(is_bottom)
-			{
-				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
-				x &= 0xFF;
-				y &= 0xFF;
-
-				u8 pad = 0;
-
-				if(mouse_event->button() == Qt::LeftButton) { pad = 1; }
-				else if(mouse_event->button() == Qt::RightButton) { pad = 2; }
-				else { return QWidget::eventFilter(target, event); }
-
-				u32 pack = (pad << 16) | (y << 8) | (x);
-
-				main_menu::gbe_plus->feed_key_input(pack, false);
-			}
-		}
+		return QWidget::eventFilter(target, event);
 	}
 
-	//Mouse motion
-	else if(event->type() == QEvent::MouseMove)
+	//Only process if the target is one of the drawable screen widgets
+	else if((target != sw_screen) && (target != hw_screen))
 	{
-		if((target == sw_screen) || (target == hw_screen))
+		return QWidget::eventFilter(target, event);
+	}
+
+	//Only process mouse motion if touch_by_mouse has been set in NDS core
+	else if((event->type() == QEvent::MouseMove) && (main_menu::gbe_plus->get_core_data(2) == 0))
+	{
+		return QWidget::eventFilter(target, event);
+	}
+
+	QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+	float x_scaling_factor, y_scaling_factor = 0.0;
+	u32 x, y = 0;
+
+	if(config::maintain_aspect_ratio)
+	{
+		u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
+		u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
+		u32 off_x, off_y = 0;
+
+		get_nds_ar_size(w, h, off_x, off_y);
+
+		x_scaling_factor = w / 256.0;
+		y_scaling_factor = h / 384.0;
+
+		x = ((mouse_event->x() - off_x) / x_scaling_factor);
+		y = ((mouse_event->y() - off_y) / y_scaling_factor);
+
+		if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
+		if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
+	}
+
+	else
+	{
+		x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
+		y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
+
+		x = (mouse_event->x() / x_scaling_factor);
+		y = (mouse_event->y() / y_scaling_factor);
+	}
+
+	//Adjust Y for bottom touchscreen
+	bool is_bottom = false;
+
+	if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
+	else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+	{
+		is_bottom = true;
+		y -= 192;
+	}
+
+	if(is_bottom)
+	{
+		//Single-Click - Press
+		if(event->type() == QEvent::MouseButtonPress)
 		{
-			//Only process mouse motion if touch_by_mouse has been set in NDS core
-			if(main_menu::gbe_plus->get_core_data(2) == 0) { return QWidget::eventFilter(target, event); }
+			//Pack Pad, X, Y into a 24-bit number to send to the NDS core
+			x &= 0xFF;
+			y &= 0xFF;
 
-			QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-			float x_scaling_factor, y_scaling_factor = 0.0;
-			u32 x, y = 0;
+			u8 pad = 0;
 
-			if(config::maintain_aspect_ratio)
-			{
-				u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
-				u32 h = (target == sw_screen) ? sw_screen->height() : hw_screen->height();
-				u32 off_x, off_y = 0;
+			if(mouse_event->buttons() == Qt::LeftButton) { pad = 1; }
+			else if(mouse_event->buttons() == Qt::RightButton) { pad = 2; }
+			else { return QWidget::eventFilter(target, event); }
 
-				get_nds_ar_size(w, h, off_x, off_y);
+			u32 pack = (pad << 16) | (y << 8) | (x);
 
-				x_scaling_factor = w / 256.0;
-				y_scaling_factor = h / 384.0;
+			main_menu::gbe_plus->feed_key_input(pack, true);
+		}
 
-				x = ((mouse_event->x() - off_x) / x_scaling_factor);
-				y = ((mouse_event->y() - off_y) / y_scaling_factor);
+		//Single-Click - Release
+		else if(event->type() == QEvent::MouseButtonRelease)
+		{
+			//Pack Pad, X, Y into a 24-bit number to send to the NDS core
+			x &= 0xFF;
+			y &= 0xFF;
 
-				if((mouse_event->x() < off_x) || (mouse_event->x() > (w + off_x))) { return QWidget::eventFilter(target, event); }
-				if((mouse_event->y() < off_y) || (mouse_event->y() > (h + off_y))) { return QWidget::eventFilter(target, event); }
-			}
+			u8 pad = 0;
 
-			else
-			{
-				x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
-				y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
+			if(mouse_event->button() == Qt::LeftButton) { pad = 1; }
+			else if(mouse_event->button() == Qt::RightButton) { pad = 2; }
+			else { return QWidget::eventFilter(target, event); }
 
-				x = (mouse_event->x() / x_scaling_factor);
-			 	y = (mouse_event->y() / y_scaling_factor);
-			}
+			u32 pack = (pad << 16) | (y << 8) | (x);
 
-			//Adjust Y for bottom touchscreen
-			bool is_bottom = false;
+			main_menu::gbe_plus->feed_key_input(pack, false);
+		}
 
-			if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
-			else if((y > 192) && ((config::lcd_config & 0x1) == 0))
-			{
-				is_bottom = true;
-				y -= 192;
-			}
+		//Mouse Motion
+		else
+		{
+			//Pack Pad, X, Y into a 24-bit number to send to the NDS core
+			x &= 0xFF;
+			y &= 0xFF;
 
-			if(is_bottom)
-			{
-				//Pack Pad, X, Y into a 24-bit number to send to the NDS core
-				x &= 0xFF;
-				y &= 0xFF;
+			u8 pad = 4;
+			u32 pack = (pad << 16) | (y << 8) | (x);
 
-				u8 pad = 4;
-				u32 pack = (pad << 16) | (y << 8) | (x);
-
-				main_menu::gbe_plus->feed_key_input(pack, true);
-			}
+			main_menu::gbe_plus->feed_key_input(pack, true);
 		}
 	}
 
