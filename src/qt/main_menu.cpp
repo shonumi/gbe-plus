@@ -1195,6 +1195,9 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	float x_scaling_factor, y_scaling_factor = 0.0;
 	u32 x, y = 0;
 
+	float og_width = (config::lcd_config & 0x02) ? 512.0 : 256.0;
+	float og_height = (config::lcd_config & 0x02) ? 192.0 : 384.0;
+
 	if(config::maintain_aspect_ratio)
 	{
 		u32 w = (target == sw_screen) ? sw_screen->width() : hw_screen->width();
@@ -1203,8 +1206,8 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 
 		get_nds_ar_size(w, h, off_x, off_y);
 
-		x_scaling_factor = w / 256.0;
-		y_scaling_factor = h / 384.0;
+		x_scaling_factor = w / og_width;
+		y_scaling_factor = h / og_height;
 
 		x = ((mouse_event->x() - off_x) / x_scaling_factor);
 		y = ((mouse_event->y() - off_y) / y_scaling_factor);
@@ -1215,8 +1218,8 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 
 	else
 	{
-		x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / 256.0) : (hw_screen->width() / 256.0);
-		y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / 384.0) : (hw_screen->height() / 384.0);
+		x_scaling_factor = (target == sw_screen) ? (sw_screen->width() / og_width) : (hw_screen->width() / og_width);
+		y_scaling_factor = (target == sw_screen) ? (sw_screen->height() / og_height) : (hw_screen->height() / og_height);
 
 		x = (mouse_event->x() / x_scaling_factor);
 		y = (mouse_event->y() / y_scaling_factor);
@@ -1225,8 +1228,17 @@ bool main_menu::eventFilter(QObject* target, QEvent* event)
 	//Adjust Y for bottom touchscreen
 	bool is_bottom = false;
 
-	if((y < 192) && (config::lcd_config & 0x1)) { is_bottom = true; }
-	else if((y > 192) && ((config::lcd_config & 0x1) == 0))
+	//Horizontal Mode
+	if((x < 256) && ((config::lcd_config & 0x03) == 0x03)) { is_bottom = true; }
+	else if((x >= 256) && ((config::lcd_config & 0x03) == 0x02))
+	{
+		is_bottom = true;
+		x -= 256;
+	}
+
+	//Vertical Mode
+	else if((y < 192) && ((config::lcd_config & 0x03) == 0x01)) { is_bottom = true; }
+	else if((y >= 192) && ((config::lcd_config & 0x03) == 0x00))
 	{
 		is_bottom = true;
 		y -= 192;
