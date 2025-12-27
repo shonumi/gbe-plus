@@ -1634,8 +1634,13 @@ void main_menu::start_special_comm()
 /****** Calculates the NDS screen size + offsets when maintaining proper aspect ratio ******/
 void main_menu::get_nds_ar_size(u32 &width, u32 &height, u32 &offset_x, u32 &offset_y)
 {
-	float w_ratio = 256.0 / width;
-	float h_ratio = 384.0 / height;
+	//Width and Height to test against for aspect ratio
+	//Adjusted here for Vertical and Horizontal modes
+	float tw = (config::lcd_config & 0x02) ? 512.0 : 256.0;
+	float th = (config::lcd_config & 0x02) ? 192.0 : 384.0;
+
+	float w_ratio = tw / width;
+	float h_ratio = th / height;
 
 	u32 original_w = width;
 	u32 original_h = height;
@@ -1646,7 +1651,7 @@ void main_menu::get_nds_ar_size(u32 &width, u32 &height, u32 &offset_x, u32 &off
 	//Calculate height to maintain aspect ratio
 	if(w_ratio > h_ratio)
 	{
-		height = (384 * (width / 256.0)) ;
+		height = (th * (width / tw)) ;
 
 		//Calculate offsets
 		offset_x = 0;
@@ -1655,7 +1660,7 @@ void main_menu::get_nds_ar_size(u32 &width, u32 &height, u32 &offset_x, u32 &off
 
 	else if(h_ratio > w_ratio)
 	{
-		width = (256 * (height / 384.0)) ;
+		width = (tw * (height / th)) ;
 
 		//Calculate offsets
 		offset_x = (original_w - width) / 2;
