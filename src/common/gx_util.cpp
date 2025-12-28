@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <ctime>
 
 #ifndef GL3_PROTOTYPES
 #define GL3_PROTOTYPES 1
@@ -24,6 +25,7 @@
 #include "GL/glew.h"
 #endif
 
+#include "config.h"
 #include "gx_util.h"
 
 
@@ -264,6 +266,132 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	glDeleteShader(fragment_shader_id);
  
 	return program_id;
+}
+
+//OpenGL init and render for cores
+bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen)
+{
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+
+	u32 screen_width = (config::sys_width * config::scaling_factor);
+	u32 screen_height = (config::sys_height * config::scaling_factor);
+
+	if(config::flags & SDL_WINDOW_FULLSCREEN)
+	{
+		SDL_DisplayMode current_mode;
+		SDL_GetCurrentDisplayMode(0, &current_mode);
+
+		screen_width = current_mode.w;
+		screen_height = current_mode.h;
+	}
+		
+	window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height, config::flags | SDL_WINDOW_OPENGL);
+	SDL_GetWindowSize(window, &config::win_width, &config::win_height);
+
+	//Calculate new temporary scaling factor
+	float max_width = (float)config::win_width / config::sys_width;
+	float max_height = (float)config::win_height / config::sys_height;
+
+	//Find the maximum dimensions that maintain the original aspect ratio
+	if(config::flags & SDL_WINDOW_FULLSCREEN)
+	{
+		if(max_width <= max_height)
+		{
+			float max_x_size = (max_width * config::sys_width);
+			float max_y_size = (max_width * config::sys_height);
+
+			ogl.x_scale =  max_x_size / config::win_width;
+			ogl.y_scale =  max_y_size / config::win_height;
+		}
+
+		else
+		{
+			float max_x_size = (max_height * config::sys_width);
+			float max_y_size = (max_height * config::sys_height);
+
+			ogl.x_scale =  max_x_size / config::win_width;
+			ogl.y_scale =  max_y_size / config::win_height;
+		}
+	}
+
+	else { ogl.x_scale = ogl.y_scale = 1.0; }
+
+	ogl.ext_data_1 = ogl.ext_data_2 = 1.0;
+
+	ogl.gl_context = SDL_GL_CreateContext(window);
+
+	#ifdef GBE_GLEW
+ 	GLenum glew_err = glewInit();
+ 	if(glew_err != GLEW_OK)
+	{
+		std::cout<<"LCD::Error - Could not initialize GLEW: " << glewGetErrorString(glew_err) << "\n";
+		return false;
+  	}
+	#endif
+
+	glDeleteVertexArrays(1, &ogl.vertex_array_object);
+	glDeleteBuffers(1, &ogl.vertex_buffer_object);
+	glDeleteBuffers(1, &ogl.element_buffer_object);
+
+	//Define vertices and texture coordinates for the screen texture
+    	GLfloat vertices[] =
+	{
+		//Vertices		//Texture Coordinates
+		1.0f, 1.0f, 0.0f,	1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,	1.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f,	0.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 	0.0f, 0.0f
+	};
+
+	//Define indices for the screen texture's triangles
+	GLuint indices[] =
+	{
+        	0, 1, 3,
+		1, 2, 3
+    	};
+
+	//Generate a vertex array object for the screen texture + generate vertex and element buffer
+	glGenVertexArrays(1, &ogl.vertex_array_object);
+	glGenBuffers(1, &ogl.vertex_buffer_object);
+	glGenBuffers(1, &ogl.element_buffer_object);
+
+	//Bind the vertex array object
+	glBindVertexArray(ogl.vertex_array_object);
+
+	//Bind vertices to vertex buffer object
+	glBindBuffer(GL_ARRAY_BUFFER, ogl.vertex_buffer_object);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//Bind element buffer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ogl.element_buffer_object);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (5 * sizeof(GLfloat)), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (5 * sizeof(GLfloat)), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	//Unbind vertex array object
+	glBindVertexArray(0);
+
+	//Generate the screen texture
+	glGenTextures(1, &ogl.lcd_texture);
+
+	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
+	ogl.external_data_usage = 0;
+
+	//Load the shader
+	ogl.program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, ogl.external_data_usage);
+
+	if(ogl.program_id == -1)
+	{
+		std::cout<<"LCD::Error - Could not generate shaders\n";
+		return false;
+	}
+
+	return true;
 }
 
 #endif

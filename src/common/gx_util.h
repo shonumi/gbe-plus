@@ -16,6 +16,7 @@
 #include <string>
 #include <fstream>
 
+#include <SDL.h>
 #include <SDL_opengl.h>
 
 #include "common.h"
@@ -48,6 +49,21 @@ class gx_matrix
 };
 
 #ifdef GBE_OGL
+
+//OpenGL structure for cores
+struct open_gl_data
+{
+	SDL_GLContext gl_context;
+	GLuint lcd_texture;
+	GLuint program_id;
+	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
+	GLfloat x_scale, y_scale;
+	GLfloat ext_data_1, ext_data_2;
+	u32 external_data_usage;
+};
+
+//Initialize OpenGL for cores
+bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen);
 
 //GLSL vertex and fragment shader loader
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &external_data_usage);
