@@ -65,6 +65,9 @@ struct open_gl_data
 //Initialize OpenGL for cores
 bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen);
 
+//OpenGL render for cores
+void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen);
+
 //GLSL vertex and fragment shader loader
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &external_data_usage);
 

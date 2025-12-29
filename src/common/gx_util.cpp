@@ -394,6 +394,74 @@ bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_sc
 	return true;
 }
 
+//OpenGL render for cores
+void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen)
+{
+	//Determine what the shader's external data usage is
+	switch(ogl.external_data_usage)
+	{
+		//Shader requires no external data
+		case 0: break;
+
+		//Shader requires current window dimensions
+		case 1:
+			ogl.ext_data_1 = config::win_width;
+			ogl.ext_data_2 = config::win_height;
+			break;
+
+		//Shader requires current time
+		case 2:
+			{
+				time_t system_time = time(0);
+				tm* current_time = localtime(&system_time);
+
+				ogl.ext_data_1 = current_time->tm_hour;
+				ogl.ext_data_2 = current_time->tm_min;
+			}
+
+			break;
+
+		default: break;
+	}
+
+	//Bind screen texture, then generate texture from lcd pixels
+	glBindTexture(GL_TEXTURE_2D, ogl.lcd_texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config::sys_width, config::sys_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, final_screen->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+    	glClearColor(0,0,0,0);
+    	glClear(GL_COLOR_BUFFER_BIT);
+
+	//Use shader
+	glUseProgram(ogl.program_id);
+
+	//Set vertex scaling
+	glUniform1f(glGetUniformLocation(ogl.program_id, "x_scale"), ogl.x_scale);
+	glUniform1f(glGetUniformLocation(ogl.program_id, "y_scale"), ogl.y_scale);
+
+	glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, ogl.lcd_texture);
+        glUniform1i(glGetUniformLocation(ogl.program_id, "screen_texture"), 0);
+        glUniform1i(glGetUniformLocation(ogl.program_id, "screen_x_size"), config::sys_width);
+        glUniform1i(glGetUniformLocation(ogl.program_id, "screen_y_size"), config::sys_height);
+        glUniform1f(glGetUniformLocation(ogl.program_id, "ext_data_1"), ogl.ext_data_1);
+        glUniform1f(glGetUniformLocation(ogl.program_id, "ext_data_2"), ogl.ext_data_2);
+	
+        
+        //Draw vertex array object
+        glBindVertexArray(ogl.vertex_array_object);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);	
+
+	glUseProgram(0);
+
+	SDL_GL_SwapWindow(window);
+}
+
 #endif
 
 /****** Returns distance between 2D vectors ******/
