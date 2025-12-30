@@ -21,7 +21,6 @@
 
 #include "common.h"
 
-
 //Matrix class
 class gx_matrix
 {
@@ -63,7 +62,7 @@ struct open_gl_data
 };
 
 //Initialize OpenGL for cores
-bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen);
+bool gx_init_opengl(open_gl_data &ogl);
 
 //OpenGL render for cores
 void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen);

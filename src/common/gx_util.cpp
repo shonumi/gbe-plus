@@ -269,26 +269,8 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 }
 
 //OpenGL init and render for cores
-bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen)
+bool gx_init_opengl(open_gl_data &ogl)
 {
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
-	u32 screen_width = (config::sys_width * config::scaling_factor);
-	u32 screen_height = (config::sys_height * config::scaling_factor);
-
-	if(config::flags & SDL_WINDOW_FULLSCREEN)
-	{
-		SDL_DisplayMode current_mode;
-		SDL_GetCurrentDisplayMode(0, &current_mode);
-
-		screen_width = current_mode.w;
-		screen_height = current_mode.h;
-	}
-		
-	window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height, config::flags | SDL_WINDOW_OPENGL);
-	SDL_GetWindowSize(window, &config::win_width, &config::win_height);
-
 	//Calculate new temporary scaling factor
 	float max_width = (float)config::win_width / config::sys_width;
 	float max_height = (float)config::win_height / config::sys_height;
@@ -318,8 +300,6 @@ bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_sc
 	else { ogl.x_scale = ogl.y_scale = 1.0; }
 
 	ogl.ext_data_1 = ogl.ext_data_2 = 1.0;
-
-	ogl.gl_context = SDL_GL_CreateContext(window);
 
 	#ifdef GBE_GLEW
  	GLenum glew_err = glewInit();
@@ -379,7 +359,6 @@ bool gx_init_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_sc
 	//Generate the screen texture
 	glGenTextures(1, &ogl.lcd_texture);
 
-	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 	ogl.external_data_usage = 0;
 
 	//Load the shader

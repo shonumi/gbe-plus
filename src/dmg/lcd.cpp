@@ -189,6 +189,9 @@ bool DMG_LCD::init()
 				std::cout<<"LCD::Error - Could not initialize OpenGL\n";
 				return false;
 			}
+
+			if(window == NULL) { std::cout<<"WINDOW IS NULL\n"; }
+			if(final_screen == NULL) { std::cout<<"SCREEN IS NULL\n"; }
 		}
 
 		//Set up software rendering
@@ -224,7 +227,10 @@ bool DMG_LCD::init()
 			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 		}
 
-		if(final_screen == NULL) { return false; }
+		if(window == NULL) { std::cout<<"WINDOW IS NULL\n"; }
+		if(final_screen == NULL) { std::cout<<"SCREEN IS NULL\n"; }
+
+		if(final_screen == NULL) { std::cout<<"YO\n"; return false; }
 
 		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
@@ -1388,7 +1394,7 @@ void DMG_LCD::step(int cpu_clock)
 							if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
 							//Display final screen buffer - OpenGL
-							if(config::use_opengl) { opengl_blit(); }
+							if(config::use_opengl) { gx_blit_opengl(lcd_gl_data, window, final_screen); }
 				
 							//Display final screen buffer - SDL
 							else 
