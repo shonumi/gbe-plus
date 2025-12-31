@@ -46,11 +46,6 @@ class DMG_LCD
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
 
-	//OpenGL data
-	#ifdef GBE_OGL
-	open_gl_data lcd_gl_data;
-	#endif	
-
 	dmg_lcd_data lcd_stat;
 
 	int max_fullscreen_ratio;

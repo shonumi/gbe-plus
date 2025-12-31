@@ -28,7 +28,6 @@
 #include "config.h"
 #include "gx_util.h"
 
-
 /****** OpenGL Matrix Constructor ******/
 gx_matrix::gx_matrix()
 {
@@ -140,6 +139,17 @@ void gx_matrix::resize(u32 input_columns, u32 input_rows)
 }
 
 #ifdef GBE_OGL
+
+namespace gl_data
+{
+	SDL_GLContext gl_context;
+	GLuint lcd_texture;
+	GLuint program_id;
+	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
+	GLfloat x_scale, y_scale;
+	GLfloat ext_data_1, ext_data_2;
+	u32 external_data_usage;
+};
 
 /****** Loads and compiles GLSL vertex and fragment shaders ******/
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &ext_data_usage)
@@ -269,7 +279,7 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 }
 
 //OpenGL init and render for cores
-bool gx_init_opengl(open_gl_data &ogl)
+bool gx_init_opengl()
 {
 	//Calculate new temporary scaling factor
 	float max_width = (float)config::win_width / config::sys_width;
@@ -283,8 +293,8 @@ bool gx_init_opengl(open_gl_data &ogl)
 			float max_x_size = (max_width * config::sys_width);
 			float max_y_size = (max_width * config::sys_height);
 
-			ogl.x_scale =  max_x_size / config::win_width;
-			ogl.y_scale =  max_y_size / config::win_height;
+			gl_data::x_scale =  max_x_size / config::win_width;
+			gl_data::y_scale =  max_y_size / config::win_height;
 		}
 
 		else
@@ -292,14 +302,14 @@ bool gx_init_opengl(open_gl_data &ogl)
 			float max_x_size = (max_height * config::sys_width);
 			float max_y_size = (max_height * config::sys_height);
 
-			ogl.x_scale =  max_x_size / config::win_width;
-			ogl.y_scale =  max_y_size / config::win_height;
+			gl_data::x_scale =  max_x_size / config::win_width;
+			gl_data::y_scale =  max_y_size / config::win_height;
 		}
 	}
 
-	else { ogl.x_scale = ogl.y_scale = 1.0; }
+	else { gl_data::x_scale = gl_data::y_scale = 1.0; }
 
-	ogl.ext_data_1 = ogl.ext_data_2 = 1.0;
+	gl_data::ext_data_1 = gl_data::ext_data_2 = 1.0;
 
 	#ifdef GBE_GLEW
  	GLenum glew_err = glewInit();
@@ -310,9 +320,9 @@ bool gx_init_opengl(open_gl_data &ogl)
   	}
 	#endif
 
-	glDeleteVertexArrays(1, &ogl.vertex_array_object);
-	glDeleteBuffers(1, &ogl.vertex_buffer_object);
-	glDeleteBuffers(1, &ogl.element_buffer_object);
+	glDeleteVertexArrays(1, &gl_data::vertex_array_object);
+	glDeleteBuffers(1, &gl_data::vertex_buffer_object);
+	glDeleteBuffers(1, &gl_data::element_buffer_object);
 
 	//Define vertices and texture coordinates for the screen texture
     	GLfloat vertices[] =
@@ -332,19 +342,19 @@ bool gx_init_opengl(open_gl_data &ogl)
     	};
 
 	//Generate a vertex array object for the screen texture + generate vertex and element buffer
-	glGenVertexArrays(1, &ogl.vertex_array_object);
-	glGenBuffers(1, &ogl.vertex_buffer_object);
-	glGenBuffers(1, &ogl.element_buffer_object);
+	glGenVertexArrays(1, &gl_data::vertex_array_object);
+	glGenBuffers(1, &gl_data::vertex_buffer_object);
+	glGenBuffers(1, &gl_data::element_buffer_object);
 
 	//Bind the vertex array object
-	glBindVertexArray(ogl.vertex_array_object);
+	glBindVertexArray(gl_data::vertex_array_object);
 
 	//Bind vertices to vertex buffer object
-	glBindBuffer(GL_ARRAY_BUFFER, ogl.vertex_buffer_object);
+	glBindBuffer(GL_ARRAY_BUFFER, gl_data::vertex_buffer_object);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	//Bind element buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ogl.element_buffer_object);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl_data::element_buffer_object);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (5 * sizeof(GLfloat)), (void*)0);
@@ -357,14 +367,14 @@ bool gx_init_opengl(open_gl_data &ogl)
 	glBindVertexArray(0);
 
 	//Generate the screen texture
-	glGenTextures(1, &ogl.lcd_texture);
+	glGenTextures(1, &gl_data::lcd_texture);
 
-	ogl.external_data_usage = 0;
+	gl_data::external_data_usage = 0;
 
 	//Load the shader
-	ogl.program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, ogl.external_data_usage);
+	gl_data::program_id = gx_load_shader(config::vertex_shader, config::fragment_shader, gl_data::external_data_usage);
 
-	if(ogl.program_id == -1)
+	if(gl_data::program_id == -1)
 	{
 		std::cout<<"LCD::Error - Could not generate shaders\n";
 		return false;
@@ -374,18 +384,18 @@ bool gx_init_opengl(open_gl_data &ogl)
 }
 
 //OpenGL render for cores
-void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen)
+void gx_blit_opengl(SDL_Window *window, SDL_Surface* final_screen)
 {
 	//Determine what the shader's external data usage is
-	switch(ogl.external_data_usage)
+	switch(gl_data::external_data_usage)
 	{
 		//Shader requires no external data
 		case 0: break;
 
 		//Shader requires current window dimensions
 		case 1:
-			ogl.ext_data_1 = config::win_width;
-			ogl.ext_data_2 = config::win_height;
+			gl_data::ext_data_1 = config::win_width;
+			gl_data::ext_data_2 = config::win_height;
 			break;
 
 		//Shader requires current time
@@ -394,8 +404,8 @@ void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_sc
 				time_t system_time = time(0);
 				tm* current_time = localtime(&system_time);
 
-				ogl.ext_data_1 = current_time->tm_hour;
-				ogl.ext_data_2 = current_time->tm_min;
+				gl_data::ext_data_1 = current_time->tm_hour;
+				gl_data::ext_data_2 = current_time->tm_min;
 			}
 
 			break;
@@ -404,7 +414,7 @@ void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_sc
 	}
 
 	//Bind screen texture, then generate texture from lcd pixels
-	glBindTexture(GL_TEXTURE_2D, ogl.lcd_texture);
+	glBindTexture(GL_TEXTURE_2D, gl_data::lcd_texture);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config::sys_width, config::sys_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, final_screen->pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -416,23 +426,23 @@ void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_sc
     	glClear(GL_COLOR_BUFFER_BIT);
 
 	//Use shader
-	glUseProgram(ogl.program_id);
+	glUseProgram(gl_data::program_id);
 
 	//Set vertex scaling
-	glUniform1f(glGetUniformLocation(ogl.program_id, "x_scale"), ogl.x_scale);
-	glUniform1f(glGetUniformLocation(ogl.program_id, "y_scale"), ogl.y_scale);
+	glUniform1f(glGetUniformLocation(gl_data::program_id, "x_scale"), gl_data::x_scale);
+	glUniform1f(glGetUniformLocation(gl_data::program_id, "y_scale"), gl_data::y_scale);
 
 	glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, ogl.lcd_texture);
-        glUniform1i(glGetUniformLocation(ogl.program_id, "screen_texture"), 0);
-        glUniform1i(glGetUniformLocation(ogl.program_id, "screen_x_size"), config::sys_width);
-        glUniform1i(glGetUniformLocation(ogl.program_id, "screen_y_size"), config::sys_height);
-        glUniform1f(glGetUniformLocation(ogl.program_id, "ext_data_1"), ogl.ext_data_1);
-        glUniform1f(glGetUniformLocation(ogl.program_id, "ext_data_2"), ogl.ext_data_2);
+        glBindTexture(GL_TEXTURE_2D, gl_data::lcd_texture);
+        glUniform1i(glGetUniformLocation(gl_data::program_id, "screen_texture"), 0);
+        glUniform1i(glGetUniformLocation(gl_data::program_id, "screen_x_size"), config::sys_width);
+        glUniform1i(glGetUniformLocation(gl_data::program_id, "screen_y_size"), config::sys_height);
+        glUniform1f(glGetUniformLocation(gl_data::program_id, "ext_data_1"), gl_data::ext_data_1);
+        glUniform1f(glGetUniformLocation(gl_data::program_id, "ext_data_2"), gl_data::ext_data_2);
 	
         
         //Draw vertex array object
-        glBindVertexArray(ogl.vertex_array_object);
+        glBindVertexArray(gl_data::vertex_array_object);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);	
 

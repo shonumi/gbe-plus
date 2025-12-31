@@ -49,23 +49,25 @@ class gx_matrix
 
 #ifdef GBE_OGL
 
-//OpenGL structure for cores
-struct open_gl_data
+//OpenGL data for cores
+//Global data (but namespaced) to counter per-core duplication
+//Also avoids a 1% speed decrease over old method of this being a per-core structure pass to blit_opengl()
+namespace gl_data
 {
-	SDL_GLContext gl_context;
-	GLuint lcd_texture;
-	GLuint program_id;
-	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
-	GLfloat x_scale, y_scale;
-	GLfloat ext_data_1, ext_data_2;
-	u32 external_data_usage;
+	extern SDL_GLContext gl_context;
+	extern GLuint lcd_texture;
+	extern GLuint program_id;
+	extern GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
+	extern GLfloat x_scale, y_scale;
+	extern GLfloat ext_data_1, ext_data_2;
+	extern u32 external_data_usage;
 };
 
 //Initialize OpenGL for cores
-bool gx_init_opengl(open_gl_data &ogl);
+bool gx_init_opengl();
 
 //OpenGL render for cores
-void gx_blit_opengl(open_gl_data &ogl, SDL_Window *window, SDL_Surface* final_screen);
+void gx_blit_opengl(SDL_Window *window, SDL_Surface* final_screen);
 
 //GLSL vertex and fragment shader loader
 GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shader_file, u32 &external_data_usage);

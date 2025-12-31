@@ -1394,7 +1394,7 @@ void DMG_LCD::step(int cpu_clock)
 							if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
 							//Display final screen buffer - OpenGL
-							if(config::use_opengl) { gx_blit_opengl(lcd_gl_data, window, final_screen); }
+							if(config::use_opengl) { gx_blit_opengl(window, final_screen); }
 				
 							//Display final screen buffer - SDL
 							else 
