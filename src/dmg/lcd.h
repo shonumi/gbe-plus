@@ -13,7 +13,6 @@
 #define GB_LCD
 
 #include "SDL.h"
-#include "SDL_opengl.h"
 #include "mmu.h"
 
 #include "common/gx_util.h"

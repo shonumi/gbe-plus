@@ -10,7 +10,6 @@
 // Handles blit operations to the screen
 
 #include "lcd.h"
-#include "common/gx_util.h"
 
 /****** Initialize OpenGL through SDL ******/
 bool DMG_LCD::opengl_init()
@@ -19,6 +18,7 @@ bool DMG_LCD::opengl_init()
 
 	bool result = false;
 
+	SDL_GL_DeleteContext(gl_data::gl_context);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
@@ -34,7 +34,7 @@ bool DMG_LCD::opengl_init()
 		screen_height = current_mode.h;
 	}
 
-	//Creat OpenGL Window and Surface
+	//Create OpenGL Window, Surface, and OpenGL context
 	final_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 	window = SDL_CreateWindow("GBE+", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height, config::flags | SDL_WINDOW_OPENGL);
 	SDL_GetWindowSize(window, &config::win_width, &config::win_height);
