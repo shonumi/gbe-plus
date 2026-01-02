@@ -27,6 +27,10 @@ MIN_LCD::~MIN_LCD()
 	screen_buffer.clear();
 	SDL_DestroyWindow(window);
 
+	#ifdef GBE_OGL
+	SDL_GL_DeleteContext(gl_data::gl_context);
+	#endif
+
 	std::cout<<"LCD::Shutdown\n";
 }
 
@@ -263,7 +267,7 @@ void MIN_LCD::update()
 			if(SDL_MUSTLOCK(final_screen)){ SDL_UnlockSurface(final_screen); }
 		
 			//Display final screen buffer - OpenGL
-			if(config::use_opengl) { opengl_blit(); }
+			if(config::use_opengl) { gx_blit_opengl(window, final_screen); }
 				
 			//Display final screen buffer - SDL
 			else 

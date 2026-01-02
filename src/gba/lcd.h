@@ -9,12 +9,13 @@
 // Draws background, window, and sprites to screen
 // Responsible for blitting pixel data and limiting frame rate
 
-#include "SDL.h"
-#include "SDL_opengl.h"
-#include "mmu.h"
-
 #ifndef GBA_LCD
 #define GBA_LCD
+
+#include "SDL.h"
+#include "mmu.h"
+
+#include "common/gx_util.h"
 
 class AGB_LCD
 {
@@ -46,17 +47,6 @@ class AGB_LCD
 	SDL_Surface* final_screen;
 	SDL_Surface* original_screen;
 
-	//OpenGL data
-	#ifdef GBE_OGL
-	SDL_GLContext gl_context;
-	GLuint lcd_texture;
-	GLuint program_id;
-	GLuint vertex_buffer_object, vertex_array_object, element_buffer_object;
-	GLfloat ogl_x_scale, ogl_y_scale;
-	GLfloat ext_data_1, ext_data_2;
-	u32 external_data_usage;
-	#endif
-
 	agb_lcd_data lcd_stat;
 	u32 lcd_clock;
 
@@ -69,8 +59,6 @@ class AGB_LCD
 	void update_palettes();
 	void update_obj_affine_transformation();
 	void update_obj_render_list();
-
-	void opengl_blit();
 
 	struct oam_entries
 	{

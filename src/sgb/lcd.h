@@ -117,8 +117,6 @@ class SGB_LCD
 
 	void scanline_compare();
 
-	void opengl_blit();
-
 	void process_sgb_command();
 	void render_sgb_border();
 	u32 get_color(u16 input_color);
