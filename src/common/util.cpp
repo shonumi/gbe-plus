@@ -1024,6 +1024,7 @@ bool save_image(SDL_Surface* src, std::string filename)
 	SDL_Surface* src_copy = src;
 	bool result = false;
 
+	#ifdef GBE_OGL
 	//Special handling for OpenGL for SDL/CLI version
 	//Manually grab data by glReadPixels for SDL_Surface conversion
 	if(config::use_opengl)
@@ -1055,6 +1056,7 @@ bool save_image(SDL_Surface* src, std::string filename)
 
 		if(SDL_MUSTLOCK(src_copy)){ SDL_UnlockSurface(src_copy); }
 	}
+	#endif
 
 	#ifdef GBE_IMAGE_FORMATS
 	filename += ".png";
@@ -1067,7 +1069,9 @@ bool save_image(SDL_Surface* src, std::string filename)
 	#endif
 
 	//Make sure to free surface *only* if it's a local copy!
+	#ifdef GBE_OGL
 	if(config::use_opengl) { SDL_FreeSurface(src_copy); }
+	#endif	
 
 	return result;
 }

@@ -278,9 +278,13 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	return program_id;
 }
 
+#endif
+
 //OpenGL init and render for cores
 bool gx_init_opengl()
 {
+	#ifdef GBE_OGL
+
 	//Calculate new temporary scaling factor
 	float max_width = (float)config::win_width / config::sys_width;
 	float max_height = (float)config::win_height / config::sys_height;
@@ -381,11 +385,17 @@ bool gx_init_opengl()
 	}
 
 	return true;
+
+	#endif
+
+	return false;
 }
 
 //OpenGL render for cores
 void gx_blit_opengl(SDL_Window *window, SDL_Surface* final_screen)
 {
+	#ifdef GBE_OGL
+
 	//Determine what the shader's external data usage is
 	switch(gl_data::external_data_usage)
 	{
@@ -449,9 +459,9 @@ void gx_blit_opengl(SDL_Window *window, SDL_Surface* final_screen)
 	glUseProgram(0);
 
 	SDL_GL_SwapWindow(window);
-}
 
-#endif
+	#endif
+}
 
 /****** Returns distance between 2D vectors ******/
 float dist(float x1, float y1, float x2, float y2)
