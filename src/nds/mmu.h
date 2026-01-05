@@ -70,6 +70,7 @@ class NTR_MMU
 		SLOT2_MEMORY_EXPANSION,
 		SLOT2_MOTION_PACK,
 		SLOT2_FACENING_SCAN,
+		SLOT2_BAYER_DIGIT,
 	};
 
 	backup_types current_save_type;
@@ -258,6 +259,30 @@ class NTR_MMU
 		u8 i2c_data;
 		u8 i2c_cnt;
 	} neon;
+
+	//Structure to handle Glucoboy
+	struct gluco
+	{
+		u8 io_index;
+		u8 index_shift;
+		u32 parameter_length;
+		u32 msg_index;
+		std::vector<u32> io_regs;
+		std::vector<u8> parameters;
+		std::vector< std::vector<u8> > messages;
+		bool request_interrupt;
+		bool reset_shift;
+		bool init;
+
+		u32 daily_grps;
+		u32 bonus_grps;
+		u32 good_days;
+		u32 days_until_bonus;
+		u32 hardware_flags;
+		u32 ld_threshold;
+		u32 serial_number;
+		u16 init_value;
+	} bayer_digit;
 
 	//Wantame Card Scanner
 	struct wantame_card_scanner
@@ -513,6 +538,10 @@ class NTR_MMU
 	//Slot-2 device functions
 	bool slot2_hcv_load_barcode(std::string filename);
 	void magic_reader_process();
+
+	void bayer_digit_reset();
+	void process_bayer_digit_index();
+	void process_bayer_digit_irq();
 
 	//Microphone device functions
 	void wantame_scanner_process();

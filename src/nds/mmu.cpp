@@ -117,6 +117,11 @@ void NTR_MMU::reset()
 			neon.i2c_data = 0;
 			neon.i2c_cnt = 0;
 			break;
+
+		case NTR_S2_BAYER_DIGIT:
+			current_slot2_device = SLOT2_BAYER_DIGIT;
+			bayer_digit_reset();
+			break;
 	}
 
 	switch(config::mic_device)

@@ -154,6 +154,64 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 			}
 
 			break;
+
+		case SLOT2_BAYER_DIGIT:
+			//Reading these cart addresses is for detection
+			if(address < 0x8020000)
+			{
+				slot_byte = (address & 0x1) ? 0xF3 : 0x00;
+			}
+
+			else if(address == DIGIT_CNT)
+			{
+				//Inital read-out = 0xBD, 0xDA
+				if(!bayer_digit.init)
+				{
+					slot_byte = (bayer_digit.init_value & 0xFF);
+					bayer_digit.init_value >>= 8;
+
+					if(!bayer_digit.init_value)
+					{
+						bayer_digit.init = true;
+					}
+				}
+
+				//Read data normally from indices
+				else
+				{
+					std::cout<<"INDEX -> 0x" << u32(bayer_digit.io_index) << "\n";
+
+					//Read messages data
+					if((bayer_digit.io_index >= 0x10) && (bayer_digit.io_index <= 0x1F))
+					{
+						u8 msg_box = bayer_digit.io_index - 0x10;
+						slot_byte = bayer_digit.messages[msg_box][bayer_digit.msg_index];
+
+						if(bayer_digit.msg_index < bayer_digit.messages[msg_box].size())
+						{
+							process_bayer_digit_irq();
+							bayer_digit.msg_index++;
+						}
+					}
+
+					//Read regular I/O data
+					else
+					{
+						slot_byte = (bayer_digit.io_regs[bayer_digit.io_index] >> bayer_digit.index_shift);
+
+						//If additional data needs to be read, trigger another IRQ
+						if(bayer_digit.index_shift)
+						{
+							process_bayer_digit_irq();
+							bayer_digit.index_shift -= 8;
+						}
+					}
+				}
+
+				std::cout<<"DIGIT READ -> 0x" << std::hex << address << "\n";
+			}
+
+			break;
 	}
 
 	return slot_byte;
@@ -270,6 +328,134 @@ void NTR_MMU::write_slot2_device(u32 address, u8 value)
 
 				}
 			}
+
+			break;
+
+		case SLOT2_BAYER_DIGIT:
+			if(address == DIGIT_CNT)
+			{
+				//Grab new parameters
+				if(bayer_digit.parameter_length)
+				{
+					bayer_digit.parameters.push_back(value);
+					bayer_digit.parameter_length--;
+					bayer_digit.request_interrupt = true;
+					bayer_digit.reset_shift = true;
+
+					//Write new data to index if necessary
+					if(!bayer_digit.parameter_length) { process_bayer_digit_index(); }
+				}
+
+				//Validate new index
+				else
+				{
+					switch(value)
+					{
+						//On this index, update Bayer Digit with system date
+						case 0x20:
+							{
+								time_t system_time = time(0);
+								tm* current_time = localtime(&system_time);
+
+								u8 min = current_time->tm_min;
+								u8 hour = current_time->tm_hour;
+								u8 day = (current_time->tm_mday - 1);
+								u8 month = current_time->tm_mon;
+								u8 year = (current_time->tm_year % 100);
+					
+								if(year == 0) { year = 100; }
+
+								bayer_digit.io_regs[0x20] = min;
+								bayer_digit.io_regs[0x20] |= ((hour & 0x3F) << 6);
+								bayer_digit.io_regs[0x20] |= ((day & 0x1F) << 12);
+								bayer_digit.io_regs[0x20] |= ((month & 0xF) << 20);
+								bayer_digit.io_regs[0x20] |= ((year & 0x7F) << 24);
+							}
+					
+						case 0x21:
+						case 0x22:
+						case 0x23:
+						case 0x24:
+						case 0x25:
+						case 0x26:
+						case 0x27:
+						case 0x31:
+						case 0x32:
+						case 0x60:
+						case 0x61:
+						case 0x62:
+						case 0x63:
+						case 0x64:
+						case 0x65:
+						case 0x66:
+						case 0x67:
+						case 0xE0:
+						case 0xE1:
+						case 0xE2:
+
+						case 0x2B:
+						case 0x28:
+						case 0x29:
+						case 0x2A:
+						case 0x2C:
+						case 0x2D:
+						case 0x10:
+						case 0x11:
+						case 0x12:
+						case 0x13:
+						case 0x14:
+						case 0x15:
+						case 0x16:
+						case 0x17:
+						case 0x18:
+						case 0x19:
+						case 0x1A:
+						case 0x1B:
+						case 0x1C:
+						case 0x1D:
+						case 0x1E:
+						case 0x1F:
+							bayer_digit.io_index = value;
+							bayer_digit.request_interrupt = true;
+							bayer_digit.reset_shift = true;
+							break;
+
+						default:
+							bayer_digit.io_index = 0;
+							bayer_digit.request_interrupt = false;
+							bayer_digit.reset_shift = false;
+							std::cout<<"MMU::Unknown Bayer Digit Index: 0x" << (u32)value << "\n";
+					}
+
+					//Set input length for write indices
+					switch(bayer_digit.io_index)
+					{
+						case 0x60:
+						case 0x61:
+						case 0x62:
+						case 0x63:
+						case 0x64:
+						case 0x65:
+						case 0x66:
+						case 0x67:
+							bayer_digit.parameters.clear();
+							bayer_digit.parameter_length = 4;
+							break;
+
+						case 0xE1:
+							bayer_digit.parameters.clear();
+							bayer_digit.parameter_length = 6;
+							break;
+					}
+				}
+
+				if(bayer_digit.request_interrupt)
+				{
+					process_bayer_digit_irq();
+				}
+			}
+
+			std::cout<<"DIGIT WRITE -> 0x" << std::hex << (u32)address << " :: 0x" << (u32)value << "\n";
 
 			break;
 	}
@@ -481,3 +667,120 @@ void NTR_MMU::neon_set_stm_register(u16 index, u8 value)
 	}
 }
 
+/****** Resets Bayer Digit data structure ******/
+void NTR_MMU::bayer_digit_reset()
+{
+	bayer_digit.io_index = 0;
+	bayer_digit.io_regs.clear();
+	bayer_digit.io_regs.resize(0x100, 0x00);
+	bayer_digit.index_shift = 0;
+	bayer_digit.request_interrupt = false;
+	bayer_digit.reset_shift = false;
+	bayer_digit.parameter_length = 0;
+
+	bayer_digit.daily_grps = config::glucoboy_daily_grps;
+	bayer_digit.bonus_grps = config::glucoboy_bonus_grps;
+	bayer_digit.good_days = config::glucoboy_good_days;
+	bayer_digit.days_until_bonus = config::glucoboy_days_until_bonus;
+	bayer_digit.hardware_flags = 0;
+	bayer_digit.ld_threshold = 0;
+	bayer_digit.serial_number = 0;
+
+	//Setup index data
+	bayer_digit.io_regs[0x21] = bayer_digit.daily_grps;
+	bayer_digit.io_regs[0x22] = bayer_digit.bonus_grps;
+	bayer_digit.io_regs[0x23] = bayer_digit.good_days;
+	bayer_digit.io_regs[0x24] = bayer_digit.days_until_bonus;
+	bayer_digit.io_regs[0x25] = bayer_digit.hardware_flags;
+	bayer_digit.io_regs[0x26] = bayer_digit.ld_threshold;
+	bayer_digit.io_regs[0x27] = bayer_digit.serial_number;
+
+	bayer_digit.init = false;
+	bayer_digit.init_value = 0xDABD;
+
+	bayer_digit.messages.clear();
+	bayer_digit.messages.resize(0x10);
+	for(int x = 0; x < 0x10; x++) { bayer_digit.messages[x].resize(0x40, 0x00); }
+}
+
+/****** Handles Bayer Digit interrupt requests and what data to respond with ******/
+void NTR_MMU::process_bayer_digit_irq()
+{
+	//Trigger Game Pak IRQ
+	nds9_if |= 0x2000;
+	bayer_digit.request_interrupt = false;
+
+	//Set data size of each index (8-bit or 32-bit)
+	if(bayer_digit.reset_shift)
+	{
+		switch(bayer_digit.io_index)
+		{
+			case 0x20:
+			case 0x21:
+			case 0x22:
+			case 0x23:
+			case 0x24:
+			case 0x25:
+			case 0x26:
+			case 0x27:
+
+			case 0x2B:
+			case 0x28:
+			case 0x29:
+			case 0x2A:
+			case 0x2C:
+			case 0x2D:
+				bayer_digit.index_shift = 24;
+				break;
+
+			case 0x10:
+			case 0x11:
+			case 0x12:
+			case 0x13:
+			case 0x14:
+			case 0x15:
+			case 0x16:
+			case 0x17:
+			case 0x18:
+			case 0x19:
+			case 0x1A:
+			case 0x1B:
+			case 0x1C:
+			case 0x1D:
+			case 0x1E:
+			case 0x1F:
+				bayer_digit.msg_index = 0;
+				break;
+
+			default:
+				bayer_digit.index_shift = 0;
+		}
+
+		bayer_digit.reset_shift = false;
+	}
+}
+
+/****** Handles writing input streams to Bayer Digit indices ******/
+void NTR_MMU::process_bayer_digit_index()
+{
+	u32 input_stream = 0;
+
+	if(!bayer_digit.parameters.empty())
+	{
+		input_stream = (bayer_digit.parameters[0] << 24) | (bayer_digit.parameters[1] << 16) | (bayer_digit.parameters[2] << 8) | (bayer_digit.parameters[3]);
+	}	
+
+	switch(bayer_digit.io_index)
+	{
+		case 0x60:
+		case 0x61:
+		case 0x62:
+		case 0x63:
+		case 0x64:
+		case 0x65:
+		case 0x66:
+		case 0x67:
+			bayer_digit.io_regs[bayer_digit.io_index - 0x40] = input_stream;
+			break;
+	}
+}
