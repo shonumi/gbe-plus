@@ -272,7 +272,7 @@ class NTR_MMU
 		std::vector< std::vector<u8> > messages;
 		bool request_interrupt;
 		bool reset_shift;
-		bool init;
+		bool is_idle;
 
 		u32 daily_grps;
 		u32 bonus_grps;
@@ -281,7 +281,7 @@ class NTR_MMU
 		u32 hardware_flags;
 		u32 ld_threshold;
 		u32 serial_number;
-		u16 init_value;
+		u16 idle_value;
 	} bayer_digit;
 
 	//Wantame Card Scanner
