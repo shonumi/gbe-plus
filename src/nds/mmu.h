@@ -281,6 +281,7 @@ class NTR_MMU
 		u32 hardware_flags;
 		u32 ld_threshold;
 		u32 serial_number;
+		u32 total;
 		u16 idle_value;
 	} bayer_digit;
 

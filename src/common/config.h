@@ -340,6 +340,7 @@ namespace config
 	extern u32 glucoboy_bonus_grps;
 	extern u32 glucoboy_good_days;
 	extern u32 glucoboy_days_until_bonus;
+	extern u32 glucoboy_total;
 
 	extern u16 campho_ringer_port;
 	extern u16 campho_input_port;

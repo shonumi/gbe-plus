@@ -652,6 +652,7 @@ void NTR_MMU::bayer_digit_reset()
 	bayer_digit.bonus_grps = config::glucoboy_bonus_grps;
 	bayer_digit.good_days = config::glucoboy_good_days;
 	bayer_digit.days_until_bonus = config::glucoboy_days_until_bonus;
+	bayer_digit.total = config::glucoboy_total;
 	bayer_digit.hardware_flags = 0;
 	bayer_digit.ld_threshold = 0;
 	bayer_digit.serial_number = 0;
@@ -664,6 +665,7 @@ void NTR_MMU::bayer_digit_reset()
 	bayer_digit.io_regs[0x25] = bayer_digit.hardware_flags;
 	bayer_digit.io_regs[0x26] = bayer_digit.ld_threshold;
 	bayer_digit.io_regs[0x27] = bayer_digit.serial_number;
+	bayer_digit.io_regs[0x2C] = bayer_digit.total;
 
 	bayer_digit.is_idle = true;
 	bayer_digit.idle_value = 0xDABD;
@@ -718,8 +720,11 @@ void NTR_MMU::process_bayer_digit_index()
 	switch(bayer_digit.io_index)
 	{
 		case 0x6C:
-		case 0xE3:
 			bayer_digit.io_regs[bayer_digit.io_index - 0x40] = input_stream;
+			config::glucoboy_total = input_stream;
+			break;
+
+		case 0xE3:
 			break;
 	}
 }
