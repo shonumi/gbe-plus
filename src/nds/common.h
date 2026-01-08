@@ -335,7 +335,7 @@ const u16 STM_MICRO_ENABLE = 0xC003;
 const u16 STM_IO_ENABLE = 0xC034;
 const u16 STM_USER_CMD = 0x0180;
 
-//Bayer Digit IO
-const u32 DIGIT_CNT = 0xA000000;
+//Bayer Didget IO
+const u32 DIDGET_CNT = 0xA000000;
 
 #endif // NDS_COMMON 

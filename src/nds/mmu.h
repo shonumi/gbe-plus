@@ -70,7 +70,7 @@ class NTR_MMU
 		SLOT2_MEMORY_EXPANSION,
 		SLOT2_MOTION_PACK,
 		SLOT2_FACENING_SCAN,
-		SLOT2_BAYER_DIGIT,
+		SLOT2_BAYER_DIDGET,
 	};
 
 	backup_types current_save_type;
@@ -283,7 +283,7 @@ class NTR_MMU
 		u32 serial_number;
 		u32 total;
 		u16 idle_value;
-	} bayer_digit;
+	} bayer_didget;
 
 	//Wantame Card Scanner
 	struct wantame_card_scanner
@@ -540,9 +540,9 @@ class NTR_MMU
 	bool slot2_hcv_load_barcode(std::string filename);
 	void magic_reader_process();
 
-	void bayer_digit_reset();
-	void process_bayer_digit_index();
-	void process_bayer_digit_irq();
+	void bayer_didget_reset();
+	void process_bayer_didget_index();
+	void process_bayer_didget_irq();
 
 	//Microphone device functions
 	void wantame_scanner_process();

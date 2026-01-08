@@ -1954,7 +1954,7 @@ bool parse_ini_file()
 		//Glucoboy - Days Until Bonus
 		if(!parse_ini_number(ini_item, "#glucoboy_days_until_bonus", config::glucoboy_days_until_bonus, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
-		//Bayer Digit - Total Points
+		//Bayer Didget - Total Points
 		if(!parse_ini_number(ini_item, "#glucoboy_total", config::glucoboy_total, ini_opts, x, 0, 0x7FFFFFFF)) { return false; }
 
 		//Wave Scanner Level

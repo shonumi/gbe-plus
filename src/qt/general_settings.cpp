@@ -237,6 +237,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	slot2_dev->addItem("Memory Expansion Pak");
 	slot2_dev->addItem("Motion Pack");
 	slot2_dev->addItem("Facening Scan");
+	slot2_dev->addItem("Bayer Didget");
 
 	config_slot2 = new QPushButton("Configure");
 
