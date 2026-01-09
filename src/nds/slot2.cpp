@@ -10,6 +10,8 @@
 
 #include "mmu.h"
 
+#include "common/util.h"
+
 /****** Reads from Slot-2 device ******/
 u8 NTR_MMU::read_slot2_device(u32 address)
 {
@@ -672,7 +674,33 @@ void NTR_MMU::bayer_didget_reset()
 
 	bayer_didget.messages.clear();
 	bayer_didget.messages.resize(0x10);
-	for(int x = 0; x < 0x10; x++) { bayer_didget.messages[x].resize(0x40, 0x00); }
+
+	for(int x = 0; x < 0x10; x++)
+	{
+		bayer_didget.messages[x].resize(0x40, 0x00);
+
+		std::string filename = config::data_path + "didget_messages/msg_" + util::to_str(x) + ".txt";
+		std::ifstream file(filename.c_str(), std::ios::binary);
+
+		if(file.is_open()) 
+		{
+			std::cout<<"READING MSG " << filename << "\n";
+
+			//Get the file size - Limit to 64 bytes
+			file.seekg(0, file.end);
+			u32 file_size = file.tellg();
+			file.seekg(0, file.beg);
+
+			if(file_size > 0x40)
+			{
+				file_size = 0x40;
+			}
+
+			u8* ex_mem = &bayer_didget.messages[x][0];
+			file.read((char*)ex_mem, file_size);
+			file.close();
+		}
+	}
 }
 
 /****** Handles Bayer Didget interrupt requests and what data to respond with ******/
