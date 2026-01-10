@@ -1,0 +1,149 @@
+Bayer Didget Glucose Meter Technical Documentation 0.1
+January 8th, 2026
+Original documentation by windwakr -> https://forums.desmume.org/viewtopic.php?id=12756
+Additional notes by Shonumi
+
+
+***************************************************
+1. Introduction
+***************************************************
+
+The Bayer Didget Glucose Meter is a Slot-2 device for the Nintendo DS capable of processing diabetic testing strips. Created by Bayer AG, it was designed to interact with the game Knock'em Downs: World's Fair and released on May 8th, 2009 in the United States and later in September for Europe. After having bought the rights to the earlier Glucoboy, Bayer repurposed the hardware for the Nintendo DS, resulting in the Didget. This newer version is largely the same as its predecessor, and the premise behind the game is unchanged. Players unlock points by regularly testing their blood sugar levels and staying within healthy levels. These points are then used to purchase minigames, items, costumes, and photographs in-game.
+
+
+***************************************************
+2. General Hardware Information
+***************************************************
+
+- Comes in an oversized white cartridge with an ovular top-end.
+- Comes with a segmented LCD screen capable of displaying a few digits for glucose levels, time, date, and other statuses.
+- Has "M" and UP and DOWN buttons on the sides of the LCD screen, which should work similarly to other glucose meters.  
+- Has a slot for accepting blood testing strips at the very top.
+- Uses a coin cell battery, presumably to power the unit's glucose checking functions as well as an internal real-time clock.
+- Has a USB slot on the lower side of the unit.
+- The PCB is split into two main sections: top for glucose checking hardware, bottom for internal flash memory.
+- Top PCB contains a Panasonic MN101CB microcontroller, presumably used to handle glucose checking and managing the RTC.
+- Has an LED at the top left corner that flashes during testing.
+
+
+***************************************************
+3. Device Detection
+***************************************************
+
+The software will read some values from the GBA cart space between 0x8000000 and 0x801FFFF. The following psuedo-code will allow software to properly detect the presence of the Didget:
+
+//Read individual bytes from GBA cart space
+if address AND 1
+	return 0xF3
+else
+	return ANY VALUE
+
+
+***************************************************
+4. Accessing Didget Data
+***************************************************
+
+The Nintendo DS does not directly test glucose or blood samples. Rather, the Didget handles that on its own and allows the handheld to read back the data stored on the device. The Didget operates in much the same manner as the original Glucoboy with only minor differences. The Didget uses a single, multipurpose 1-byte register mapped to the address 0xA000000, named here as DIDGET_CNT for the purposes of this document. By reading and writing to DIDGET_CNT, data such as reward points, bonus points, short messages, and other miscellaneous hardware information can be extracted. The DS can also push data to the Didget by updating the player's high scores and total available points.
+
+To access data on the Didget, an index must first be written to DIDGET_CNT. Different data — such as reward points earned today or bonus points — are stored at different indices. Once an index is set, the Didget triggers a Game Pak IRQ. Following this, 1-byte, 4-bytes, or 6-bytes, or 64-bytes must be read from/written to DIDGET_CNT, depending on the index. For example, in the case that an index returns 4-bytes of data, DIDGET_CNT must be read a total of 4 times, once per byte. Additional Game Pak IRQs indicate when the next byte is ready to read/write. Evidently, Game Pak IRQs are generated after a brief delay when accessing DIDGET_CNT. For integer values (primarily 4-byte and 6-byte indices) data is read/written MSB-first, therefore, software must also manually adjust LSB-first values on the DS. Other data such as the 64-byte indices for messages is written sequentially. 
+
+The Didget appears to have a sort of "idle" mode when no index is currently specified. These instances seem to happen after initially booting up the DS and the Didget, and it also occurs after the DS has finished reading from/writing to an index. In these instances where the Didget is "idle", reading from DIDGET_CNT twice returns the values 0xBD and 0xDA in that order. Knock'em Downs: World's Fair does this at times to verify that the Didget is ready for read or write operations. During idle mode, the Didget *DOES NOT* generate Game Pak IRQs.
+
+Below is the typical proceedure used to read or write to an index on the Didget of XYZ length:
+
+-----------------------------------------------------------
+XYZ-byte Index Access
+-----------------------------------------------------------
+WRITE INDEX TO DIDGET_CNT
+	WAIT FOR GAMEPAK IRQ
+
+READ OR WRITE BYTE AT DIDGET_CNT
+	WAIT FOR GAMEPAK IRQ
+
+REPEAT READ OR WRITE AT DIDGET_CNT FOR XYZ LENGTH
+-----------------------------------------------------------
+
+Indices on the Didget are typically read-only or write-only. After writing data to a write-only index, however, reading 1-byte from that same index returns the status of the previous write operation. Any non-zero outputs indicate an error. Once this status byte is read, the Didget presumably returns to idle mode.
+
+
+***************************************************
+5. Index Overview
+***************************************************
+
+Below is a brief list of all known indices and their currently understood functions:
+
+-----------------------------------------------------------
+Index		| Size 	| Description
+-----------------------------------------------------------
+0x10 - 0x1F 	| 64	| Read Messages (Banks 0 - 15)
+0x20		| 4	| Read System Date
+0x21		| 4	| Read New Reward Points
+0x22		| 4	| Read New Bonus Points
+0x23		| 4	| Read Current Number of Bonus Days
+0x24		| 4	| Read Number of Days Until Next Bonus
+0x25		| 4	| Read Hardware Flags
+0x26		| 4	| Read LD Threshold
+0x27		| 4	| Read Serial Number
+0x28		| 4	| Unknown Index
+0x29		| 4	| Unknown Index
+0x2A		| 4	| Unknown Index
+0x2B		| 4	| Unknown Index
+0x2C		| 4	| Read Current Total Points
+0x2D		| 4	| Unknown Index
+0x31		| 1	| Read Unknown Flag
+0x32		| 1	| Read Unknown Flag
+0x6C		| 4	| Write Current Total Points
+0xE3		| 6	| Write High Scores (Banks 1 - 12)
+-----------------------------------------------------------
+
+The Didget largely copies the Glucoboy for its indices. Many of the indices related to rewards and points are simply renamed while retaining the same purpose. One key difference is that while the Glucoboy stored the total amount of earned points inside the EEPROM inside its cartridge, the Didget dedicates a specific index for this. A number of hardware specific details (flags, serial number, LD threshold), are also read but seemingly unused by the Didget. Additionally, the Didget uses 1KB of its internal storage for short messages.
+
+Any indices present on both the Glucoboy and Didget are assumed to work identically unless further testing reveals otherwise. This document, therefore, will only explore indices exclusively used by the Didget. Refer to documentation on the Glucoboy for further information if necessary.
+
+-----------------------------------------------------------------------
+Index 0x28 - Read Unknown Index
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown. It does not seem to be actively used by Knock'em Downs: World's Fair.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x29 - Read Unknown Index
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown. It does not seem to be actively used by Knock'em Downs: World's Fair.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x2A - Read Unknown Index
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown. It does not seem to be actively used by Knock'em Downs: World's Fair.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x2B - Read Unknown Index
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown. It does not seem to be actively used by Knock'em Downs: World's Fair.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x2C - Read Current Total Points
+-----------------------------------------------------------------------
+
+This represents the total amount of points earned. Realistically, it should not be lower than the sum of New Reward Points and Bonus Points, however, Knock'em Downs: World's Fair does not perform any checks or validation on this value. The index is responsible for telling the game how many points the player can spend to get in-game tickets.
+
+The 4 bytes returned by this index form an signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.
