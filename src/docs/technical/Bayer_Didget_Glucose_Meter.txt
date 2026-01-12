@@ -100,6 +100,40 @@ The Didget largely copies the Glucoboy for its indices. Many of the indices rela
 
 Any indices present on both the Glucoboy and Didget are assumed to work identically unless further testing reveals otherwise. This document, therefore, will only explore indices exclusively used by the Didget. Refer to documentation on the Glucoboy for further information if necessary.
 
+
+-----------------------------------------------------------------------
+Index 0x10 to 0x1F - Read Messages (Banks 0 - 15)
+-----------------------------------------------------------------------
+
+The Didget can store a total of 16 different 64-byte messages using extended ASCII encoding.  NULL characters can terminate the message at any given point. If a message begins with a NULL character, Knock'em Downs: World's Fair ignore it as empty. The software will display any non-empty message it finds, however, the order of the messages is independent of the bank. The message in Bank 0 is always a "Daily Message", while any subsequent messages are numbered from 1 up to 15. That is to say, if a message bank is empty, it does not take up a number when listed. For example, if Banks 0, 1, 2, and 4 have messages, but Bank 3 is empty, Bank 0 will be the Daily Message, and Banks 1, 2, and 4 will be labeled "Message #1", "Message #2", and "Message #3".
+
+The extended ASCII encoding is standard ASCII for the first 128-bytes with non-standard encodings for several accented characters. Encodings vary between the regular copies of Knock'em Downs: World's Fair and the DSi enhanced version. For whatever reason, on regular versions of the game, characters such as "à" (using a value of 0xA0) and "Ñ" have glitched renderings, with the former effectively being invisible.
+
+Regular Encodings
+----------------------------------------------------------------------------------------------------------------------------------------------
+     |	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x80 |	À 	Á	Â	Ä			È	É	Ê	Ë	Ì	Í	Î	Ï	Ñ	Ò
+0x90 |	Ó	Ô	Ö			Ù	Ú	Û	Ü
+0xA0 |		á	â	ä			è	é	ê	ë	ì	í	î	ï	ñ	ò
+0xB0 |	ó	ô	ö			ù	ú	û	ü	¡	¿
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DSi Enhanced Encodings
+----------------------------------------------------------------------------------------------------------------------------------------------
+     |	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x80 |	À 	Á	Â	Ã	Ä	Å	Æ	Ç	È	É	Ê	Ë	Ì	Í	Î	Ï	
+0x90 |	Ñ	Ò	Ó	Ô	Õ	Ö	Œ	Ø	Ù	Ú	Û	Ü			
+0xA0 |	à	á	â	ã	ä	å	æ	ç	è	é	ê	ë	ì	í	î	ï	
+0xB0 |	ñ	ò	ó	ô	õ	ö	œ	ø	ù	ú	û	ü	¡	¿	◌̇
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
 -----------------------------------------------------------------------
 Index 0x28 - Read Unknown Index
 -----------------------------------------------------------------------
@@ -147,3 +181,33 @@ Index 0x2C - Read Current Total Points
 This represents the total amount of points earned. Realistically, it should not be lower than the sum of New Reward Points and Bonus Points, however, Knock'em Downs: World's Fair does not perform any checks or validation on this value. The index is responsible for telling the game how many points the player can spend to get in-game tickets.
 
 The 4 bytes returned by this index form an signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x2D - Read Unknown Index
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown. It does not seem to be actively used by Knock'em Downs: World's Fair.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x31 - Read Unknown Flag
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Didget to register an error when retrieving points.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x32 - Read Unknown Flag
+-----------------------------------------------------------------------
+
+The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Didget to register an error when retrieving points.
