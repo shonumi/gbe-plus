@@ -19,12 +19,13 @@ The Bayer Didget Glucose Meter is a Slot-2 device for the Nintendo DS capable of
 - Comes with a segmented LCD screen capable of displaying a few digits for glucose levels, time, date, and other statuses.
 - Has "M" and UP and DOWN buttons on the sides of the LCD screen, which should work similarly to other glucose meters.  
 - Has a slot for accepting blood testing strips at the very top, specifically Bayer's Contour brand test strips.
-- Uses a coin cell battery (CR2032), presumably to power the unit's glucose checking functions as well as an internal real-time clock.
-- Has a USB Mini slot on the lower side of the unit.
+- Uses a coin cell battery (CR2032) to power the unit's glucose checking functions as well as an internal real-time clock.
+- Has a USB Mini slot on the lower side of the unit for PC connection via the GLUCOFACTS DELUXE software.
 - The PCB is split into two main sections: top for glucose checking hardware, bottom for internal flash memory.
 - Top PCB contains a Panasonic MN101CB microcontroller, presumably used to handle glucose checking and managing the RTC.
 - Has an LED at the top left corner that flashes during testing.
 - Has an operating tempurature of 5C - 45C (41F - 113F).
+- Stores 480 test results internally.
 
 
 ***************************************************
@@ -131,6 +132,9 @@ DSi Enhanced Encodings
 0xB0 |	ñ	ò	ó	ô	õ	ö	œ	ø	ù	ú	û	ü	¡	¿	◌̇
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
+These messages were transferred from the Bayer Didget website when connecting the device via USB to a PC.
+
+
 
 
 
@@ -174,7 +178,7 @@ The 4 bytes returned by this index form a signed 32-bit integer. Only positive n
 Index 0x22 - Read New Bonus Points
 -----------------------------------------------------------------------
 
-This represents the amount of bonus points earned by maintaining healthy glucose levels over a specific number of days since the player last checked in with the game. The Didget likely updates this internally when the "Number of Good Days Until Bonus Rewarded" value reaches zero and reloads to a new value. At that time, these bonus points are also added to the total amount of points. The exact amount of bonus points granted as part of the Didget's internal algorithms is not known.
+This represents the amount of bonus points earned by maintaining healthy glucose levels over a specific number of days since the player last checked in with the game. The Didget likely updates this internally when the "Number of Good Days Until Bonus Rewarded" value reaches zero and reloads to a new value. At that time, these bonus points are also added to the total amount of points.
 
 The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.
 
@@ -198,7 +202,7 @@ The 4 bytes returned by this index form a signed 32-bit integer. Only positive n
 Index 0x24 - Read Number of Days Until Next Bonus
 -----------------------------------------------------------------------
 
-This index represents the number of remaining days needed until the bonus points would be granted. This value likely decreases by one every 24-hours, so long as the player's glucose levels were kept in check regularly. The exact amount of days until players can get bonus points was part of the Didget's internal algorithms and as such is not currently known.
+This index represents the number of remaining days needed until the bonus points would be granted. This value likely decreases by one every 24-hours, so long as the player's glucose levels were kept in check regularly.
 
 The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.
 
@@ -228,7 +232,7 @@ The following descriptions are estimates of each bit's likely meaning. Keep in m
 
 "GMEM FAULT" and "PMEM FAULT" refer to errors in the memory allocated for blood testing result. The Didget may separate memories for general glucose test result and postprandial glucose test results. If those areas of memory have issues, they would probably be reported here.
 
-"INCENTIVE" refers to the Didget's proprietary method of determining how it gives out points. This was dicated by factors such as timeliness in testing, frequency in testing, and whether or not glucose levels were healthy. This flag probably indicates that the player had met these conditions.
+"INCENTIVE" refers to the Didget's method of determining how it gives out points. This was dicated by factors such as timeliness in testing, frequency in testing, and whether or not glucose levels were healthy. This flag probably indicates that the player had met these conditions.
 
 "PNEW STATS" possibly refers to new data tracking postprandial glucose levels, conceivably an update to some kind of statistic used to measure the player's performance in relation to INCENTIVE.
 
@@ -258,8 +262,7 @@ The 4 bytes returned by this index form an unsigned 27-bit integer. It is used t
 Index 0x27 - Read Serial Number
 -----------------------------------------------------------------------
 
-This index holds the value of some kind of serial number for the Didget. It is currently unknown if this would have been a per-device serial number or something broader to distinguish versions and revisions.
-
+This index holds the value of some kind of serial number for the Didget. This appears to be a per-device serial number. Although is is read by Knock'em Downs: World's Fair, the game does not use it. It was, however, read via USB when connecting the Didget to a PC for the Bayer Didget website.
 
 The 4 bytes returned by this index form an unsigned 27-bit integer. It is used to represent values ranging from 00000000 - 99999999.
 
@@ -344,3 +347,82 @@ Index 0x32 - Read Unknown Flag
 -----------------------------------------------------------------------
 
 The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Didget to register an error when retrieving points.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0x6C - Current Total Points
+-----------------------------------------------------------------------
+
+This index sets the total amount of points earned. It receives 4 bytes representing a signed 32-bit integer. This index is updated by Knock'em Downs: World's Fair after converting points from the Didget to in-game tickets.
+
+
+
+
+
+-----------------------------------------------------------------------
+Index 0xE3 - Write High Scores
+-----------------------------------------------------------------------
+
+This index is used to write the high scores on each minigame from Knock'em Downs: World's Fair. Although the DS cartridge contains the scores in its own save data, this information was presumably uploaded as part of the official online community surrounding the Didget. Each game has its own "bank" that can be addressed. The format of the 6 bytes written to this index is detailed below:
+
+-----------------------------------------------------------
+Bytes	| Description	| Value
+-----------------------------------------------------------
+0	| Bank High	| Always 0x02
+1	| Bank Low	| 0x01 - 0x0C
+2 - 5	| Score		| 32-bit signed integer
+-----------------------------------------------------------
+
+The specific game is always determined by Byte 1 (Bank Low). The list of games is as follows:
+
+-----------------------------------------------------------
+Bank	| Game Name
+-----------------------------------------------------------
+0x01	| Carnival Chaos
+0x02	| Operation Maze
+0x03	| Flash Carb
+0x04	| Knock'em Down Launch
+0x05	| Hook Shot
+0x06	| Knock'em Down
+0x07	| Puzzle Monster
+0x08	| Anglin' Ventures
+0x09	| Arena Gladiator
+0x0A	| Russian Dolls
+0x0B	| Ace of Vase
+0x0C	| That's A Wrap
+-----------------------------------------------------------
+	
+
+***************************************************
+6. Point Calculation
+***************************************************
+
+The Bayer Didget's formula for calculating reward points is cleary documented in its manual. It uses a rolling average based on the amount of times tested within a 24-hour period and whether the player's glucose levels are below, above, or on target. The chart below shows the amount of points added to the average for any given amount of tests:
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+Current Test # 	| Below Target Points	| On Target Points	| Above Target Points 
+----------------------------------------------------------------------------------------------------------------------------------------------
+1		| 20			| 25			| 20
+2		| 40			| 50			| 40
+3		| 75			| 100			| 75
+4+		| 150			| 200			| 150
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+For example, for the first test, the user would receive 20 points if below their target. For the second test, assuming they are on target, they would add 50 points to their average, resulting in (20 + 50) / 2 points (i.e. 35) as the final total. Assuming a third test was done and they were above target, they would add 150 points to their average, resulting in (20 + 50 + 150) / 3 points (i.e. 73 points) as the final total. The average seems to be rounded.
+
+There must be a 6-hour gap between the first and second tests to register points. All subsequent tests require a 2-hour gap. A maximum of 9 tests can be performed in a single day. This averaging mechanism was designed to encourage children to more frequently test themselves. If the player tests 3 times or more in a 24-hour period, this counts towards a streak where bonus points are rewarded after a fixed amount of days:
+
+-----------------------------------------------------------
+# of Days	| Bonus Points Awarded
+-----------------------------------------------------------
+7		| 100
+14		| 300
+21		| 500
+30		| 1000
+90		| 5000
+-----------------------------------------------------------
+
+After a 90-day streak, the bonus points restart by waiting for a 7-day streak.
