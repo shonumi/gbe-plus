@@ -160,6 +160,7 @@
 			<p class="list_item"><a href="#kmr">Magic Reader</a></p>
 			<p class="list_item"><a href="#wcs">Wantame Card Scanner</a></p>
 			<p class="list_item"><a href="#wav">Wave Scanner</a></p>
+			<p class="list_item"><a href="#did">Bayer Didget Glucose Meter</a></p>
 			
 		</div>
 
@@ -6361,7 +6362,28 @@ Bit	| Description
 
 	<p class="spc"></p>
 	<p class="list_item"><strong>Index 0xE1 - Write Game Stats</strong></p>
-	<p class="list_item"></p>
+	<p class="list_item">This index is used to write various information about the games (Lost Star Saga, Knock&#39;em Downs, Solar Wing, Plexus, and Raccoon Rancher) to the Glucoboy. This appears to be data such as high scores and possibly time played. Although this information is stored in EEPROM as part of a normal game save, an additional copy is made for the Glucoboy internally. This index receives 6 additional bytes as parameters. Game Stats uses 60 bytes in total, so this index must be written to multiple times to complete the data.</p>
+
+	<p>The Glucoboy writes to Game Stats sequentially when using the 0xE1 index. That is to say, each time it writes data to the index, it moves onto the next category automatically until all 10 have been edited. The table below shows the order of each category and what each value represents:</p>
+
+<pre>-----------------------------------------------------------
+Category 	| Description
+-----------------------------------------------------------
+VCSECS		| Number of seconds played for Lost Star Saga
+VCHIGH		| High Score for Lost Star Saga
+KDSECS		| Number of seconds played for Knock&#39;em Downs
+KDHIGH		| High Score for Knock&#39;em Downs
+SWSECS		| Number of seconds played for Solar Wing
+SWHIGH		| High Score for Solar Wing
+PLSECS		| Number of seconds played for Plexus
+PLHIGH		| High Score for Plexus
+RRSECS		| Number of seconds played for Raccoon Rancher
+RRHIGH		| High Score for Raccoon Rancher
+-----------------------------------------------------------</pre>
+
+	<p>The index accepts two inputs spread across 6 bytes. The first is a 16-bit value followed by a 32-bit value. The 16-bit value appears to be constant, as the Glucoboy ROM always sets it to 0x3000. The 32-bit value represents the actual integer to write to a given category. Both of these inputs are written LSB-first, which stands in contrast to every other index.</p>
+
+	<p>When reading this index, it seems to act as a flag, and any non-zero value causes the Glucoboy to register and error when retrieving GRPs.</p>
 
 	<p class="spc"></p>
 	<p class="list_item"><strong>Index 0xE2 - Read Unknown Flag</strong></p>
@@ -8814,6 +8836,325 @@ C-15	| 040000240108	| Cancer Bubble			| キャンサ・バブル
 C-16	| 040000240123	| Wolf Woods			| ウルフ・フォレスト
 C-17	| 040000240136	| Crown Thunder			| クラウン・サンダー
 ----------------------------------------------------------------------------------------------------------------------</pre>
+
+
+
+
+
+
+
+
+
+
+	<!-- Bayer Didget -->
+	<a name="did"></a>
+	<p class="gray_title">Bayer Didget Glucose Meter</p>
+	<p class="list_item"><a href="#did_gen">General Hardware Information</a></p>
+	<p class="list_item"><a href="#did_dev">Device Detection</a></p>
+	<p class="list_item"><a href="#did_dat">Accessing Didget Data</a></p>
+	<p class="list_item"><a href="#did_ind">Index Overview</a></p>
+	<p class="list_item"><a href="#did_pnt">Point Calculation</a></p>
+
+	<a name="did_gen"></a>
+	<p class="gray_title">[Bayer Didget Glucose Meter] : General Hardware Information</p>
+
+	<p>The Bayer Didget Glucose Meter is a Slot-2 device for the Nintendo DS capable of processing diabetic testing strips. Created by Bayer AG, it was designed to interact with the game Knock&#39;em Downs: World&#39;s Fair and released on May 8th, 2009 in the United States and later in September for Europe. After having bought the rights to the earlier Glucoboy, Bayer repurposed the hardware for the Nintendo DS, resulting in the Didget. This newer version is largely the same as its predecessor, and the premise behind the game is unchanged. Players unlock points by regularly testing their blood sugar levels and staying within healthy levels. These points are then used to purchase minigames, items, costumes, and photographs in-game.</p>
+
+
+	<ul>
+		<li class="list_item">Comes in an oversized white cartridge with an ovular top-end.</li>
+		<li class="list_item">Comes with a segmented LCD screen capable of displaying a few digits for glucose levels, time, date, and other statuses.</li>
+		<li class="list_item">Has &#34;M&#34; and UP and DOWN buttons on the sides of the LCD screen, which should work similarly to other glucose meters.</li> 
+		<li class="list_item">Has a slot for accepting blood testing strips at the very top, specifically Bayer&#39;s Contour brand test strips.</li>
+		<li class="list_item">Uses a coin cell battery (CR2032) to power the unit&#39;s glucose checking functions as well as an internal real-time clock.</li>
+		<li class="list_item">Has a USB Mini slot on the lower side of the unit for PC connection via the GLUCOFACTS DELUXE software.</li>
+		<li class="list_item">The PCB is split into two main sections: top for glucose checking hardware, bottom for internal flash memory.</li>
+		<li class="list_item">Top PCB contains a Panasonic MN101CB microcontroller, presumably used to handle glucose checking and managing the RTC.</li>
+		<li class="list_item">Has an LED at the top left corner that flashes during testing.</li>
+		<li class="list_item">Has an operating tempurature of 5C - 45C (41F - 113F).</li>
+		<li class="list_item">Stores 480 test results internally.</li>
+	</ul>
+
+	<a name="did_dev"></a>
+	<p class="gray_title">[Bayer Didget Glucose Meter] : Device Detection</p>
+
+	<p>The software will read some values from the GBA cart space between 0x8000000 and 0x801FFFF. The following psuedo-code will allow software to properly detect the presence of the Didget:</p>
+
+<pre>//Read individual bytes from GBA cart space
+if address AND 1
+	return 0xF3
+else
+	return ANY VALUE</pre>
+
+	<a name="did_dat"></a>
+	<p class="gray_title">[Bayer Didget Glucose Meter] : Accessing Didget Data</p>
+
+	<p>The Nintendo DS does not directly test glucose or blood samples. Rather, the Didget handles that on its own and allows the handheld to read back the data stored on the device. The Didget operates in much the same manner as the original Glucoboy with only minor differences. The Didget uses a single, multipurpose 1-byte register mapped to the address 0xA000000, named here as DIDGET_CNT for the purposes of this document. By reading and writing to DIDGET_CNT, data such as reward points, bonus points, short messages, and other miscellaneous hardware information can be extracted. The DS can also push data to the Didget by updating the player&#39;s high scores and total available points.</p>
+
+	<p>To access data on the Didget, an index must first be written to DIDGET_CNT. Different data — such as reward points earned today or bonus points — are stored at different indices. Once an index is set, the Didget triggers a Game Pak IRQ. Following this, 1-byte, 4-bytes, or 6-bytes, or 64-bytes must be read from/written to DIDGET_CNT, depending on the index. For example, in the case that an index returns 4-bytes of data, DIDGET_CNT must be read a total of 4 times, once per byte. Additional Game Pak IRQs indicate when the next byte is ready to read/write. Evidently, Game Pak IRQs are generated after a brief delay when accessing DIDGET_CNT. For integer values (primarily 4-byte and 6-byte indices) data is read/written MSB-first, therefore, software must also manually adjust LSB-first values on the DS. Other data such as the 64-byte indices for messages is written sequentially.</p>
+
+	<p>The Didget appears to have a sort of &#34;idle&#34; mode when no index is currently specified. These instances seem to happen after initially booting up the DS and the Didget, and it also occurs after the DS has finished reading from/writing to an index. In these instances where the Didget is &#34;idle&#34;, reading from DIDGET_CNT twice returns the values 0xBD and 0xDA in that order. Knock&#39;em Downs: World&#39;s Fair does this at times to verify that the Didget is ready for read or write operations. During idle mode, the Didget *DOES NOT* generate Game Pak IRQs.</p>
+
+	<p>Below is the typical proceedure used to read or write to an index on the Didget of XYZ length:</p>
+
+<pre>-----------------------------------------------------------
+XYZ-byte Index Access
+-----------------------------------------------------------
+WRITE INDEX TO DIDGET_CNT
+	WAIT FOR GAMEPAK IRQ
+
+READ OR WRITE BYTE AT DIDGET_CNT
+	WAIT FOR GAMEPAK IRQ
+
+REPEAT READ OR WRITE AT DIDGET_CNT FOR XYZ LENGTH
+-----------------------------------------------------------</pre>
+
+	<p>Indices on the Didget are typically read-only or write-only. After writing data to a write-only index, however, reading 1-byte from that same index returns the status of the previous write operation. Any non-zero outputs indicate an error. Once this status byte is read, the Didget presumably returns to idle mode.</p>
+
+	<a name="did_ind"></a>
+	<p class="gray_title">[Bayer Didget Glucose Meter] : Index Overview</p>
+
+	<p>Below is a brief list of all known indices and their currently understood functions:</p>
+
+<pre>-----------------------------------------------------------
+Index		| Size 	| Description
+-----------------------------------------------------------
+0x10 - 0x1F 	| 64	| Read Messages (Banks 0 - 15)
+0x20		| 4	| Read System Date
+0x21		| 4	| Read New Reward Points
+0x22		| 4	| Read New Bonus Points
+0x23		| 4	| Read Current Number of Bonus Days
+0x24		| 4	| Read Number of Days Until Next Bonus
+0x25		| 4	| Read Hardware Flags
+0x26		| 4	| Read LD Threshold
+0x27		| 4	| Read Serial Number
+0x28		| 4	| Unknown Index
+0x29		| 4	| Unknown Index
+0x2A		| 4	| Unknown Index
+0x2B		| 4	| Unknown Index
+0x2C		| 4	| Read Current Total Points
+0x2D		| 4	| Unknown Index
+0x31		| 1	| Read Unknown Flag
+0x32		| 1	| Read Unknown Flag
+0x6C		| 4	| Write Current Total Points
+0xE3		| 6	| Write High Scores (Banks 1 - 12)
+-----------------------------------------------------------</pre>
+
+	<p>The Didget largely copies the Glucoboy for its indices. Many of the indices related to rewards and points are simply renamed while retaining the same purpose. One key difference is that while the Glucoboy stored the total amount of earned points inside the EEPROM inside its cartridge, the Didget dedicates a specific index for this. A number of hardware specific details (flags, serial number, LD threshold), are also read but seemingly unused by the Didget. Additionally, the Didget uses 1KB of its internal storage for short messages.</p>
+
+	<p>Any indices present on both the Glucoboy and Didget are assumed to work identically unless further testing reveals otherwise. This document, therefore, will only explore indices exclusively used by the Didget. Refer to documentation on the Glucoboy for further information if necessary.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x10 to 0x1F - Read Messages (Banks 0 - 15)</strong></p>
+	<p class="list_item">The Didget can store a total of 16 different 64-byte messages using extended ASCII encoding.  NULL characters can terminate the message at any given point. If a message begins with a NULL character, Knock&#39;em Downs: World&#39;s Fair ignore it as empty. The software will display any non-empty message it finds, however, the order of the messages is independent of the bank. The message in Bank 0 is always a &#34;Daily Message&#34;, while any subsequent messages are numbered from 1 up to 15. That is to say, if a message bank is empty, it does not take up a number when listed. For example, if Banks 0, 1, 2, and 4 have messages, but Bank 3 is empty, Bank 0 will be the Daily Message, and Banks 1, 2, and 4 will be labeled &#34;Message #1&#34;, &#34;Message #2&#34;, and &#34;Message #3&#34;.</p>
+
+	<p>The extended ASCII encoding is standard ASCII for the first 128-bytes with non-standard encodings for several accented characters. Encodings vary between the regular copies of Knock&#39;em Downs: World&#39;s Fair and the DSi enhanced version. For whatever reason, on regular versions of the game, characters such as &#34;à&#34; (using a value of 0xA0) and &#34;Ñ&#34; have glitched renderings, with the former effectively being invisible.</p>
+
+<pre>Regular Encodings
+----------------------------------------------------------------------------------------------------------------------------------------------
+     |	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x80 |	À 	Á	Â	Ä			È	É	Ê	Ë	Ì	Í	Î	Ï	Ñ	Ò
+0x90 |	Ó	Ô	Ö			Ù	Ú	Û	Ü
+0xA0 |		á	â	ä			è	é	ê	ë	ì	í	î	ï	ñ	ò
+0xB0 |	ó	ô	ö			ù	ú	û	ü	¡	¿
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DSi Enhanced Encodings
+----------------------------------------------------------------------------------------------------------------------------------------------
+     |	0	1	2	3	4	5	6	7	8	9	A	B	C	D	E	F
+----------------------------------------------------------------------------------------------------------------------------------------------
+0x80 |	À 	Á	Â	Ã	Ä	Å	Æ	Ç	È	É	Ê	Ë	Ì	Í	Î	Ï	
+0x90 |	Ñ	Ò	Ó	Ô	Õ	Ö	Œ	Ø	Ù	Ú	Û	Ü			
+0xA0 |	à	á	â	ã	ä	å	æ	ç	è	é	ê	ë	ì	í	î	ï	
+0xB0 |	ñ	ò	ó	ô	õ	ö	œ	ø	ù	ú	û	ü	¡	¿	◌̇
+----------------------------------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>These messages were transferred from the Bayer Didget website when connecting the device via USB to a PC.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x20 - Read System Date</strong></p>
+	<p class="list_item">This index returns the current system date according to the Didget&#39;s RTC. The clock is used internally to decide if glucose testing has been performed on a consistent schedule in order to give out reward points. It is entirely independent from the DS&#39; own clock. Knock&#39;em Downs: World Fair does not seem to make use of this data, however. 4 bytes are returned representing a date. The complete 32-bit value uses these fields for time:</p>
+
+<pre>-----------------------------------------------------------
+Bits	| Description
+-----------------------------------------------------------
+0  - 5	| Minutes (0 - 59)	
+6  - 11	| Hours (0 - 23)
+12 - 16	| Days (1 - 31)
+20 - 23	| Months (1 - 12)
+24 - 30	| Years (2001 - 2100)
+-----------------------------------------------------------</pre>
+
+	<p>Days and Months always start counting at 1. That is to say, a binary value of 0 will translate to 1, so the maximum value for each category should be 11 and 30 respectively.</p>
+
+	<p>Years starts counting at 2100. That is to say, a binary value of 0 will translate to the year 2100. A binary value of 1 will translate to the year 2001, and so on. Essentially, this value can be added to 2000 to get the current date, with 0 being a special case.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x21 - Read New Reward Points</strong></p>
+	<p class="list_item">This represents the amount of reward points earned since the player last checked in with the game. Internally, this value is presumably added to the total amount of points in index 0x2C automatically. The exact amount is determined by factors such as whether the levels were healthy and whether the test was done in accordance to a regular schedule. The DS does not seem to have access to the components that calculate these points, so it only reads whatever the hardware reports.</p>
+
+	<p>The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x22 - Read New Bonus Points</strong></p>
+	<p class="list_item">This represents the amount of bonus points earned by maintaining healthy glucose levels over a specific number of days since the player last checked in with the game. The Didget likely updates this internally when the &#34;Number of Good Days Until Bonus Rewarded&#34; value reaches zero and reloads to a new value. At that time, these bonus points are also added to the total amount of points.</p>
+
+	<p>The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x23 - Read Current Number of Bonus Days</strong></p>
+	<p class="list_item">This index represents the number of continuous days were the player consistently checked their glucose levels and those same levels were within an acceptable range. Failing to meet those requirements would presumably reset the this value.</p>
+
+	<p>The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x24 - Read Number of Days Until Next Bonus</strong></p>
+	<p class="list_item">This index represents the number of remaining days needed until the bonus points would be granted. This value likely decreases by one every 24-hours, so long as the player&#39;s glucose levels were kept in check regularly.</p>
+
+	<p>The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x25 - Read Hardware Flags</strong></p>
+	<p class="list_item">This index represents a set of hardware status flags for the Didget. It is assumed they carry over from the Glucoboy in function and meaning. Knock&#39;em Downs: World&#39;s Fair reads this data but makes no use of it. Only 7-bits of the 32-bit index value is used as such:</p>
+
+<pre>-----------------------------------------------------------
+Bit	| Description
+-----------------------------------------------------------
+0	| GMEM FAULT
+1	| PMEM FAULT
+2 	| INCENTIVE
+3	| PNEW STATS
+4	| MEASUREMENT
+5	| GMETER FAULT
+6	| PMETER FAULT
+-----------------------------------------------------------</pre>
+
+	<p>The following descriptions are estimates of each bit&#39;s likely meaning. Keep in mind these are guesses for the time being.</p>
+
+	<p>&#34;GMEM FAULT&#34; and &#34;PMEM FAULT&#34; refer to errors in the memory allocated for blood testing result. The Didget may separate memories for general glucose test result and postprandial glucose test results. If those areas of memory have issues, they would probably be reported here.</p>
+
+	<p>&#34;INCENTIVE&#34; refers to the Didget&#39;s method of determining how it gives out points. This was dicated by factors such as timeliness in testing, frequency in testing, and whether or not glucose levels were healthy. This flag probably indicates that the player had met these conditions.</p>
+
+	<p>&#34;PNEW STATS&#34; possibly refers to new data tracking postprandial glucose levels, conceivably an update to some kind of statistic used to measure the player&#39;s performance in relation to INCENTIVE.</p>
+
+	<p>&#34;MEASUREMENT&#34; possibly indicates a new glucose reading has been done.</p>
+
+	<p>&#34;GMETER FAULT&#34; and &#34;PMETER FAULT&#34; refer to failures with the actual glucose and postprandial meters.</p>
+
+	<p>Despite &#34;GMEM/GMETER FAULT&#34; and &#34;PMEM/PMETER FAULT&#34; being potentially serious hardware issues, Knock&#39;em Downs: World&#39;s Fair does not take any specific actions on them. For example, the player is not warned if any of these components stops working, although, it may affect retrieving reward points, which does display an error message.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x26 - Read LD Threshold</strong></p>
+	<p class="list_item">This index holds the value of the &#34;LD Threshold&#34;, which possibly refers to a &#34;Low-Data Threshold&#34;. This would represent the minimum number of samples from glucose testing needed to get an accurate test.</p>
+
+	<p>The 4 bytes returned by this index form an unsigned 27-bit integer. It is used to represent values ranging from 00000000 - 99999999.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x27 - Read Serial Number</strong></p>
+	<p class="list_item">This index holds the value of some kind of serial number for the Didget. This appears to be a per-device serial number. Although is is read by Knock&#39;em Downs: World&#39;s Fair, the game does not use it. It was, however, read via USB when connecting the Didget to a PC for the Bayer Didget website.</p>
+
+	<p>The 4 bytes returned by this index form an unsigned 27-bit integer. It is used to represent values ranging from 00000000 - 99999999.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x28 - Read Unknown Index</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown. It does not seem to be actively used by Knock&#39;em Downs: World&#39;s Fair.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x29 - Read Unknown Index</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown. It does not seem to be actively used by Knock&#39;em Downs: World&#39;s Fair.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x2A - Read Unknown Index</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown. It does not seem to be actively used by Knock&#39;em Downs: World&#39;s Fair.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x2B - Read Unknown Index</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown. It does not seem to be actively used by Knock&#39;em Downs: World&#39;s Fair.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x2C - Read Current Total Points</strong></p>
+	<p class="list_item">This represents the total amount of points earned. Realistically, it should not be lower than the sum of New Reward Points and Bonus Points, however, Knock&#39;em Downs: World&#39;s Fair does not perform any checks or validation on this value. The index is responsible for telling the game how many points the player can spend to get in-game tickets.</p>
+
+	<p>The 4 bytes returned by this index form a signed 32-bit integer. Only positive numbers are valid, so the maximum allowed value is therefore 2147483647.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x2D - Read Unknown Index</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown. It does not seem to be actively used by Knock&#39;em Downs: World&#39;s Fair.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x31 - Read Unknown Flag</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Didget to register an error when retrieving points.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x32 - Read Unknown Flag</strong></p>
+	<p class="list_item">The exact purpose of this index is unknown, however, it seems to act as a flag. Reading any non-zero value causes the Didget to register an error when retrieving points.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0x6C - Current Total Points</strong></p>
+	<p class="list_item">This index sets the total amount of points earned. It receives 4 bytes representing a signed 32-bit integer. This index is updated by Knock&#39;em Downs: World&#39;s Fair after converting points from the Didget to in-game tickets.</p>
+
+	<p class="spc"></p>
+	<p class="list_item"><strong>Index 0xE3 - Write High Scores</strong></p>
+	<p class="list_item">This index is used to write the high scores on each minigame from Knock&#39;em Downs: World&#39;s Fair. Although the DS cartridge contains the scores in its own save data, this information was presumably uploaded as part of the official online community surrounding the Didget. Each game has its own &#34;bank&#34; that can be addressed. The format of the 6 bytes written to this index is detailed below:</p>
+
+<pre>-----------------------------------------------------------
+Bytes	| Description	| Value
+-----------------------------------------------------------
+0	| Bank High	| Always 0x02
+1	| Bank Low	| 0x01 - 0x0C
+2 - 5	| Score		| 32-bit signed integer
+-----------------------------------------------------------</pre>
+
+	<p>The specific game is always determined by Byte 1 (Bank Low). The list of games is as follows:</p>
+
+<pre>-----------------------------------------------------------
+Bank	| Game Name
+-----------------------------------------------------------
+0x01	| Carnival Chaos
+0x02	| Operation Maze
+0x03	| Flash Carb
+0x04	| Knock&#39;em Down Launch
+0x05	| Hook Shot
+0x06	| Knock&#39;em Down
+0x07	| Puzzle Monster
+0x08	| Anglin&#39; Ventures
+0x09	| Arena Gladiator
+0x0A	| Russian Dolls
+0x0B	| Ace of Vase
+0x0C	| That&#39;s A Wrap
+-----------------------------------------------------------</pre>
+
+	<a name="did_pnt"></a>
+	<p class="gray_title">[Bayer Didget Glucose Meter] : Point Calculation</p>
+
+	<p>The Bayer Didget&#39;s formula for calculating reward points is cleary documented in its manual. It uses a rolling average based on the amount of times tested within a 24-hour period and whether the player&#39;s glucose levels are below, above, or on target. The chart below shows the amount of points added to the average for any given amount of tests:</p>
+
+<pre>----------------------------------------------------------------------------------------------------------------------------------------------
+Current Test # 	| Below Target Points	| On Target Points	| Above Target Points 
+----------------------------------------------------------------------------------------------------------------------------------------------
+1		| 20			| 25			| 20
+2		| 40			| 50			| 40
+3		| 75			| 100			| 75
+4+		| 150			| 200			| 150
+----------------------------------------------------------------------------------------------------------------------------------------------</pre>
+
+	<p>For example, for the first test, the user would receive 20 points if below their target. For the second test, assuming they are on target, they would add 50 points to their average, resulting in (20 + 50) / 2 points (i.e. 35) as the final total. Assuming a third test was done and they were above target, they would add 150 points to their average, resulting in (20 + 50 + 150) / 3 points (i.e. 73 points) as the final total. The average seems to be rounded.</p>
+
+	<p>There must be a 6-hour gap between the first and second tests to register points. All subsequent tests require a 2-hour gap. A maximum of 9 tests can be performed in a single day. This averaging mechanism was designed to encourage children to more frequently test themselves. If the player tests 3 times or more in a 24-hour period, this counts towards a streak where bonus points are rewarded after a fixed amount of days:</p>
+
+<pre>-----------------------------------------------------------
+# of Days	| Bonus Points Awarded
+-----------------------------------------------------------
+7		| 100
+14		| 300
+21		| 500
+30		| 1000
+90		| 5000
+-----------------------------------------------------------</pre>
+
+	<p>After a 90-day streak, the bonus points restart by waiting for a 7-day streak.</p>
 
 
 
