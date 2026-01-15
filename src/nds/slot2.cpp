@@ -188,8 +188,9 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 						slot_byte = bayer_didget.messages[msg_box][bayer_didget.msg_index];
 
 						//Signal end of index reading
-						if(bayer_didget.msg_index >= bayer_didget.messages[msg_box].size())
+						if((bayer_didget.msg_index + 1) >= bayer_didget.messages[msg_box].size())
 						{
+							process_bayer_didget_irq();
 							bayer_didget.is_idle = true;
 							bayer_didget.idle_value = 0xDABD;
 						}
@@ -223,7 +224,7 @@ u8 NTR_MMU::read_slot2_device(u32 address)
 					}
 				}
 
-				std::cout<<"DIDGET READ -> 0x" << std::hex << address << "\n";
+				std::cout<<"DIDGET READ -> 0x" << std::hex << address << " :: 0x" << u32(slot_byte) << "\n";
 			}
 
 			break;
@@ -684,8 +685,6 @@ void NTR_MMU::bayer_didget_reset()
 
 		if(file.is_open()) 
 		{
-			std::cout<<"READING MSG " << filename << "\n";
-
 			//Get the file size - Limit to 64 bytes
 			file.seekg(0, file.end);
 			u32 file_size = file.tellg();
