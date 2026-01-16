@@ -2320,8 +2320,8 @@ bool DMG_MMU::load_backup(std::string filename)
 				//Read GB Memory Cartridge save according to map data
 				if(config::cart_type == DMG_GBMEM)
 				{
-					u8 map_index = (cart.flash_io_bank * 3);
-					u8 sram_index = cart.gb_mem_map[map_index + 2] & 0xF;
+					u8 map_index = ((cart.flash_io_bank - 1) * 3);
+					u8 sram_index = cart.gb_mem_map[map_index + 2] >> 2;
 
 					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
 					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
@@ -2679,11 +2679,11 @@ bool DMG_MMU::gb_mem_read_map(std::string filename)
 	return true;
 }
 
-/****** Reads existing save data and updates it correctly for games stored on the GB Memory Cartridge ******/
+/****** Reads existing save data and update it correctly for games stored on the GB Memory Cartridge ******/
 void DMG_MMU::gb_mem_format_save(std::string filename)
 {
-	u8 map_index = (cart.flash_io_bank * 3);
-	u8 sram_index = cart.gb_mem_map[map_index + 2] & 0xF;
+	u8 map_index = ((cart.flash_io_bank - 1) * 3);
+	u8 sram_index = cart.gb_mem_map[map_index + 2] >> 2;
 
 	u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
 	if((block_size != 0) && (block_size != 3)) { block_size = 1; }
