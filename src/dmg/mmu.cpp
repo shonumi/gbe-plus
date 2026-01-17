@@ -2325,13 +2325,23 @@ bool DMG_MMU::load_backup(std::string filename)
 
 					u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
 					if((block_size != 0) && (block_size != 3)) { block_size = 1; }
+					
+					u32 final_size = ((0x2000 * sram_index) + (0x2000 * block_size));
 
-					sram.seekg(0x2000 * sram_index);
-
-					for(int x = 0; x < block_size; x++)
+					if(final_size <= file_size)
 					{
-						u8* ex_ram = &random_access_bank[x][0];
-						sram.read((char*)ex_ram, 0x2000);
+						sram.seekg(0x2000 * sram_index);
+
+						for(int x = 0; x < block_size; x++)
+						{
+							u8* ex_ram = &random_access_bank[x][0];
+							sram.read((char*)ex_ram, 0x2000);
+						}
+					}
+
+					else
+					{
+						std::cout<<"MMU::Warning - GB Memory Cartridge expected SRAM data that exceeds save file data\n";
 					}
 				}
 				
@@ -2687,6 +2697,12 @@ void DMG_MMU::gb_mem_format_save(std::string filename)
 
 	u8 block_size = ((cart.gb_mem_map[map_index] & 0x3) << 1) | ((cart.gb_mem_map[map_index + 1] & 0x80) >> 7);
 	if((block_size != 0) && (block_size != 3)) { block_size = 1; }
+
+	if((sram_index + block_size) > random_access_bank.size())
+	{
+		block_size = random_access_bank.size() - 1;
+		std::cout<<"MMU::Warning - GB Memory Cartridge saving SRAM data that exceeds save file size\n";
+	}
 
 	//Read current save data (32KB max)
 	u8 temp_sram[4][0x2000];
