@@ -58,80 +58,61 @@ void AGB_MMU::write_glucoboy(u32 address, u8 value)
 	//Validate new index
 	else
 	{
-		switch(value)
+		//0x20 - 0x27 : Read glucose and device data
+		//0x31 - 0x32 : Flags
+		//0x60 - 0x67 : Write glucose and device data
+		//0xE0 - 0xE2 : Flags + High Scores
+		if(((value >= 0x20) && (value <= 0x27))
+		|| ((value >= 0x31) && (value <= 0x32))
+		|| ((value >= 0x60) && (value <= 0x67))
+		|| ((value >= 0xE0) && (value <= 0xE2)))
 		{
+			glucoboy.io_index = value;
+			glucoboy.request_interrupt = true;
+			glucoboy.reset_shift = true;
+
 			//On this index, update Glucoboy with system date
-			case 0x20:
-				{
-					time_t system_time = time(0);
-					tm* current_time = localtime(&system_time);
+			if(glucoboy.io_index == 0x20)
+			{
+				time_t system_time = time(0);
+				tm* current_time = localtime(&system_time);
 
-					u8 min = current_time->tm_min;
-					u8 hour = current_time->tm_hour;
-					u8 day = (current_time->tm_mday - 1);
-					u8 month = current_time->tm_mon;
-					u8 year = (current_time->tm_year % 100);
+				u8 min = current_time->tm_min;
+				u8 hour = current_time->tm_hour;
+				u8 day = (current_time->tm_mday - 1);
+				u8 month = current_time->tm_mon;
+				u8 year = (current_time->tm_year % 100);
 					
-					if(year == 0) { year = 100; }
+				if(year == 0) { year = 100; }
 
-					glucoboy.io_regs[0x20] = min;
-					glucoboy.io_regs[0x20] |= ((hour & 0x3F) << 6);
-					glucoboy.io_regs[0x20] |= ((day & 0x1F) << 12);
-					glucoboy.io_regs[0x20] |= ((month & 0xF) << 20);
-					glucoboy.io_regs[0x20] |= ((year & 0x7F) << 24);
-				}
-					
-			case 0x21:
-			case 0x22:
-			case 0x23:
-			case 0x24:
-			case 0x25:
-			case 0x26:
-			case 0x27:
-			case 0x31:
-			case 0x32:
-			case 0x60:
-			case 0x61:
-			case 0x62:
-			case 0x63:
-			case 0x64:
-			case 0x65:
-			case 0x66:
-			case 0x67:
-			case 0xE0:
-			case 0xE1:
-			case 0xE2:
-				glucoboy.io_index = value;
-				glucoboy.request_interrupt = true;
-				glucoboy.reset_shift = true;
-				break;
+				glucoboy.io_regs[0x20] = min;
+				glucoboy.io_regs[0x20] |= ((hour & 0x3F) << 6);
+				glucoboy.io_regs[0x20] |= ((day & 0x1F) << 12);
+				glucoboy.io_regs[0x20] |= ((month & 0xF) << 20);
+				glucoboy.io_regs[0x20] |= ((year & 0x7F) << 24);
+			}
 
-			default:
-				glucoboy.io_index = 0;
-				glucoboy.request_interrupt = false;
-				glucoboy.reset_shift = false;
-				std::cout<<"MMU::Unknown Glucoboy Index: 0x" << (u32)value << "\n";
-		}
-
-		//Set input length for write indices
-		switch(glucoboy.io_index)
-		{
-			case 0x60:
-			case 0x61:
-			case 0x62:
-			case 0x63:
-			case 0x64:
-			case 0x65:
-			case 0x66:
-			case 0x67:
+			//Set input length for write indices
+			else if((glucoboy.io_index >= 0x60) && (glucoboy.io_index <= 0x67))
+			{
 				glucoboy.parameters.clear();
 				glucoboy.parameter_length = 4;
-				break;
+			}
 
-			case 0xE1:
+			else if(glucoboy.io_index == 0xE1)
+			{
 				glucoboy.parameters.clear();
 				glucoboy.parameter_length = 6;
-				break;
+			}
+		}
+
+		//Unknown indices, potentially invalid
+		else
+		{
+			glucoboy.io_index = 0;
+			glucoboy.request_interrupt = false;
+			glucoboy.reset_shift = false;
+			std::cout<<"MMU::Unknown Glucoboy Index: 0x" << (u32)value << "\n";
 		}
 	}
 
@@ -166,21 +147,14 @@ void AGB_MMU::process_glucoboy_irq()
 	//Set data size of each index (8-bit or 32-bit)
 	if(glucoboy.reset_shift)
 	{
-		switch(glucoboy.io_index)
+		if((glucoboy.io_index >= 0x20) && (glucoboy.io_index <= 0x27))
 		{
-			case 0x20:
-			case 0x21:
-			case 0x22:
-			case 0x23:
-			case 0x24:
-			case 0x25:
-			case 0x26:
-			case 0x27:
-				glucoboy.index_shift = 24;
-				break;
+			glucoboy.index_shift = 24;
+		}
 
-			default:
-				glucoboy.index_shift = 0;
+		else
+		{
+			glucoboy.index_shift = 0;
 		}
 
 		glucoboy.reset_shift = false;
@@ -197,17 +171,8 @@ void AGB_MMU::process_glucoboy_index()
 		input_stream = (glucoboy.parameters[0] << 24) | (glucoboy.parameters[1] << 16) | (glucoboy.parameters[2] << 8) | (glucoboy.parameters[3]);
 	}	
 
-	switch(glucoboy.io_index)
+	if((glucoboy.io_index >= 0x60) && (glucoboy.io_index <= 0x67))
 	{
-		case 0x60:
-		case 0x61:
-		case 0x62:
-		case 0x63:
-		case 0x64:
-		case 0x65:
-		case 0x66:
-		case 0x67:
-			glucoboy.io_regs[glucoboy.io_index - 0x40] = input_stream;
-			break;
+		glucoboy.io_regs[glucoboy.io_index - 0x40] = input_stream;
 	}
 }
