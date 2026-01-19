@@ -14,7 +14,11 @@
 #include "render.h"
 
 /****** Software screen constructor ******/
-soft_screen::soft_screen(QWidget *parent) : QWidget(parent) { }
+soft_screen::soft_screen(QWidget *parent) : QWidget(parent)
+{
+	fps_count = 0;
+	fps_time = 0;
+}
 
 /****** Software screen paint event ******/
 void soft_screen::paintEvent(QPaintEvent* event)
@@ -45,6 +49,17 @@ void soft_screen::paintEvent(QPaintEvent* event)
 			QPainter painter(this);
 			painter.drawImage(0, 0, final_screen);
 		}
+
+		//Update FPS counter + title
+		fps_count++;
+		if((SDL_GetTicks() - fps_time) >= 1000)
+		{ 
+			fps_time = SDL_GetTicks(); 
+			config::title.str("");
+			config::title << "GBE+ " << fps_count << "FPS";
+			qt_gui::draw_surface->setWindowTitle(QString::fromStdString(config::title.str()));
+			fps_count = 0; 
+		}
 	}
 }
 
@@ -74,6 +89,9 @@ hard_screen::hard_screen(QWidget *parent) : QGLWidget(parent)
 	setFormat(screen_format);
 
 	old_aspect_flag = config::maintain_aspect_ratio;
+
+	fps_count = 0;
+	fps_time = 0;
 }
 
 /****** Initializes OpenGL on the hardware screen ******/
@@ -167,6 +185,17 @@ void hard_screen::paintGL()
 
 		gwin.pixel_data = qt_gui::final_screen->pixels;
 		gwin.paint();
+
+		//Update FPS counter + title
+		fps_count++;
+		if((SDL_GetTicks() - fps_time) >= 1000)
+		{ 
+			fps_time = SDL_GetTicks(); 
+			config::title.str("");
+			config::title << "GBE+ " << fps_count << "FPS";
+			qt_gui::draw_surface->setWindowTitle(QString::fromStdString(config::title.str()));
+			fps_count = 0; 
+		}
 	}
 }
 

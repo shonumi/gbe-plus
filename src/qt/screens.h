@@ -26,6 +26,9 @@ class soft_screen : public QWidget
 	public:
 	soft_screen(QWidget *parent = 0);
 
+	int fps_count;
+	int fps_time;
+
 	protected:
 	void paintEvent(QPaintEvent* event);
 	void resizeEvent(QResizeEvent* event);
@@ -42,6 +45,9 @@ class hard_screen : public QGLWidget
 	ogl_manager gwin;
 
 	bool old_aspect_flag;
+
+	int fps_count;
+	int fps_time;
 
 	void reload_shaders();
 	void calculate_screen_size();
