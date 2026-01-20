@@ -459,6 +459,12 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		SDL_PauseAudio(1);
 		std::cout<<"EMU::Paused\n";
 
+		if((config::sdl_render) && (core_cpu.controllers.video.window != NULL))
+		{
+			config::title.str("GBE+ Paused");
+			SDL_SetWindowTitle(core_cpu.controllers.video.window, config::title.str().c_str());
+		}
+
 		//Delay until pause key is hit again
 		while(config::pause_emu)
 		{
