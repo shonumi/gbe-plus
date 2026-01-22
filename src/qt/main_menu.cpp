@@ -1326,6 +1326,8 @@ void main_menu::pause_emu()
 {
 	SDL_PauseAudio(1);
 
+	qt_gui::draw_surface->setWindowTitle("GBE+ Paused");
+
 	while(config::pause_emu) 
 	{
 		SDL_Delay(16);
