@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include "config.h"
 
@@ -25,13 +26,11 @@ bool load_osd_font()
 	if(!file.is_open())
 	{
 		std::cout<<"GBE::Could not open font file " << font_file << ". Check file path or permissions. \n";
-		return false; 
+		return false;
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(font_file);
 
 	u8 font_byte = 0;
 	u32 font_size = file_size / 64;

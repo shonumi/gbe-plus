@@ -490,9 +490,7 @@ u32 get_file_crc32(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	file_data.resize(file_size);
 	u8* ex_mem = &file_data[0];
@@ -1201,9 +1199,7 @@ bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	}
 
 	//Get the file size
-	patch_file.seekg(0, patch_file.end);
-	u32 file_size = patch_file.tellg();
-	patch_file.seekg(0, patch_file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
@@ -1306,7 +1302,6 @@ bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 /****** Applies an UPS patch to a ROM loaded in memory ******/
 bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 max_size)
 {
-
 	std::ifstream patch_file(filename.c_str(), std::ios::binary);
 
 	if(!patch_file.is_open()) 
@@ -1316,9 +1311,7 @@ bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	}
 
 	//Get the file size
-	patch_file.seekg(0, patch_file.end);
-	u32 file_size = patch_file.tellg();
-	patch_file.seekg(0, patch_file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
@@ -1437,9 +1430,7 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	}
 
 	//Get the file size
-	patch_file.seekg(0, patch_file.end);
-	u32 file_size = patch_file.tellg();
-	patch_file.seekg(0, patch_file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
