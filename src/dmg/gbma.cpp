@@ -9,6 +9,8 @@
 // Emulates the GB Mobile Adapter
 // Emulates an internal server for Mobile Trainer, connects to emulated servers online
 
+#include <filesystem>
+
 #include "sio.h"
 #include "common/util.h"
 
@@ -704,15 +706,12 @@ void DMG_SIO::mobile_adapter_process_pop()
 			if(file.is_open()) 
 			{
 				//Get file size
-				file.seekg(0, file.end);
-				u32 file_size = file.tellg();
-				file.seekg(0, file.beg);
+				u32 file_size = std::filesystem::file_size(filename);
 
 				mobile_adapter.net_data.resize(file_size, 0x0);
 				u8* ex_mem = &mobile_adapter.net_data[0];
 
 				file.read((char*)ex_mem, file_size);
-				file.seekg(0, file.beg);
 				file.close();
 
 				mobile_adapter.data_index = 0;
@@ -979,15 +978,12 @@ void DMG_SIO::mobile_adapter_process_http()
 					if(file.is_open()) 
 					{
 						//Get file size
-						file.seekg(0, file.end);
-						u32 file_size = file.tellg();
-						file.seekg(0, file.beg);
+						u32 file_size = std::filesystem::file_size(filename);
 
 						mobile_adapter.net_data.resize(file_size, 0x0);
 						u8* ex_mem = &mobile_adapter.net_data[0];
 
 						file.read((char*)ex_mem, file_size);
-						file.seekg(0, file.beg);
 						file.close();
 
 						not_found = false;
@@ -1412,9 +1408,7 @@ bool DMG_SIO::mobile_adapter_load_config()
 	}
 
 	//Get file size
-	mobile_conf.seekg(0, mobile_conf.end);
-	u32 conf_size = mobile_conf.tellg();
-	mobile_conf.seekg(0, mobile_conf.beg);
+	u32 conf_size = std::filesystem::file_size(mobile_conf_file);
 
 	if(conf_size != 0xC0)
 	{

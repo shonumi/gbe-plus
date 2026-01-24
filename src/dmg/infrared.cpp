@@ -8,6 +8,8 @@
 //
 // Emulates various IR accessories (Pokemon Pikachu 2, Full Changer, Pocket Sakura, TV Remote)
 
+#include <filesystem>
+
 #include "sio.h"
 #include "common/util.h" 
 
@@ -67,9 +69,7 @@ bool DMG_SIO::full_changer_load_db(std::string filename)
 	}
 
 	//Get file size
-	database.seekg(0, database.end);
-	u32 database_size = database.tellg();
-	database.seekg(0, database.beg);
+	u32 database_size = std::filesystem::file_size(filename);
 	database_size >>= 1;
 
 	full_changer.data.clear();
@@ -143,9 +143,7 @@ bool DMG_SIO::pocket_ir_load_db(std::string filename)
 	}
 
 	//Get file size
-	database.seekg(0, database.end);
-	u32 database_size = database.tellg();
-	database.seekg(0, database.beg);
+	u32 database_size = std::filesystem::file_size(filename);
 	database_size >>= 1;
 
 	pocket_ir.data.clear();

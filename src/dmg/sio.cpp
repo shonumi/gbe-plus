@@ -13,6 +13,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <filesystem>
 
 #include "sio.h"
 #include "common/util.h"
@@ -1767,9 +1768,7 @@ bool DMG_SIO::bardigun_load_barcode(std::string filename)
 	}
 
 	//Get file size
-	barcode.seekg(0, barcode.end);
-	u32 barcode_size = barcode.tellg();
-	barcode.seekg(0, barcode.beg);
+	u32 barcode_size = std::filesystem::file_size(filename);
 
 	bardigun_scanner.data.resize(barcode_size, 0x0);
 
@@ -3286,9 +3285,7 @@ bool DMG_SIO::turbo_file_load_data(std::string filename)
 	}
 
 	//Get file size
-	t_file.seekg(0, t_file.end);
-	u32 t_file_size = t_file.tellg();
-	t_file.seekg(0, t_file.beg);
+	u32 t_file_size = std::filesystem::file_size(filename);
 
 	//Incorrect sizes should be non-fatal
 	if(t_file_size < 0x200000)

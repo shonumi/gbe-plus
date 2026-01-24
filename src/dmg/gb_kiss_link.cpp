@@ -10,6 +10,8 @@
 // Sends and receives .GBF and Nectaris map files
 // Works in conjunction with HuC-1 and HuC-3 carts
 
+#include <filesystem>
+
 #include "sio.h"
 #include "common/util.h" 
 
@@ -1726,9 +1728,7 @@ bool DMG_MMU::gb_kiss_link_load_file(std::string filename)
 	}
 
 	//Get file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	kiss_link.gbf_data.resize(file_size, 0x00);
 	u8* ex_mem = &kiss_link.gbf_data[0];

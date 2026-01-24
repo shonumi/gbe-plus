@@ -1690,19 +1690,15 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 	
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	//Read ROM file into temporary buffer
 	std::vector <u8> rom_file;
 	rom_file.resize(file_size, 0x0);
 
-	u8* ex_mem = &rom_file[0];
-
 	//Read entire ROM file
+	u8* ex_mem = &rom_file[0];
 	file.read((char*)ex_mem, file_size);
-	file.seekg(0, file.beg);
 
 	//Apply patches to the ROM data
 	if(config::use_patches)
@@ -2214,9 +2210,7 @@ bool DMG_MMU::read_bios(std::string filename)
 	}
 
 	//Get BIOS file size
-	file.seekg(0, file.end);
-	bios_size = file.tellg();
-	file.seekg(0, file.beg);
+	bios_size = std::filesystem::file_size(filename);
 
 	//Check the file size before reading
 	if((bios_size == 0x100) || (bios_size == 0x900))
@@ -2243,7 +2237,7 @@ bool DMG_MMU::read_bios(std::string filename)
 	{
 		std::cout<<"MMU::BIOS file " << filename << " has an incorrect file size : (" << bios_size << " bytes) \n";
 		return false;
-	}	
+	}
 }
 
 /****** Load backup save data ******/
@@ -2268,9 +2262,7 @@ bool DMG_MMU::load_backup(std::string filename)
 		if(flash_save.is_open()) 
 		{
 			//Get the file size
-			flash_save.seekg(0, flash_save.end);
-			u32 file_size = flash_save.tellg();
-			flash_save.seekg(0, flash_save.beg);
+			u32 file_size = std::filesystem::file_size(flash_name);
 
 			if(file_size != 0x100000)
 			{
@@ -2310,9 +2302,7 @@ bool DMG_MMU::load_backup(std::string filename)
 		else 
 		{
 			//Get the file size
-			sram.seekg(0, sram.end);
-			u32 file_size = sram.tellg();
-			sram.seekg(0, sram.beg);
+			u32 file_size = std::filesystem::file_size(filename);
 
 			//Read MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
@@ -2670,9 +2660,7 @@ bool DMG_MMU::gb_mem_read_map(std::string filename)
 	}
 
 	//Validate file size
-	map_file.seekg(0, map_file.end);
-	u32 map_size = map_file.tellg();
-	map_file.seekg(0, map_file.beg);
+	u32 map_size = std::filesystem::file_size(filename);
 
 	if(map_size != 128)
 	{
