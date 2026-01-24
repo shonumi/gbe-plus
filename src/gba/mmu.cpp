@@ -2250,9 +2250,7 @@ bool AGB_MMU::read_file(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = (config::use_am3_folder) ? 0 : std::filesystem::file_size(filename);
 
 	u8* ex_mem = &memory_map[0x8000000];
 
@@ -2290,7 +2288,6 @@ bool AGB_MMU::read_file(std::string filename)
 
 			u8* am_mem = &am3.card_data[0];
 			file.read((char*)am_mem, file_size);
-			file.seekg(0, file.beg);
 
 			//Check the FAT to grab
 			if(!check_am3_fat())
@@ -2606,15 +2603,16 @@ bool AGB_MMU::read_bios(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
-	if(file_size > 0x4000) { std::cout<<"MMU::Warning - Irregular BIOS size\n"; }
-	
-	if(file_size < 0x4000)
+	if(file_size > 0x4000)
 	{
-		std::cout<<"MMU::Warning - BIOS size too small\n";
+		std::cout<<"MMU::Warning - Irregular BIOS size\n";
+	}
+	
+	else if(file_size < 0x4000)
+	{
+		std::cout<<"MMU::Error - BIOS size too small\n";
 		file.close();
 		return false;
 	}
@@ -2652,9 +2650,7 @@ bool AGB_MMU::load_backup(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 	save_data.resize(file_size);
 
 	//Load SRAM

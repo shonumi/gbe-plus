@@ -12,6 +12,7 @@
 #include <ctime>
 #include <cmath>
 #include <cstdlib>
+#include <filesystem>
 
 #include "sio.h"
 #include "common/util.h"
@@ -36,9 +37,7 @@ AGB_SIO::AGB_SIO()
 		}
 
 		//Get file size
-		mobile_conf.seekg(0, mobile_conf.end);
-		u32 conf_size = mobile_conf.tellg();
-		mobile_conf.seekg(0, mobile_conf.beg);
+		u32 conf_size = std::filesystem::file_size(mobile_conf_file);
 
 		if(conf_size != 0xC0)
 		{
@@ -1009,9 +1008,7 @@ bool AGB_SIO::soul_doll_adapter_load_data(std::string filename)
 	}
 
 	//Get file size
-	doll_data.seekg(0, doll_data.end);
-	u32 file_size = doll_data.tellg();
-	doll_data.seekg(0, doll_data.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	if(file_size != 0x400)
 	{
@@ -1872,9 +1869,7 @@ bool AGB_SIO::turbo_file_load_data(std::string filename)
 	}
 
 	//Get file size
-	t_file.seekg(0, t_file.end);
-	u32 t_file_size = t_file.tellg();
-	t_file.seekg(0, t_file.beg);
+	u32 t_file_size = std::filesystem::file_size(filename);
 
 	//Incorrect sizes should be non-fatal
 	if(t_file_size < 0x200000)

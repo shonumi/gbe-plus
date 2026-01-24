@@ -1749,9 +1749,7 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 	mp3_data.resize(file_size);
 
 	//Read entire MP3 file
@@ -1900,9 +1898,7 @@ void AGB_MMU::play_yan_set_ini_file()
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 	ini_data.resize(file_size);
 	
 	if(file_size > 0x10000) { file_size = 0x10000; }
@@ -2238,9 +2234,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 		return false;
 	}
 
-	vid_file.seekg(0, vid_file.end);
-	u32 vid_file_size = vid_file.tellg();
-	vid_file.seekg(0, vid_file.beg);
+	u32 vid_file_size = std::filesystem::file_size(filename);
 	vid_info.resize(vid_file_size);
 
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
@@ -2461,9 +2455,7 @@ bool AGB_MMU::play_yan_load_sfx(std::string filename)
 		return false;
 	}
 
-	sfx_file.seekg(0, sfx_file.end);
-	u32 sfx_file_size = sfx_file.tellg();
-	sfx_file.seekg(0, sfx_file.beg);
+	u32 sfx_file_size = std::filesystem::file_size(filename);
 	play_yan.sfx_data.resize(sfx_file_size);
 
 	sfx_file.read(reinterpret_cast<char*> (&play_yan.sfx_data[0]), sfx_file_size);
@@ -2642,9 +2634,7 @@ void AGB_MMU::play_yan_check_video_header(std::string filename)
 	}
 
 	//Only read the 1st 256 bytes of the file to find the info GBE+ needs
-	vid_file.seekg(0, vid_file.end);
-	u32 vid_file_size = vid_file.tellg();
-	vid_file.seekg(0, vid_file.beg);
+	u32 vid_file_size = std::filesystem::file_size(filename);
 
 	if(vid_file_size < 0x100)
 	{

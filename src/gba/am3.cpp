@@ -57,9 +57,7 @@ bool AGB_MMU::read_am3_firmware(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	am3.firmware_data.clear();
 	am3.firmware_data.resize(file_size, 0x00);
@@ -95,9 +93,7 @@ bool AGB_MMU::read_smid(std::string filename)
 	}
 
 	//Get the file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = std::filesystem::file_size(filename);
 
 	if(file_size != 16)
 	{
