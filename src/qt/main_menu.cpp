@@ -421,6 +421,7 @@ void main_menu::open_file()
 	}
 
 	config::no_cart = false;
+	config::use_am3_folder = false;
 
 	boot_game();
 }
@@ -451,7 +452,6 @@ void main_menu::open_am3_fldr()
 	settings->special_cart->setCurrentIndex(0x0E);
 
 	config::rom_file = folder_name.toStdString();
-
 	config::no_cart = false;
 
 	boot_game();
