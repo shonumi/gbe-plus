@@ -8,8 +8,6 @@
 //
 // Handles output of various microphone devices for the NDS
 
-#include <filesystem>
-
 #include "mmu.h"
 #include "common/util.h"
 
@@ -128,7 +126,7 @@ bool NTR_MMU::wantame_scanner_load_barcode(std::string filename)
 	}
 
 	//Get file size
-	u32 barcode_size = std::filesystem::file_size(filename);
+	u32 barcode_size = util::get_file_size(filename);
 
 	if(barcode_size != 12)
 	{

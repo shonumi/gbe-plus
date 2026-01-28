@@ -5389,7 +5389,7 @@ bool NTR_MMU::read_file(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	cart_data.resize(file_size);
 
@@ -5488,7 +5488,7 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	//Only read 32MB at most
 	if(file_size > 0x2000000) { file_size = 0x2000000; }
@@ -5560,7 +5560,7 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 	}
 
 	//Get the file size
-	file_size = std::filesystem::file_size(filename);
+	file_size = util::get_file_size(filename);
 
 	//Load SRAM
 	if(gba_save_type == GBA_SRAM)
@@ -5624,7 +5624,7 @@ bool NTR_MMU::read_bios_nds7(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	if(file_size > 0x4000) { std::cout<<"MMU::Warning - Irregular NDS7 BIOS size\n"; }
 	
@@ -5669,7 +5669,7 @@ bool NTR_MMU::read_bios_nds9(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	if(file_size > 0x1000) { std::cout<<"MMU::Warning - Irregular NDS9 BIOS size\n"; }
 	
@@ -5703,7 +5703,7 @@ bool NTR_MMU::read_firmware(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	if(file_size > 0x40000) { std::cout<<"MMU::Warning - Irregular NDS firmware size\n"; }
 
@@ -5765,7 +5765,7 @@ bool NTR_MMU::load_backup(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 	u32 final_file_size = 0x10000;
 
 	if((file_size != 0x200) && (file_size != 0x10000)) { final_file_size = file_size; }

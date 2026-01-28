@@ -490,7 +490,7 @@ u32 get_file_crc32(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = get_file_size(filename);
 
 	file_data.resize(file_size);
 	u8* ex_mem = &file_data[0];
@@ -978,6 +978,40 @@ void get_folders_in_dir(std::string dir_src, std::vector<std::string>& folder_li
 	return;
 }
 
+/****** Returns the size of a file in bytes + Performs some error checks ******/
+u32 get_file_size(std::string filename)
+{
+	u32 result = 0;
+
+	//Check to see if file exists
+	std::filesystem::path fs_path { filename };
+
+	if(!std::filesystem::exists(fs_path))
+	{
+		std::cout<<"WARNING::" << filename << " does not exist\n";
+		return 0;
+	}
+
+	else if(std::filesystem::is_directory(fs_path))
+	{
+		std::cout<<"WARNING::" << filename << " is a directory\n";
+		return 0; 
+	}
+
+	try
+	{
+		result = std::filesystem::file_size(filename);
+	}
+
+	catch(std::filesystem::filesystem_error& error)
+	{
+		std::cout<<"ERROR::" << error.what() << "\n";
+		result = 0;
+	}
+
+	return result;
+}
+
 /****** Removes the file extension, if any ******/
 std::string get_filename_no_ext(std::string filename)
 {
@@ -1199,7 +1233,7 @@ bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = get_file_size(filename);
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
@@ -1311,7 +1345,7 @@ bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = get_file_size(filename);
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
@@ -1430,7 +1464,7 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = get_file_size(filename);
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);

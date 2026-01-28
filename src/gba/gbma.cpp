@@ -9,8 +9,6 @@
 // Emulates the Mobile Adapter GB
 // Emulates an internal servers, connects to emulated servers online
 
-#include <filesystem>
-
 #include "sio.h"
 #include "common/util.h"
  
@@ -905,7 +903,7 @@ void AGB_SIO::mobile_adapter_process_http()
 					if(file.is_open()) 
 					{
 						//Get file size
-						u32 file_size = std::filesystem::file_size(filename);
+						u32 file_size = util::get_file_size(filename);
 
 						mobile_adapter.net_data.resize(file_size, 0x0);
 						u8* ex_mem = &mobile_adapter.net_data[0];

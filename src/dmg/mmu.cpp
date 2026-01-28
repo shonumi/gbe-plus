@@ -1690,7 +1690,7 @@ bool DMG_MMU::read_file(std::string filename)
 	}
 	
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	//Read ROM file into temporary buffer
 	std::vector <u8> rom_file;
@@ -2199,7 +2199,7 @@ bool DMG_MMU::read_bios(std::string filename)
 			else if((hash == 0x59C8598E) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
 			else if((hash == 0xC2F5CC97) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
 		}
-	}		
+	}	
 
 	std::ifstream file(filename.c_str(), std::ios::binary);
 
@@ -2210,7 +2210,7 @@ bool DMG_MMU::read_bios(std::string filename)
 	}
 
 	//Get BIOS file size
-	bios_size = std::filesystem::file_size(filename);
+	bios_size = util::get_file_size(filename);
 
 	//Check the file size before reading
 	if((bios_size == 0x100) || (bios_size == 0x900))
@@ -2262,7 +2262,7 @@ bool DMG_MMU::load_backup(std::string filename)
 		if(flash_save.is_open()) 
 		{
 			//Get the file size
-			u32 file_size = std::filesystem::file_size(flash_name);
+			u32 file_size = util::get_file_size(flash_name);
 
 			if(file_size != 0x100000)
 			{
@@ -2302,7 +2302,7 @@ bool DMG_MMU::load_backup(std::string filename)
 		else 
 		{
 			//Get the file size
-			u32 file_size = std::filesystem::file_size(filename);
+			u32 file_size = util::get_file_size(filename);
 
 			//Read MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
@@ -2660,7 +2660,7 @@ bool DMG_MMU::gb_mem_read_map(std::string filename)
 	}
 
 	//Validate file size
-	u32 map_size = std::filesystem::file_size(filename);
+	u32 map_size = util::get_file_size(filename);
 
 	if(map_size != 128)
 	{

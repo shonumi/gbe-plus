@@ -532,7 +532,7 @@ void AGB_MMU::process_nmp_cmd()
 
 			if(std::filesystem::exists(play_yan.firmware_file))
 			{
-				u16 file_size = std::filesystem::file_size(play_yan.firmware_file);
+				u16 file_size = util::get_file_size(play_yan.firmware_file);
 				play_yan.nmp_status_data[8] = (file_size >> 8);
 				play_yan.nmp_status_data[9] = (file_size & 0xFF);
 			}

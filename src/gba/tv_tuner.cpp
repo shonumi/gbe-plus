@@ -807,7 +807,7 @@ bool AGB_MMU::tv_tuner_load_video(std::string filename)
 		return false;
 	}
 
-	u32 vid_file_size = std::filesystem::file_size(filename);
+	u32 vid_file_size = util::get_file_size(filename);
 	vid_info.resize(vid_file_size);
 
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
@@ -1138,8 +1138,7 @@ u32 AGB_MMU::tv_tuner_get_video_length(std::string filename)
 	std::ifstream vid_file(filename.c_str(), std::ios::binary);
 	if(!vid_file.is_open()) { return 0; }
 
-	std::filesystem::path fs_path { filename };
-	u32 vid_file_size = std::filesystem::file_size(fs_path);
+	u32 vid_file_size = util::get_file_size(filename);
 
 	//This is a quick 'n' dirty way of reading standard AVI header for total frames
 	//Only the first 52 bytes are needed here

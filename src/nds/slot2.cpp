@@ -8,8 +8,6 @@
 //
 // Handles emulation of various Slot-2 add-ons and accessories
 
-#include <filesystem>
-
 #include "mmu.h"
 
 #include "common/util.h"
@@ -448,7 +446,7 @@ bool NTR_MMU::slot2_hcv_load_barcode(std::string filename)
 	}
 
 	//Get file size
-	u32 barcode_size = std::filesystem::file_size(filename);
+	u32 barcode_size = util::get_file_size(filename);
 
 	hcv.data.clear();
 	hcv.data.resize(barcode_size, 0x0);
@@ -686,7 +684,7 @@ void NTR_MMU::bayer_didget_reset()
 		if(file.is_open()) 
 		{
 			//Get the file size - Limit to 64 bytes
-			u32 file_size = std::filesystem::file_size(filename);
+			u32 file_size = util::get_file_size(filename);
 
 			if(file_size > 0x40)
 			{

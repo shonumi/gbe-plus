@@ -57,7 +57,7 @@ bool AGB_MMU::read_am3_firmware(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	am3.firmware_data.clear();
 	am3.firmware_data.resize(file_size, 0x00);
@@ -93,7 +93,7 @@ bool AGB_MMU::read_smid(std::string filename)
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(filename);
+	u32 file_size = util::get_file_size(filename);
 
 	if(file_size != 16)
 	{
@@ -427,7 +427,7 @@ bool AGB_MMU::am3_load_folder(std::string folder)
 		//Grab name and size
 		std::string f_name = fs_files->path().string();
 		std::string s_name = fs_files->path().filename().string();
-		u32 f_size = std::filesystem::file_size(fs_files->path());
+		u32 f_size = util::get_file_size(f_name);
 
 		//Convert name to uppercase for searching
 		for(u32 x = 0; x < s_name.length(); x++)

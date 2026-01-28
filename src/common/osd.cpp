@@ -11,9 +11,9 @@
 
 #include <iostream>
 #include <fstream>
-#include <filesystem>
 
 #include "config.h"
+#include "util.h"
 
 /****** Loads a font into a buffer to be drawn by a core for OSD ******/
 bool load_osd_font()
@@ -30,7 +30,7 @@ bool load_osd_font()
 	}
 
 	//Get the file size
-	u32 file_size = std::filesystem::file_size(font_file);
+	u32 file_size = util::get_file_size(font_file);
 
 	u8 font_byte = 0;
 	u32 font_size = file_size / 64;
