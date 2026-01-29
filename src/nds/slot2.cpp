@@ -447,6 +447,7 @@ bool NTR_MMU::slot2_hcv_load_barcode(std::string filename)
 
 	//Get file size
 	u32 barcode_size = util::get_file_size(filename);
+	if(!barcode_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	hcv.data.clear();
 	hcv.data.resize(barcode_size, 0x0);
@@ -686,14 +687,17 @@ void NTR_MMU::bayer_didget_reset()
 			//Get the file size - Limit to 64 bytes
 			u32 file_size = util::get_file_size(filename);
 
-			if(file_size > 0x40)
+			if(file_size)
 			{
-				file_size = 0x40;
-			}
+				if(file_size > 0x40)
+				{
+					file_size = 0x40;
+				}
 
-			u8* ex_mem = &bayer_didget.messages[x][0];
-			file.read((char*)ex_mem, file_size);
-			file.close();
+				u8* ex_mem = &bayer_didget.messages[x][0];
+				file.read((char*)ex_mem, file_size);
+				file.close();
+			}
 		}
 	}
 }

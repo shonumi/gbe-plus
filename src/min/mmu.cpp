@@ -798,6 +798,7 @@ bool MIN_MMU::read_bios(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	if(file_size > 0x1000)
 	{
@@ -841,6 +842,7 @@ bool MIN_MMU::load_backup(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	if(file_size > 0x2000)
 	{

@@ -1750,9 +1750,15 @@ void AGB_MMU::play_yan_get_id3_data(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
-	mp3_data.resize(file_size);
+
+	if(file_size < 128)
+	{
+		std::cout<<"MMU::" << filename << " is too small to read ID3 data. \n";
+		return;
+	}
 
 	//Read entire MP3 file
+	mp3_data.resize(file_size);
 	file.read(reinterpret_cast<char*> (&mp3_data[0]), file_size);
 	file.close();
 
@@ -1899,8 +1905,14 @@ void AGB_MMU::play_yan_set_ini_file()
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
-	ini_data.resize(file_size);
 	
+	if(!file_size)
+	{
+		std::cout<<"MMU::" << filename << " Play-Yan Micro .ini file could not be opened. Check file path or permissions. \n";
+		return;
+	}
+
+	ini_data.resize(file_size);
 	if(file_size > 0x10000) { file_size = 0x10000; }
 	
 	//Set the parameter for Game Pak IRQ data
@@ -2235,8 +2247,9 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	}
 
 	u32 vid_file_size = util::get_file_size(filename);
-	vid_info.resize(vid_file_size);
+	if(!vid_file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
+	vid_info.resize(vid_file_size);
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
 	vid_file.close();
 
@@ -2456,8 +2469,9 @@ bool AGB_MMU::play_yan_load_sfx(std::string filename)
 	}
 
 	u32 sfx_file_size = util::get_file_size(filename);
-	play_yan.sfx_data.resize(sfx_file_size);
+	if(!sfx_file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }	
 
+	play_yan.sfx_data.resize(sfx_file_size);
 	sfx_file.read(reinterpret_cast<char*> (&play_yan.sfx_data[0]), sfx_file_size);
 	sfx_file.close();
 

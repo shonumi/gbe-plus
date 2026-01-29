@@ -491,6 +491,7 @@ u32 get_file_crc32(std::string filename)
 
 	//Get the file size
 	u32 file_size = get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	file_data.resize(file_size);
 	u8* ex_mem = &file_data[0];
@@ -988,13 +989,13 @@ u32 get_file_size(std::string filename)
 
 	if(!std::filesystem::exists(fs_path))
 	{
-		std::cout<<"WARNING::" << filename << " does not exist\n";
+		std::cout<<"GBE::Warning - " << filename << " does not exist\n";
 		return 0;
 	}
 
 	else if(std::filesystem::is_directory(fs_path))
 	{
-		std::cout<<"WARNING::" << filename << " is a directory\n";
+		std::cout<<"GBE::Warning - " << filename << " is a directory\n";
 		return 0; 
 	}
 
@@ -1005,8 +1006,24 @@ u32 get_file_size(std::string filename)
 
 	catch(std::filesystem::filesystem_error& error)
 	{
-		std::cout<<"ERROR::" << error.what() << "\n";
+		std::cout<<"GBE::Error - " << error.what() << "\n";
 		result = 0;
+	}
+
+	return result;
+}
+
+/****** Short function to report different errors ******/
+bool report_error(std::string info, error_types e)
+{
+	bool result = false;
+
+	switch(e)
+	{
+		//info = filename or path generating this error
+		case FILE_SIZE_ZERO:
+			std::cout<<"GBE::Error - " << info << " has a file size of zero\n";
+			break;
 	}
 
 	return result;
@@ -1234,6 +1251,7 @@ bool patch_ips(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 
 	//Get the file size
 	u32 file_size = get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
@@ -1346,6 +1364,7 @@ bool patch_ups(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 
 	//Get the file size
 	u32 file_size = get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);
@@ -1465,6 +1484,7 @@ bool patch_bps(std::string filename, std::vector<u8>& mem_map, u32 mem_pos, u32 
 
 	//Get the file size
 	u32 file_size = get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	std::vector<u8> patch_data;
 	patch_data.resize(file_size, 0);

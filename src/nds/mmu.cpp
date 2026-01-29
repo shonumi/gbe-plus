@@ -5390,6 +5390,7 @@ bool NTR_MMU::read_file(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	cart_data.resize(file_size);
 
@@ -5489,6 +5490,7 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	//Only read 32MB at most
 	if(file_size > 0x2000000) { file_size = 0x2000000; }
@@ -5561,6 +5563,7 @@ bool NTR_MMU::read_slot2_file(std::string filename)
 
 	//Get the file size
 	file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	//Load SRAM
 	if(gba_save_type == GBA_SRAM)
@@ -5766,8 +5769,9 @@ bool NTR_MMU::load_backup(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
+	
 	u32 final_file_size = 0x10000;
-
 	if((file_size != 0x200) && (file_size != 0x10000)) { final_file_size = file_size; }
 
 	//Clear save data

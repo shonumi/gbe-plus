@@ -808,8 +808,9 @@ bool AGB_MMU::tv_tuner_load_video(std::string filename)
 	}
 
 	u32 vid_file_size = util::get_file_size(filename);
-	vid_info.resize(vid_file_size);
+	if(!vid_file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }	
 
+	vid_info.resize(vid_file_size);
 	vid_file.read(reinterpret_cast<char*> (&vid_info[0]), vid_file_size);
 	vid_file.close();
 

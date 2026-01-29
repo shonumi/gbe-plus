@@ -2251,6 +2251,7 @@ bool AGB_MMU::read_file(std::string filename)
 
 	//Get the file size
 	u32 file_size = (config::use_am3_folder) ? 0 : util::get_file_size(filename);
+	if(!file_size && !config::use_am3_folder) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	u8* ex_mem = &memory_map[0x8000000];
 
@@ -2651,6 +2652,8 @@ bool AGB_MMU::load_backup(std::string filename)
 
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
+
 	save_data.resize(file_size);
 
 	//Load SRAM

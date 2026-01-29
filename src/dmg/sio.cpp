@@ -1768,6 +1768,7 @@ bool DMG_SIO::bardigun_load_barcode(std::string filename)
 
 	//Get file size
 	u32 barcode_size = util::get_file_size(filename);
+	if(!barcode_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	bardigun_scanner.data.resize(barcode_size, 0x0);
 
@@ -3285,6 +3286,7 @@ bool DMG_SIO::turbo_file_load_data(std::string filename)
 
 	//Get file size
 	u32 t_file_size = util::get_file_size(filename);
+	if(!t_file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	//Incorrect sizes should be non-fatal
 	if(t_file_size < 0x200000)

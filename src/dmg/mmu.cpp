@@ -1691,6 +1691,7 @@ bool DMG_MMU::read_file(std::string filename)
 	
 	//Get the file size
 	u32 file_size = util::get_file_size(filename);
+	if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 	//Read ROM file into temporary buffer
 	std::vector <u8> rom_file;
@@ -2303,6 +2304,7 @@ bool DMG_MMU::load_backup(std::string filename)
 		{
 			//Get the file size
 			u32 file_size = util::get_file_size(filename);
+			if(!file_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 
 			//Read MBC RAM
 			if((cart.mbc_type != ROM_ONLY) && (cart.mbc_type != MBC7) && (cart.mbc_type != TAMA5))
