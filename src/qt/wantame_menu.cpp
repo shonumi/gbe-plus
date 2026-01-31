@@ -13,6 +13,7 @@
 #include "wantame_menu.h"
 
 #include "common/config.h"
+#include "common/util.h"
 
 /****** WCS menu constructor ******/
 wcs_menu::wcs_menu(QWidget *parent) : QDialog(parent)
@@ -100,9 +101,7 @@ bool wcs_menu::load_barcode()
 	}
 
 	//Get file size
-	file.seekg(0, file.end);
-	u32 file_size = file.tellg();
-	file.seekg(0, file.beg);
+	u32 file_size = util::get_file_size(filename.toStdString());
 
 	if(file_size != 12)
 	{
