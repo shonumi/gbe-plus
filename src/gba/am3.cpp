@@ -43,6 +43,7 @@ void AGB_MMU::am3_reset()
 
 	am3.firmware_data.clear();
 	am3.card_data.clear();
+	am3.fat_entries.clear();
 }
 
 /****** Read AM3 firmware file into memory ******/
@@ -222,6 +223,8 @@ bool AGB_MMU::check_am3_fat()
 	u32 first_fat_addr = vbr + (reserved_sectors * bytes_per_sector);
 
 	std::cout<<"AM3 -> First FAT @ 0x" << first_fat_addr << "\n";
+	
+	if(!parse_am3_fat(first_fat_addr)) { return false; }
 
 	u8 num_of_fats = am3.card_data[vbr + 0x10];
 	u16 sectors_per_fat = ((am3.card_data[vbr + 0x17] << 8) | am3.card_data[vbr + 0x16]);
@@ -386,6 +389,36 @@ bool AGB_MMU::check_am3_fat()
 	{
 		std::cout<<"Error - No files found in AM3 File Allocation Table \n";
 		return false;
+	}
+
+	return true;
+}
+
+/****** Reads and parses FAT-12 File Allocation Table ******/
+bool AGB_MMU::parse_am3_fat(u32 fat_addr)
+{
+	//FAT-12 only has 4096 entries in FAT
+	u32 fat_index = fat_addr;
+	u32 fat_end = (fat_addr + 0x1800);
+
+	if(am3.card_data.size() < fat_end)
+	{
+		std::cout<<"AM3::Error - Invalid File Allocation Table\n";
+		return false;
+	}
+
+	am3.fat_entries.clear();
+
+	while(fat_index < fat_end)
+	{
+		//Read 3 bytes at a time, then divide them into 12-bit halves
+		u16 fat_hi = ((am3.card_data[fat_index + 1] & 0x0F) << 8) | am3.card_data[fat_index];
+		u16 fat_lo = (am3.card_data[fat_index + 2] << 4) | (am3.card_data[fat_index + 1] >> 4);
+
+		am3.fat_entries.push_back(fat_hi);
+		am3.fat_entries.push_back(fat_lo);
+
+		fat_index += 3;
 	}
 
 	return true;

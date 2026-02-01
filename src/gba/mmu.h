@@ -263,6 +263,8 @@ class AGB_MMU
 
 		std::vector<u8> firmware_data;
 		std::vector<u8> card_data;
+
+		std::vector<u16> fat_entries;
 	} am3;
 
 	//Structure to handle GBA Jukebox/Music Recorder
@@ -692,6 +694,7 @@ class AGB_MMU
 	void am3_reset();
 	void write_am3(u32 address, u8 value);
 	bool check_am3_fat();
+	bool parse_am3_fat(u32 fat_addr);
 	bool am3_load_folder(std::string folder);
 
 	void jukebox_reset();
