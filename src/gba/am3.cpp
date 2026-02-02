@@ -231,6 +231,7 @@ bool AGB_MMU::check_am3_fat()
 	u16 max_root_dirs = ((am3.card_data[vbr + 0x12] << 8) | am3.card_data[vbr + 0x11]);
 	u8 sectors_per_cluster = am3.card_data[vbr + 0x0D];
 
+	u32 cluster_size = (bytes_per_sector * sectors_per_cluster);
 	u32 root_dir_addr = first_fat_addr + ((num_of_fats * sectors_per_fat) * bytes_per_sector);
 	u32 data_region_addr = root_dir_addr + (max_root_dirs * 32);
 
@@ -297,6 +298,74 @@ bool AGB_MMU::check_am3_fat()
 					s32 last_size = temp_size_list[temp_size_list.size() - 2];
 
 					if((current_addr - last_addr) < last_size) { is_frag_detected = true; }
+				}
+
+				//Dump file by reading FAT
+				if(true)
+				{
+					std::vector<u8> dump_data;
+					bool is_eof = false;
+					u16 fat_index = ((f_pos - data_region_addr) / cluster_size) + 2;
+					std::string f_name = "";
+
+					//Clean up filename before saving
+					for(u32 x = 0; x < 0x0B; x++)
+					{
+						u8 f_char = temp_file_list.back()[x];
+						if((f_char >= 0x61) && (f_char <= 0x7A)) { f_char -= 0x20; }
+						if(f_char != 0x20) { f_name += f_char; }
+						if(x == 0x07) { f_name += "."; }
+					}	
+
+					while((!is_eof) && (fat_index < 0xFF0))
+					{
+						u16 file_entry = am3.fat_entries[fat_index];
+
+						//Set EOF flag on last cluster
+						if((file_entry >= 0xFF8) && (file_entry <= 0xFFF))
+						{
+							is_eof = true;
+						}
+
+						//Skip bad clusters
+						if(file_entry == 0xFF7)
+						{
+							fat_index++;
+						}
+
+						//Read normal cluster data
+						else
+						{
+							u32 src_addr = data_region_addr + ((fat_index - 2) * cluster_size);
+							
+							for(u32 x = 0; x < cluster_size; x++)
+							{
+								dump_data.push_back(am3.card_data[src_addr++]);
+
+								//Halt data reads if file size is satisfied
+								if(dump_data.size() == f_size)
+								{
+									std::ofstream dump_file(f_name.c_str(), std::ios::binary);
+
+									if(!dump_file.is_open())
+									{
+										std::cout<<"MMU::Warning - Could not dump AM3 file " << f_name << "\n";
+									}
+
+									{
+										std::cout<<"MMU::Dumping AM3 File: " << f_name << "\n";
+										dump_file.write(reinterpret_cast<char*> (&dump_data[0]), f_size);
+										dump_file.close();
+									}
+
+									is_eof = true;
+									break;
+								}
+							}
+
+							fat_index = file_entry;
+						}
+					}
 				}
 
 				t_addr += 0x20;
