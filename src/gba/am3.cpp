@@ -256,7 +256,6 @@ bool AGB_MMU::check_am3_fat()
 	std::vector<u32> temp_size_list;
 	std::string current_file = "";
 
-	bool is_frag_detected = false;
 	am3.file_data.clear();
 
 	//Grab filenames, size, and location from Root Directory
@@ -292,18 +291,8 @@ bool AGB_MMU::check_am3_fat()
 
 				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << "\n";
 
-				//Add warning if file appear fragmented
-				if(temp_file_list.size() >= 2)
-				{
-					s32 current_addr = f_pos;
-					s32 last_addr = temp_addr_list[temp_addr_list.size() - 2];
-					s32 last_size = temp_size_list[temp_size_list.size() - 2];
-
-					if((current_addr - last_addr) < last_size) { is_frag_detected = true; }
-				}
-
 				//Grab file data from FAT
-				grab_am3_file(temp_file_list.back(), f_pos, f_size, data_region_addr, cluster_size, true);
+				grab_am3_file(temp_file_list.back(), f_pos, f_size, data_region_addr, cluster_size, false);
 
 				t_addr += 0x20;
 			}
@@ -344,14 +333,11 @@ bool AGB_MMU::check_am3_fat()
 		return false;
 	}
 
-	if(is_frag_detected)
-	{
-		std::cout<<"MMU::Warning - Possible file fragmentation detected in AM3 SmartMedia image\n";
-		std::cout<<"MMU::Warning - Recommended to extract or mount SmartCard image to a folder\n";
-	}
-
 	u32 info_table = t_addr;
 	region_limit = 0x200;
+
+	std::vector<u8> temp_card_data;
+	u32 am3_index = 0;
 
 	//Grab filenames from INFO file. Compare them to the Root Directory. The order they appear in INFO is how the adapter sorts them
 	while(t_addr < (info_table + region_limit))
@@ -373,8 +359,19 @@ bool AGB_MMU::check_am3_fat()
 				if(temp_file_list[x] == current_file)
 				{
 					am3.file_size_list.push_back(temp_size_list[x]);
-					am3.file_addr_list.push_back(temp_addr_list[x]);
+					am3.file_addr_list.push_back(am3_index);
 					am3.file_count++;
+
+					for(u32 y = 0; y < am3.file_data[x].size(); y++)
+					{
+						temp_card_data.push_back(am3.file_data[x][y]);
+					}
+
+					//Pad card data with zeroes to nearest 0x200 block
+					u32 pad_size = (0x200 - (am3.file_data[x].size() % 0x200));
+
+					for(u32 y = 0; y < pad_size; y++) { temp_card_data.push_back(0); }
+					am3_index += (pad_size + am3.file_data[x].size());
 				}
 			}
 
@@ -395,6 +392,14 @@ bool AGB_MMU::check_am3_fat()
 	{
 		std::cout<<"Error - No files found in AM3 File Allocation Table \n";
 		return false;
+	}
+
+	am3.card_data.clear();
+	am3.file_data.clear();
+
+	for(u32 x = 0; x < temp_card_data.size(); x++)
+	{
+		am3.card_data.push_back(temp_card_data[x]);
 	}
 
 	return true;
