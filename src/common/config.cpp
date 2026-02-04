@@ -1074,7 +1074,7 @@ bool parse_cli_args()
 				std::cout<<"--turbo-file-protect \t\t\t Enable write-proection for Turbo File\n";
 				std::cout<<"--ignore-illegal-opcodes \t\t\t Ignore Illegal CPU instructions when running\n";
 				std::cout<<"--auto-gen-smid \t\t\t\t Automatically generate 16-byte SmartMedia ID for AM3\n";
-				std::cout<<"--use-am3-folder \t\t\t\t Use folder of AM3 files instead of SmartMedia image\n";
+				std::cout<<"--am3-folder \t\t\t\t Use folder of AM3 files instead of SmartMedia image\n";
 				std::cout<<"--save-import \t\t\t\t Import save from specified file\n";
 				std::cout<<"--save-export \t\t\t\t Export save to specified file\n";
 				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
