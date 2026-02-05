@@ -292,7 +292,7 @@ bool AGB_MMU::check_am3_fat()
 				std::cout<<"AM3 File Found @ 0x" << f_pos << " :: Size 0x" << f_size << "\n";
 
 				//Grab file data from FAT
-				grab_am3_file(temp_file_list.back(), f_pos, f_size, data_region_addr, cluster_size, false);
+				grab_am3_file(temp_file_list.back(), f_pos, f_size, data_region_addr, cluster_size, config::dump_am3_files);
 
 				t_addr += 0x20;
 			}

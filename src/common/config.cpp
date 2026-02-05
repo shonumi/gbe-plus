@@ -261,6 +261,9 @@ namespace config
 	//AM3 Folder flag
 	bool use_am3_folder = false;
 
+	//AM3 Dump Files flag
+	bool dump_am3_files = false;
+
 	//Total time (in seconds) for Jukebox recording
 	u32 jukebox_total_time = 0;
 
@@ -1014,6 +1017,9 @@ bool parse_cli_args()
 
 			//Auto Generate AM3 SmartMedia ID
 			else if(config::cli_args[x] == "--auto-gen-smid") { config::auto_gen_am3_id = true; }
+
+			//Dump AM3 Files from disc image
+			else if(config::cli_args[x] == "--dump-am3-files") { config::dump_am3_files = true; }
 
 			//Use AM3 Folder
 			//Automatically sets cart type to AM3
