@@ -32,7 +32,7 @@ void AGB_core::debug_step()
 		std::string smid_file = "";
 
 		if(config::use_am3_folder) { smid_file = config::rom_file + "/SMID.KEY"; }
-		else { smid_file = config::rom_file + ".smid"; }
+		else { smid_file = util::get_filename_no_ext(config::rom_file) + ".smid"; }
 
 		std::ofstream gen_file(smid_file.c_str());
 
