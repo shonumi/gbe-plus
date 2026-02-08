@@ -4817,7 +4817,7 @@ Command		| Description
 	<p class="list_item">After issuing this command, the 16 bytes beginning at AM_SMID (0x08010410 - 0x0801041F) will return the 128-bit SmartMedia ID whenever read.</p><p class="spc"></p>
 
 	<p class="list_item"><strong>Command 0x05 - Set File Size Mode</strong></p>
-	<p class="list_item">After issuing this command, the 4 bytes at AM_FILE_SIZE (0x08010410 - 0x08010413) will return the current file size. These values are pulled from the File Allocation Table written to the SmartMedia card. Most importantly, when switching to a new file by writing to AM_SMC_FILE, this command updates the current file size the CPU will read. When a new file is chosen, AM_SMC_FILE <strong>does not</strong> update automatically. That is to say, the old value will be read unless the Set File Size Mode command is called.</p><p class="spc"></p>
+	<p class="list_item">After issuing this command, the 4 bytes at AM_FILE_SIZE (0x08010410 - 0x08010413) will return the current file size. These values are pulled from the File Allocation Table written to the SmartMedia card. Most importantly, when switching to a new file by writing to AM_SMC_FILE, this command updates the current file size the CPU will read. When a new file is chosen, AM_FILE_SIZE *does not* update automatically. The old value will be read unless the Set File Size Mode command is called.</p><p class="spc"></p>
 
 	<p class="list_item"><strong>Command 0x09 - Read Firmware Data Block</strong></p>
 	<p class="list_item">Data Source: Current Read Pointer</p>
@@ -4931,7 +4931,7 @@ SMID_3 = [AM_SMID + 0x0C]		//Read 0x0801041C - 0x0801041F</pre>
 	<p class="list_item">When turning on the Game Boy Advance, the first 1KB of firmware (the bootloader) is loaded into the address space at 0x8000000 - 0x80003FF. As such, it has already advanced by 0x400 bytes by the time the CPU begins executing instructions from that area of memory.</p><p></p>
 
 	<p class="list_item"><strong>Reading More Than 11KB of Firmware</strong></p>
-	<p class="list_item">If the CPU should try to read more 11KB of firmware, the read pointer essentially resets itself as zero. Reading a 12th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 11th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to &#34;1&#34; to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.</p><p></p>
+	<p class="list_item">If the CPU tries to read more 11KB of firmware, the read pointer essentially resets itself as zero. Reading a 12th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 11th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to &#34;1&#34; to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.</p><p></p>
 
 	<p class="list_item"><strong>Reading Data Past EOF</strong></p>
 	<p class="list_item">If the read pointer advances past a given file&#39;s EOF position, the read pointer will reset itself as zero. The next 0x01 command sent by the CPU will read data at the beginning of the file. Bit 8 of AM_BLK_STAT will be set to &#34;1&#34; to indicate that all the data for the file has been read.</p><p></p>

@@ -146,7 +146,7 @@ After issuing this command, the 16 bytes beginning at AM_SMID (0x08010410 - 0x08
 
 [[Command 0x05 - Set File Size Mode]]
 
-After issuing this command, the 4 bytes at AM_FILE_SIZE (0x08010410 - 0x08010413) will return the current file size. These values are pulled from the File Allocation Table written to the SmartMedia card. Most importantly, when switching to a new file by writing to AM_SMC_FILE, this command updates the current file size the CPU will read. When a new file is chosen, AM_SMC_FILE *does not* update automatically. That is to say, the old value will be read unless the Set File Size Mode command is called.
+After issuing this command, the 4 bytes at AM_FILE_SIZE (0x08010410 - 0x08010413) will return the current file size. These values are pulled from the File Allocation Table written to the SmartMedia card. Most importantly, when switching to a new file by writing to AM_SMC_FILE, this command updates the current file size the CPU will read. When a new file is chosen, AM_FILE_SIZE *does not* update automatically. The old value will be read unless the Set File Size Mode command is called.
 
 
 
@@ -275,7 +275,7 @@ When turning on the Game Boy Advance, the first 1KB of firmware (the bootloader)
 -----------------------------------------------------------
 Reading More Than 11KB of Firmware
 -----------------------------------------------------------
-If the CPU should try to read more 11KB of firmware, the read pointer essentially resets itself as zero. Reading a 12th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 11th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to "1" to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.
+If the CPU tries to read more 11KB of firmware, the read pointer essentially resets itself as zero. Reading a 12th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 11th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to "1" to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.
 
 -----------------------------------------------------------
 Reading Data Past EOF
