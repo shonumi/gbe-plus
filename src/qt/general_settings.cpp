@@ -2590,6 +2590,15 @@ void gen_settings::screen_scale_change()
 {
 	config::scaling_factor = (screen_scale->currentIndex() + 1);
 	resize_screen = true;
+
+	//Force Main Menu PaintEvent by slightly resizing main window
+	if((main_menu::gbe_plus != NULL) && (qt_gui::draw_surface != NULL))
+	{
+		u32 width = qt_gui::draw_surface->width();
+		u32 height = qt_gui::draw_surface->height();
+	
+		qt_gui::draw_surface->resize(width+1, height+1);
+	}
 }
 
 /****** Sets whether to maintain the aspect ratio or not ******/
