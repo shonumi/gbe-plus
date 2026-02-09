@@ -16,7 +16,8 @@ The Advance Movie Adapter is a specialized Game Boy Advance cartridge capable of
 - Accepts SmartMedia cards from a slot on the side.
 - The cartridge itself contains no hardware to accelerate audio/video playback. It is strictly for the GBA's CPU to read data.
 - The cartridge has many hardware functions for reading and navigating FAT12 filesystems.
-- The cartridge also contains an 11KB firmware responsible for loading, decrypting, decoding, and playing media.
+- The cartridge contains 12KB of firmware responsible for loading, decrypting, decoding, and playing media.
+- The cartridge also has 5KB of firmware responsible for handling errors.
 - Small "lock files" are encrypted with 128-bit DES as an anti-piracy measure. Each AM3 SmartMedia card has an ID that the adapter can retrieve.
 - SmartMedia cards came in 32MB for TV shows/episodes, and 64MB for full-length movies.
 
@@ -273,9 +274,9 @@ Read Pointer Value On Boot
 When turning on the Game Boy Advance, the first 1KB of firmware (the bootloader) is loaded into the address space at 0x8000000 - 0x80003FF. As such, it has already advanced by 0x400 bytes by the time the CPU begins executing instructions from that area of memory.
 
 -----------------------------------------------------------
-Reading More Than 11KB of Firmware
+Reading More Than 12KB of Firmware
 -----------------------------------------------------------
-If the CPU tries to read more 11KB of firmware, the read pointer essentially resets itself as zero. Reading a 12th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 11th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to "1" to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.
+If the CPU tries to read more 12KB of firmware, the read pointer essentially resets itself as zero. Reading a 13th 1KB data block will simply read the 1st 1KB data block (e.g. the bootloader. Note that when reading the 12th 1KB data block of firmware, Bit 8 of AM_BLK_STAT will be set to "1" to indicate that all the data for the firmware has been read, treating the firmware as if it were another file.
 
 -----------------------------------------------------------
 Reading Data Past EOF
@@ -348,7 +349,7 @@ The ID can be legitimately extracted by any GBA ROM dumper or other homebrew by 
 9. Error Handling
 ***************************************************
 
-The Advance Movie Adapter behaves slightly differently when the SmartMedia card cannot be read. While the first 1KB section of the firmware is loaded normally for the initial bootloader, trying to read subsequent 1KB blocks of the firmware returns a repeating 5KB section of code dedicated to error handling. This 5KB section is distinct from the regular firmware 11KB that deals with decoding and playing audio/video files. It can only be accessed when a SmartMedia card related issue occurs. Examples include a missing/improperly inserted card, an unsupported SmartMedia card type, or a damaged SmartMedia card. The error handling code helpfully displays an on-screen message in Japanese and English (with a typo) in such an event.
+The Advance Movie Adapter behaves slightly differently when the SmartMedia card cannot be read. While the first 1KB section of the firmware is loaded normally for the initial bootloader, trying to read subsequent 1KB blocks of the firmware returns a repeating 5KB section of code dedicated to error handling. This 5KB section is distinct from the regular firmware 12KB that deals with decoding and playing audio/video files. It can only be accessed when a SmartMedia card related issue occurs. Examples include a missing/improperly inserted card, an unsupported SmartMedia card type, or a damaged SmartMedia card. The error handling code helpfully displays an on-screen message in Japanese and English (with a typo) in such an event.
 
 Additionally, when the adapter needs to handle SmartMedia card errors, Bit 8 of AM_BLK_STAT no longer serves as an EOF flag. The GBA can read an indefinite amount of repeating 1KB blocks from firmware (the 5KB section) without ever changing the status of Bit 8. Lastly, AM_SMID will return zeroes for each of its 16-bytes. These two conditions can be used for software to manually check whether or not a SmartMedia card is inside the adapter.
 
