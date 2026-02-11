@@ -1402,7 +1402,7 @@ void main_menu::screenshot()
 
 		//Filename = Date + Ticks
 		while(hex_ticks.length() < 8) { hex_ticks = "0" + hex_ticks; }
-		save_name += (util::get_long_date() + "_" + hex_ticks + ".png");
+		save_name += (util::get_long_date(false) + "_" + hex_ticks + ".png");
 
 		QString qt_save_name = QString::fromStdString(save_name);
 

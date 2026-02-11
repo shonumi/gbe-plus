@@ -1634,7 +1634,7 @@ void DMG_SIO::print_image()
 	std::string hex_ticks = util::to_hex_str(SDL_GetTicks()).substr(2);
 
 	while(hex_ticks.length() < 8) { hex_ticks = "0" + hex_ticks; }
-	filename += (util::get_long_date() + "_" + hex_ticks);
+	filename += (util::get_long_date(false) + "_" + hex_ticks);
 
 	//Create a 160x144 image from the buffer, save as BMP
 	SDL_Surface *print_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, 160, height, 32, 0, 0, 0, 0);

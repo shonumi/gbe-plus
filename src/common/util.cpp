@@ -722,13 +722,11 @@ std::string get_utc_string()
 	result = utc_day[current_time->tm_wday] + ", " + utc_num[current_time->tm_mday] + " " + utc_mon[current_time->tm_mon] + " " + to_str(current_time->tm_year + 1900) + " ";
 	result += (utc_num[current_time->tm_hour] + "::" + utc_num[current_time->tm_min] + "::" + utc_num[current_time->tm_sec % 60]);
 
-	std::cout<< result << "\n";
-
 	return result;
 }
 
 /****** Gets short date in form of YYYY_MM_DD ******/
-std::string get_short_date()
+std::string get_short_date(bool is_formatted)
 {
 	std::string result = "";
 
@@ -743,13 +741,21 @@ std::string get_short_date()
 	if(month.length() == 1) { month = "0" + month; }
 	if(day.length() == 1) { day = "0" + day; }
 
-	result = year + "_" + month + "_" + day;
-	
+	if(is_formatted)
+	{
+		result = year + "-" + month + "-" + day;
+	}
+
+	else
+	{
+		result = year + "_" + month + "_" + day;
+	}	
+
 	return result;
 }
 
 /****** Gets long date in form of YYYY_MM_DD_HOUR_MINS_SECS ******/
-std::string get_long_date()
+std::string get_long_date(bool is_formatted)
 {
 	std::string result = "";
 
@@ -771,7 +777,15 @@ std::string get_long_date()
 	if(min.length() == 1) { min = "0" + min; }
 	if(sec.length() == 1) { sec = "0" + sec; }
 
-	result = year + "_" + month + "_" + day + "_" + hour + "_" + min + "_" + sec;
+	if(is_formatted)
+	{
+		result = year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
+	}
+
+	else
+	{
+		result = year + "_" + month + "_" + day + "_" + hour + "_" + min + "_" + sec;
+	}
 	
 	return result;
 }
