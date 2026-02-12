@@ -207,6 +207,7 @@ void NTR_core::load_state(u8 slot)
 	if(!get_save_state_info(offset, state_file)) { return; }
 	offset += sizeof(NTR_SAVE_STATE_VERSION);
 	offset += sizeof(config::gb_type);
+	offset += 32;
 
 	if(!core_cpu_nds9.cpu_read(offset, state_file)) { return; }
 	offset += core_cpu_nds9.size();
@@ -239,11 +240,8 @@ void NTR_core::save_state(u8 slot)
 	if(!set_save_state_info(state_file)) { return; }
 	if(!core_cpu_nds9.cpu_write(state_file)) { return; }
 	if(!core_cpu_nds7.cpu_write(state_file)) { return; }
-
-
 	if(!core_mmu.mmu_write(state_file)) { return; }
 	if(!core_cpu_nds9.controllers.video.lcd_write(state_file)) { return; }
-
 
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
@@ -257,6 +255,7 @@ bool NTR_core::get_save_state_info(u32 offset, std::string filename)
 {
 	u32 version = 0;
 	u8 system_type = 0;
+	u8 state_date[32];
 
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	if(!file.is_open()) { return false; }
@@ -264,6 +263,7 @@ bool NTR_core::get_save_state_info(u32 offset, std::string filename)
 	file.seekg(offset);
 	file.read((char*)&version, sizeof(version));
 	file.read((char*)&system_type, sizeof(system_type));
+	file.read((char*)&state_date[0], 32);
 	file.close();
 
 	if(system_type != config::gb_type)
@@ -287,8 +287,23 @@ bool NTR_core::set_save_state_info(std::string filename)
 	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
 	if(!file.is_open()) { return false; }
 
+	//Add current date metadata - Fixed size of 32 bytes
+	u8 state_date[32];
+	std::string date = util::get_long_date(true);
+
+	for(u32 x = 0; x < 32; x++)
+	{
+		state_date[x] = 0;
+
+		if(x < date.length())
+		{
+			state_date[x] = date[x];
+		}
+	}
+
 	file.write((char*)&NTR_SAVE_STATE_VERSION, sizeof(NTR_SAVE_STATE_VERSION));
 	file.write((char*)&config::gb_type, sizeof(config::gb_type));
+	file.write((char*)&state_date[0], 32);
 	file.close();
 
 	return true;
