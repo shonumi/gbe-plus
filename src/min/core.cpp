@@ -57,6 +57,11 @@ MIN_core::MIN_core()
 
 	std::cout<<"GBE::Launching MIN core\n";
 
+	if(!config::use_bios)
+	{
+		std::cout<<"GBE::Warning - MIN core requires BIOS to run.\n";
+	}
+
 	//OSD
 	config::osd_message = "MIN CORE INIT";
 	config::osd_count = 180;
