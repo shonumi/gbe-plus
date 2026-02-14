@@ -9,6 +9,8 @@
 // Main menu for the main window
 // Has options like File, Emulation, Options, About...
 
+#include <filesystem>
+
 #include "main_menu.h"
 #include "qt_common.h"
 #include "render.h"
@@ -559,6 +561,80 @@ bool main_menu::check_firmware_hashes(u8 system_type)
 			}
 		}
 	}
+
+	return result;
+}
+
+/****** Grabs date from a selected save state file ******/
+std::string main_menu::get_save_state_date(std::string filename)
+{
+	std::string result = "";
+	u32 metadata[37];
+	u8 system_type = 0;
+	u32 state_version = 0;
+
+	//Check if file exists and is not a folder
+	if(!std::filesystem::exists(filename) || std::filesystem::is_directory(filename))
+	{
+		return result;
+	}
+
+	std::ifstream file(filename.c_str(), std::ios::binary);
+
+	if(!file.is_open())
+	{
+		return result;
+	}
+
+	u32 file_size = util::get_file_size(filename);
+
+	//Check if the file size is correct to extract date metadata
+	//4 bytes for save state version, 1 byte system type, 32 bytes date string
+	if(file_size < 37)
+	{
+		return result;
+	}
+
+	file.read((char*)&metadata[0], 37);
+	state_version = (metadata[3] << 24) | (metadata[2] << 16) | (metadata[1] << 8) | metadata[0];
+	system_type = metadata[4]; 
+
+	//Verify minimum save state versions for each
+	switch(system_type)
+	{
+		case SYS_DMG:
+		case SYS_GBC:
+			if(state_version < 0x04) { return result; }
+			break;
+
+		case SYS_GBA:
+			if(state_version < 0x04) { return result; }
+			break;
+
+		case SYS_SGB:
+		case SYS_SGB2:
+			if(state_version < 0x05) { return result; }
+			break;
+
+		case SYS_NDS:
+			if(state_version < 0x0A) { return result; }
+			break;
+
+		case SYS_MIN:
+			if(state_version < 0x03) { return result; }
+			break;
+
+		default:
+			return result;
+	}
+
+	for(u32 x = 0; x < 32; x++)
+	{
+		if(!metadata[x + 5]) { break; }
+		result += metadata[x + 5];
+	} 
+
+	std::cout<<"RESULT -> " << result << "\n";
 
 	return result;
 }
@@ -1599,6 +1675,9 @@ void main_menu::load_state(int slot)
 	if(main_menu::gbe_plus != NULL)
 	{
 		main_menu::gbe_plus->load_state(slot);
+
+		std::string filename = config::rom_file + ".ss" + util::to_str(slot);
+		std::string res = get_save_state_date(filename);
 
 		//Apply current volume settings
 		settings->update_volume();

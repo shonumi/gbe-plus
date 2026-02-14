@@ -56,6 +56,7 @@ class main_menu : public QWidget
 	void set_card_file();
 	void set_data_file();
 	bool check_firmware_hashes(u8 system_type);
+	std::string get_save_state_date(std::string filename);
 
 	protected:
 	void paintEvent(QPaintEvent* event);
