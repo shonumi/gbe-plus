@@ -569,7 +569,7 @@ bool main_menu::check_firmware_hashes(u8 system_type)
 std::string main_menu::get_save_state_date(std::string filename)
 {
 	std::string result = "";
-	u32 metadata[37];
+	u8 metadata[37];
 	u8 system_type = 0;
 	u32 state_version = 0;
 
@@ -596,6 +596,8 @@ std::string main_menu::get_save_state_date(std::string filename)
 	}
 
 	file.read((char*)&metadata[0], 37);
+	file.close();
+
 	state_version = (metadata[3] << 24) | (metadata[2] << 16) | (metadata[1] << 8) | metadata[0];
 	system_type = metadata[4]; 
 
@@ -632,9 +634,7 @@ std::string main_menu::get_save_state_date(std::string filename)
 	{
 		if(!metadata[x + 5]) { break; }
 		result += metadata[x + 5];
-	} 
-
-	std::cout<<"RESULT -> " << result << "\n";
+	}
 
 	return result;
 }
@@ -1675,9 +1675,6 @@ void main_menu::load_state(int slot)
 	if(main_menu::gbe_plus != NULL)
 	{
 		main_menu::gbe_plus->load_state(slot);
-
-		std::string filename = config::rom_file + ".ss" + util::to_str(slot);
-		std::string res = get_save_state_date(filename);
 
 		//Apply current volume settings
 		settings->update_volume();
