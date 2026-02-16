@@ -639,6 +639,25 @@ std::string main_menu::get_save_state_date(std::string filename)
 	return result;
 }
 
+/****** Updates save state list when a game is running ******/
+void main_menu::update_save_state_list(QMenu* ss_menu)
+{
+	if(main_menu::gbe_plus == NULL) { return; }
+
+	QList<QAction*> ss_actions = ss_menu->actions();
+
+	if(ss_actions.isEmpty()) { return; }
+
+	for(u32 x = 0; x < ss_actions.size(); x++)
+	{
+		std::string filename = config::rom_file + ".ss" + ((x) ? util::to_str(x) : "");
+		std::string date = get_save_state_date(filename);
+		std::string final_str = "Slot " + util::to_str(x) + "    " + date;
+
+		ss_actions[x]->setText(QString::fromStdString(final_str));
+	}
+}
+
 /****** Opens card file ******/
 void main_menu::select_card_file()
 {
@@ -1109,6 +1128,10 @@ void main_menu::boot_game()
 	main_menu::gbe_plus->db_unit.debug_mode = config::use_debugger;
 
 	if(main_menu::gbe_plus->db_unit.debug_mode) { SDL_CloseAudio(); }
+
+	//Update save state menus
+	update_save_state_list(state_save_list);
+	update_save_state_list(state_load_list);
 
 	//Actually run the core
 	main_menu::gbe_plus->run_core();
