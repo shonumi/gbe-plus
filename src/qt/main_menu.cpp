@@ -224,18 +224,10 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	{
 		QAction* temp;
 
-		if(x == 0) 
-		{
-			temp = new QAction(tr("Quick Save"), this);
-			temp->setShortcut(tr("F1"));
-		}
-		
-		else
-		{
-			std::string slot_id = "Slot " + util::to_str(x);
-			QString slot_name = QString::fromStdString(slot_id);
-			temp = new QAction(slot_name, this);
-		}
+		std::string slot_id = "Slot " + util::to_str(x);
+		QString slot_name = QString::fromStdString(slot_id);
+		temp = new QAction(slot_name, this);
+		if(x == 0) { temp->setShortcut(tr("F1")); }
 
 		state_save_list->addAction(temp);
 
@@ -251,19 +243,11 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	for(int x = 0; x < 10; x++)
 	{
 		QAction* temp;
-
-		if(x == 0)
-		{
-			temp = new QAction(tr("Quick Load"), this);
-			temp->setShortcut(tr("F2"));
-		}
 		
-		else
-		{
-			std::string slot_id = "Slot " + util::to_str(x);
-			QString slot_name = QString::fromStdString(slot_id);
-			temp = new QAction(slot_name, this);
-		}
+		std::string slot_id = "Slot " + util::to_str(x);
+		QString slot_name = QString::fromStdString(slot_id);
+		temp = new QAction(slot_name, this);
+		if(x == 0) { temp->setShortcut(tr("F2")); }
 
 		state_load_list->addAction(temp);
 
