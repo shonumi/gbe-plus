@@ -1673,7 +1673,14 @@ void main_menu::load_recent(int file_id)
 /****** Saves a save state ******/
 void main_menu::save_state(int slot)
 {
-	if(main_menu::gbe_plus != NULL)  { main_menu::gbe_plus->save_state(slot); }
+	if(main_menu::gbe_plus != NULL)
+	{
+		main_menu::gbe_plus->save_state(slot);
+
+		//Update save state menus with latest changes
+		update_save_state_list(state_save_list);
+		update_save_state_list(state_load_list);
+	}
 }
 
 /****** Loads a save state ******/
