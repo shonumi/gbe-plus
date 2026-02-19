@@ -24,6 +24,7 @@
 #include "gamepad.h"
 #include "common/config.h"
 #include "common/util.h"
+#include "common/net_util.h"
 #include "timer.h"
 #include "lcd_data.h"
 #include "apu_data.h"
@@ -153,25 +154,10 @@ class MIN_MMU
 	#ifdef GBE_NETPLAY
 
 	//Receiving server
-	struct tcp_server
-	{
-		TCPsocket host_socket, remote_socket;
-		IPaddress host_ip;
-		bool connected;
-		bool host_init;
-		bool remote_init;
-		u16 port;
-	} server[10];
+	gbe_server server[10];
 
 	//Sending client
-	struct tcp_sender
-	{
-		TCPsocket host_socket;
-		IPaddress host_ip;
-		bool connected;
-		bool host_init;
-		u16 port;
-	} sender[10];
+	gbe_client sender[10];
 
 	SDLNet_SocketSet tcp_sockets[10];
 

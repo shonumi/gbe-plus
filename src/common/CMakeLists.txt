@@ -29,6 +29,10 @@ if (USE_OGL)
 	target_link_libraries(common OpenGL::GL)
 endif()
 
+if (LINK_CABLE)
+	target_link_libraries(common SDL2_net::SDL2_net)
+endif()
+
 if (WIN32)
 	target_link_libraries(common GLEW::GLEW)
 endif()

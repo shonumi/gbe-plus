@@ -1,0 +1,45 @@
+// GB Enhanced Copyright Daniel Baxter 2026
+// Licensed under the GPLv2
+// See LICENSE.txt for full license text
+
+// File : net_util.h
+// Date : February 19, 2026
+// Description : General networking utilities
+//
+// Encapsulates some SDL_net functionality to reduce code footprint
+// Intended to help with transition from SDL_net 2.2.0 to 3.0+
+
+#ifndef GBE_NET_UTIL
+#define GBE_NET_UTIL
+
+#include <SDL.h>
+#include <SDL_net.h>
+
+#include "common.h"
+
+#ifdef GBE_NETPLAY
+
+//Receiving server
+struct gbe_server
+{
+	TCPsocket host_socket, remote_socket;
+	IPaddress host_ip;
+	bool connected;
+	bool host_init;
+	bool remote_init;
+	u16 port;
+};
+
+//Sending client
+struct gbe_client
+{
+	TCPsocket host_socket;
+	IPaddress host_ip;
+	bool connected;
+	bool host_init;
+	u16 port;
+};
+
+#endif
+
+#endif // GBE_NET_UTIL
