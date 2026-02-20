@@ -4,6 +4,7 @@ set(SRCS
 	gx_util.cpp
 	osd.cpp
 	debug_util.cpp
+	net_util.cpp
 	)
 
 set(HEADERS
@@ -14,6 +15,7 @@ set(HEADERS
 	gx_util.h
 	dmg_core_pad.h
 	debug_util.h
+	net_util.h
 	)
 
 

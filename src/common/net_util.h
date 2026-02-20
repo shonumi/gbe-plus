@@ -40,6 +40,12 @@ struct gbe_client
 	u16 port;
 };
 
+namespace net_util
+{
+	u32 send_data(gbe_client &client, u8* buffer, u32 length, bool is_blocking = false);
+	u32 recv_data(gbe_server &server, u8* buffer, u32 length, bool is_blocking = false);
+};
+
 #endif
 
 #endif // GBE_NET_UTIL
