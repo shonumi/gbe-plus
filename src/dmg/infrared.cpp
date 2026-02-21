@@ -71,7 +71,6 @@ bool DMG_SIO::full_changer_load_db(std::string filename)
 	if(!database_size) { return util::report_error(filename, util::FILE_SIZE_ZERO); }
 	database_size >>= 1;
 
-
 	full_changer.data.clear();
 	u16 temp_word = 0;
 	

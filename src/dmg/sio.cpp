@@ -59,7 +59,7 @@ DMG_SIO::~DMG_SIO()
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
 		
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+			net_util::send_data(sender, temp_buffer, 2);
 
 			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
 			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
@@ -578,7 +578,7 @@ void DMG_SIO::reset()
 				temp_buffer[0] = 0;
 				temp_buffer[1] = 0x80;
 
-				SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
 			}
 
 			if((four_player_server[x].host_socket != NULL) && (four_player_server[x].connected))
@@ -616,8 +616,8 @@ void DMG_SIO::reset()
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
-		
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+			net_util::send_data(sender, temp_buffer, 2);
 
 			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
@@ -664,7 +664,7 @@ bool DMG_SIO::send_byte()
 		temp_buffer[0] = sio_stat.transfer_byte;
 		temp_buffer[1] = 0;
 
-		if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+		if(net_util::send_data(sender, temp_buffer, 2) < 2)
 		{
 			std::cout<<"SIO::Error - Host failed to send data to client\n";
 			sio_stat.connected = false;
@@ -675,7 +675,7 @@ bool DMG_SIO::send_byte()
 
 		//Wait for other Game Boy to send this one its SB
 		//This is blocking, will effectively pause GBE+ until it gets something
-		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+		if(net_util::recv_data(server, temp_buffer, 2, true) > 0)
 		{
 			mem->memory_map[REG_SB] = sio_stat.transfer_byte = temp_buffer[0];
 		}
@@ -712,7 +712,7 @@ bool DMG_SIO::send_ir_signal()
 	temp_buffer[0] = mem->ir_stat.signal;
 	temp_buffer[1] = 0x40;
 
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	if(net_util::send_data(sender, temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
@@ -723,7 +723,7 @@ bool DMG_SIO::send_ir_signal()
 
 	//Wait for other instance of GBE+ to send an acknowledgement
 	//This is blocking, will effectively pause GBE+ until it gets something
-	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+	if(net_util::recv_data(server, temp_buffer, 2, true) > 0)
 	{
 		mem->ir_stat.send = false;
 	}
@@ -753,149 +753,145 @@ bool DMG_SIO::receive_byte()
 	SDLNet_CheckSockets(tcp_sockets, 0);
 
 	//If this socket is active, receive the transfer
-	if(SDLNet_SocketReady(server.remote_socket))
+	//This is non-blocking
+	if(net_util::recv_data(server, temp_buffer, 2) > 0)
 	{
-		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+		//Stop sync
+		if(temp_buffer[1] == 0xFF)
 		{
-			//Stop sync
-			if(temp_buffer[1] == 0xFF)
+			sio_stat.sync = false;
+			sio_stat.sync_counter = 0;
+			sio_stat.sync_clock = config::netplay_sync_threshold + temp_buffer[0];
+			return true;
+		}
+
+		//Stop hard sync for Link Cable bytes and IR signals
+		else if(temp_buffer[1] == 0xF1)
+		{
+			sio_stat.sync = false;
+			sio_stat.use_hard_sync = false;
+			sio_stat.sync_counter = 0;
+			return true;
+		}
+
+		//Stop sync with acknowledgement
+		else if(temp_buffer[1] == 0xF0)
+		{
+			sio_stat.sync = false;
+			sio_stat.sync_counter = 0;
+
+			temp_buffer[1] = 0x1;
+
+			//Send acknowlegdement
+			net_util::send_data(sender, temp_buffer, 2);
+
+			return true;
+		}
+
+		//Suspend netplay
+		else if(temp_buffer[1] == 0x80)
+		{
+			std::cout<<"SIO::Netplay connection suspended.\n";
+			sio_stat.connected = false;
+			sio_stat.sync = false;
+			sio_stat.sync_counter = 0;
+
+			if(config::cart_type == DMG_HUC_IR) { set_huc_ir_connection(); }
+
+			return true;
+		}
+
+		//Receive IR signal
+		else if(temp_buffer[1] == 0x40)
+		{
+			temp_buffer[1] = 0x41;
+
+			//Handle GBC IR signals
+			if(config::cart_type != DMG_HUC_IR)
 			{
-				sio_stat.sync = false;
-				sio_stat.sync_counter = 0;
-				sio_stat.sync_clock = config::netplay_sync_threshold + temp_buffer[0];
-				return true;
-			}
-
-			//Stop hard sync for Link Cable bytes and IR signals
-			else if(temp_buffer[1] == 0xF1)
-			{
-				sio_stat.sync = false;
-				sio_stat.use_hard_sync = false;
-				sio_stat.sync_counter = 0;
-				return true;
-			}
-
-			//Stop sync with acknowledgement
-			else if(temp_buffer[1] == 0xF0)
-			{
-				sio_stat.sync = false;
-				sio_stat.sync_counter = 0;
-
-				temp_buffer[1] = 0x1;
-
-				//Send acknowlegdement
-				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
-
-				return true;
-			}
-
-			//Suspend netplay
-			else if(temp_buffer[1] == 0x80)
-			{
-				std::cout<<"SIO::Netplay connection suspended.\n";
-				sio_stat.connected = false;
-				sio_stat.sync = false;
-				sio_stat.sync_counter = 0;
-
-				if(config::cart_type == DMG_HUC_IR) { set_huc_ir_connection(); }
-
-				return true;
-			}
-
-			//Receive IR signal
-			else if(temp_buffer[1] == 0x40)
-			{
-				temp_buffer[1] = 0x41;
-
-				//Handle GBC IR signals
-				if(config::cart_type != DMG_HUC_IR)
+				if(sio_stat.ir_type != NO_GB_IR)
 				{
-					if(sio_stat.ir_type != NO_GB_IR)
+					//Clear out Bit 1 of RP if receiving signal
+					if(temp_buffer[0] == 1)
 					{
-						//Clear out Bit 1 of RP if receiving signal
-						if(temp_buffer[0] == 1)
-						{
-							mem->memory_map[REG_RP] &= ~0x2;
-							mem->ir_stat.fade_counter = 12672;
-						}
+						mem->memory_map[REG_RP] &= ~0x2;
+						mem->ir_stat.fade_counter = 12672;
+					}
 
-						//Set Bit 1 of RP if IR signal is normal
-						else
-						{
-							mem->memory_map[REG_RP] |= 0x2;
-							mem->ir_stat.fade_counter = 0;
-						}
+					//Set Bit 1 of RP if IR signal is normal
+					else
+					{
+						mem->memory_map[REG_RP] |= 0x2;
+						mem->ir_stat.fade_counter = 0;
 					}
 				}
-
-				//Handle IR signals for HuC-1 or HuC-3
-				else
-				{
-					//Set to IR cart register to 0xC1 if receiving signal
-					if(temp_buffer[0] == 1) { mem->cart.huc_ir_input = 0x01; }
-
-					//Set to IR cart register to 0xC0 if receiving no signal
-					else { mem->cart.huc_ir_input = 0x00; }
-				}
-
-				//Start hard sync timeout countdown
-				sio_stat.halt_counter = 0x400000;
-
-				//Reset hard sync if new IR signal received
-				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
-				{
-					sio_stat.use_hard_sync = true;
-					
-				} 
-
-				//Send acknowlegdement
-				SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
-
-				return true;
 			}
 
-			else if(temp_buffer[1] != 0) { return true; }
-
-			//Send transfer byte back to other Game Boy only if emulating the Link Cable
-			if(sio_stat.sio_type == GB_LINK)
+			//Handle IR signals for HuC-1 or HuC-3
+			else
 			{
-				//Raise SIO IRQ after sending byte
-				mem->memory_map[IF_FLAG] |= 0x08;
+				//Set to IR cart register to 0xC1 if receiving signal
+				if(temp_buffer[0] == 1) { mem->cart.huc_ir_input = 0x01; }
 
-				//Store byte from transfer into SB
-				sio_stat.transfer_byte = mem->memory_map[REG_SB];
-				mem->memory_map[REG_SB] = temp_buffer[0];
-
-				//Reset Bit 7 of SC
-				mem->memory_map[REG_SC] &= ~0x80;
-
-				//Send other Game Boy the old SB value
-				temp_buffer[0] = sio_stat.transfer_byte;
-				sio_stat.transfer_byte = mem->memory_map[REG_SB];
-
-				//Start hard sync timeout countdown
-				sio_stat.halt_counter = 0x400000;
-
-				//Reset hard sync if new SIO byte received
-				if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
-				{
-					sio_stat.use_hard_sync = true;
-					
-				}
+				//Set to IR cart register to 0xC0 if receiving no signal
+				else { mem->cart.huc_ir_input = 0x00; }
 			}
 
-			//Otherwise, emulate a disconnected Link Cable
-			//Necessary for situations when connected by IR but not the Link Cable (and the game tries the Link Cable anyway) 
-			else { temp_buffer[0] = 0xFF; }
+			//Start hard sync timeout countdown
+			sio_stat.halt_counter = 0x400000;
 
-			if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+			//Reset hard sync if new IR signal received
+			if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
 			{
-				std::cout<<"SIO::Error - Host failed to send data to client\n";
-				sio_stat.connected = false;
-				server.connected = false;
-				sender.connected = false;
-				return false;
+				sio_stat.use_hard_sync = true;
+			} 
+
+			//Send acknowlegdement
+			net_util::send_data(sender, temp_buffer, 2);
+
+			return true;
+		}
+
+		else if(temp_buffer[1] != 0) { return true; }
+
+		//Send transfer byte back to other Game Boy only if emulating the Link Cable
+		if(sio_stat.sio_type == GB_LINK)
+		{
+			//Raise SIO IRQ after sending byte
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Store byte from transfer into SB
+			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+			mem->memory_map[REG_SB] = temp_buffer[0];
+
+			//Reset Bit 7 of SC
+			mem->memory_map[REG_SC] &= ~0x80;
+
+			//Send other Game Boy the old SB value
+			temp_buffer[0] = sio_stat.transfer_byte;
+			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+
+			//Start hard sync timeout countdown
+			sio_stat.halt_counter = 0x400000;
+
+			//Reset hard sync if new SIO byte received
+			if((config::netplay_hard_sync) && (!sio_stat.use_hard_sync))
+			{
+				sio_stat.use_hard_sync = true;		
 			}
+		}
+
+		//Otherwise, emulate a disconnected Link Cable
+		//Necessary for situations when connected by IR but not the Link Cable (and the game tries the Link Cable anyway) 
+		else { temp_buffer[0] = 0xFF; }
+
+		if(net_util::send_data(sender, temp_buffer, 2) < 2)
+		{
+			std::cout<<"SIO::Error - Host failed to send data to client\n";
+			sio_stat.connected = false;
+			server.connected = false;
+			sender.connected = false;
+			return false;
 		}
 	}
 
@@ -924,7 +920,7 @@ bool DMG_SIO::request_sync()
 	temp_buffer[1] = 0xFF;
 
 	//Send the sync code 0xFF
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2) < 2)
+	if(net_util::send_data(sender, temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
@@ -950,7 +946,7 @@ bool DMG_SIO::stop_sync()
 	temp_buffer[1] = 0xF1;
 
 	//Send the stop sync code 0xF1
-	SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+	net_util::send_data(sender, temp_buffer, 2);
 
 	sio_stat.sync = false;
 	sio_stat.use_hard_sync = false;
@@ -1028,7 +1024,7 @@ void DMG_SIO::suspend_network_connection()
 		temp_buffer[0] = 0;
 		temp_buffer[1] = 0x80;
 		
-		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+		net_util::send_data(sender, temp_buffer, 2);
 	}
 
 	#endif
@@ -1048,24 +1044,22 @@ void DMG_SIO::resume_network_connection()
 	SDLNet_CheckSockets(tcp_sockets, 0);
 
 	//If this socket is active, receive the transfer
-	if(SDLNet_SocketReady(server.remote_socket))
+	//This is non-blocking
+	if(net_util::recv_data(server, temp_buffer, 2) > 0)
 	{
-		if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 2) > 0)
+		//Stop sync
+		if(temp_buffer[1] == 0x81)
 		{
-			//Stop sync
-			if(temp_buffer[1] == 0x81)
-			{
-				std::cout<<"SIO::Netplay connection resumed.\n";
-				sio_stat.connected = true;
-			}
+			std::cout<<"SIO::Netplay connection resumed.\n";
+			sio_stat.connected = true;
 		}
 	}
 
 	//Send reconnect byte to another system
 	temp_buffer[0] = 0;
 	temp_buffer[1] = 0x81;
-		
-	SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+	
+	net_util::send_data(sender, temp_buffer, 2);
 
 	#endif
 }
@@ -1096,8 +1090,8 @@ void DMG_SIO::set_huc_ir_connection()
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
-		
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 2);
+
+			net_util::send_data(sender, temp_buffer, 2);
 
 			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
 			SDLNet_TCP_Close(sender.host_socket);
