@@ -244,12 +244,13 @@ bool DMG_SIO::init()
 		four_player_sender[x].port = 0;
 	}
 
-	//When using HuC-1/HuC-3 IR, wait until transfers start before using hard sync
+	//When using infrared communications, wait until transfers start before using hard sync
 	//When using the Link Cable, also wait until transfers start before using hard sync
 	//Hard sync is *always* on for the 4-Player Adapter (this probably won't change)
 	if(config::netplay_hard_sync)
 	{
-		if(config::cart_type == DMG_HUC_IR)
+		if((config::cart_type == DMG_HUC_IR) || (config::sio_device == SIO_DMG_LINK_CABLE)
+		|| (config::ir_device == IR_GBC))
 		{
 			sio_stat.use_hard_sync = false;
 		}
