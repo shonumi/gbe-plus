@@ -154,10 +154,10 @@ class MIN_MMU
 	#ifdef GBE_NETPLAY
 
 	//Receiving server
-	gbe_server server[10];
+	gbe_net_comm server[10];
 
 	//Sending client
-	gbe_client sender[10];
+	gbe_net_comm sender[10];
 
 	SDLNet_SocketSet tcp_sockets[10];
 

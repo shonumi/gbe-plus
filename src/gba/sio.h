@@ -38,10 +38,10 @@ class AGB_SIO
 	#ifdef GBE_NETPLAY
 
 	//Receiving server
-	gbe_server server;
+	gbe_net_comm server;
 
 	//Sending client
-	gbe_client sender;
+	gbe_net_comm sender;
 
 	SDLNet_SocketSet tcp_sockets;
 	SDLNet_SocketSet four_player_tcp_sockets;

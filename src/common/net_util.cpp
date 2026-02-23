@@ -15,13 +15,13 @@ namespace net_util
 {
 
 //Sends data from server to remote client
-u32 send_data(gbe_client &client, u8* buffer, u32 length, bool is_blocking)
+u32 send_data(gbe_net_comm &client, u8* buffer, u32 length, bool is_blocking)
 {
 	return SDLNet_TCP_Send(client.host_socket, buffer, length);
 }
 
 //Receives data from remote client sent to server
-u32 recv_data(gbe_server &server, u8* buffer, u32 length, bool is_blocking)
+u32 recv_data(gbe_net_comm &server, u8* buffer, u32 length, bool is_blocking)
 {
 	u32 bytes_recv = 0;
 

@@ -42,16 +42,16 @@ class DMG_SIO
 	#ifdef GBE_NETPLAY
 
 	//Receiving server
-	gbe_server server;
+	gbe_net_comm server;
 
 	//Sending client
-	gbe_client sender;
+	gbe_net_comm sender;
 
 	//Receiving server (4-Player)
-	gbe_server four_player_server[3];
+	gbe_net_comm four_player_server[3];
 
 	//Sending client (4-Player)
-	gbe_client four_player_sender[3];
+	gbe_net_comm four_player_sender[3];
 
 	SDLNet_SocketSet tcp_sockets;
 	SDLNet_SocketSet four_player_tcp_sockets;

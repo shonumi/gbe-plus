@@ -19,8 +19,8 @@
 
 #ifdef GBE_NETPLAY
 
-//Receiving server
-struct gbe_server
+//Acts as both server/client, depending on usage
+struct gbe_net_comm
 {
 	TCPsocket host_socket, remote_socket;
 	IPaddress host_ip;
@@ -30,20 +30,10 @@ struct gbe_server
 	u16 port;
 };
 
-//Sending client
-struct gbe_client
-{
-	TCPsocket host_socket;
-	IPaddress host_ip;
-	bool connected;
-	bool host_init;
-	u16 port;
-};
-
 namespace net_util
 {
-	u32 send_data(gbe_client &client, u8* buffer, u32 length, bool is_blocking = false);
-	u32 recv_data(gbe_server &server, u8* buffer, u32 length, bool is_blocking = false);
+	u32 send_data(gbe_net_comm &client, u8* buffer, u32 length, bool is_blocking = false);
+	u32 recv_data(gbe_net_comm &server, u8* buffer, u32 length, bool is_blocking = false);
 };
 
 #endif
