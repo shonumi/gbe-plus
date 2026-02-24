@@ -11,6 +11,7 @@
 
 #include "sio.h"
 #include "common/util.h"
+#include "common/net_util.h"
 
 /****** Processes data sent to the GB Mobile Adapter ******/
 void DMG_SIO::mobile_adapter_process()
@@ -1044,7 +1045,7 @@ void DMG_SIO::mobile_adapter_process_http()
 					u8 response_data[0x8000];
 					u8 timeout = 10;
 
-					if(SDLNet_TCP_Send(sender.host_socket, req_str.c_str(), msg_size) < msg_size)
+					if(net_util::send_data(sender, (u8*)req_str.c_str(), msg_size) < msg_size)
 					{
 						std::cout<<"SIO::Error - Could not transmit to GB Mobile Adapter server\n";
 					}
@@ -1062,7 +1063,7 @@ void DMG_SIO::mobile_adapter_process_http()
 							//Check for socket activity, timeout after 1 second
 							if(SDLNet_CheckSockets(tcp_sockets, 100) != -1)
 							{
-								response_size = SDLNet_TCP_Recv(sender.host_socket, (void*)response_data, 0x8000);
+								response_size = net_util::recv_response(sender, response_data, 0x8000);
 							}
 
 							//If a response was received, store net data

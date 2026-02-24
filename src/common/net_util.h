@@ -32,8 +32,9 @@ struct gbe_net_comm
 
 namespace net_util
 {
-	u32 send_data(gbe_net_comm &client, u8* buffer, u32 length, bool is_blocking = false);
-	u32 recv_data(gbe_net_comm &server, u8* buffer, u32 length, bool is_blocking = false);
+	u32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking = false);
+	u32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking = false);
+	u32 recv_response(gbe_net_comm &client, void* buffer, u32 length);
 };
 
 #endif
