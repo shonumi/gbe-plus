@@ -11,6 +11,7 @@
 
 #include "sio.h"
 #include "common/util.h"
+#include "common/net_util.h"
 
 /****** Initializes DMG-07 specific stuff ******/
 bool DMG_SIO::four_player_init()
@@ -97,7 +98,7 @@ void DMG_SIO::four_player_disconnect()
 
 	if((four_player_sender[master_id].host_socket != NULL) && (!is_master))
 	{
-		SDLNet_TCP_Send(four_player_sender[master_id].host_socket, (void*)temp_buffer, 2);
+		net_util::send_data(four_player_sender[master_id], temp_buffer, 2);
 	}
 
 	else if(is_master)
@@ -106,7 +107,7 @@ void DMG_SIO::four_player_disconnect()
 		{
 			if((four_player_server[x].connected) && (four_player_sender[x].connected))
 			{
-				SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
 			}
 		}
 	}
@@ -289,7 +290,7 @@ bool DMG_SIO::four_player_receive_byte()
 	{
 		if((four_player_server[x].remote_socket != NULL) && (SDLNet_SocketReady(four_player_server[x].remote_socket)))
 		{
-			if(SDLNet_TCP_Recv(four_player_server[x].remote_socket, temp_buffer, 2) > 0)
+			if(net_util::recv_data(four_player_server[x], temp_buffer, 2) > 0)
 			{
 				//4-Player - Confirm SB write for Players 2, 3, and 4
 				if(temp_buffer[1] == 0xFE)
@@ -298,7 +299,7 @@ bool DMG_SIO::four_player_receive_byte()
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -312,7 +313,7 @@ bool DMG_SIO::four_player_receive_byte()
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -362,7 +363,7 @@ bool DMG_SIO::four_player_receive_byte()
 					}
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -374,7 +375,7 @@ bool DMG_SIO::four_player_receive_byte()
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -389,7 +390,7 @@ bool DMG_SIO::four_player_receive_byte()
 					sio_stat.ping_count = 0;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -401,7 +402,7 @@ bool DMG_SIO::four_player_receive_byte()
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -413,7 +414,7 @@ bool DMG_SIO::four_player_receive_byte()
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -427,7 +428,7 @@ bool DMG_SIO::four_player_receive_byte()
 					temp_buffer[1] = 0x1;
 
 					//Send acknowlegdement
-					SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
 					return true;
 				}
@@ -476,7 +477,7 @@ bool DMG_SIO::four_player_receive_byte()
 				temp_buffer[0] = sio_stat.transfer_byte;
 				sio_stat.transfer_byte = mem->memory_map[REG_SB];
 
-				if(SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2) < 2)
+				if(net_util::send_data(four_player_sender[x], temp_buffer, 2) < 2)
 				{
 					std::cout<<"SIO::Error - Host failed to send data to client\n";
 					sio_stat.connected = false;
@@ -513,7 +514,7 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 			temp_buffer[0] = data_one;
 			temp_buffer[1] = data_two;
 
-			if(SDLNet_TCP_Send(four_player_sender[x].host_socket, (void*)temp_buffer, 2) < 2)
+			if(net_util::send_data(four_player_sender[x], temp_buffer, 2) < 2)
 			{
 				std::cout<<"SIO::Error - Host failed to send data to client\n";
 				sio_stat.connected = false;
@@ -524,7 +525,7 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 
 			//Wait for other instance of GBE+ to send an acknowledgement
 			//This is blocking, will effectively pause GBE+ until it gets something
-			SDLNet_TCP_Recv(four_player_server[x].remote_socket, temp_buffer, 2);
+			net_util::recv_data(four_player_server[x], temp_buffer, 2, true);
 
 			if(temp_buffer[1] == 0x80)
 			{
@@ -556,7 +557,7 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 
 	if(!four_player_server[id].connected || !four_player_sender[id].connected) { return 0; }
 
-	if(SDLNet_TCP_Send(four_player_sender[id].host_socket, (void*)temp_buffer, 2) < 2)
+	if(net_util::send_data(four_player_sender[id], temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
@@ -567,7 +568,7 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 
 	//Wait for other instance of GBE+ to send an acknowledgement
 	//This is blocking, will effectively pause GBE+ until it gets something
-	SDLNet_TCP_Recv(four_player_server[id].remote_socket, temp_buffer, 2);
+	net_util::recv_data(four_player_server[id], temp_buffer, 2, true);
 
 	if(temp_buffer[1] == 0x80)
 	{
