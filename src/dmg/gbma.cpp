@@ -1045,7 +1045,7 @@ void DMG_SIO::mobile_adapter_process_http()
 					u8 response_data[0x8000];
 					u8 timeout = 10;
 
-					if(net_util::send_data(sender, (u8*)req_str.c_str(), msg_size) < msg_size)
+					if(net_util::send_data(sender, (void*)req_str.c_str(), msg_size) < msg_size)
 					{
 						std::cout<<"SIO::Error - Could not transmit to GB Mobile Adapter server\n";
 					}

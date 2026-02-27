@@ -145,7 +145,7 @@ void MIN_MMU::disconnect_ir()
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
 		
-			SDLNet_TCP_Send(sender[x].host_socket, (void*)temp_buffer, 2);
+			net_util::send_data(sender[x], temp_buffer, 2);
 
 			SDLNet_TCP_DelSocket(tcp_sockets[x], sender[x].host_socket);
 			if(sender[x].host_init) { SDLNet_TCP_Close(sender[x].host_socket); }
@@ -241,7 +241,7 @@ bool MIN_MMU::process_ir()
 	ir_stat.signal = 0;
 	ir_stat.debug_cycles = 0;
 
-	if(SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2) < 2)
+	if(net_util::send_data(sender[id], temp_buffer, 2) < 2)
 	{
 		std::cout<<"IR::Error - Host failed to send data to client\n";
 		ir_stat.connected[id] = false;
@@ -335,86 +335,83 @@ bool MIN_MMU::recv_byte()
 	SDLNet_CheckSockets(tcp_sockets[id], 0);
 
 	//If this socket is active, receive the transfer
-	if(SDLNet_SocketReady(server[id].remote_socket))
+	if(net_util::recv_data(server[id], temp_buffer, 2) > 0)
 	{
-		if(SDLNet_TCP_Recv(server[id].remote_socket, temp_buffer, 2) > 0)
+		//Stop sync
+		if((temp_buffer[1] == 0xFF) && (ir_stat.sync))
 		{
-			//Stop sync
-			if((temp_buffer[1] == 0xFF) && (ir_stat.sync))
+			ir_stat.sync = false;
+			ir_stat.sync_counter = 0;
+			ir_stat.sync_balance = temp_buffer[0];
+			return true;
+		}
+
+		//Stop IR Hard Sync
+		else if(temp_buffer[1] == 0xF1)
+		{
+			ir_stat.sync_timeout = 0;
+			ir_stat.sync = false;
+			return true;
+		}
+
+		//Stop sync with acknowledgement
+		else if(temp_buffer[1] == 0xF0)
+		{
+			ir_stat.sync = false;
+			ir_stat.sync_counter = 0;
+
+			temp_buffer[1] = 0x1;
+
+			//Send acknowlegdement
+			net_util::send_data(sender[id], temp_buffer, 2);
+
+			return true;
+		}
+
+		//Disconnect netplay
+		else if(temp_buffer[1] == 0x80)
+		{
+			std::cout<<"IR::Netplay connection terminated. Restart to reconnect.\n";
+			ir_stat.connected[id] = false;
+			ir_stat.sync = false;
+
+			return true;
+		}
+
+		//Receive IR signal
+		else if(temp_buffer[1] == 0x40)
+		{	
+			u8 last_signal = ir_stat.signal;
+
+			//Only receive data if IO port has IR enabled
+			if((memory_map[PM_IO_DATA] & 0x20) == 0)
 			{
-				ir_stat.sync = false;
-				ir_stat.sync_counter = 0;
-				ir_stat.sync_balance = temp_buffer[0];
-				return true;
-			}
-
-			//Stop IR Hard Sync
-			else if(temp_buffer[1] == 0xF1)
-			{
-				ir_stat.sync_timeout = 0;
-				ir_stat.sync = false;
-				return true;
-			}
-
-			//Stop sync with acknowledgement
-			else if(temp_buffer[1] == 0xF0)
-			{
-				ir_stat.sync = false;
-				ir_stat.sync_counter = 0;
-
-				temp_buffer[1] = 0x1;
-
-				//Send acknowlegdement
-				SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2);
-
-				return true;
-			}
-
-			//Disconnect netplay
-			else if(temp_buffer[1] == 0x80)
-			{
-				std::cout<<"IR::Netplay connection terminated. Restart to reconnect.\n";
-				ir_stat.connected[id] = false;
-				ir_stat.sync = false;
-
-				return true;
-			}
-
-			//Receive IR signal
-			else if(temp_buffer[1] == 0x40)
-			{	
-				u8 last_signal = ir_stat.signal;
-
-				//Only receive data if IO port has IR enabled
-				if((memory_map[PM_IO_DATA] & 0x20) == 0)
+				//Set Bit 0 of IO Port according to result
+				if(temp_buffer[0] == 1)
 				{
-					//Set Bit 0 of IO Port according to result
-					if(temp_buffer[0] == 1)
-					{
-						memory_map[PM_IO_DATA] |= 0x2;
-						ir_stat.signal = 0;
-					}
-
-					else
-					{
-						memory_map[PM_IO_DATA] &= ~0x2;
-						ir_stat.signal = 1;
-						ir_stat.fade = 64;
-					}
-
-					//Reset hard sync timeout at 1/4 emulated second
-					ir_stat.sync_timeout = 524288;
+					memory_map[PM_IO_DATA] |= 0x2;
+					ir_stat.signal = 0;
 				}
 
-				//Raise IR IRQ when going from LOW to HIGH
-				if((last_signal == 0) && (ir_stat.signal == 1)) { update_irq_flags(IR_RECEIVER_IRQ); }
+				else
+				{
+					memory_map[PM_IO_DATA] &= ~0x2;
+					ir_stat.signal = 1;
+					ir_stat.fade = 64;
+				}
 
-				//Send acknowlegdement
-				temp_buffer[1] = 0x20;
-				SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2);
-
-				return true;
+				//Reset hard sync timeout at 1/4 emulated second
+				ir_stat.sync_timeout = 524288;
 			}
+
+			//Raise IR IRQ when going from LOW to HIGH
+			if((last_signal == 0) && (ir_stat.signal == 1)) { update_irq_flags(IR_RECEIVER_IRQ); }
+
+			//Send acknowlegdement
+			temp_buffer[1] = 0x20;
+			net_util::send_data(sender[id], temp_buffer, 2);
+
+			return true;
 		}
 	}
 
@@ -441,7 +438,7 @@ bool MIN_MMU::request_sync()
 	temp_buffer[1] = 0xFF;
 
 	//Send the sync code 0xFF
-	if(SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2) < 2)
+	if(net_util::send_data(sender[id], temp_buffer, 2) < 2)
 	{
 		std::cout<<"IR::Error - Host failed to send data to client\n";
 		ir_stat.connected[id] = false;
@@ -472,7 +469,7 @@ bool MIN_MMU::stop_sync()
 	temp_buffer[1] = 0xF1;
 
 	//Send the stop hard sync code 0xF1
-	if(SDLNet_TCP_Send(sender[id].host_socket, (void*)temp_buffer, 2) < 2)
+	if(net_util::send_data(sender[id], temp_buffer, 2) < 2)
 	{
 		std::cout<<"IR::Error - Host failed to send data to client\n";
 		ir_stat.connected[id] = false;
