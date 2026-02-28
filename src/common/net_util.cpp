@@ -15,15 +15,15 @@ namespace net_util
 {
 
 //Sends data from server to remote client
-u32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking)
+s32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking)
 {
 	return SDLNet_TCP_Send(client.host_socket, buffer, length);
 }
 
 //Receives data from remote client sent to server
-u32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
+s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 {
-	u32 bytes_recv = 0;
+	s32 bytes_recv = 0;
 
 	if(is_blocking)
 	{
@@ -42,9 +42,15 @@ u32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 }
 
 //Receives response data on same host. Used for HTTP TCP transfers (GBMA)
-u32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
+s32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
 {
 	return SDLNet_TCP_Recv(client.host_socket, buffer, length);
+}
+
+//Resolves hostname from a given IP address
+s32 resolve_host(gbe_net_comm &req, std::string ip_address)
+{
+	return SDLNet_ResolveHost(&req.host_ip, ip_address.c_str(), req.port);	
 }
 
 } //Namespace

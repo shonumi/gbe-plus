@@ -12,6 +12,8 @@
 #ifndef GBE_NET_UTIL
 #define GBE_NET_UTIL
 
+#include <string>
+
 #include <SDL.h>
 #include <SDL_net.h>
 
@@ -32,9 +34,10 @@ struct gbe_net_comm
 
 namespace net_util
 {
-	u32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking = false);
-	u32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking = false);
-	u32 recv_response(gbe_net_comm &client, void* buffer, u32 length);
+	s32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking = false);
+	s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking = false);
+	s32 recv_response(gbe_net_comm &client, void* buffer, u32 length);
+	s32 resolve_host(gbe_net_comm &req, std::string ip_address);
 };
 
 #endif
