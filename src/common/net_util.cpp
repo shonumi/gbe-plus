@@ -50,7 +50,19 @@ s32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
 //Resolves hostname from a given IP address
 s32 resolve_host(gbe_net_comm &req, std::string ip_address)
 {
-	return SDLNet_ResolveHost(&req.host_ip, ip_address.c_str(), req.port);	
+	s32 result = 0;
+	
+	if(ip_address.empty())
+	{
+		result = SDLNet_ResolveHost(&req.host_ip, NULL, req.port);
+	}
+
+	else
+	{
+		result = SDLNet_ResolveHost(&req.host_ip, ip_address.c_str(), req.port);
+	}
+
+	return result;
 }
 
 } //Namespace
