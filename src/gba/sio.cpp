@@ -161,7 +161,7 @@ bool AGB_SIO::init()
 	}
 
 	//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
-	if(SDLNet_ResolveHost(&server.host_ip, NULL, server.port) < 0)
+	if(net_util::resolve_host(server, "") < 0)
 	{
 		std::cout<<"SIO::Error - Server could not resolve hostname\n";
 		return false;
@@ -177,7 +177,7 @@ bool AGB_SIO::init()
 	server.host_init = true;
 
 	//Setup client, listen on another port
-	if(SDLNet_ResolveHost(&sender.host_ip, config::netplay_client_ip.c_str(), sender.port) < 0)
+	if(net_util::resolve_host(sender, config::netplay_client_ip) < 0)
 	{
 		std::cout<<"SIO::Error - Client could not resolve hostname\n";
 		return false;

@@ -45,7 +45,7 @@ bool DMG_SIO::four_player_init()
 		four_player_sender[x].port = config::netplay_client_port + (x * 2);
 
 		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
-		if(SDLNet_ResolveHost(&four_player_server[x].host_ip, NULL, four_player_server[x].port) < 0)
+		if(net_util::resolve_host(four_player_server[x], "") < 0)
 		{
 			std::cout<<"SIO::Error - Server could not resolve hostname\n";
 			return false;
@@ -67,7 +67,7 @@ bool DMG_SIO::four_player_init()
 		}
 
 		//Setup client, listen on another port
-		if(SDLNet_ResolveHost(&four_player_sender[x].host_ip, config::netplay_client_ip.c_str(), four_player_sender[x].port) < 0)
+		if(net_util::resolve_host(four_player_sender[x], config::netplay_client_ip) < 0)
 		{
 			std::cout<<"SIO::Error - Client could not resolve hostname\n";
 			return false;
@@ -290,7 +290,7 @@ bool DMG_SIO::four_player_receive_byte()
 	{
 		if((four_player_server[x].remote_socket != NULL) && (SDLNet_SocketReady(four_player_server[x].remote_socket)))
 		{
-			if(net_util::recv_data(four_player_server[x], temp_buffer, 2) > 0)
+			if(net_util::recv_data(four_player_server[x], temp_buffer, 2, true) > 0)
 			{
 				//4-Player - Confirm SB write for Players 2, 3, and 4
 				if(temp_buffer[1] == 0xFE)

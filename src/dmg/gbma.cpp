@@ -1495,7 +1495,7 @@ bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 	sender.port = port;
 
 	//Resolve hostname
-	if(SDLNet_ResolveHost(&sender.host_ip, config::gbma_server.c_str(), sender.port) < 0)
+	if(net_util::resolve_host(sender, config::gbma_server) < 0)
 	{
 		std::cout<<"SIO::Error - Could not resolve address of GB Mobile Adapter server\n";
 		return false;
