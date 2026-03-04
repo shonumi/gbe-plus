@@ -54,7 +54,7 @@ bool DMG_SIO::four_player_init()
 		//Open a connection to listen on host's port
 		if((!server_init) || (is_master))
 		{
-			if(!(four_player_server[x].host_socket = SDLNet_TCP_Open(&four_player_server[x].host_ip)))
+			if(!net_util::open_tcp(four_player_server[x]))
 			{
 				if((is_master) || ((x == 2) && (!is_master)))
 				{
@@ -166,7 +166,7 @@ void DMG_SIO::four_player_process_network_communication()
 		if(!four_player_sender[x].connected)
 		{
 			//Open a connection to listen on host's port
-			if(four_player_sender[x].host_socket = SDLNet_TCP_Open(&four_player_sender[x].host_ip))
+			if(net_util::open_tcp(four_player_sender[x]))
 			{
 				std::cout<<"SIO::Connected to server\n";
 				SDLNet_TCP_AddSocket(four_player_tcp_sockets, four_player_sender[x].host_socket);

@@ -74,7 +74,7 @@ bool MIN_MMU::init_ir()
 			}
 
 			//Open a connection to listen on host's port
-			if(!(server[x].host_socket = SDLNet_TCP_Open(&server[x].host_ip)))
+			if(!net_util::open_tcp(server[x]))
 			{
 				std::cout<<"IR::Error - Server could not open a connection on Port " << server[x].port << "\n";
 				return false;
@@ -202,7 +202,7 @@ void MIN_MMU::process_network_communication()
 		if(!sender[id].connected && ir_stat.try_connection)
 		{
 			//Open a connection to listen on host's port
-			if(sender[id].host_socket = SDLNet_TCP_Open(&sender[id].host_ip))
+			if(net_util::open_tcp(sender[id]))
 			{
 				std::cout<<"IR::Connected to server\n";
 				SDLNet_TCP_AddSocket(tcp_sockets[id], sender[id].host_socket);

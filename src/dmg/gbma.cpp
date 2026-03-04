@@ -1502,7 +1502,7 @@ bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 	}
 
 	//Open a connection to the server
-	sender.host_socket = SDLNet_TCP_Open(&sender.host_ip);
+	net_util::open_tcp(sender);
 
 	if(sender.host_socket == NULL)
 	{

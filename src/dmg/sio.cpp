@@ -204,7 +204,7 @@ bool DMG_SIO::init()
 		}
 
 		//Open a connection to listen on host's port
-		if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
+		if(!net_util::open_tcp(server))
 		{
 			std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
 			return false;
@@ -991,7 +991,7 @@ void DMG_SIO::process_network_communication()
 		if(!sender.connected)
 		{
 			//Open a connection to listen on host's port
-			if(sender.host_socket = SDLNet_TCP_Open(&sender.host_ip))
+			if(net_util::open_tcp(sender))
 			{
 				std::cout<<"SIO::Connected to server\n";
 				SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
@@ -1139,7 +1139,7 @@ void DMG_SIO::set_huc_ir_connection()
 		}
 
 		//Open a connection to listen on host's port
-		if(!(server.host_socket = SDLNet_TCP_Open(&server.host_ip)))
+		if(!net_util::open_tcp(server))
 		{
 			std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
 			return;
