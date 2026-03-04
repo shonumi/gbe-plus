@@ -65,4 +65,21 @@ s32 resolve_host(gbe_net_comm &req, std::string ip_address)
 	return result;
 }
 
+//Opens a TCP connection
+bool open_tcp(gbe_net_comm &req)
+{
+	bool result = false;
+
+	req.host_socket = SDLNet_TCP_Open(&req.host_ip);
+	if(req.host_socket != NULL) { result = true; }
+
+	return result;
+}
+
+//Closes a TCP connection
+void close_tcp(gbe_net_comm &req)
+{
+
+}
+
 } //Namespace

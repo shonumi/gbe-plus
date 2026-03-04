@@ -38,6 +38,9 @@ namespace net_util
 	s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking = false);
 	s32 recv_response(gbe_net_comm &client, void* buffer, u32 length);
 	s32 resolve_host(gbe_net_comm &req, std::string ip_address);
+
+	bool open_tcp(gbe_net_comm &req);
+	void close_tcp(gbe_net_comm &req);
 };
 
 #endif
