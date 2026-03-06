@@ -152,7 +152,7 @@ void DMG_SIO::four_player_process_network_communication()
 		{
 			if(four_player_server[x].host_socket != NULL)
 			{
-				if(four_player_server[x].remote_socket = SDLNet_TCP_Accept(four_player_server[x].host_socket))
+				if(net_util::accept_client(four_player_server[x]))
 				{
 					std::cout<<"SIO::Client #" << (x + 1) << " connected\n";
 					SDLNet_TCP_AddSocket(four_player_tcp_sockets, four_player_server[x].host_socket);

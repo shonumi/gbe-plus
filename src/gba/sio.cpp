@@ -864,7 +864,7 @@ void AGB_SIO::process_network_communication()
 		//Try to accept incoming connections to the server
 		if(!server.connected)
 		{
-			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
+			if(net_util::accept_client(server))
 			{
 				std::cout<<"SIO::Client connected\n";
 				SDLNet_TCP_AddSocket(tcp_sockets, server.host_socket);
@@ -1406,7 +1406,7 @@ void AGB_SIO::net_gate_process()
 		for(u32 x = 0; x < 100; x++)
 		{
 			//Check remote socket for any connections
-			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
+			if(net_util::accept_client(server))
 			{
 				u8 temp_buffer[1024];
 				u32 recv_bytes = SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1024);

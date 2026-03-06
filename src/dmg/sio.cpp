@@ -977,7 +977,7 @@ void DMG_SIO::process_network_communication()
 		//Try to accept incoming connections to the server
 		if(!server.connected)
 		{
-			if(server.remote_socket = SDLNet_TCP_Accept(server.host_socket))
+			if(net_util::accept_client(server))
 			{
 				std::cout<<"SIO::Client connected\n";
 				SDLNet_TCP_AddSocket(tcp_sockets, server.host_socket);

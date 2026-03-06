@@ -82,4 +82,15 @@ void close_tcp(gbe_net_comm &req)
 
 }
 
+//Accepts a connection from a client for a server
+bool accept_client(gbe_net_comm &req)
+{
+	bool result = false;
+
+	req.remote_socket = SDLNet_TCP_Accept(req.host_socket);
+	if(req.remote_socket != NULL) { result = true; }
+
+	return result;
+}
+
 } //Namespace

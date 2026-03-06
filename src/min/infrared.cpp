@@ -187,7 +187,7 @@ void MIN_MMU::process_network_communication()
 		//Try to accept incoming connections to the server
 		if(!server[id].connected)
 		{
-			if(server[id].remote_socket = SDLNet_TCP_Accept(server[id].host_socket))
+			if(net_util::accept_client(server[id]))
 			{
 				std::cout<<"IR::Client connected\n";
 				SDLNet_TCP_AddSocket(tcp_sockets[id], server[id].host_socket);
