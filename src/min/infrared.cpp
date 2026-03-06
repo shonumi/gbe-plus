@@ -48,21 +48,14 @@ bool MIN_MMU::init_ir()
 	ir_stat.sync_clock = config::netplay_sync_threshold;
 	ir_stat.network_id = config::netplay_id;
 
-	//Server info
+	//Server and Client info
 	for(u32 x = 0; x < 10; x++)
 	{
-		server[x].host_socket = NULL;
-		server[x].host_init = false;
-		server[x].remote_socket = NULL;
-		server[x].remote_init = false;
-		server[x].connected = false;
-		server[x].port = config::netplay_server_port + (10 * config::netplay_id) + x;
-			
-		//Client info
-		sender[x].host_socket = NULL;
-		sender[x].host_init = false;
-		sender[x].connected = false;
-		sender[x].port = config::netplay_server_port + (10 * x) + config::netplay_id;
+		u16 server_port = config::netplay_server_port + (10 * config::netplay_id) + x;
+		u16 client_port = config::netplay_server_port + (10 * x) + config::netplay_id;
+
+		net_util::setup_comm(server[x], server_port, NET_COMM_SERVER);
+		net_util::setup_comm(sender[x], client_port, NET_COMM_CLIENT);
 
 		if(x != config::netplay_id)
 		{

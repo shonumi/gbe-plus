@@ -161,19 +161,9 @@ bool DMG_SIO::init()
 
 	//Initialize other Link Cable communications normally
 
-	//Server info
-	server.host_socket = NULL;
-	server.host_init = false;
-	server.remote_socket = NULL;
-	server.remote_init = false;
-	server.connected = false;
-	server.port = config::netplay_server_port;
-
-	//Client info
-	sender.host_socket = NULL;
-	sender.host_init = false;
-	sender.connected = false;
-	sender.port = config::netplay_client_port;
+	//Server and Client info
+	net_util::setup_comm(server, config::netplay_server_port, NET_COMM_SERVER);
+	net_util::setup_comm(sender, config::netplay_client_port, NET_COMM_CLIENT);
 
 	//Use special port configuration for HuC-1/HuC-3 IR communications
 	//Network connections are set up by set_huc_ir_connection()
@@ -233,15 +223,8 @@ bool DMG_SIO::init()
 	//Default Four Player settings 
 	for(u32 x = 0; x < 3; x++)
 	{
-		four_player_server[x].host_socket = NULL;
-		four_player_server[x].remote_socket = NULL;
-		four_player_server[x].connected = false;
-		four_player_server[x].port = 0;
-
-		//Client info
-		four_player_sender[x].host_socket = NULL;
-		four_player_sender[x].connected = false;
-		four_player_sender[x].port = 0;
+		net_util::setup_comm(four_player_server[x], 0, NET_COMM_SERVER);
+		net_util::setup_comm(four_player_sender[x], 0, NET_COMM_CLIENT);
 	}
 
 	//When using infrared communications, wait until transfers start before using hard sync

@@ -139,19 +139,9 @@ bool AGB_SIO::init()
 
 	network_init = true;
 
-	//Server info
-	server.host_socket = NULL;
-	server.host_init = false;
-	server.remote_socket = NULL;
-	server.remote_init = false;
-	server.connected = false;
-	server.port = config::netplay_server_port;
-
-	//Client info
-	sender.host_socket = NULL;
-	sender.host_init = false;
-	sender.connected = false;
-	sender.port = config::netplay_client_port;
+	//Server and Client info
+	net_util::setup_comm(server, config::netplay_server_port, NET_COMM_SERVER);
+	net_util::setup_comm(sender, config::netplay_client_port, NET_COMM_CLIENT);
 
 	//Abort initialization if server and client ports are the same
 	if(config::netplay_server_port == config::netplay_client_port)

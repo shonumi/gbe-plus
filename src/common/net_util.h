@@ -21,6 +21,18 @@
 
 #ifdef GBE_NETPLAY
 
+enum net_comm_role
+{
+	NET_COMM_SERVER,
+	NET_COMM_CLIENT,
+};
+
+enum net_comm_misc
+{
+	NET_COMM_IS_BLOCKING,
+	NET_COMM_IS_NONBLOCKING,
+};
+
 //Acts as both server/client, depending on usage
 struct gbe_net_comm
 {
@@ -30,6 +42,7 @@ struct gbe_net_comm
 	bool host_init;
 	bool remote_init;
 	u16 port;
+	net_comm_role role;
 };
 
 namespace net_util
@@ -42,6 +55,8 @@ namespace net_util
 
 	bool open_tcp(gbe_net_comm &req);
 	void close_tcp(gbe_net_comm &req);
+
+	void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role);
 };
 
 #endif

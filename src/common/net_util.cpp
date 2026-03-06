@@ -41,7 +41,7 @@ s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 	return bytes_recv;
 }
 
-//Receives response data on same host. Used for HTTP TCP transfers (GBMA)
+//Receives response data on same host. Used for HTTP TCP transfers (Mobile Adapter GB)
 s32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
 {
 	return SDLNet_TCP_Recv(client.host_socket, buffer, length);
@@ -91,6 +91,18 @@ bool accept_client(gbe_net_comm &req)
 	if(req.remote_socket != NULL) { result = true; }
 
 	return result;
+}
+
+//Handles setup of client or server
+void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role)
+{
+	req.host_socket = NULL;
+	req.host_init = false;
+	req.remote_socket = NULL;
+	req.remote_init = false;
+	req.connected = false;
+	req.port = port;
+	req.role = role;
 }
 
 } //Namespace
