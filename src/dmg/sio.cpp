@@ -39,13 +39,13 @@ DMG_SIO::~DMG_SIO()
 	//Close SDL_net and any current connections
 	if(server.host_socket != NULL)
 	{
-		SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
+		SDLNet_TCP_DelSocket(server.tcp_sockets, server.host_socket);
 		if(server.host_init) { SDLNet_TCP_Close(server.host_socket); }
 	}
 
 	if(server.remote_socket != NULL)
 	{
-		SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
+		SDLNet_TCP_DelSocket(server.tcp_sockets, server.remote_socket);
 		if(server.remote_init) { SDLNet_TCP_Close(server.remote_socket); }
 	}
 
@@ -61,7 +61,7 @@ DMG_SIO::~DMG_SIO()
 		
 			net_util::send_data(sender, temp_buffer, 2);
 
-			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+			SDLNet_TCP_DelSocket(sender.tcp_sockets, sender.host_socket);
 			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
 	}
@@ -144,8 +144,8 @@ bool DMG_SIO::init()
 	//Initialize Mobile Adapter GB with real access to a server
 	else if((sio_stat.sio_type == GB_MOBILE_ADAPTER) && (config::use_real_gbma_server))
 	{
-		//Create sockets sets
-		tcp_sockets = SDLNet_AllocSocketSet(1);
+		//Client info
+		net_util::setup_comm(sender, config::gbma_server_http_port, NET_COMM_CLIENT);
 
 		//Test connection
 		if(!mobile_adapter_open_tcp(config::gbma_server_http_port)) { return false; }
@@ -209,9 +209,6 @@ bool DMG_SIO::init()
 			return false;
 		}
 	}
-
-	//Create sockets sets
-	tcp_sockets = SDLNet_AllocSocketSet(3);
 
 	//Initialize hard syncing
 	if(config::netplay_hard_sync)
@@ -734,7 +731,7 @@ bool DMG_SIO::receive_byte()
 	temp_buffer[0] = temp_buffer[1] = 0;
 
 	//Check the status of connection
-	SDLNet_CheckSockets(tcp_sockets, 0);
+	SDLNet_CheckSockets(server.tcp_sockets, 0);
 
 	//If this socket is active, receive the transfer
 	//This is non-blocking
@@ -963,10 +960,6 @@ void DMG_SIO::process_network_communication()
 			if(net_util::accept_client(server))
 			{
 				std::cout<<"SIO::Client connected\n";
-				SDLNet_TCP_AddSocket(tcp_sockets, server.host_socket);
-				SDLNet_TCP_AddSocket(tcp_sockets, server.remote_socket);
-				server.connected = true;
-				server.remote_init = true;
 			}
 		}
 
@@ -974,12 +967,9 @@ void DMG_SIO::process_network_communication()
 		if(!sender.connected)
 		{
 			//Open a connection to listen on host's port
-			if(net_util::open_tcp(sender))
+			if(net_util::accept_server(sender))
 			{
 				std::cout<<"SIO::Connected to server\n";
-				SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
-				sender.connected = true;
-				sender.host_init = true;
 			}
 		}
 
@@ -1025,7 +1015,7 @@ void DMG_SIO::resume_network_connection()
 	temp_buffer[0] = temp_buffer[1] = 0;
 
 	//Check the status of connection
-	SDLNet_CheckSockets(tcp_sockets, 0);
+	SDLNet_CheckSockets(server.tcp_sockets, 0);
 
 	//If this socket is active, receive the transfer
 	//This is non-blocking
@@ -1058,13 +1048,13 @@ void DMG_SIO::set_huc_ir_connection()
 		//Close SDL_net and any current connections
 		if(server.host_socket != NULL)
 		{
-			SDLNet_TCP_DelSocket(tcp_sockets, server.host_socket);
+			SDLNet_TCP_DelSocket(server.tcp_sockets, server.host_socket);
 			SDLNet_TCP_Close(server.host_socket);
 		}
 
 		if(server.remote_socket != NULL)
 		{
-			SDLNet_TCP_DelSocket(tcp_sockets, server.remote_socket);
+			SDLNet_TCP_DelSocket(server.tcp_sockets, server.remote_socket);
 			SDLNet_TCP_Close(server.remote_socket);
 		}
 
@@ -1077,26 +1067,19 @@ void DMG_SIO::set_huc_ir_connection()
 
 			net_util::send_data(sender, temp_buffer, 2);
 
-			SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
+			SDLNet_TCP_DelSocket(sender.tcp_sockets, sender.host_socket);
 			SDLNet_TCP_Close(sender.host_socket);
 		}
 
 		config::netplay_id &= 0x0F;
 		mem->ir_stat.network_id &= 0x0F;
 
-		//Server info
-		server.host_socket = NULL;
-		server.host_init = false;
-		server.remote_socket = NULL;
-		server.remote_init = false;
-		server.connected = false;
-		server.port = config::netplay_server_port + (16 * config::netplay_id) + mem->ir_stat.network_id;
+		//Server and Client info
+		u16 server_port = config::netplay_server_port + (16 * config::netplay_id) + mem->ir_stat.network_id;
+		u16 client_port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
 
-		//Client info
-		sender.host_socket = NULL;
-		sender.host_init = false;
-		sender.connected = false;
-		sender.port = config::netplay_server_port + (16 * mem->ir_stat.network_id) + config::netplay_id;
+		net_util::setup_comm(server, server_port, NET_COMM_SERVER);
+		net_util::setup_comm(sender, client_port, NET_COMM_CLIENT);
 
 		//Clear up any syncing when the instance doing the switching suspends a network connection
 		sio_stat.sync = false;

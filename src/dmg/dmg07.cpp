@@ -155,9 +155,6 @@ void DMG_SIO::four_player_process_network_communication()
 				if(net_util::accept_client(four_player_server[x]))
 				{
 					std::cout<<"SIO::Client #" << (x + 1) << " connected\n";
-					SDLNet_TCP_AddSocket(four_player_tcp_sockets, four_player_server[x].host_socket);
-					SDLNet_TCP_AddSocket(four_player_tcp_sockets, four_player_server[x].remote_socket);
-					four_player_server[x].connected = true;
 				}
 			}
 		}
@@ -166,11 +163,9 @@ void DMG_SIO::four_player_process_network_communication()
 		if(!four_player_sender[x].connected)
 		{
 			//Open a connection to listen on host's port
-			if(net_util::open_tcp(four_player_sender[x]))
+			if(net_util::accept_server(four_player_sender[x]))
 			{
 				std::cout<<"SIO::Connected to server\n";
-				SDLNet_TCP_AddSocket(four_player_tcp_sockets, four_player_sender[x].host_socket);
-				four_player_sender[x].connected = true;
 			}
 		}
 

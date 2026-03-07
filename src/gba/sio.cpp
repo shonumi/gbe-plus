@@ -857,10 +857,6 @@ void AGB_SIO::process_network_communication()
 			if(net_util::accept_client(server))
 			{
 				std::cout<<"SIO::Client connected\n";
-				SDLNet_TCP_AddSocket(tcp_sockets, server.host_socket);
-				SDLNet_TCP_AddSocket(tcp_sockets, server.remote_socket);
-				server.connected = true;
-				server.remote_init = true;
 			}
 		}
 
@@ -868,12 +864,9 @@ void AGB_SIO::process_network_communication()
 		if(!sender.connected)
 		{
 			//Open a connection to listen on host's port
-			if(net_util::open_tcp(sender))
+			if(net_util::accept_server(sender))
 			{
 				std::cout<<"SIO::Connected to server\n";
-				SDLNet_TCP_AddSocket(tcp_sockets, sender.host_socket);
-				sender.connected = true;
-				sender.host_init = true;
 			}
 		}
 

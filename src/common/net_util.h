@@ -37,6 +37,7 @@ enum net_comm_misc
 struct gbe_net_comm
 {
 	TCPsocket host_socket, remote_socket;
+	SDLNet_SocketSet tcp_sockets;
 	IPaddress host_ip;
 	bool connected;
 	bool host_init;
@@ -51,7 +52,9 @@ namespace net_util
 	s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking = false);
 	s32 recv_response(gbe_net_comm &client, void* buffer, u32 length);
 	s32 resolve_host(gbe_net_comm &req, std::string ip_address);
+
 	bool accept_client(gbe_net_comm &req);
+	bool accept_server(gbe_net_comm &req);
 
 	bool open_tcp(gbe_net_comm &req);
 	void close_tcp(gbe_net_comm &req);

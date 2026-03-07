@@ -183,10 +183,6 @@ void MIN_MMU::process_network_communication()
 			if(net_util::accept_client(server[id]))
 			{
 				std::cout<<"IR::Client connected\n";
-				SDLNet_TCP_AddSocket(tcp_sockets[id], server[id].host_socket);
-				SDLNet_TCP_AddSocket(tcp_sockets[id], server[id].remote_socket);
-				server[id].connected = true;
-				server[id].remote_init = true;
 				ir_stat.try_connection = true;
 			}
 		}
@@ -195,12 +191,9 @@ void MIN_MMU::process_network_communication()
 		if(!sender[id].connected && ir_stat.try_connection)
 		{
 			//Open a connection to listen on host's port
-			if(net_util::open_tcp(sender[id]))
+			if(net_util::accept_server(sender[id]))
 			{
 				std::cout<<"IR::Connected to server\n";
-				SDLNet_TCP_AddSocket(tcp_sockets[id], sender[id].host_socket);
-				sender[id].connected = true;
-				sender[id].host_init = true;
 			}
 		}
 

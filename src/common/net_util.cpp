@@ -88,7 +88,43 @@ bool accept_client(gbe_net_comm &req)
 	bool result = false;
 
 	req.remote_socket = SDLNet_TCP_Accept(req.host_socket);
-	if(req.remote_socket != NULL) { result = true; }
+
+	if(req.remote_socket != NULL)
+	{
+		result = true;
+
+		if(req.tcp_sockets == NULL)
+		{
+			req.tcp_sockets = SDLNet_AllocSocketSet(2);
+		}
+
+		SDLNet_TCP_AddSocket(req.tcp_sockets, req.host_socket);
+		SDLNet_TCP_AddSocket(req.tcp_sockets, req.remote_socket);
+		req.connected = true;
+		req.remote_init = true;
+	}
+
+	return result;
+}
+
+//Accepts a connection from a server for a client
+bool accept_server(gbe_net_comm &req)
+{
+	bool result = false;
+
+	if(net_util::open_tcp(req))
+	{
+		result = true;
+
+		if(req.tcp_sockets == NULL)
+		{
+			req.tcp_sockets = SDLNet_AllocSocketSet(2);
+		}
+
+		SDLNet_TCP_AddSocket(req.tcp_sockets, req.host_socket);
+		req.connected = true;
+		req.host_init = true;
+	}
 
 	return result;
 }
@@ -103,6 +139,7 @@ void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role)
 	req.connected = false;
 	req.port = port;
 	req.role = role;
+	req.tcp_sockets = NULL;
 }
 
 } //Namespace

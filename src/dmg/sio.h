@@ -53,7 +53,6 @@ class DMG_SIO
 	//Sending client (4-Player)
 	gbe_net_comm four_player_sender[3];
 
-	SDLNet_SocketSet tcp_sockets;
 	SDLNet_SocketSet four_player_tcp_sockets;
 
 	#endif
