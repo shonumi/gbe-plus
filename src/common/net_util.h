@@ -60,6 +60,7 @@ namespace net_util
 	void close_tcp(gbe_net_comm &req);
 
 	void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role);
+	void close_comm(gbe_net_comm &req);
 };
 
 #endif

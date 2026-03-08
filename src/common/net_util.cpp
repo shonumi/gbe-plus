@@ -142,4 +142,29 @@ void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role)
 	req.tcp_sockets = NULL;
 }
 
+//Closes any active connections for client or server
+void close_comm(gbe_net_comm &req)
+{
+	if(req.host_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(req.tcp_sockets, req.host_socket);
+		if(req.host_init) { SDLNet_TCP_Close(req.host_socket); }
+	}
+
+	if(req.remote_socket != NULL)
+	{
+		SDLNet_TCP_DelSocket(req.tcp_sockets, req.remote_socket);
+		if(req.remote_init) { SDLNet_TCP_Close(req.remote_socket); }
+	}
+
+	SDLNet_FreeSocketSet(req.tcp_sockets);
+
+	req.host_socket = NULL;
+	req.host_init = false;
+	req.remote_socket = NULL;
+	req.remote_init = false;
+	req.connected = false;
+	req.tcp_sockets = NULL;
+}
+
 } //Namespace

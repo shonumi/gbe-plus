@@ -43,9 +43,6 @@ class AGB_SIO
 	//Sending client
 	gbe_net_comm sender;
 
-	SDLNet_SocketSet tcp_sockets;
-	SDLNet_SocketSet four_player_tcp_sockets;
-
 	#endif
 
 	//GB Player Rumble

@@ -988,7 +988,7 @@ void AGB_SIO::mobile_adapter_process_http()
 							response_size = -1;
 
 							//Check for socket activity, timeout after 1 second
-							if(SDLNet_CheckSockets(tcp_sockets, 100) != -1)
+							if(SDLNet_CheckSockets(sender.tcp_sockets, 100) != -1)
 							{
 								response_size = net_util::recv_response(sender, response_data, 0x8000);
 							}
@@ -1447,8 +1447,7 @@ void AGB_SIO::mobile_adapter_close_tcp()
 {
 	#ifdef GBE_NETPLAY
 
-	SDLNet_TCP_DelSocket(tcp_sockets, sender.host_socket);
-	SDLNet_TCP_Close(sender.host_socket);
+	net_util::close_comm(sender);
 
 	#endif
 }

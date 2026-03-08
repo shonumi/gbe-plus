@@ -81,9 +81,6 @@ bool MIN_MMU::init_ir()
 				std::cout<<"IR::Error - Client could not resolve hostname\n";
 				return false;
 			}
-
-			//Create sockets sets
-			tcp_sockets[x] = SDLNet_AllocSocketSet(3);
 		}
 	}
 
@@ -114,23 +111,9 @@ void MIN_MMU::disconnect_ir()
 
 	for(u8 x = 0; x < 10; x++)
 	{
-
 		if(x == config::netplay_id) { continue; }
 
-
-		//Close SDL_net and any current connections
-		if(server[x].host_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets[x], server[x].host_socket);
-			if(server[x].host_init) { SDLNet_TCP_Close(server[x].host_socket); }
-		}
-
-		if(server[x].remote_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(tcp_sockets[x], server[x].remote_socket);
-			if(server[x].remote_init) { SDLNet_TCP_Close(server[x].remote_socket); }
-		}
-
+		//Send disconnect signal
 		if(sender[x].host_socket != NULL)
 		{
 			//Send disconnect byte to another system
@@ -139,17 +122,11 @@ void MIN_MMU::disconnect_ir()
 			temp_buffer[1] = 0x80;
 		
 			net_util::send_data(sender[x], temp_buffer, 2);
-
-			SDLNet_TCP_DelSocket(tcp_sockets[x], sender[x].host_socket);
-			if(sender[x].host_init) { SDLNet_TCP_Close(sender[x].host_socket); }
 		}
 
-		server[x].connected = false;
-		sender[x].connected = false;
-
-		server[x].host_init = false;
-		server[x].remote_init = false;
-		sender[x].host_init = false;
+		//Close SDL_net and any current connections
+		net_util::close_comm(server[x]);
+		net_util::close_comm(sender[x]);
 
 		ir_stat.connected[x] = false;
 	}
@@ -318,7 +295,7 @@ bool MIN_MMU::recv_byte()
 	temp_buffer[0] = temp_buffer[1] = 0;
 
 	//Check the status of connection
-	SDLNet_CheckSockets(tcp_sockets[id], 0);
+	SDLNet_CheckSockets(server[id].tcp_sockets, 0);
 
 	//If this socket is active, receive the transfer
 	if(net_util::recv_data(server[id], temp_buffer, 2) > 0)

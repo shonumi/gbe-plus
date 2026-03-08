@@ -74,9 +74,6 @@ bool DMG_SIO::four_player_init()
 		}
 	}
 
-	//Create sockets sets
-	four_player_tcp_sockets = SDLNet_AllocSocketSet(9);
-
 	dmg07_init = true;
 
 	#endif
@@ -115,26 +112,8 @@ void DMG_SIO::four_player_disconnect()
 	for(int x = 0; x < 3; x++)
 	{
 		//Close SDL_net and any current connections
-		if(four_player_server[x].host_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(four_player_tcp_sockets, four_player_server[x].host_socket);
-			if(four_player_server[x].connected) { SDLNet_TCP_Close(four_player_server[x].host_socket); }
-		}
-
-		if(four_player_server[x].remote_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(four_player_tcp_sockets, four_player_server[x].remote_socket);
-			if(four_player_server[x].connected) { SDLNet_TCP_Close(four_player_server[x].remote_socket); }
-		}
-
-		if(four_player_sender[x].host_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(four_player_tcp_sockets, four_player_sender[x].host_socket);
-			if(four_player_sender[x].connected) { SDLNet_TCP_Close(four_player_sender[x].host_socket); }
-		}
-
-		four_player_server[x].connected = false;
-		four_player_sender[x].connected = false;
+		net_util::close_comm(four_player_server[x]);
+		net_util::close_comm(four_player_sender[x]);
 	}
 
 	#endif
@@ -277,12 +256,12 @@ bool DMG_SIO::four_player_receive_byte()
 	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
-	//Check the status of connection
-	SDLNet_CheckSockets(four_player_tcp_sockets, 0);
-
 	//If this socket is active, receive the transfer
 	for(int x = 0; x < 3; x++)
 	{
+		//Check the status of connection
+		SDLNet_CheckSockets(four_player_server[x].tcp_sockets, 0);
+
 		if((four_player_server[x].remote_socket != NULL) && (SDLNet_SocketReady(four_player_server[x].remote_socket)))
 		{
 			if(net_util::recv_data(four_player_server[x], temp_buffer, 2, true) > 0)

@@ -35,20 +35,8 @@ DMG_SIO::~DMG_SIO()
 
 	//Close any current connections - Four Player
 	four_player_disconnect();
-		
-	//Close SDL_net and any current connections
-	if(server.host_socket != NULL)
-	{
-		SDLNet_TCP_DelSocket(server.tcp_sockets, server.host_socket);
-		if(server.host_init) { SDLNet_TCP_Close(server.host_socket); }
-	}
 
-	if(server.remote_socket != NULL)
-	{
-		SDLNet_TCP_DelSocket(server.tcp_sockets, server.remote_socket);
-		if(server.remote_init) { SDLNet_TCP_Close(server.remote_socket); }
-	}
-
+	//Regular disconnect signal
 	if(sender.host_socket != NULL)
 	{
 		//Close connection with real Mobile Adapter GB server
@@ -60,18 +48,11 @@ DMG_SIO::~DMG_SIO()
 			temp_buffer[1] = 0x80;
 		
 			net_util::send_data(sender, temp_buffer, 2);
-
-			SDLNet_TCP_DelSocket(sender.tcp_sockets, sender.host_socket);
-			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
 	}
 
-	server.connected = false;
-	sender.connected = false;
-
-	server.host_init = false;
-	server.remote_init = false;
-	sender.host_init = false;
+	net_util::close_comm(server);
+	net_util::close_comm(sender);
 
 	SDLNet_Quit();
 

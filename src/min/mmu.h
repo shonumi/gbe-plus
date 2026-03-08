@@ -159,8 +159,6 @@ class MIN_MMU
 	//Sending client
 	gbe_net_comm sender[10];
 
-	SDLNet_SocketSet tcp_sockets[10];
-
 	#endif
 
 	//Advanced debugging

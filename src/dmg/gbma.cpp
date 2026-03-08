@@ -1523,8 +1523,7 @@ void DMG_SIO::mobile_adapter_close_tcp()
 {
 	#ifdef GBE_NETPLAY
 
-	SDLNet_TCP_DelSocket(sender.tcp_sockets, sender.host_socket);
-	SDLNet_TCP_Close(sender.host_socket);
+	net_util::close_comm(sender);
 
 	#endif
 }
