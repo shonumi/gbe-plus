@@ -23,8 +23,8 @@
 
 enum net_comm_role
 {
-	NET_COMM_SERVER,
-	NET_COMM_CLIENT,
+	NET_COMM_SERVER = true,
+	NET_COMM_CLIENT = false,
 };
 
 enum net_comm_misc

@@ -66,7 +66,7 @@ AGB_SIO::~AGB_SIO()
 	{
 		u8 temp_buffer[6] = { 0, 0, 0, 0, 0, 0x80 };
 		
-		SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6);
+		net_util::send_data(sender,temp_buffer, 6);
 	}
 
 	//Close SDL_net and any current connections
@@ -468,7 +468,7 @@ void AGB_SIO::reset()
 			//Send disconnect byte to another system
 			u8 temp_buffer[6] = { 0, 0, 0, 0, 0, 0x80 };
 		
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6);
+			net_util::send_data(sender, temp_buffer, 6);
 
 			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
 		}
@@ -513,7 +513,7 @@ bool AGB_SIO::send_data()
 			break;
 	}
 
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6) < 0)
+	if(net_util::send_data(sender, temp_buffer, 6) < 0)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
@@ -528,7 +528,7 @@ bool AGB_SIO::send_data()
 	}
 
 	//Wait for other GBA to acknowledge
-	if(SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 6) >= 6)
+	if(net_util::recv_data(server, temp_buffer, 6, NET_COMM_IS_BLOCKING) >= 6)
 	{
 		//16-bit Multiplayer
 		if((sio_stat.sio_mode == MULTIPLAY_16BIT) && (temp_buffer[5] == 0x48))
@@ -651,7 +651,7 @@ bool AGB_SIO::receive_byte()
 			temp_buffer[5] = 0x01;
 
 			//Send acknowlegdement
-			SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6);
+			net_util::send_data(sender, temp_buffer, 6);
 
 			return true;
 		}
@@ -736,7 +736,7 @@ bool AGB_SIO::receive_byte()
 			temp_buffer[4] = sio_stat.player_id;
 
 			//Send acknowledgement
-			if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6) < 0)
+			if(net_util::send_data(sender, temp_buffer, 6) < 0)
 			{
 				std::cout<<"SIO::Error - Host failed to send data to client\n";
 				sio_stat.connected = false;
@@ -775,7 +775,7 @@ bool AGB_SIO::request_sync()
 	u8 temp_buffer[6] = { 0, 0, sio_stat.sync_delay, sio_stat.sio_mode, sio_stat.player_id, 0xFF } ;
 
 	//Send the sync code 0xFF
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6) < 0)
+	if(net_util::send_data(sender, temp_buffer, 6) < 0)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
@@ -799,7 +799,7 @@ bool AGB_SIO::stop_sync()
 	u8 temp_buffer[6] = { 0, 0, 0, 0, 0, 0xF1 };
 
 	//Send the stop sync code 0xF1
-	if(SDLNet_TCP_Send(sender.host_socket, (void*)temp_buffer, 6) < 0)
+	if(net_util::send_data(sender, temp_buffer, 6) < 0)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		sio_stat.connected = false;
