@@ -17,12 +17,16 @@ namespace net_util
 //Sends data from server to remote client
 s32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking)
 {
+	if(client.host_socket == NULL) { return 0; }
+
 	return SDLNet_TCP_Send(client.host_socket, buffer, length);
 }
 
 //Receives data from remote client sent to server
 s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 {
+	if(server.remote_socket == NULL) { return 0; }
+
 	s32 bytes_recv = 0;
 
 	if(is_blocking)
@@ -44,6 +48,8 @@ s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 //Receives response data on same host. Used for HTTP TCP transfers (Mobile Adapter GB)
 s32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
 {
+	if(client.host_socket == NULL) { return 0; }
+
 	return SDLNet_TCP_Recv(client.host_socket, buffer, length);
 }
 
@@ -85,6 +91,8 @@ void close_tcp(gbe_net_comm &req)
 //Accepts a connection from a client for a server
 bool accept_client(gbe_net_comm &req)
 {
+	if(req.host_socket == NULL) { return false; }
+
 	bool result = false;
 
 	req.remote_socket = SDLNet_TCP_Accept(req.host_socket);
