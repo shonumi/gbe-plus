@@ -33,16 +33,12 @@ bool DMG_SIO::four_player_init()
 
 	for(int x = 0; x < 3; x++)
 	{
-		//Server info
-		four_player_server[x].host_socket = NULL;
-		four_player_server[x].remote_socket = NULL;
-		four_player_server[x].connected = false;
-		four_player_server[x].port = config::netplay_server_port + (x * 2);
+		u16 server_port = config::netplay_server_port + (x * 2);
+		u16 sender_port = config::netplay_client_port + (x * 2);
 
-		//Client info
-		four_player_sender[x].host_socket = NULL;
-		four_player_sender[x].connected = false;
-		four_player_sender[x].port = config::netplay_client_port + (x * 2);
+		//Server and Client info
+		net_util::setup_comm(four_player_server[x], server_port, NET_COMM_SERVER);
+		net_util::setup_comm(four_player_sender[x], sender_port, NET_COMM_CLIENT);	
 
 		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
 		if(net_util::resolve_host(four_player_server[x], "") < 0)

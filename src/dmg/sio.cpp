@@ -531,73 +531,147 @@ void DMG_SIO::reset()
 	//Close any current connections
 	if(network_init)
 	{
-		for(int x = 0; x < 3; x++)
+		//Reset all connections for DMG-07
+		if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
 		{
-			//Send disconnect byte to other systems
-			if((four_player_server[x].connected) && (four_player_sender[x].connected))
+			bool server_init = false;
+
+			//Determine master-slave relationship to the network
+			is_master = (config::netplay_server_port < config::netplay_client_port) ? true : false;
+
+			for(int x = 0; x < 3; x++)
 			{
-				u8 temp_buffer[2];
-				temp_buffer[0] = 0;
-				temp_buffer[1] = 0x80;
+				//Send disconnect byte to other systems
+				if((four_player_server[x].connected) && (four_player_sender[x].connected))
+				{
+					u8 temp_buffer[2];
+					temp_buffer[0] = 0;
+					temp_buffer[1] = 0x80;
 
-				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+					net_util::send_data(four_player_sender[x], temp_buffer, 2);
+				}
+
+				net_util::close_comm(four_player_server[x]);
+				net_util::close_comm(four_player_sender[x]);
+
+				//Server and Client info
+				net_util::setup_comm(four_player_server[x], four_player_server[x].port, NET_COMM_SERVER);
+				net_util::setup_comm(four_player_sender[x], four_player_sender[x].port, NET_COMM_CLIENT);
+
+				//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+				if(net_util::resolve_host(four_player_server[x], "") < 0)
+				{
+					std::cout<<"SIO::Error - Server could not resolve hostname\n";
+					return;
+				}
+
+				//Open a connection to listen on host's port
+				if((!server_init) || (is_master))
+				{
+					if(!net_util::open_tcp(four_player_server[x]))
+					{
+						if((is_master) || ((x == 2) && (!is_master)))
+						{
+							std::cout<<"SIO::Error - Server could not open a connection on Port " << four_player_server[x].port << "\n";
+							return;
+						}
+					}
+				}
+
+				else { server_init = true; }
+
+				//Setup client, listen on another port
+				if(net_util::resolve_host(four_player_sender[x], config::netplay_client_ip) < 0)
+				{
+					std::cout<<"SIO::Error - Client could not resolve hostname\n";
+					return;
+				}
 			}
+		}
 
-			if((four_player_server[x].host_socket != NULL) && (four_player_server[x].connected))
-			{
-				SDLNet_TCP_Close(four_player_server[x].host_socket);
-			}
-
-			if((four_player_server[x].remote_socket != NULL) && (four_player_server[x].connected))
-			{
-				SDLNet_TCP_Close(four_player_server[x].remote_socket);
-			}
-
-			if((four_player_sender[x].host_socket != NULL) && (four_player_sender[x].connected))
-			{
-				SDLNet_TCP_Close(four_player_sender[x].host_socket);
-			}
-
-			four_player_server[x].connected = false;
-			four_player_sender[x].connected = false;
+		//Reset all connections for HuC-IR
+		else if(config::cart_type == DMG_HUC_IR)
+		{
+			set_huc_ir_connection();
 		}
 		
-		if((server.host_socket != NULL) && (server.host_init))
+		//Reset all connections for live connection to emulated Mobile Adapter GB servers
+		else if((sio_stat.sio_type == GB_MOBILE_ADAPTER) && (config::use_real_gbma_server))
 		{
-			SDLNet_TCP_Close(server.host_socket);
+			net_util::close_comm(sender);		
+			net_util::setup_comm(sender, config::gbma_server_http_port, NET_COMM_CLIENT);
+
+			if(!mobile_adapter_open_tcp(config::gbma_server_http_port)) { return; }
+
+			mobile_adapter_close_tcp();
 		}
 
-		if((server.remote_socket != NULL) && (server.remote_init))
+		//Reset all other connections (DMG-GBC Link Cable, GBC IR)
+		else
 		{
-			SDLNet_TCP_Close(server.remote_socket);
+			//Regular disconnect signal
+			if(sender.host_socket != NULL)
+			{
+				//Close connection with real Mobile Adapter GB server
+				if((sio_stat.sio_type != GB_MOBILE_ADAPTER) && (!config::use_real_gbma_server))
+				{
+					//Send disconnect byte to another system
+					u8 temp_buffer[2];
+					temp_buffer[0] = 0;
+					temp_buffer[1] = 0x80;
+		
+					net_util::send_data(sender, temp_buffer, 2);
+				}
+			}
+
+			net_util::close_comm(server);
+			net_util::close_comm(sender);
+
+			//Server and Client info
+			net_util::setup_comm(server, config::netplay_server_port, NET_COMM_SERVER);
+			net_util::setup_comm(sender, config::netplay_client_port, NET_COMM_CLIENT);
+
+			//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+			if(net_util::resolve_host(server, "") < 0)
+			{
+				std::cout<<"SIO::Error - Server could not resolve hostname\n";
+				return;
+			}
+
+			//Open a connection to listen on host's port
+			if(!net_util::open_tcp(server))
+			{
+				std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
+				return;
+			}
+
+			server.host_init = true;
+
+			//Setup client, listen on another port
+			if(net_util::resolve_host(sender, config::netplay_client_ip) < 0)
+			{
+				std::cout<<"SIO::Error - Client could not resolve hostname\n";
+				return;
+			}
 		}
 
-		if(sender.host_socket != NULL)
+		//Reset hard sync settings appropiately (see init() above for more details)
+		if(config::netplay_hard_sync)
 		{
-			//Send disconnect byte to another system
-			u8 temp_buffer[2];
-			temp_buffer[0] = 0;
-			temp_buffer[1] = 0x80;
+			if((config::cart_type == DMG_HUC_IR) || (config::sio_device == SIO_DMG_LINK_CABLE)
+			|| (config::ir_device == IR_GBC))
+			{
+				sio_stat.use_hard_sync = false;
+			}
 
-			net_util::send_data(sender, temp_buffer, 2);
-
-			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
+			else if(config::sio_device == SIO_4_PLAYER_ADAPTER)
+			{
+				sio_stat.use_hard_sync = true;
+			}
 		}
+
+		else { sio_stat.use_hard_sync = false; }
 	}
-
-	//Server info
-	server.host_socket = NULL;
-	server.host_init = false;
-	server.remote_socket = NULL;
-	server.remote_init = false;
-	server.connected = false;
-	server.port = config::netplay_server_port;
-
-	//Client info
-	sender.host_socket = NULL;
-	sender.host_init = false;
-	sender.connected = false;
-	sender.port = config::netplay_client_port;
 
 	#endif
 
@@ -677,9 +751,7 @@ bool DMG_SIO::send_ir_signal()
 	if(net_util::send_data(sender, temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
+		reset();
 		return false;
 	}
 
@@ -707,6 +779,7 @@ bool DMG_SIO::receive_byte()
 	#ifdef GBE_NETPLAY
 
 	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { return four_player_receive_byte(); }
+	if((!sio_stat.connected) || (server.tcp_sockets == NULL)) { return false; }
 
 	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
@@ -758,7 +831,9 @@ bool DMG_SIO::receive_byte()
 			sio_stat.sync = false;
 			sio_stat.sync_counter = 0;
 
+			//Reset network connections
 			if(config::cart_type == DMG_HUC_IR) { set_huc_ir_connection(); }
+			else { reset(); }
 
 			return true;
 		}
@@ -850,9 +925,7 @@ bool DMG_SIO::receive_byte()
 		if(net_util::send_data(sender, temp_buffer, 2) < 2)
 		{
 			std::cout<<"SIO::Error - Host failed to send data to client\n";
-			sio_stat.connected = false;
-			server.connected = false;
-			sender.connected = false;
+			reset();
 			return false;
 		}
 	}
@@ -885,9 +958,7 @@ bool DMG_SIO::request_sync()
 	if(net_util::send_data(sender, temp_buffer, 2) < 2)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
+		reset();
 		return false;
 	}
 
@@ -995,6 +1066,8 @@ void DMG_SIO::resume_network_connection()
 	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
+	if(server.tcp_sockets == NULL) { return; }
+
 	//Check the status of connection
 	SDLNet_CheckSockets(server.tcp_sockets, 0);
 
@@ -1026,31 +1099,19 @@ void DMG_SIO::set_huc_ir_connection()
 
 	if(network_init)
 	{
-		//Close SDL_net and any current connections
-		if(server.host_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(server.tcp_sockets, server.host_socket);
-			SDLNet_TCP_Close(server.host_socket);
-		}
-
-		if(server.remote_socket != NULL)
-		{
-			SDLNet_TCP_DelSocket(server.tcp_sockets, server.remote_socket);
-			SDLNet_TCP_Close(server.remote_socket);
-		}
-
+		//Regular disconnect signal
 		if(sender.host_socket != NULL)
 		{
 			//Send disconnect byte to another system
 			u8 temp_buffer[2];
 			temp_buffer[0] = 0;
 			temp_buffer[1] = 0x80;
-
+		
 			net_util::send_data(sender, temp_buffer, 2);
-
-			SDLNet_TCP_DelSocket(sender.tcp_sockets, sender.host_socket);
-			SDLNet_TCP_Close(sender.host_socket);
 		}
+
+		net_util::close_comm(server);
+		net_util::close_comm(sender);
 
 		config::netplay_id &= 0x0F;
 		mem->ir_stat.network_id &= 0x0F;
