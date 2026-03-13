@@ -703,9 +703,7 @@ bool DMG_SIO::send_byte()
 		if(net_util::send_data(sender, temp_buffer, 2) < 2)
 		{
 			std::cout<<"SIO::Error - Host failed to send data to client\n";
-			sio_stat.connected = false;
-			server.connected = false;
-			sender.connected = false;
+			reset();
 			return false;
 		}
 
@@ -737,7 +735,7 @@ bool DMG_SIO::send_byte()
 /****** Transfers one bit to another system's IR port ******/
 bool DMG_SIO::send_ir_signal()
 {
-	if(sio_stat.ir_type == NO_GB_IR) { return true; }
+	if((sio_stat.ir_type != GBC_IR_PORT) && (config::cart_type != DMG_HUC_IR)) { return false; }
 
 	#ifdef GBE_NETPLAY
 
@@ -832,8 +830,7 @@ bool DMG_SIO::receive_byte()
 			sio_stat.sync_counter = 0;
 
 			//Reset network connections
-			if(config::cart_type == DMG_HUC_IR) { set_huc_ir_connection(); }
-			else { reset(); }
+			reset();
 
 			return true;
 		}

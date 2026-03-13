@@ -29,8 +29,8 @@ enum net_comm_role
 
 enum net_comm_misc
 {
-	NET_COMM_IS_BLOCKING,
-	NET_COMM_IS_NONBLOCKING,
+	NET_COMM_IS_BLOCKING = true,
+	NET_COMM_IS_NONBLOCKING = false,
 };
 
 //Acts as both server/client, depending on usage

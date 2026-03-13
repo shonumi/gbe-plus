@@ -256,205 +256,203 @@ bool DMG_SIO::four_player_receive_byte()
 	for(int x = 0; x < 3; x++)
 	{
 		//Check the status of connection
+		//This is non-blocking
 		SDLNet_CheckSockets(four_player_server[x].tcp_sockets, 0);
 
-		if((four_player_server[x].remote_socket != NULL) && (SDLNet_SocketReady(four_player_server[x].remote_socket)))
+		if(net_util::recv_data(four_player_server[x], temp_buffer, 2) > 0)
 		{
-			if(net_util::recv_data(four_player_server[x], temp_buffer, 2, true) > 0)
+			//4-Player - Confirm SB write for Players 2, 3, and 4
+			if(temp_buffer[1] == 0xFE)
 			{
-				//4-Player - Confirm SB write for Players 2, 3, and 4
-				if(temp_buffer[1] == 0xFE)
-				{
-					temp_buffer[0] = sio_stat.send_data ? 1 : 0;
-					temp_buffer[1] = 0x1;
+				temp_buffer[0] = sio_stat.send_data ? 1 : 0;
+				temp_buffer[1] = 0x1;
 
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
-					return true;
-				}
+				return true;
+			}
 
-				//4-Player - Receive status update from Player 1
-				else if(temp_buffer[1] == 0xFD)
-				{
-					four_player_update_status(temp_buffer[0]);
+			//4-Player - Receive status update from Player 1
+			else if(temp_buffer[1] == 0xFD)
+			{
+				four_player_update_status(temp_buffer[0]);
 	
-					temp_buffer[0] = four_player.status;
-					temp_buffer[1] = 0x1;
+				temp_buffer[0] = four_player.status;
+				temp_buffer[1] = 0x1;
 
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
 
-					return true;
-				}
+				return true;
+			}
 
-				//4-Player - Receive and process serial out byte
-				else if(temp_buffer[1] == 0xFC)
-				{
-					mem->memory_map[REG_SB] = temp_buffer[0];
-					mem->memory_map[IF_FLAG] |= 0x08;
-
-					temp_buffer[1] = 0x1;
-
-					if((four_player.current_state == FOUR_PLAYER_PING) && (temp_buffer[0] == 0xCC))
-					{
-						four_player.current_state = FOUR_PLAYER_SYNC;
-						sio_stat.ping_count = 0;
-					}
-
-					else if((four_player.current_state == FOUR_PLAYER_SYNC) && (temp_buffer[0] != 0xCC))
-					{
-						four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
-						sio_stat.ping_count = 0;
-					}
-
-					switch(four_player.current_state)
-					{
-						//Handle ping
-						case FOUR_PLAYER_PING:
-
-							//Update current link status
-							if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
-							{
-								if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
-								else { four_player.status &= ~(1 << (four_player.id + 3)); }
-							}
-
-							//Return magic byte for 1st byte
-							if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
-
-							//Otherwise, return status byte
-							else { mem->memory_map[REG_SB] = four_player.status; }
-
-							sio_stat.ping_count++;
-							sio_stat.ping_count &= 0x3;
-
-							break;
-					}
-
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
-
-					return true;
-				}
-
-				//4-Player - Return current transfer value
-				else if(temp_buffer[1] == 0xFB)
-				{
-					temp_buffer[0] = sio_stat.transfer_byte;
-					temp_buffer[1] = 0x1;
-
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
-
-					return true;
-				}
-
-				//4-Player - Reset status
-				else if(temp_buffer[1] == 0xFA)
-				{
-					temp_buffer[1] = 0x1;
-	
-					four_player.status &= 0x7;
-					four_player.current_state = FOUR_PLAYER_PING;
-					sio_stat.ping_count = 0;
-
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
-
-					return true;
-				}
-
-				//Request sync status
-				if(temp_buffer[1] == 0xF8)
-				{
-					temp_buffer[0] = sio_stat.sync ? 1 : 0;
-					temp_buffer[1] = 0x1;
-
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
-
-					return true;
-				}
-
-				//4-Player - Confirm SB write for Players 2, 3, and 4
-				if(temp_buffer[1] == 0xF7)
-				{
-					sio_stat.send_data = false;
-					temp_buffer[1] = 0x1;
-
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
-
-					return true;
-				}
-
-				//Stop sync with acknowledgement
-				if(temp_buffer[1] == 0xF0)
-				{
-					sio_stat.sync = false;
-					sio_stat.sync_counter = 0;
-
-					temp_buffer[1] = 0x1;
-
-					//Send acknowlegdement
-					net_util::send_data(four_player_sender[x], temp_buffer, 2);
-
-					return true;
-				}
-
-				//Disconnect netplay
-				else if(temp_buffer[1] == 0x80)
-				{
-					std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
-					sio_stat.connected = false;
-					sio_stat.sync = false;
-					return true;
-
-					if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
-					{
-						four_player.wait_flags = 0;
-					
-						//Resume ping for Players 2-4
-						if((sio_stat.network_id & 0x40) && (four_player.current_state))
-						{
-							sio_stat.network_id &= ~0x40;
-							sio_stat.network_id |= 0x80;
-
-							sio_stat.active_transfer = true;
-							sio_stat.shifts_left = 8;
-							sio_stat.shift_counter = 0;
-							sio_stat.shift_clock = 4096;
-						}
-					}
-
-					return true;
-				}
-
-				else if(temp_buffer[1] != 0) { return true; }
-
-				//Raise SIO IRQ after sending byte
+			//4-Player - Receive and process serial out byte
+			else if(temp_buffer[1] == 0xFC)
+			{
+				mem->memory_map[REG_SB] = temp_buffer[0];
 				mem->memory_map[IF_FLAG] |= 0x08;
 
-				//Store byte from transfer into SB
-				sio_stat.transfer_byte = mem->memory_map[REG_SB];
-				mem->memory_map[REG_SB] = temp_buffer[0];
+				temp_buffer[1] = 0x1;
 
-				//Reset Bit 7 of SC
-				mem->memory_map[REG_SC] &= ~0x80;
-
-				//Send other Game Boy the old SB value
-				temp_buffer[0] = sio_stat.transfer_byte;
-				sio_stat.transfer_byte = mem->memory_map[REG_SB];
-
-				if(net_util::send_data(four_player_sender[x], temp_buffer, 2) < 2)
+				if((four_player.current_state == FOUR_PLAYER_PING) && (temp_buffer[0] == 0xCC))
 				{
-					std::cout<<"SIO::Error - Host failed to send data to client\n";
-					sio_stat.connected = false;
-					four_player_server[x].connected = false;
-					four_player_sender[x].connected = false;
-					return false;
+					four_player.current_state = FOUR_PLAYER_SYNC;
+					sio_stat.ping_count = 0;
 				}
+
+				else if((four_player.current_state == FOUR_PLAYER_SYNC) && (temp_buffer[0] != 0xCC))
+				{
+					four_player.current_state = FOUR_PLAYER_PROCESS_NETWORK;
+					sio_stat.ping_count = 0;
+				}
+
+				switch(four_player.current_state)
+				{
+					//Handle ping
+					case FOUR_PLAYER_PING:
+
+						//Update current link status
+						if((sio_stat.ping_count == 1) || (sio_stat.ping_count == 2))
+						{
+							if(sio_stat.transfer_byte == 0x88) { four_player.status |= (1 << (four_player.id + 3)); }
+							else { four_player.status &= ~(1 << (four_player.id + 3)); }
+						}
+
+						//Return magic byte for 1st byte
+						if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
+
+						//Otherwise, return status byte
+						else { mem->memory_map[REG_SB] = four_player.status; }
+
+						sio_stat.ping_count++;
+						sio_stat.ping_count &= 0x3;
+
+						break;
+				}
+
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+
+				return true;
+			}
+
+			//4-Player - Return current transfer value
+			else if(temp_buffer[1] == 0xFB)
+			{
+				temp_buffer[0] = sio_stat.transfer_byte;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+
+				return true;
+			}
+
+			//4-Player - Reset status
+			else if(temp_buffer[1] == 0xFA)
+			{
+				temp_buffer[1] = 0x1;
+	
+				four_player.status &= 0x7;
+				four_player.current_state = FOUR_PLAYER_PING;
+				sio_stat.ping_count = 0;
+
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+
+				return true;
+			}
+
+			//Request sync status
+			if(temp_buffer[1] == 0xF8)
+			{
+				temp_buffer[0] = sio_stat.sync ? 1 : 0;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+
+				return true;
+			}
+
+			//4-Player - Confirm SB write for Players 2, 3, and 4
+			if(temp_buffer[1] == 0xF7)
+			{
+				sio_stat.send_data = false;
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+
+				return true;
+			}
+
+			//Stop sync with acknowledgement
+			if(temp_buffer[1] == 0xF0)
+			{
+				sio_stat.sync = false;
+				sio_stat.sync_counter = 0;
+
+				temp_buffer[1] = 0x1;
+
+				//Send acknowlegdement
+				net_util::send_data(four_player_sender[x], temp_buffer, 2);
+
+				return true;
+			}
+
+			//Disconnect netplay
+			else if(temp_buffer[1] == 0x80)
+			{
+				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+				sio_stat.connected = false;
+				sio_stat.sync = false;
+				return true;
+
+				if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+				{
+					four_player.wait_flags = 0;
+					
+					//Resume ping for Players 2-4
+					if((sio_stat.network_id & 0x40) && (four_player.current_state))
+					{
+						sio_stat.network_id &= ~0x40;
+						sio_stat.network_id |= 0x80;
+
+						sio_stat.active_transfer = true;
+						sio_stat.shifts_left = 8;
+						sio_stat.shift_counter = 0;
+						sio_stat.shift_clock = 4096;
+					}
+				}
+
+				return true;
+			}
+
+			else if(temp_buffer[1] != 0) { return true; }
+
+			//Raise SIO IRQ after sending byte
+			mem->memory_map[IF_FLAG] |= 0x08;
+
+			//Store byte from transfer into SB
+			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+			mem->memory_map[REG_SB] = temp_buffer[0];
+
+			//Reset Bit 7 of SC
+			mem->memory_map[REG_SC] &= ~0x80;
+
+			//Send other Game Boy the old SB value
+			temp_buffer[0] = sio_stat.transfer_byte;
+			sio_stat.transfer_byte = mem->memory_map[REG_SB];
+
+			if(net_util::send_data(four_player_sender[x], temp_buffer, 2) < 2)
+			{
+				std::cout<<"SIO::Error - Host failed to send data to client\n";
+				sio_stat.connected = false;
+				four_player_server[x].connected = false;
+				four_player_sender[x].connected = false;
+				return false;
 			}
 		}
 	}
