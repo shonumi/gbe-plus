@@ -1489,8 +1489,9 @@ void DMG_core::start_netplay()
 	//Wait 10 seconds before timing out
 	u32 time_out = 0;
 
-	if(core_cpu.controllers.serial_io.network_init && !core_cpu.controllers.serial_io.sio_stat.connected
+	if((core_cpu.controllers.serial_io.network_init && !core_cpu.controllers.serial_io.sio_stat.connected
 	&& core_cpu.controllers.serial_io.server.connected && core_cpu.controllers.serial_io.sender.connected)
+	&& (core_cpu.controllers.serial_io.sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER))
 	{
 		while(time_out < 10000)
 		{
@@ -1502,8 +1503,8 @@ void DMG_core::start_netplay()
 			//Process network connections
 			core_cpu.controllers.serial_io.resume_network_connection();
 
-			//Check again if the GBE+ instances connected, exit waiting if not the 4-Player adapter
-			if((core_cpu.controllers.serial_io.sio_stat.connected) && (core_cpu.controllers.serial_io.sio_stat.sio_type != GB_FOUR_PLAYER_ADAPTER))
+			//Check again if the GBE+ instances connected
+			if(core_cpu.controllers.serial_io.sio_stat.connected)
 			{
 				std::cout<<"SIO::Netplay connection resumed.\n";
 				break;
