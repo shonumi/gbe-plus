@@ -198,13 +198,6 @@ bool DMG_SIO::init()
 		sio_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? 64 : 0;
 	}
 
-	//Default Four Player settings 
-	for(u32 x = 0; x < 3; x++)
-	{
-		net_util::setup_comm(four_player_server[x], 0, NET_COMM_SERVER);
-		net_util::setup_comm(four_player_sender[x], 0, NET_COMM_CLIENT);
-	}
-
 	//When using infrared communications, wait until transfers start before using hard sync
 	//When using the Link Cable, also wait until transfers start before using hard sync
 	//Hard sync is *always* on for the 4-Player Adapter (this probably won't change)
