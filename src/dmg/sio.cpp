@@ -34,10 +34,13 @@ DMG_SIO::~DMG_SIO()
 	#ifdef GBE_NETPLAY
 
 	//Close any current connections - Four Player
-	four_player_disconnect();
+	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
+	{
+		four_player_disconnect();
+	}
 
 	//Regular disconnect signal
-	if(sender.host_socket != NULL)
+	else
 	{
 		//Close connection with real Mobile Adapter GB server
 		if((sio_stat.sio_type != GB_MOBILE_ADAPTER) && (!config::use_real_gbma_server))
@@ -49,10 +52,10 @@ DMG_SIO::~DMG_SIO()
 		
 			net_util::send_data(sender, temp_buffer, 2);
 		}
-	}
 
-	net_util::close_comm(server);
-	net_util::close_comm(sender);
+		net_util::close_comm(server);
+		net_util::close_comm(sender);
+	}
 
 	SDLNet_Quit();
 
@@ -207,11 +210,6 @@ bool DMG_SIO::init()
 		|| (config::ir_device == IR_GBC))
 		{
 			sio_stat.use_hard_sync = false;
-		}
-
-		else if(config::sio_device == SIO_4_PLAYER_ADAPTER)
-		{
-			sio_stat.use_hard_sync = true;
 		}
 	}
 

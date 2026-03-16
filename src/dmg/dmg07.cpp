@@ -106,9 +106,9 @@ void DMG_SIO::four_player_disconnect()
 		}
 	}
 
+	//Close any current connections
 	for(int x = 0; x < 3; x++)
 	{
-		//Close SDL_net and any current connections
 		net_util::close_comm(four_player_server[x]);
 		net_util::close_comm(four_player_sender[x]);
 	}
@@ -129,7 +129,6 @@ void DMG_SIO::four_player_process_network_communication()
 			if(net_util::accept_client(four_player_server[x]))
 			{
 				std::cout<<"SIO::Client #" << (x + 1) << " connected\n";
-				std::cout<<"CLIENT X -> " << x << "\n";
 			}
 		}
 
@@ -140,7 +139,6 @@ void DMG_SIO::four_player_process_network_communication()
 			if(net_util::accept_server(four_player_sender[x]))
 			{
 				std::cout<<"SIO::Connected to server\n";
-				std::cout<<"SERVER X -> " << x << "\n";
 			}
 		}
 
@@ -522,8 +520,6 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 
 	if(!sio_stat.connected || !is_master) { return 0; }
 
-	std::cout<<"REQUEST -> 0x" << u32(data_one) << " :: 0x" << u32(data_two) << " :: 0x" << u32(id) << "\n";
-
 	u8 temp_buffer[2];
 	temp_buffer[0] = data_one;
 	temp_buffer[1] = data_two;
@@ -619,9 +615,7 @@ void DMG_SIO::four_player_process()
 			if(req_byte[2] & 0x80) { four_player.status |= 0x80; }
 			else { four_player.status &= ~0x80; }
 
-			std::cout<<"HEY START\n";
 			four_player_broadcast(four_player.status, 0xFD);
-			std::cout<<"HEY END\n";
 
 			//Player 1 - Return magic byte for 1st byte
 			if(sio_stat.ping_count == 0) { mem->memory_map[REG_SB] = 0xFE; }
