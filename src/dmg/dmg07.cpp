@@ -62,6 +62,8 @@ bool DMG_SIO::four_player_init()
 			else { server_init = true; }
 		}
 
+		four_player_server[x].host_init = true;
+
 		//Setup client, listen on another port
 		if(net_util::resolve_host(four_player_sender[x], config::netplay_client_ip) < 0)
 		{
@@ -406,8 +408,7 @@ bool DMG_SIO::four_player_receive_byte()
 				else if(temp_buffer[1] == 0x80)
 				{
 					std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
-					sio_stat.connected = false;
-					sio_stat.sync = false;
+					reset();
 					return true;
 
 					if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)

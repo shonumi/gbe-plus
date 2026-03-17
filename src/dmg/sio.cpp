@@ -545,9 +545,12 @@ void DMG_SIO::reset()
 				net_util::close_comm(four_player_server[x]);
 				net_util::close_comm(four_player_sender[x]);
 
+				u16 server_port = config::netplay_server_port + (x * 2);
+				u16 sender_port = config::netplay_client_port + (x * 2);
+
 				//Server and Client info
-				net_util::setup_comm(four_player_server[x], four_player_server[x].port, NET_COMM_SERVER);
-				net_util::setup_comm(four_player_sender[x], four_player_sender[x].port, NET_COMM_CLIENT);
+				net_util::setup_comm(four_player_server[x], server_port, NET_COMM_SERVER);
+				net_util::setup_comm(four_player_sender[x], sender_port, NET_COMM_CLIENT);
 
 				//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
 				if(net_util::resolve_host(four_player_server[x], "") < 0)
@@ -571,12 +574,16 @@ void DMG_SIO::reset()
 
 				else { server_init = true; }
 
+				four_player_server[x].host_init = true;
+
 				//Setup client, listen on another port
 				if(net_util::resolve_host(four_player_sender[x], config::netplay_client_ip) < 0)
 				{
 					std::cout<<"SIO::Error - Client could not resolve hostname\n";
 					return;
 				}
+
+				sio_stat.use_hard_sync = true;
 			}
 		}
 
@@ -653,11 +660,6 @@ void DMG_SIO::reset()
 			|| (config::ir_device == IR_GBC))
 			{
 				sio_stat.use_hard_sync = false;
-			}
-
-			else if(config::sio_device == SIO_4_PLAYER_ADAPTER)
-			{
-				sio_stat.use_hard_sync = true;
 			}
 		}
 
