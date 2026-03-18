@@ -141,6 +141,80 @@ void MIN_MMU::disconnect_ir()
 	std::cout<<"IR::Shutdown\n";
 }
 
+/****** Resets netplay for IR communications ******/
+void MIN_MMU::reset_ir()
+{
+	#ifdef GBE_NETPLAY
+
+	ir_stat.sync = false;
+
+	for(u8 x = 0; x < 10; x++)
+	{
+		if(x == config::netplay_id) { continue; }
+
+		//Send disconnect signal
+		if(sender[x].host_socket != NULL)
+		{
+			//Send disconnect byte to another system
+			u8 temp_buffer[2];
+			temp_buffer[0] = 0;
+			temp_buffer[1] = 0x80;
+		
+			net_util::send_data(sender[x], temp_buffer, 2);
+		}
+
+		//Close SDL_net and any current connections
+		net_util::close_comm(server[x]);
+		net_util::close_comm(sender[x]);
+
+		ir_stat.connected[x] = false;
+
+		u16 server_port = config::netplay_server_port + (10 * config::netplay_id) + x;
+		u16 client_port = config::netplay_server_port + (10 * x) + config::netplay_id;
+
+		net_util::setup_comm(server[x], server_port, NET_COMM_SERVER);
+		net_util::setup_comm(sender[x], client_port, NET_COMM_CLIENT);
+
+		if(x != config::netplay_id)
+		{
+			//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+			if(net_util::resolve_host(server[x], "") < 0)
+			{
+				std::cout<<"IR::Error - Server could not resolve hostname\n";
+				return;
+			}
+
+			//Open a connection to listen on host's port
+			if(!net_util::open_tcp(server[x]))
+			{
+				std::cout<<"IR::Error - Server could not open a connection on Port " << server[x].port << "\n";
+				return;
+			}
+
+			server[x].host_init = true;
+
+			//Setup client, listen on another port
+			if(net_util::resolve_host(sender[x], config::netplay_client_ip) < 0)
+			{
+				std::cout<<"IR::Error - Client could not resolve hostname\n";
+				return;
+			}
+		}
+	}
+
+	//Initialize hard syncing
+	if(config::netplay_hard_sync)
+	{
+		//The instance with the highest server port will start off waiting in sync mode
+		ir_stat.sync_counter = (config::netplay_server_port > config::netplay_client_port) ? config::netplay_sync_threshold : 0;
+		ir_stat.sync_balance = (config::netplay_server_port > config::netplay_client_port) ? 4 : 0;
+	}
+
+	#endif
+
+	std::cout<<"IR::Initialized\n";
+}
+
 /****** Sets up netplay for IR communications ******/
 void MIN_MMU::process_network_communication()
 {
@@ -334,9 +408,8 @@ bool MIN_MMU::recv_byte()
 		//Disconnect netplay
 		else if(temp_buffer[1] == 0x80)
 		{
-			std::cout<<"IR::Netplay connection terminated. Restart to reconnect.\n";
-			ir_stat.connected[id] = false;
-			ir_stat.sync = false;
+			std::cout<<"IR::Netplay connection suspended.\n";
+			reset_ir();
 
 			return true;
 		}

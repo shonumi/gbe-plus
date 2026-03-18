@@ -78,6 +78,7 @@ class MIN_MMU
 	void disconnect_ir();
 	void process_network_communication();
 	bool process_ir();
+	void reset_ir();
 	void process_remote_signal();
 	bool recv_byte();
 	bool request_sync();
