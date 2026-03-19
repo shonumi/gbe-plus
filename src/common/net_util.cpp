@@ -45,6 +45,14 @@ s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 	return bytes_recv;
 }
 
+//Sends response data to server. Used for HTTP TCP transfer (Net Gate)
+s32 send_response(gbe_net_comm &client, void* buffer, u32 length)
+{
+	if(client.remote_socket == NULL) { return 0; }
+
+	return SDLNet_TCP_Send(client.remote_socket, buffer, length);
+}
+
 //Receives response data on same host. Used for HTTP TCP transfers (Mobile Adapter GB)
 s32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
 {
@@ -83,9 +91,17 @@ bool open_tcp(gbe_net_comm &req)
 }
 
 //Closes a TCP connection
-void close_tcp(gbe_net_comm &req)
+void close_tcp(gbe_net_comm &req, net_comm_role role)
 {
+	if(role == NET_COMM_SERVER)
+	{
+		SDLNet_TCP_Close(req.host_socket);
+	}
 
+	else
+	{
+		SDLNet_TCP_Close(req.remote_socket);
+	}
 }
 
 //Accepts a connection from a client for a server

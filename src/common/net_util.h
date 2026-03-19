@@ -50,6 +50,7 @@ namespace net_util
 {
 	s32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking = false);
 	s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking = false);
+	s32 send_response(gbe_net_comm &client, void* buffer, u32 length);
 	s32 recv_response(gbe_net_comm &client, void* buffer, u32 length);
 	s32 resolve_host(gbe_net_comm &req, std::string ip_address);
 
@@ -57,7 +58,7 @@ namespace net_util
 	bool accept_server(gbe_net_comm &req);
 
 	bool open_tcp(gbe_net_comm &req);
-	void close_tcp(gbe_net_comm &req);
+	void close_tcp(gbe_net_comm &req, net_comm_role role);
 
 	void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role);
 	void close_comm(gbe_net_comm &req);
