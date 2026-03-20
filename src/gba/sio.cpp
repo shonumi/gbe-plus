@@ -1367,7 +1367,7 @@ void AGB_SIO::net_gate_process()
 			if(net_util::accept_client(server))
 			{
 				u8 temp_buffer[1024];
-				u32 recv_bytes = SDLNet_TCP_Recv(server.remote_socket, temp_buffer, 1024);
+				u32 recv_bytes = net_util::recv_data(server, temp_buffer, 1024, NET_COMM_IS_BLOCKING);
 
 				//Net Gate protocol is HTTP POST, 4-byte payload (unsigned 32-bit value, MSB first)
 				if(recv_bytes > 0)
@@ -1380,8 +1380,8 @@ void AGB_SIO::net_gate_process()
 					http_data.resize(http_str.length());
 					util::str_to_data(http_data.data(), http_str);
 
-					u32 send_bytes = SDLNet_TCP_Send(server.remote_socket, (void*)http_data.data(), http_data.size());
-					SDLNet_TCP_Close(server.remote_socket);
+					u32 send_bytes = net_util::send_response(server, http_data.data(), http_data.size());
+					net_util::close_tcp(server, NET_COMM_CLIENT);
 
 					//Find end of header + payload data
 					std::string raw_str = util::data_to_str(temp_buffer, 1024);
