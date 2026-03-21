@@ -320,6 +320,7 @@ namespace config
 
 	extern u16 battle_chip_id;
 	extern u16 chip_list[6];
+	extern bool use_intl_beast_link_gate;
 
 	extern u8 turbo_file_options;
 

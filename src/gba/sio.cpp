@@ -324,10 +324,21 @@ void AGB_SIO::reset()
 
 	switch(config::sio_device)
 	{
-		case SIO_BATTLE_CHIP_GATE: chip_gate.unit_code = 0xFFC6; break;
-		case SIO_PROGRESS_CHIP_GATE: chip_gate.unit_code = 0xFFC7; break;
-		case SIO_BEAST_LINK_GATE: chip_gate.unit_code = 0xFFC4; break;
-		default: chip_gate.unit_code = 0;
+		case SIO_BATTLE_CHIP_GATE:
+			chip_gate.unit_code = 0xFFC6;
+			break;
+
+		case SIO_PROGRESS_CHIP_GATE:
+			chip_gate.unit_code = 0xFFC7;
+			break;
+
+		case SIO_BEAST_LINK_GATE:
+			if(config::use_intl_beast_link_gate) { chip_gate.unit_code = 0xFF00; }
+			else { chip_gate.unit_code = 0xFFC4; }
+			break;
+
+		default:
+			chip_gate.unit_code = 0;
 	}
 
 	//Turbo File Advance

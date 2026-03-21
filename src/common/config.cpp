@@ -249,6 +249,9 @@ namespace config
 	//Default Battle Chip IDs
 	u16 chip_list[6] = { 0, 0, 0, 0, 0, 0 };
 
+	//International Beast Link Gate option
+	bool use_intl_beast_link_gate = false;
+
 	//Turbo File options flags
 	u8 turbo_file_options = 0;
 
@@ -1725,6 +1728,9 @@ bool parse_ini_file()
 			}
 		}
 
+		//Use international Beast Link Gate option
+		if(!parse_ini_bool(ini_item, "#use_intl_beast_link_gate", config::use_intl_beast_link_gate, ini_opts, x)) { return false; }
+
 		//Magical Watch Data
 		if(ini_item == "#mw_data")
 		{
@@ -2640,6 +2646,15 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#chip_list:" + val + "]";
 		}
 
+		//International Beast Link Gate option
+		else if(ini_item == "#use_intl_beast_link_gate")
+		{
+			line_pos = output_count[x];
+			std::string val = (config::use_intl_beast_link_gate) ? "1" : "0";
+
+			output_lines[line_pos] = "[#use_intl_beast_link_gate:" + val + "]";
+		}
+
 		//Magical Watch Data
 		else if(ini_item == "#mw_data")
 		{
@@ -3196,6 +3211,7 @@ bool generate_ini_file()
 	ini_contents += "[#con_joy_controls]\n\n";
 	ini_contents += "[#gbe_turbo_button]\n\n";
 	ini_contents += "[#chip_list]\n\n";
+	ini_contents += "[#use_intl_beast_link_gate]\n\n";
 	ini_contents += "[#use_haptics]\n\n";
 	ini_contents += "[#use_motion]\n\n";
 	ini_contents += "[#motion_dead_zone]\n\n";
