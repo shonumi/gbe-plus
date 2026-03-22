@@ -190,6 +190,7 @@ class gen_settings : public QDialog
 	QComboBox* battle_chip_2;
 	QComboBox* battle_chip_3;
 	QComboBox* battle_chip_4;
+	QCheckBox* intl_beast_link_gate_enable;
 
 	//Virtual Cursor controls tab widgets
 	QCheckBox* vc_on;
@@ -276,6 +277,7 @@ class gen_settings : public QDialog
 	void set_real_server();
 	void get_chip_list();
 	void set_battle_chip();
+	void set_beast_link_gate_region();
 	void update_motion_dead_zone();
 	void update_motion_scaler();
 	void update_vc_opacity();
@@ -339,6 +341,7 @@ class gen_settings : public QDialog
 	QWidget* bcg_chip_2_set;
 	QWidget* bcg_chip_3_set;
 	QWidget* bcg_chip_4_set;
+	QWidget* intl_bgl_set;
 
 	QWidget* vc_enable_set;
 	QWidget* vc_opacity_set;
