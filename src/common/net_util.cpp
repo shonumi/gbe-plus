@@ -171,22 +171,23 @@ void close_comm(gbe_net_comm &req)
 {
 	bool is_valid_socket = (req.tcp_sockets != NULL);
 
-	if(req.host_socket != NULL)
-	{
-		if(is_valid_socket) { SDLNet_TCP_DelSocket(req.tcp_sockets, req.host_socket); }
-		if(req.host_init) { SDLNet_TCP_Close(req.host_socket); }
-	}
-
-	if(req.remote_socket != NULL)
-	{
-		if(is_valid_socket) { SDLNet_TCP_DelSocket(req.tcp_sockets, req.remote_socket); }
-		if(req.remote_init) { SDLNet_TCP_Close(req.remote_socket); }
-	}
-
 	if(is_valid_socket)
 	{
+		if(req.host_socket != NULL)
+		{
+			SDLNet_TCP_DelSocket(req.tcp_sockets, req.host_socket);
+		}
+
+		if(req.remote_socket != NULL)
+		{
+			if(is_valid_socket) { SDLNet_TCP_DelSocket(req.tcp_sockets, req.remote_socket); }
+		}
+
 		SDLNet_FreeSocketSet(req.tcp_sockets);
 	}
+
+	SDLNet_TCP_Close(req.host_socket);
+	SDLNet_TCP_Close(req.remote_socket);
 
 	req.host_socket = NULL;
 	req.host_init = false;
