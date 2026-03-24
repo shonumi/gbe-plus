@@ -525,11 +525,6 @@ void DMG_SIO::reset()
 		//Reset all connections for DMG-07
 		if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
 		{
-			bool server_init = false;
-
-			//Determine master-slave relationship to the network
-			is_master = (config::netplay_server_port < config::netplay_client_port) ? true : false;
-
 			for(int x = 0; x < 3; x++)
 			{
 				//Send disconnect byte to other systems
@@ -544,46 +539,6 @@ void DMG_SIO::reset()
 
 				net_util::close_comm(four_player_server[x]);
 				net_util::close_comm(four_player_sender[x]);
-
-				u16 server_port = config::netplay_server_port + (x * 2);
-				u16 sender_port = config::netplay_client_port + (x * 2);
-
-				//Server and Client info
-				net_util::setup_comm(four_player_server[x], server_port, NET_COMM_SERVER);
-				net_util::setup_comm(four_player_sender[x], sender_port, NET_COMM_CLIENT);
-
-				//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
-				if(net_util::resolve_host(four_player_server[x], "") < 0)
-				{
-					std::cout<<"SIO::Error - Server could not resolve hostname\n";
-					return;
-				}
-
-				//Open a connection to listen on host's port
-				if((!server_init) || (is_master))
-				{
-					if(!net_util::open_tcp(four_player_server[x]))
-					{
-						if((is_master) || ((x == 2) && (!is_master)))
-						{
-							std::cout<<"SIO::Error - Server could not open a connection on Port " << four_player_server[x].port << "\n";
-							return;
-						}
-					}
-				}
-
-				else { server_init = true; }
-
-				four_player_server[x].host_init = true;
-
-				//Setup client, listen on another port
-				if(net_util::resolve_host(four_player_sender[x], config::netplay_client_ip) < 0)
-				{
-					std::cout<<"SIO::Error - Client could not resolve hostname\n";
-					return;
-				}
-
-				sio_stat.use_hard_sync = true;
 			}
 		}
 
@@ -607,50 +562,15 @@ void DMG_SIO::reset()
 		//Reset all other connections (DMG-GBC Link Cable, GBC IR)
 		else
 		{
-			//Regular disconnect signal
-			if(sender.host_socket != NULL)
-			{
-				//Close connection with real Mobile Adapter GB server
-				if((sio_stat.sio_type != GB_MOBILE_ADAPTER) && (!config::use_real_gbma_server))
-				{
-					//Send disconnect byte to another system
-					u8 temp_buffer[2];
-					temp_buffer[0] = 0;
-					temp_buffer[1] = 0x80;
+			//Send disconnect byte to another system
+			u8 temp_buffer[2];
+			temp_buffer[0] = 0;
+			temp_buffer[1] = 0x80;
 		
-					net_util::send_data(sender, temp_buffer, 2);
-				}
-			}
+			net_util::send_data(sender, temp_buffer, 2);
 
 			net_util::close_comm(server);
 			net_util::close_comm(sender);
-
-			//Server and Client info
-			net_util::setup_comm(server, config::netplay_server_port, NET_COMM_SERVER);
-			net_util::setup_comm(sender, config::netplay_client_port, NET_COMM_CLIENT);
-
-			//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
-			if(net_util::resolve_host(server, "") < 0)
-			{
-				std::cout<<"SIO::Error - Server could not resolve hostname\n";
-				return;
-			}
-
-			//Open a connection to listen on host's port
-			if(!net_util::open_tcp(server))
-			{
-				std::cout<<"SIO::Error - Server could not open a connection on Port " << server.port << "\n";
-				return;
-			}
-
-			server.host_init = true;
-
-			//Setup client, listen on another port
-			if(net_util::resolve_host(sender, config::netplay_client_ip) < 0)
-			{
-				std::cout<<"SIO::Error - Client could not resolve hostname\n";
-				return;
-			}
 		}
 
 		//Reset hard sync settings appropiately (see init() above for more details)
@@ -663,7 +583,15 @@ void DMG_SIO::reset()
 			}
 		}
 
-		else { sio_stat.use_hard_sync = false; }
+		else if(config::sio_device == SIO_4_PLAYER_ADAPTER)
+		{
+			sio_stat.use_hard_sync = true;
+		}
+
+		else
+		{
+			sio_stat.use_hard_sync = false;
+		}
 	}
 
 	#endif
@@ -697,6 +625,7 @@ bool DMG_SIO::send_byte()
 		{
 			std::cout<<"SIO::Error - Host failed to send data to client\n";
 			reset();
+			init();
 			return false;
 		}
 
@@ -743,6 +672,7 @@ bool DMG_SIO::send_ir_signal()
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		reset();
+		init();
 		return false;
 	}
 
@@ -824,6 +754,7 @@ bool DMG_SIO::receive_byte()
 
 			//Reset network connections
 			reset();
+			init();
 
 			return true;
 		}
@@ -916,6 +847,7 @@ bool DMG_SIO::receive_byte()
 		{
 			std::cout<<"SIO::Error - Host failed to send data to client\n";
 			reset();
+			init();
 			return false;
 		}
 	}
@@ -949,6 +881,7 @@ bool DMG_SIO::request_sync()
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
 		reset();
+		init();
 		return false;
 	}
 

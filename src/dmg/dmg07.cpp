@@ -409,6 +409,7 @@ bool DMG_SIO::four_player_receive_byte()
 				{
 					std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 					reset();
+					init();
 					return true;
 
 					if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER)
@@ -501,6 +502,7 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 			{
 				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 				reset();
+				init();
 				return;
 			}
 		}
@@ -544,6 +546,7 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 	{
 		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
 		reset();
+		init();
 		return 0;
 	}
 
