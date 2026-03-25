@@ -541,12 +541,6 @@ void DMG_SIO::reset()
 				net_util::close_comm(four_player_sender[x]);
 			}
 		}
-
-		//Reset all connections for HuC-IR
-		else if(config::cart_type == DMG_HUC_IR)
-		{
-			set_huc_ir_connection();
-		}
 		
 		//Reset all connections for live connection to emulated Mobile Adapter GB servers
 		else if((sio_stat.sio_type == GB_MOBILE_ADAPTER) && (config::use_real_gbma_server))
@@ -559,7 +553,7 @@ void DMG_SIO::reset()
 			mobile_adapter_close_tcp();
 		}
 
-		//Reset all other connections (DMG-GBC Link Cable, GBC IR)
+		//Reset all other connections (DMG-GBC Link Cable, GBC IR, HuC-IR)
 		else
 		{
 			//Send disconnect byte to another system
@@ -1050,7 +1044,13 @@ void DMG_SIO::set_huc_ir_connection()
 		sio_stat.sync = false;
 		sio_stat.sync_counter = 0;
 
-		if(sio_stat.connected) { std::cout<<"SIO::Netplay connection suspended.\n"; }
+		if(sio_stat.connected)
+		{
+			std::cout<<"SIO::Netplay connection suspended.\n";
+			reset();
+			init();
+			return;
+		}
 
 		mem->ir_stat.try_connection = true;
 		sio_stat.connected = false;
