@@ -3163,6 +3163,7 @@ bool generate_ini_file()
 	ini_contents += "[#use_firmware]\n\n";
 	ini_contents += "[#sio_device]\n\n";
 	ini_contents += "[#ir_device]\n\n";
+	ini_contents += "[#mic_device]\n\n";
 	ini_contents += "[#slot1_device]\n\n";
 	ini_contents += "[#slot2_device]\n\n";
 	ini_contents += "[#system_type]\n\n";
@@ -3203,6 +3204,7 @@ bool generate_ini_file()
 	ini_contents += "[#force_cart_audio_sync]\n\n";
 	ini_contents += "[#override_audio_driver]\n\n";
 	ini_contents += "[#use_osd]\n\n";
+	ini_contents += "[#osd_alpha]\n\n";
 	ini_contents += "[#sample_rate]\n\n";
 	ini_contents += "[#sample_size]\n\n";
 	ini_contents += "[#gbe_key_controls]\n\n";
@@ -3218,9 +3220,6 @@ bool generate_ini_file()
 	ini_contents += "[#motion_scaler]\n\n";
 	ini_contents += "[#use_ddr_mapping]\n\n";
 	ini_contents += "[#hotkeys]\n\n";
-	ini_contents += "[#manifest_path]\n\n";
-	ini_contents += "[#dump_bg_path]\n\n";
-	ini_contents += "[#dump_obj_path]\n\n";
 	ini_contents += "[#use_netplay]\n\n";
 	ini_contents += "[#use_netplay_hard_sync]\n\n";
 	ini_contents += "[#use_net_gate]\n\n";
@@ -3247,11 +3246,13 @@ bool generate_ini_file()
 	ini_contents += "[#jukebox_total_time]\n\n";
 	ini_contents += "[#audio_conversion_command]\n\n";
 	ini_contents += "[#remove_vocals_command]\n\n";
-	ini_contents += "[#glucoboy_daily_grps]\n";
-	ini_contents += "[#glucoboy_bonus_grps]\n";
-	ini_contents += "[#glucoboy_good_days]\n";
-	ini_contents += "[#glucoboy_days_until_bonus]\n";
+	ini_contents += "[#glucoboy_daily_grps]\n\n";
+	ini_contents += "[#glucoboy_bonus_grps]\n\n";
+	ini_contents += "[#glucoboy_good_days]\n\n";
+	ini_contents += "[#glucoboy_days_until_bonus]\n\n";
+	ini_contents += "[#glucoboy_total]\n\n";
 	ini_contents += "[#play_yan_fs_delay]\n\n";
+	ini_contents += "[#wave_scanner_level]\n\n";
 
 	//Save contents to file.
 	std::ofstream file("gbe.ini", std::ios::out);
