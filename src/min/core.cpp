@@ -115,6 +115,7 @@ void MIN_core::reset()
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
 	core_mmu.reset();
+	core_mmu.reset_ir();
 
 	//Link CPU and MMU
 	core_cpu.mem = &core_mmu;
