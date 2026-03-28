@@ -11,6 +11,8 @@
 
 #include "net_util.h"
 
+#ifdef GBE_NETPLAY
+
 namespace net_util
 {
 
@@ -198,3 +200,5 @@ void close_comm(gbe_net_comm &req)
 }
 
 } //Namespace
+
+#endif
