@@ -55,10 +55,9 @@ endif()
 option(QT_GUI "Enable the Qt GUI" ON)
 
 if(QT_GUI)
-	find_package(Qt5OpenGL REQUIRED)
 	find_package(Qt5Widgets REQUIRED)
 	find_package(Qt5Gui REQUIRED)
-	set(GBE_QT_LIBS Qt5::Gui Qt5::Widgets Qt5::OpenGL)
+	set(GBE_QT_LIBS Qt5::Gui Qt5::Widgets)
 endif()
 
 add_subdirectory(src)

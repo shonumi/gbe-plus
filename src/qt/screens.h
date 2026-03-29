@@ -12,8 +12,6 @@
 #define SCREENS_GBE_QT
 
 #include <QtWidgets>
-#include <QGLWidget>
-#include <QGLFormat>
 
 #include "ogl_manager.h"
 
@@ -34,13 +32,13 @@ class soft_screen : public QWidget
 	void resizeEvent(QResizeEvent* event);
 };
 
-class hard_screen : public QGLWidget
+class hard_screen : public QOpenGLWidget
 {
 	Q_OBJECT
 	
 	public:
 	hard_screen(QWidget *parent = 0);
-	QGLFormat screen_format;
+	QSurfaceFormat screen_format;
 
 	ogl_manager gwin;
 
