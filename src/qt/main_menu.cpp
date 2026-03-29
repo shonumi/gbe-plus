@@ -1492,7 +1492,7 @@ void main_menu::screenshot()
 		//Save OpenGL screen
 		if(config::use_opengl)
 		{
-			QImage img = hw_screen->grabFrameBuffer();
+			QImage img = hw_screen->grabFramebuffer();
 			QRect crop(0, 0, img.width(), img.height());
 
 			float original_ratio = float(config::sys_width) / config::sys_height;
