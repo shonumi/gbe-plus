@@ -176,6 +176,7 @@ void AGB_core::reset()
 	core_cpu.reset();
 	core_cpu.controllers.video.reset();
 	core_cpu.controllers.audio.reset();
+	core_cpu.controllers.serial_io.reset();
 	core_mmu.campho_close_network();
 	core_mmu.reset();
 
@@ -914,8 +915,9 @@ void AGB_core::stop_netplay()
 	//Only attempt to disconnect if connected at all
 	if(core_cpu.controllers.serial_io.sio_stat.connected)
 	{
+		std::cout<<"SIO::Netplay connection suspended\n";
 		core_cpu.controllers.serial_io.reset();
-		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+		core_cpu.controllers.serial_io.init();
 	}
 }
 

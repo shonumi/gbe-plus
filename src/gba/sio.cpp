@@ -463,26 +463,14 @@ void AGB_SIO::reset()
 
 	//Close any current connections
 	if(network_init)
-	{	
-		if((server.host_socket != NULL) && (server.host_init))
-		{
-			SDLNet_TCP_Close(server.host_socket);
-		}
-
-		if((server.remote_socket != NULL) && (server.remote_init))
-		{
-			SDLNet_TCP_Close(server.remote_socket);
-		}
-
-		if(sender.host_socket != NULL)
-		{
-			//Send disconnect byte to another system
-			u8 temp_buffer[6] = { 0, 0, 0, 0, 0, 0x80 };
+	{
+		//Send disconnect byte to another system
+		u8 temp_buffer[6] = { 0, 0, 0, 0, 0, 0x80 };
 		
-			net_util::send_data(sender, temp_buffer, 6);
+		net_util::send_data(sender, temp_buffer, 6);
 
-			if(sender.host_init) { SDLNet_TCP_Close(sender.host_socket); }
-		}
+		net_util::close_comm(server);
+		net_util::close_comm(sender);
 	}
 
 	#endif
@@ -527,9 +515,8 @@ bool AGB_SIO::send_data()
 	if(net_util::send_data(sender, temp_buffer, 6) < 0)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
+		reset();
+		init();
 		return false;
 	}
 
@@ -630,9 +617,8 @@ bool AGB_SIO::receive_byte()
 			if(temp_buffer[4] == sio_stat.player_id)
 			{
 				std::cout<<"SIO::Error - Netplay IDs are the same. Closing connection.\n";
-				sio_stat.connected = false;
-				server.connected = false;
-				sender.connected = false;
+				reset();
+				init();
 				return false;
 			}
 
@@ -670,8 +656,14 @@ bool AGB_SIO::receive_byte()
 		//Disconnect netplay
 		else if(temp_buffer[5] == 0x80)
 		{
+			std::cout<<"SIO::Netplay connection suspended.\n";
 			sio_stat.connected = false;
 			sio_stat.sync = false;
+			sio_stat.sync_counter = 0;
+
+			//Reset network connections
+			reset();
+			init();
 
 			return true;
 		}
@@ -750,9 +742,8 @@ bool AGB_SIO::receive_byte()
 			if(net_util::send_data(sender, temp_buffer, 6) < 0)
 			{
 				std::cout<<"SIO::Error - Host failed to send data to client\n";
-				sio_stat.connected = false;
-				server.connected = false;
-				sender.connected = false;
+				reset();
+				init();
 				return false;
 			}
 
@@ -789,9 +780,8 @@ bool AGB_SIO::request_sync()
 	if(net_util::send_data(sender, temp_buffer, 6) < 0)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
+		reset();
+		init();
 		return false;
 	}
 
@@ -813,9 +803,8 @@ bool AGB_SIO::stop_sync()
 	if(net_util::send_data(sender, temp_buffer, 6) < 0)
 	{
 		std::cout<<"SIO::Error - Host failed to send data to client\n";
-		sio_stat.connected = false;
-		server.connected = false;
-		sender.connected = false;
+		reset();
+		init();
 		return false;
 	}
 
