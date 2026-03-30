@@ -1489,11 +1489,6 @@ bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 
 	#ifdef GBE_NETPLAY
 
-	sender.host_socket = NULL;
-	sender.host_init = false;
-	sender.connected = false;
-	sender.port = port;
-
 	//Resolve hostname
 	if(net_util::resolve_host(sender, config::gbma_server) < 0)
 	{
@@ -1502,9 +1497,7 @@ bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 	}
 
 	//Open a connection to the server
-	net_util::open_tcp(sender);
-
-	if(sender.host_socket == NULL)
+	if(!net_util::accept_server(sender))
 	{
 		std::cout<<"SIO::Error - Could not connect to GB Mobile Adapter server\n";
 		return false;
@@ -1515,7 +1508,7 @@ bool DMG_SIO::mobile_adapter_open_tcp(u16 port)
 
 	#endif
 
-	return result;
+	return result; 
 }
 
 /****** Closes a TCP connection to a Mobile Adapter GB server ******/
