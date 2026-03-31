@@ -1421,6 +1421,20 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	gbma_address_layout->addWidget(gbma_update);
 	gbma_address_set->setLayout(gbma_address_layout);
 
+	//Netplay - GBMA port
+	QWidget* gbma_port_set = new QWidget(netplay);
+	QLabel* gbma_port_label = new QLabel("MAGB HTTP Port : ");
+	gbma_port = new QSpinBox(netplay);
+	gbma_port->setMinimum(0);
+	gbma_port->setMaximum(0xFFFF);
+	gbma_port->setToolTip("HTTP port of Mobile Adapter GB server");
+
+	QHBoxLayout* gbma_port_layout = new QHBoxLayout;
+	gbma_port_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	gbma_port_layout->addWidget(gbma_port_label);
+	gbma_port_layout->addWidget(gbma_port);
+	gbma_port_set->setLayout(gbma_port_layout);
+
 	QVBoxLayout* netplay_layout = new QVBoxLayout;
 	netplay_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	netplay_layout->addWidget(enable_netplay_set);
@@ -1433,6 +1447,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	netplay_layout->addWidget(netplay_id_set);
 	netplay_layout->addWidget(ip_address_set);
 	netplay_layout->addWidget(gbma_address_set);
+	netplay_layout->addWidget(gbma_port_set);
 	netplay->setLayout(netplay_layout);
 
 	//Path settings - DMG BIOS
@@ -1642,6 +1657,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(netplay_id, SIGNAL(valueChanged(int)), this, SLOT(update_netplay_id()));
 	connect(ip_update, SIGNAL(clicked()), this, SLOT(update_ip_addr()));
 	connect(gbma_update, SIGNAL(clicked()), this, SLOT(update_gbma_addr()));
+	connect(gbma_port, SIGNAL(valueChanged(int)), this, SLOT(update_gbma_port()));
 	connect(data_folder, SIGNAL(accepted()), this, SLOT(select_folder()));
 	connect(data_folder, SIGNAL(rejected()), this, SLOT(reject_folder()));
 
@@ -2288,6 +2304,7 @@ void gen_settings::set_ini_options()
 	netplay_id->setValue(config::netplay_id);
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
 	gbma_address->setText(QString::fromStdString(config::gbma_server));
+	gbma_port->setValue(config::gbma_server_http_port);
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
@@ -3164,6 +3181,12 @@ void gen_settings::update_gbma_addr()
 	{
 		config::gbma_server = temp;
 	}
+}
+
+/****** Sets the Mobile Adapter GB HTTP port ******/
+void gen_settings::update_gbma_port()
+{
+	config::gbma_server_http_port = server_port->value();
 }
 
 /****** Prepares GUI to receive input for controller configuration ******/
