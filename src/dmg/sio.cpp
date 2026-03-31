@@ -1658,6 +1658,10 @@ void DMG_SIO::bardigun_process()
 				{
 					bardigun_scanner.current_state = BARDIGUN_SEND_BARCODE;
 					bardigun_scanner.barcode_pointer = 0;
+
+					//OSD
+					config::osd_message = "BARCODE SWIPED";
+					config::osd_count = 180;
 				}
 			}
 			
@@ -1671,10 +1675,6 @@ void DMG_SIO::bardigun_process()
 			if(bardigun_scanner.barcode_pointer == bardigun_scanner.data.size())
 			{
 				bardigun_scanner.current_state = BARDIGUN_INACTIVE;
-
-				//OSD
-				config::osd_message = "BARCODE SWIPED";
-				config::osd_count = 180;
 			}
 
 			break;
