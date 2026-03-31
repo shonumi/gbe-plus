@@ -407,7 +407,7 @@ bool DMG_SIO::four_player_receive_byte()
 				//Disconnect netplay
 				else if(temp_buffer[1] == 0x80)
 				{
-					std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+					std::cout<<"SIO::Netplay connection suspended.\n";
 					reset();
 					init();
 					return true;
@@ -500,7 +500,7 @@ void DMG_SIO::four_player_broadcast(u8 data_one, u8 data_two)
 
 			if(temp_buffer[1] == 0x80)
 			{
-				std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+				std::cout<<"SIO::Netplay connection suspended.\n";
 				reset();
 				init();
 				return;
@@ -544,7 +544,7 @@ u8 DMG_SIO::four_player_request(u8 data_one, u8 data_two, u8 id)
 
 	if(temp_buffer[1] == 0x80)
 	{
-		std::cout<<"SIO::Netplay connection terminated. Restart to reconnect.\n";
+		std::cout<<"SIO::Netplay connection suspended.\n";
 		reset();
 		init();
 		return 0;

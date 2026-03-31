@@ -765,7 +765,7 @@ void MIN_core::stop_netplay()
 	//Only attempt to disconnect if connected at all
 	if(core_mmu.ir_stat.connected[core_mmu.ir_stat.network_id])
 	{
-		std::cout<<"IR::Netplay connection suspended. Restart to reconnect.\n";
+		std::cout<<"IR::Netplay connection suspended.\n";
 		core_mmu.reset_ir();
 	}
 }
