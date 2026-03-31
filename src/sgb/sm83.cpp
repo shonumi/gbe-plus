@@ -18,8 +18,7 @@ SGB_SM83::SGB_SM83()
 
 	config::gb_type = SYS_DMG;
 
-	if(config::use_bios) { reset_bios(); }
-	else { reset(); }
+	reset();
 }
 
 /****** SGB_SM83 Deconstructor ******/
@@ -31,6 +30,12 @@ SGB_SM83::~SGB_SM83()
 /****** SGB_SM83 Reset ******/
 void SGB_SM83::reset() 
 {
+	if(config::use_bios)
+	{
+		reset_bios();
+		return;
+	}
+
 	//Values represent HLE BIOS
 	reg.a = (sgb_type) ? 0xFF : 0x1;
 	reg.b = 0x00;

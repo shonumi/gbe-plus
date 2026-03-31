@@ -13,8 +13,7 @@
 /****** SM83 Constructor ******/
 SM83::SM83() 
 {
-	if(config::use_bios) { reset_bios(); }
-	else { reset(); }
+	reset();
 }
 
 /****** SM83 Deconstructor ******/
@@ -26,6 +25,12 @@ SM83::~SM83()
 /****** SM83 Reset ******/
 void SM83::reset() 
 {
+	if(config::use_bios)
+	{
+		reset_bios();
+		return;
+	}
+
 	//Values represent HLE BIOS
 	reg.a = (config::gb_type == SYS_GBC) ? 0x11 : 0x01;
 	reg.b = (config::gba_enhance) ? 0x01 : 0x00;
@@ -91,7 +96,7 @@ void SM83::reset_bios()
 
 	mem = NULL;
 
-	std::cout<<"CPU::Initialized\n";
+	std::cout<<"CPU::Initialized (BIOS RESET)\n";
 }
 
 /****** Read CPU data from save state ******/
