@@ -348,7 +348,7 @@ void AGB_SIO::reset()
 	turbo_file.counter = 0;
 	turbo_file.current_state = AGB_TBF_PACKET_START;
 	turbo_file.device_status = 0x3;
-	turbo_file.mem_card_status = 0x5;
+	turbo_file.mem_card_status = 0x1;
 	turbo_file.bank = 0x0;
 
 	if(config::sio_device == SIO_TURBO_FILE)
@@ -1498,6 +1498,14 @@ void AGB_SIO::mpos_generate_data()
 /****** Processes data sent from the Turbo File to the Game Boy ******/
 void AGB_SIO::turbo_file_process()
 {
+	//Update status for memory card insertion
+	if(config::turbo_file_options & 0x1) { turbo_file.mem_card_status = 0x5; }
+	else { turbo_file.mem_card_status = 0x1; }
+
+	//Update status for write-protection
+	if(config::turbo_file_options & 0x2) { turbo_file.device_status |= 0x80; }
+	else { turbo_file.device_status &= ~0x80; } 
+
 	switch(turbo_file.current_state)
 	{
 		//Begin packet, wait for first sync signal 0x6C from GBA
