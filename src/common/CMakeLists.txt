@@ -31,7 +31,7 @@ if (USE_OGL)
 	target_link_libraries(common OpenGL::GL)
 endif()
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	target_link_libraries(common SDL2_net::SDL2_net)
 endif()
 

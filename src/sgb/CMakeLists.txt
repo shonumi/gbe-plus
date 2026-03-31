@@ -38,7 +38,7 @@ add_library(sgb STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(sgb common SDL2::SDL2)
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	target_link_libraries(sgb SDL2_net::SDL2_net)
 endif()
 

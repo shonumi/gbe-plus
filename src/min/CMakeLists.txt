@@ -27,7 +27,7 @@ add_library(min STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(min common SDL2::SDL2)
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	target_link_libraries(min SDL2_net::SDL2_net)
 endif()
 

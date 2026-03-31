@@ -53,7 +53,7 @@ add_executable(gbe_plus_qt ${SRCS} ${HEADERS})
 target_link_libraries(gbe_plus_qt common gba dmg sgb nds min)
 target_link_libraries(gbe_plus_qt SDL2::SDL2 SDL2::SDL2main OpenGL::GL ${GBE_QT_LIBS})
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	target_link_libraries(gbe_plus_qt SDL2_net::SDL2_net)
 endif()
 

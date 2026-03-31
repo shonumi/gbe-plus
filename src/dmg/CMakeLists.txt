@@ -43,7 +43,7 @@ add_library(dmg STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(dmg common SDL2::SDL2)
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	target_link_libraries(dmg SDL2_net::SDL2_net)
 endif()
 

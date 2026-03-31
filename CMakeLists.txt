@@ -13,9 +13,9 @@ endif()
 
 find_package(SDL2 REQUIRED)
 
-option(LINK_CABLE "Enable link cable emulation (requires SDL2_net)" ON)
+option(USE_NETPLAY "Enable multiplayer via netplay (requires SDL2_net)" ON)
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	find_package(SDL2_net REQUIRED)
 	add_definitions(-DGBE_NETPLAY)
 endif()

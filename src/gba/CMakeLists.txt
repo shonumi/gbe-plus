@@ -43,7 +43,7 @@ add_library(gba STATIC ${SRCS} ${HEADERS})
 
 target_link_libraries(gba SDL2::SDL2)
 
-if (LINK_CABLE)
+if (USE_NETPLAY)
 	target_link_libraries(gba SDL2_net::SDL2_net)
 endif()
 
