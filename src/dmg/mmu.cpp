@@ -82,11 +82,17 @@ void DMG_MMU::reset()
 	cart.rtc_enabled = false;
 	cart.rtc_latch_1 = cart.rtc_latch_2 = 0xFF;
 
-	if(cart.flash_stat != 0x40) { cart.flash_cnt = 0x0; }
 	cart.flash_cmd = 0;
-	if(cart.flash_stat != 0x40) { cart.flash_stat = 0x6; }
-	if(cart.flash_stat != 0x40) { cart.flash_io_bank = 0; }
 	cart.flash_get_id = false;
+
+	if(cart.flash_stat != 0x40)
+	{
+		cart.flash_cnt = 0x0;
+		cart.flash_stat = 0x6;
+		cart.flash_io_bank = 0;
+
+		for(u32 x = 0; x < 128; x++) { cart.gb_mem_map[x] = 0xFF; }
+	}
 
 	for(int x = 0; x < 5; x++)
 	{
@@ -113,12 +119,6 @@ void DMG_MMU::reset()
 	for(u32 x = 0; x < 256; x++) { cart.tama_ram[x] = 0; }
 	cart.tama_cmd = 0;
 	cart.tama_out = 0;
-
-	if(cart.flash_stat != 0x40)
-	{
-		for(u32 x = 0; x < 128; x++) { cart.gb_mem_map[x] = 0xFF; }
-	}
-
 
 	for(u32 x = 0; x < 256; x++) { cart.huc_ram[x] = 0; }
 	cart.huc_ir_input = 0;
@@ -2075,8 +2075,15 @@ bool DMG_MMU::read_file(std::string filename)
 		//Use a file positioner
 		u32 file_pos = 0x8000;
 		u16 bank_count = 0;
+		u32 limit = (cart.rom_size * 1024);
 
-		while(file_pos < (cart.rom_size * 1024))
+		if(config::cart_type == DMG_MMM01)
+		{
+			file_pos = 0;
+			limit -= 0x8000;
+		}
+
+		while(file_pos < limit)
 		{
 			for(u32 x = 0; x < 0x4000; x++)
 			{
