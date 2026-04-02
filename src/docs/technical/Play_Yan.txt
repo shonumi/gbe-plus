@@ -184,7 +184,7 @@ Command					| Parameter 1							| Parameter 2
 0x800000 - Unknown			| N/A								| N/A
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
-*These commands send non-standard amounts of data for their parameters. See the end of this section for further details on each. additional data beyond a second parameter. Overall, it sends a total of 0x218 bytes, the latter portion of which has an unknown purpose.
+*These commands send non-standard amounts of data for their parameters. See the end of this section for further details.
 
 The Play-Yan Micro exclusively uses serial commands and uses the following proceedure to issue them:
 
