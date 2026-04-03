@@ -170,7 +170,7 @@ bool DMG_SIO::init()
 			return false;
 		}
 
-		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+		//Setup server, resolve the server with nullptr as the hostname, the server will now listen for connections
 		if(net_util::resolve_host(server, "") < 0)
 		{
 			std::cout<<"SIO::Error - Server could not resolve hostname\n";
@@ -490,7 +490,7 @@ void DMG_SIO::reset()
 	pocket_ir.current_data = 0;
 	pocket_ir.light_on = false;
 
-	srand(time(NULL));
+	srand(time(nullptr));
 	for(int x = 0; x < 64; x++)
 	{
 		int random_data = (rand() % 64) + 64;
@@ -694,7 +694,7 @@ bool DMG_SIO::receive_byte()
 	#ifdef GBE_NETPLAY
 
 	if(sio_stat.sio_type == GB_FOUR_PLAYER_ADAPTER) { return four_player_receive_byte(); }
-	if((!sio_stat.connected) || (server.tcp_sockets == NULL)) { return false; }
+	if((!sio_stat.connected) || (server.tcp_sockets == nullptr)) { return false; }
 
 	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
@@ -983,7 +983,7 @@ void DMG_SIO::resume_network_connection()
 	u8 temp_buffer[2];
 	temp_buffer[0] = temp_buffer[1] = 0;
 
-	if(server.tcp_sockets == NULL) { return; }
+	if(server.tcp_sockets == nullptr) { return; }
 
 	//Check the status of connection
 	SDLNet_CheckSockets(server.tcp_sockets, 0);
@@ -1017,7 +1017,7 @@ void DMG_SIO::set_huc_ir_connection()
 	if(network_init)
 	{
 		//Regular disconnect signal
-		if(sender.host_socket != NULL)
+		if(sender.host_socket != nullptr)
 		{
 			//Send disconnect byte to another system
 			u8 temp_buffer[2];
@@ -1062,7 +1062,7 @@ void DMG_SIO::set_huc_ir_connection()
 			return;
 		}
 
-		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+		//Setup server, resolve the server with nullptr as the hostname, the server will now listen for connections
 		if(net_util::resolve_host(server, "") < 0)
 		{
 			std::cout<<"SIO::Error - Server could not resolve hostname\n";

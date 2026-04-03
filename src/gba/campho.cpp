@@ -1227,7 +1227,7 @@ void AGB_MMU::process_campho()
 			{
 				SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
 
-				if(source != NULL)
+				if(source != nullptr)
 				{
 					u8* cam_pixel_data = (u8*)source->pixels;
 					campho_get_image_data(cam_pixel_data, campho.local_capture_buffer, source->w, source->h, false);	
@@ -1589,7 +1589,7 @@ std::string AGB_MMU::campho_convert_contact_name()
 			std::string segment = "";
 			u8 conv_chr = (y == 0) ? hi_chr : lo_chr;
 
-			//Terminate string on NULL character
+			//Terminate string on nullptr character
 			if(conv_chr == 0x00) { return result; }
 
 			//Handle ASCII characters
@@ -1802,7 +1802,7 @@ void AGB_MMU::campho_process_networking()
 						return;
 					}
 
-					campho.line.host_init = (campho.line.host_socket == NULL) ? false : true;
+					campho.line.host_init = (campho.line.host_socket == nullptr) ? false : true;
 					campho.network_state = 2;
 				}
 			}
@@ -1952,7 +1952,7 @@ void AGB_MMU::campho_process_networking()
 				{
 					SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
 
-					if(source != NULL)
+					if(source != nullptr)
 					{
 						u8* cam_pixel_data = (u8*)source->pixels;
 						campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
@@ -2039,7 +2039,7 @@ void AGB_MMU::campho_process_networking()
 				campho.network_state = 0x82;
 
 				//Listen for any incoming connections from remote Campho
-				if(SDLNet_ResolveHost(&campho.line.host_ip, NULL, campho.phone_in_port) < 0)
+				if(SDLNet_ResolveHost(&campho.line.host_ip, nullptr, campho.phone_in_port) < 0)
 				{
 					std::cout<<"MMU::Error - Campho Phone Line could not resolve hostname\n";
 					campho.network_state = 0;
@@ -2053,7 +2053,7 @@ void AGB_MMU::campho_process_networking()
 					return;
 				}
 
-				campho.line.host_init = (campho.line.host_socket == NULL) ? false : true;
+				campho.line.host_init = (campho.line.host_socket == nullptr) ? false : true;
 			}	
 
 			break;
@@ -2214,7 +2214,7 @@ void AGB_MMU::campho_process_networking()
 				{
 					SDL_Surface* source = SDL_LoadBMP(config::external_camera_file.c_str());
 
-					if(source != NULL)
+					if(source != nullptr)
 					{
 						u8* cam_pixel_data = (u8*)source->pixels;
 						campho_get_image_data(cam_pixel_data, campho.net_buffer, source->w, source->h, true);	
@@ -2384,37 +2384,37 @@ void AGB_MMU::campho_close_network()
 	#ifdef GBE_NETPLAY
 
 	//Close SDL_net and any current connections
-	if(campho.line.host_socket != NULL)
+	if(campho.line.host_socket != nullptr)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.line.host_socket);
 		SDLNet_TCP_Close(campho.line.host_socket);
 	}
 
-	if(campho.line.remote_socket != NULL)
+	if(campho.line.remote_socket != nullptr)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.line.remote_socket);
 		SDLNet_TCP_Close(campho.line.remote_socket);
 	}
 
-	if(campho.ringer.host_socket != NULL)
+	if(campho.ringer.host_socket != nullptr)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.host_socket);
 		SDLNet_TCP_Close(campho.ringer.host_socket);
 	}
 
-	if(campho.ringer.remote_socket != NULL)
+	if(campho.ringer.remote_socket != nullptr)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.ringer.remote_socket);
 		SDLNet_TCP_Close(campho.ringer.remote_socket);
 	}
 
-	if(campho.web.host_socket != NULL)
+	if(campho.web.host_socket != nullptr)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.web.host_socket);
 		SDLNet_TCP_Close(campho.web.host_socket);
 	}
 
-	if(campho.web.remote_socket != NULL)
+	if(campho.web.remote_socket != nullptr)
 	{
 		SDLNet_TCP_DelSocket(campho.phone_sockets, campho.web.remote_socket);
 		SDLNet_TCP_Close(campho.web.remote_socket);
@@ -2450,22 +2450,22 @@ void AGB_MMU::campho_reset_network()
 		campho.network_init = true;
 		campho.phone_in_port = config::campho_input_port;
 
-		campho.line.host_socket = NULL;
+		campho.line.host_socket = nullptr;
 		campho.line.host_init = false;
-		campho.line.remote_socket = NULL;
+		campho.line.remote_socket = nullptr;
 		campho.line.remote_init = false;
 		campho.line.connected = false;
 
-		campho.ringer.host_socket = NULL;
+		campho.ringer.host_socket = nullptr;
 		campho.ringer.host_init = false;
-		campho.ringer.remote_socket = NULL;
+		campho.ringer.remote_socket = nullptr;
 		campho.ringer.remote_init = false;
 		campho.ringer.connected = false;
 		campho.ringer.port = config::campho_ringer_port;
 
-		campho.web.host_socket = NULL;
+		campho.web.host_socket = nullptr;
 		campho.web.host_init = false;
-		campho.web.remote_socket = NULL;
+		campho.web.remote_socket = nullptr;
 		campho.web.remote_init = false;
 		campho.web.connected = false;
 		campho.web.port = config::campho_web_port;
@@ -2482,7 +2482,7 @@ void AGB_MMU::campho_reset_network()
 		campho.send_audio_data = false;
 
 		//Setup ringer to listen for any incoming connections
-		if(SDLNet_ResolveHost(&campho.ringer.host_ip, NULL, campho.ringer.port) < 0)
+		if(SDLNet_ResolveHost(&campho.ringer.host_ip, nullptr, campho.ringer.port) < 0)
 		{
 			std::cout<<"MMU::Error - Campho Ringer could not resolve hostname\n";
 			campho.network_init = false;
@@ -2497,7 +2497,7 @@ void AGB_MMU::campho_reset_network()
 		}
 
 		//Setup Web UI to listen for any incoming connections
-		if(SDLNet_ResolveHost(&campho.web.host_ip, NULL, campho.web.port) < 0)
+		if(SDLNet_ResolveHost(&campho.web.host_ip, nullptr, campho.web.port) < 0)
 		{
 			std::cout<<"MMU::Error - Campho Web UI could not resolve hostname\n";
 			campho.network_init = false;
@@ -2511,8 +2511,8 @@ void AGB_MMU::campho_reset_network()
 			return;
 		}
 
-		campho.ringer.host_init = (campho.ringer.host_socket == NULL) ? false : true;
-		campho.web.host_init = (campho.web.host_socket == NULL) ? false : true;
+		campho.ringer.host_init = (campho.ringer.host_socket == nullptr) ? false : true;
+		campho.web.host_init = (campho.web.host_socket == nullptr) ? false : true;
 
 		//Create sockets sets
 		campho.phone_sockets = SDLNet_AllocSocketSet(6);

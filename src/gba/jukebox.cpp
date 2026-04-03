@@ -673,8 +673,8 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 /****** Reads a file for list of other audio files to be read by the GBA Music Recorder/Jukebox ******/
 bool AGB_MMU::read_jukebox_file_list(std::string filename, u8 category)
 {
-	std::vector<std::string> *out_list = NULL;
-	std::vector<u16> *out_time = NULL;
+	std::vector<std::string> *out_list = nullptr;
+	std::vector<u16> *out_time = nullptr;
 
 	//Grab the correct file list based on category
 	switch(category)
@@ -1128,8 +1128,8 @@ void AGB_MMU::process_jukebox()
 /****** Saves recording from the Music Recorder/Jukebox ******/
 bool AGB_MMU::jukebox_save_recording()
 {
-	std::vector<std::string> *out_list = NULL;
-	std::vector<u16> *out_time = NULL;
+	std::vector<std::string> *out_list = nullptr;
+	std::vector<u16> *out_time = nullptr;
 	std::string filename;
 	u16 update_index = 0;
 	u16 update_time = jukebox.current_recording_time;
@@ -1298,7 +1298,7 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 	//Clear previous buffer if necessary
 	SDL_FreeWAV(apu_stat->ext_audio.buffer);
-	apu_stat->ext_audio.buffer = NULL;
+	apu_stat->ext_audio.buffer = nullptr;
 
 	SDL_AudioSpec file_spec;
 
@@ -1350,7 +1350,7 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 			}
 		
 			//Check for a command processor on system and run audio conversion command
-			if(system(NULL))
+			if(system(nullptr))
 			{
 				std::cout<<"MMU::Converting audio file " << filename << "\n";
 				system(sys_cmd.c_str());
@@ -1371,7 +1371,7 @@ bool AGB_MMU::jukebox_load_audio(std::string filename)
 
 	else { jukebox.karaoke_track = filename; }
 
-	if(SDL_LoadWAV(filename.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+	if(SDL_LoadWAV(filename.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == nullptr)
 	{
 		std::cout<<"MMU::Jukebox could not load audio file: " << filename << " :: " << SDL_GetError() << "\n";
 		return false;
@@ -1410,7 +1410,7 @@ bool AGB_MMU::jukebox_load_karaoke_audio()
 {
 	//Clear previous buffer if necessary
 	SDL_FreeWAV(apu_stat->ext_audio.karaoke_buffer);
-	apu_stat->ext_audio.karaoke_buffer = NULL;
+	apu_stat->ext_audio.karaoke_buffer = nullptr;
 
 	SDL_AudioSpec file_spec;
 
@@ -1445,7 +1445,7 @@ bool AGB_MMU::jukebox_load_karaoke_audio()
 	}
 		
 	//Check for a command processor on system and run audio conversion command
-	if(system(NULL))
+	if(system(nullptr))
 	{
 		std::cout<<"MMU::Removing vocals from audio file " << in_file << "\n";
 		system(sys_cmd.c_str());
@@ -1458,7 +1458,7 @@ bool AGB_MMU::jukebox_load_karaoke_audio()
 		return false;
 	}
 
-	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.karaoke_buffer, &apu_stat->ext_audio.karaoke_length) == NULL)
+	if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.karaoke_buffer, &apu_stat->ext_audio.karaoke_length) == nullptr)
 	{
 		std::cout<<"MMU::Jukebox could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
 		return false;

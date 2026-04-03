@@ -17,7 +17,7 @@ AGB_GamePad::AGB_GamePad()
 {
 	pad = 0;
 	key_input = 0x3FF;
-	jstick = NULL;
+	jstick = nullptr;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
 	is_rumbling = false;
 	is_gb_player = false;
@@ -40,7 +40,7 @@ AGB_GamePad::AGB_GamePad()
 	joy_init = false;
 	key_cnt = 0;
 
-	gc_sensor = NULL;
+	gc_sensor = nullptr;
 	sensor_init = false;
 }
 
@@ -54,16 +54,16 @@ void AGB_GamePad::init()
 		return;
 	}
 
-	jstick = NULL;
+	jstick = nullptr;
 	jstick = SDL_JoystickOpen(config::joy_id);
 	config::joy_sdl_id = SDL_JoystickInstanceID(jstick);
 
-	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
-	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+	if((jstick == nullptr) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
+	else if((jstick == nullptr) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
 
-	joy_init = (jstick != NULL) ? true : false;
+	joy_init = (jstick != nullptr) ? true : false;
 
-	rumble = NULL;
+	rumble = nullptr;
 
 	//Open haptics for rumbling
 	if(config::use_haptics)
@@ -76,7 +76,7 @@ void AGB_GamePad::init()
 
 		rumble = SDL_HapticOpenFromJoystick(jstick);
 
-		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+		if(rumble == nullptr) { std::cout<<"JOY::Could not init rumble \n"; }
 	
 		else
 		{
@@ -107,7 +107,7 @@ void AGB_GamePad::init()
 				if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_GYRO))
 				{
 					std::cout<<"JOY::Controller does not have a gyroscope \n";
-					gc_sensor = NULL;
+					gc_sensor = nullptr;
 				}
 
 				else { sensor_init = true; }
@@ -118,7 +118,7 @@ void AGB_GamePad::init()
 				if(!SDL_GameControllerHasSensor(gc_sensor, SDL_SENSOR_ACCEL))
 				{
 					std::cout<<"JOY::Controller does not have an accelerometer \n";
-					gc_sensor = NULL;
+					gc_sensor = nullptr;
 				}
 
 				else { sensor_init = true; }
@@ -152,9 +152,9 @@ void AGB_GamePad::close_joystick()
 	joy_init = false;
 	sensor_init = false;
 
-	if(jstick != NULL) { SDL_JoystickClose(jstick); }
-	if(rumble != NULL) { SDL_HapticClose(rumble); }
-	if(gc_sensor != NULL) { SDL_GameControllerClose(gc_sensor); }
+	if(jstick != nullptr) { SDL_JoystickClose(jstick); }
+	if(rumble != nullptr) { SDL_HapticClose(rumble); }
+	if(gc_sensor != nullptr) { SDL_GameControllerClose(gc_sensor); }
 }
 
 /****** Handle input from keyboard or joystick for processing ******/
@@ -271,7 +271,7 @@ void AGB_GamePad::handle_input(SDL_Event &event)
 	//Controller accelerometer
 	else if(event.type == SDL_CONTROLLERSENSORUPDATE)
 	{
-		if(gc_sensor != NULL)
+		if(gc_sensor != nullptr)
 		{
 			float motion_data[3] = { 0.0, 0.0, 0.0 };
 
@@ -1040,7 +1040,7 @@ void AGB_GamePad::clear_input()
 /****** Start haptic force-feedback on joypad ******/
 void AGB_GamePad::start_rumble()
 {
-	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	if((jstick != nullptr) && (rumble != nullptr) && (is_rumbling == false))
 	{
 		SDL_HapticRumblePlay(rumble, 1, -1);
 		is_rumbling = true;
@@ -1050,7 +1050,7 @@ void AGB_GamePad::start_rumble()
 /****** Stop haptic force-feedback on joypad ******/
 void AGB_GamePad::stop_rumble()
 {
-	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	if((jstick != nullptr) && (rumble != nullptr) && (is_rumbling == true))
 	{
 		SDL_HapticRumbleStop(rumble);
        		is_rumbling = false;

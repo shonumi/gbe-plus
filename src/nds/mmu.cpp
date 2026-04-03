@@ -348,9 +348,9 @@ void NTR_MMU::reset()
 	key_level = 0;
 	key_id = 0;
 
-	g_pad = NULL;
-	nds9_timer = NULL;
-	nds7_timer = NULL;
+	g_pad = nullptr;
+	nds9_timer = nullptr;
+	nds7_timer = nullptr;
 
 	dtcm_addr = 0xDEADC0DE;
 	dtcm_end = 0xDEADC0DE;

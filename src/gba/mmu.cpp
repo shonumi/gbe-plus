@@ -171,8 +171,8 @@ void AGB_MMU::reset()
 	sub_screen_update = 0;
 	sub_screen_lock = false;
 
-	g_pad = NULL;
-	timer = NULL;
+	g_pad = nullptr;
+	timer = nullptr;
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG

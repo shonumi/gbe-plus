@@ -1140,10 +1140,10 @@ bool parse_ini_file()
 		std::string win_str = "";
 		std::string last_chr = "";
 
-		if(unix_chr != NULL) { unix_str = unix_chr; }
-		if(win_chr != NULL) { win_str = win_chr; }
+		if(unix_chr != nullptr) { unix_str = unix_chr; }
+		if(win_chr != nullptr) { win_str = win_chr; }
 		
-		if((win_chr == NULL) && (unix_chr == NULL))
+		if((win_chr == nullptr) && (unix_chr == nullptr))
 		{
 			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
 			result = false;
@@ -1152,7 +1152,7 @@ bool parse_ini_file()
 		bool config_result = false;
 
 		//Test for Linux or Unix install location next
-		if(win_chr == NULL)
+		if(win_chr == nullptr)
 		{
 			last_chr = unix_str[unix_str.length() - 1];
 			config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";

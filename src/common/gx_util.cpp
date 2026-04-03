@@ -216,7 +216,7 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	std::cout<<"OGL::Compiling vertex shader : " << vertex_shader_file << "\n"; 
 
 	char const *vs_code_pointer = vs_code.c_str();
-	glShaderSource(vertex_shader_id, 1, &vs_code_pointer, NULL);
+	glShaderSource(vertex_shader_id, 1, &vs_code_pointer, nullptr);
 	glCompileShader(vertex_shader_id);
 
 	//Check vertex shader
@@ -226,7 +226,7 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	if(log_length)
 	{
 		std::vector<char> vs_error(log_length);
-		glGetShaderInfoLog(vertex_shader_id, log_length, NULL, &vs_error[0]);
+		glGetShaderInfoLog(vertex_shader_id, log_length, nullptr, &vs_error[0]);
 
 		//Print any error messages from compiling vertex shader
 		std::cout<<"OGL::Vertex Shader Error Message Log: " << &vs_error[0] << "\n";
@@ -235,7 +235,7 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	//Compile fragment shader
 	std::cout<<"OGL::Compiling fragment shader : " << fragment_shader_file << "\n"; 
     	char const * fs_code_pointer = fs_code.c_str();
-    	glShaderSource(fragment_shader_id, 1, &fs_code_pointer, NULL);
+    	glShaderSource(fragment_shader_id, 1, &fs_code_pointer, nullptr);
     	glCompileShader(fragment_shader_id);
  
 	//Check fragment Shader
@@ -245,7 +245,7 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	if(log_length)
 	{
 		std::vector<char> fs_error(log_length);
-		glGetShaderInfoLog(fragment_shader_id, log_length, NULL, &fs_error[0]);
+		glGetShaderInfoLog(fragment_shader_id, log_length, nullptr, &fs_error[0]);
 
 		//Print any error messages from compiling fragment shader
 		std::cout<<"OGL::Fragment Shader Error Message Log: " << &fs_error[0] << "\n";
@@ -266,7 +266,7 @@ GLuint gx_load_shader(std::string vertex_shader_file, std::string fragment_shade
 	if(log_length)
 	{
 		std::vector<char> program_error(log_length);
-		glGetProgramInfoLog(program_id, log_length, NULL, &program_error[0]);
+		glGetProgramInfoLog(program_id, log_length, nullptr, &program_error[0]);
 
 		//Print any error messages from the linking process
 		std::cout<<"OGL::Linking Error Message Log: " << &program_error[0] << "\n";

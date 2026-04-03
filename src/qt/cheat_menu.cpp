@@ -19,7 +19,7 @@
 cheat_menu::cheat_menu(QWidget *parent) : QDialog(parent)
 {
 	cheats_display = new QListWidget;
-	edit_signal = NULL;
+	edit_signal = nullptr;
 
 	close_button = new QDialogButtonBox(QDialogButtonBox::Close);
 	edit_button = close_button->addButton("Edit Cheat", QDialogButtonBox::ActionRole);
@@ -96,10 +96,10 @@ void cheat_menu::fetch_cheats()
 	}
 
 	//Rebuild cheat list layout
-	if(data_set->layout() != NULL) { delete data_set->layout(); }
-	if(info_set->layout() != NULL) { delete info_set->layout(); }
-	if(add_set->layout() != NULL) { delete add_set->layout(); }
-	if(layout() != NULL) { delete layout(); }
+	if(data_set->layout() != nullptr) { delete data_set->layout(); }
+	if(info_set->layout() != nullptr) { delete info_set->layout(); }
+	if(add_set->layout() != nullptr) { delete add_set->layout(); }
+	if(layout() != nullptr) { delete layout(); }
 
 	//Cheat menu layout
 	QVBoxLayout* cheat_menu_layout = new QVBoxLayout;
@@ -134,7 +134,7 @@ void cheat_menu::fetch_cheats()
 	u32 gsa_count = 0;
 
 	//Setup signal mapper
-	if(edit_signal != NULL) { delete edit_signal; }
+	if(edit_signal != nullptr) { delete edit_signal; }
 	edit_signal = new QSignalMapper;
 
 	for(u32 x = 0; x < config::cheats_info.size(); x++)
@@ -249,7 +249,7 @@ void cheat_menu::edit_cheat_data()
 	}
 
 	//Code data
-	if(data_set->layout() != NULL) { delete data_set->layout(); }
+	if(data_set->layout() != nullptr) { delete data_set->layout(); }
 	data_label->setText(QString::fromStdString(data_str));	
 	data_line->setText(QString::fromStdString(code_data));
 
@@ -263,7 +263,7 @@ void cheat_menu::edit_cheat_data()
 	data_line->show();
 
 	//Code info
-	if(info_set->layout() != NULL) { delete info_set->layout();}
+	if(info_set->layout() != nullptr) { delete info_set->layout();}
 	info_label->setText(QString::fromUtf8("Cheat Comments: \t"));
 	info_line->setText(QString::fromStdString(current_cheat));
 
@@ -454,7 +454,7 @@ void cheat_menu::update_cheats()
 void cheat_menu::add_cheats()
 {
 	//Code type
-	if(add_set->layout() != NULL) { delete add_set->layout(); }
+	if(add_set->layout() != nullptr) { delete add_set->layout(); }
 
 	QHBoxLayout* add_layout = new QHBoxLayout;
 	add_layout->addWidget(add_label);
@@ -466,7 +466,7 @@ void cheat_menu::add_cheats()
 	add_type->show();
 
 	//Code data
-	if(data_set->layout() != NULL) { delete data_set->layout(); }
+	if(data_set->layout() != nullptr) { delete data_set->layout(); }
 	data_label->setText(QString::fromUtf8("Cheat Code Data: \t"));
 	data_line->clear();
 
@@ -480,7 +480,7 @@ void cheat_menu::add_cheats()
 	data_line->show();
 
 	//Code info
-	if(info_set->layout() != NULL) { delete info_set->layout();}
+	if(info_set->layout() != nullptr) { delete info_set->layout();}
 	info_label->setText(QString::fromUtf8("Cheat Comments: \t"));
 	info_line->clear();
 

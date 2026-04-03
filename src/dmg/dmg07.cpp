@@ -40,7 +40,7 @@ bool DMG_SIO::four_player_init()
 		net_util::setup_comm(four_player_server[x], server_port, NET_COMM_SERVER);
 		net_util::setup_comm(four_player_sender[x], sender_port, NET_COMM_CLIENT);	
 
-		//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+		//Setup server, resolve the server with nullptr as the hostname, the server will now listen for connections
 		if(net_util::resolve_host(four_player_server[x], "") < 0)
 		{
 			std::cout<<"SIO::Error - Server could not resolve hostname\n";
@@ -92,7 +92,7 @@ void DMG_SIO::four_player_disconnect()
 	temp_buffer[0] = 0;
 	temp_buffer[1] = 0x80;
 
-	if((four_player_sender[master_id].host_socket != NULL) && (!is_master))
+	if((four_player_sender[master_id].host_socket != nullptr) && (!is_master))
 	{
 		net_util::send_data(four_player_sender[master_id], temp_buffer, 2);
 	}
@@ -255,7 +255,7 @@ bool DMG_SIO::four_player_receive_byte()
 	//If this socket is active, receive the transfer
 	for(int x = 0; x < 3; x++)
 	{
-		if((four_player_server[x].tcp_sockets != NULL) && (four_player_server[x].remote_socket != NULL))
+		if((four_player_server[x].tcp_sockets != nullptr) && (four_player_server[x].remote_socket != nullptr))
 		{
 			//Check the status of connection
 			//This is non-blocking

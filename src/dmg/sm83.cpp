@@ -59,7 +59,7 @@ void SM83::reset()
 	double_speed = false;
 	skip_instruction = false;
 
-	mem = NULL;
+	mem = nullptr;
 
 	std::cout<<"CPU::Initialized\n";
 }
@@ -94,7 +94,7 @@ void SM83::reset_bios()
 	double_speed = false;
 	skip_instruction = false;
 
-	mem = NULL;
+	mem = nullptr;
 
 	std::cout<<"CPU::Initialized (BIOS RESET)\n";
 }

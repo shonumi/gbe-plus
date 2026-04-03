@@ -1539,7 +1539,7 @@ bool AGB_MMU::read_play_yan_thumbnail(std::string filename)
 	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
 
 	//Generate blank (all black) thumbnail if source not found
-	if(source == NULL)
+	if(source == nullptr)
 	{
 		std::cout<<"MMU::Warning - Could not load thumbnail image for " << filename << "\n";
 		play_yan.video_thumbnail.resize(0x12C0, 0x00);
@@ -2086,7 +2086,7 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 
 	//Clear previous buffer if necessary
 	SDL_FreeWAV(apu_stat->ext_audio.buffer);
-	apu_stat->ext_audio.buffer = NULL;
+	apu_stat->ext_audio.buffer = nullptr;
 
 	SDL_AudioSpec file_spec;
 
@@ -2095,7 +2095,7 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 	{
 		std::string cached_file = config::temp_media_file + ".wav";
 
-		if(SDL_LoadWAV(cached_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+		if(SDL_LoadWAV(cached_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == nullptr)
 		{
 			std::cout<<"MMU::Play-Yan could not load audio file: " << filename << " :: " << SDL_GetError() << "\n";
 			return false;
@@ -2140,7 +2140,7 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 		}
 		
 		//Check for a command processor on system and run audio conversion command
-		if(system(NULL))
+		if(system(nullptr))
 		{
 			std::cout<<"MMU::Converting audio file " << filename << "\n";
 			system(sys_cmd.c_str());
@@ -2153,7 +2153,7 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 			return false;
 		}
 
-		if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+		if(SDL_LoadWAV(out_file.c_str(), &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == nullptr)
 		{
 			std::cout<<"MMU::Play-Yan could not load audio file: " << out_file << " :: " << SDL_GetError() << "\n";
 			return false;
@@ -2172,7 +2172,7 @@ bool AGB_MMU::play_yan_load_audio(std::string filename)
 		SDL_RWops* io_ops = SDL_AllocRW();
 		io_ops = SDL_RWFromMem(play_yan.sfx_data.data(), play_yan.sfx_data.size());
 
-		if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+		if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == nullptr)
 		{
 			std::cout<<"MMU::Play-Yan could not load SFX samples : " << SDL_GetError() << "\n";
 		}
@@ -2340,7 +2340,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 	SDL_Surface* thumb_pixels = SDL_LoadBMP(thumb_file.c_str());
 	SDL_RWops* io_ops = SDL_AllocRW();
 
-	if(thumb_pixels == NULL)
+	if(thumb_pixels == nullptr)
 	{
 		std::vector<u8> new_thumb;
 		u32 start = 0;
@@ -2387,7 +2387,7 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 			dest_rect.h = 40;
 			dest_rect.x = 0;
 			dest_rect.y = 0;
-			SDL_BlitScaled(temp_surface, NULL, final_surface, &dest_rect);
+			SDL_BlitScaled(temp_surface, nullptr, final_surface, &dest_rect);
 			SDL_SaveBMP(final_surface, thumb_file.c_str());
 
 			SDL_FreeSurface(final_surface);
@@ -2429,15 +2429,15 @@ bool AGB_MMU::play_yan_load_video(std::string filename)
 		io_ops = SDL_AllocRW();
 		io_ops = SDL_RWFromMem(mus_file.data(), mus_file.size());
 
-		if(io_ops != NULL)
+		if(io_ops != nullptr)
 		{
 			//Clear previous buffer if necessary
 			SDL_FreeWAV(apu_stat->ext_audio.buffer);
-			apu_stat->ext_audio.buffer = NULL;
+			apu_stat->ext_audio.buffer = nullptr;
 
 			SDL_AudioSpec file_spec;
 
-			if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+			if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == nullptr)
 			{
 				std::cout<<"MMU::Play-Yan could not load audio from video : " << SDL_GetError() << "\n";
 			}
@@ -2558,7 +2558,7 @@ bool AGB_MMU::play_yan_grab_frame_data(u32 frame)
 
 	SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
 
-	if(temp_surface != NULL)
+	if(temp_surface != nullptr)
 	{
 		//Copy and convert data into video frame buffer used by Play-Yan
 		play_yan.video_data.clear();

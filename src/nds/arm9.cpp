@@ -98,7 +98,7 @@ void NTR_ARM9::reset()
 	re_sync = false;
 
 	flush_pipeline();
-	mem = NULL;
+	mem = nullptr;
 
 	co_proc.reset();
 

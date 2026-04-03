@@ -1057,10 +1057,10 @@ SDL_Surface* load_icon(std::string filename)
 {
 	SDL_Surface* source = SDL_LoadBMP(filename.c_str());
 
-	if(source == NULL)
+	if(source == nullptr)
 	{
 		std::cout<<"GBE::Error - Could not load icon file " << filename << ". Check file path or permissions. \n";
-		return NULL;
+		return nullptr;
 	}
 
 	SDL_Surface* output = SDL_CreateRGBSurface(SDL_SWSURFACE, source->w, source->h, 32, 0, 0, 0, 0);

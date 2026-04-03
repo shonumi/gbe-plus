@@ -168,7 +168,7 @@ void DMG_MMU::reset()
 	flash.resize(0x80);
 	for(int x = 0; x < 0x80; x++) { flash[x].resize(0x2000, 0x00); }
 
-	g_pad = NULL;
+	g_pad = nullptr;
 
 	sub_screen_buffer.clear();
 	sub_screen_update = 0;

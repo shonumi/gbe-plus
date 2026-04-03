@@ -328,14 +328,14 @@ bool load_virtual_cursor()
 	//Should be called after parse_ini_file() to get correct data path
 	SDL_Surface* source = SDL_LoadBMP(config::vc_file.c_str());
 
-	if(source == NULL)
+	if(source == nullptr)
 	{
 		//If the user-specified virtual cursor file cannot be opened, use the default
 		std::string cursor_file = config::data_path + "misc/vc_default.bmp";
 		source = SDL_LoadBMP(cursor_file.c_str());
 
 		//If virtual cursor file still cannot be opened, abort
-		if(source == NULL)
+		if(source == nullptr)
 		{
 			std::cout<<"GBE::Could not load any Virtual Cursor files\n";
 			config::vc_enable = false;

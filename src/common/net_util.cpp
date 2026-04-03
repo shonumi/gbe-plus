@@ -19,7 +19,7 @@ namespace net_util
 //Sends data from server to remote client
 s32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking)
 {
-	if(client.host_socket == NULL) { return 0; }
+	if(client.host_socket == nullptr) { return 0; }
 
 	return SDLNet_TCP_Send(client.host_socket, buffer, length);
 }
@@ -27,7 +27,7 @@ s32 send_data(gbe_net_comm &client, void* buffer, u32 length, bool is_blocking)
 //Receives data from remote client sent to server
 s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 {
-	if(server.remote_socket == NULL) { return 0; }
+	if(server.remote_socket == nullptr) { return 0; }
 
 	s32 bytes_recv = 0;
 
@@ -50,7 +50,7 @@ s32 recv_data(gbe_net_comm &server, void* buffer, u32 length, bool is_blocking)
 //Sends response data to server. Used for HTTP TCP transfer (Net Gate)
 s32 send_response(gbe_net_comm &client, void* buffer, u32 length)
 {
-	if(client.remote_socket == NULL) { return 0; }
+	if(client.remote_socket == nullptr) { return 0; }
 
 	return SDLNet_TCP_Send(client.remote_socket, buffer, length);
 }
@@ -58,7 +58,7 @@ s32 send_response(gbe_net_comm &client, void* buffer, u32 length)
 //Receives response data on same host. Used for HTTP TCP transfers (Mobile Adapter GB)
 s32 recv_response(gbe_net_comm &client, void* buffer, u32 length)
 {
-	if(client.host_socket == NULL) { return 0; }
+	if(client.host_socket == nullptr) { return 0; }
 
 	return SDLNet_TCP_Recv(client.host_socket, buffer, length);
 }
@@ -70,7 +70,7 @@ s32 resolve_host(gbe_net_comm &req, std::string ip_address)
 	
 	if(ip_address.empty())
 	{
-		result = SDLNet_ResolveHost(&req.host_ip, NULL, req.port);
+		result = SDLNet_ResolveHost(&req.host_ip, nullptr, req.port);
 	}
 
 	else
@@ -87,7 +87,7 @@ bool open_tcp(gbe_net_comm &req)
 	bool result = false;
 
 	req.host_socket = SDLNet_TCP_Open(&req.host_ip);
-	if(req.host_socket != NULL) { result = true; }
+	if(req.host_socket != nullptr) { result = true; }
 
 	return result;
 }
@@ -109,17 +109,17 @@ void close_tcp(gbe_net_comm &req, net_comm_role role)
 //Accepts a connection from a client for a server
 bool accept_client(gbe_net_comm &req)
 {
-	if(req.host_socket == NULL) { return false; }
+	if(req.host_socket == nullptr) { return false; }
 
 	bool result = false;
 
 	req.remote_socket = SDLNet_TCP_Accept(req.host_socket);
 
-	if(req.remote_socket != NULL)
+	if(req.remote_socket != nullptr)
 	{
 		result = true;
 
-		if(req.tcp_sockets == NULL)
+		if(req.tcp_sockets == nullptr)
 		{
 			req.tcp_sockets = SDLNet_AllocSocketSet(2);
 		}
@@ -142,7 +142,7 @@ bool accept_server(gbe_net_comm &req)
 	{
 		result = true;
 
-		if(req.tcp_sockets == NULL)
+		if(req.tcp_sockets == nullptr)
 		{
 			req.tcp_sockets = SDLNet_AllocSocketSet(2);
 		}
@@ -158,29 +158,29 @@ bool accept_server(gbe_net_comm &req)
 //Handles setup of client or server
 void setup_comm(gbe_net_comm &req, u16 port, net_comm_role role)
 {
-	req.host_socket = NULL;
+	req.host_socket = nullptr;
 	req.host_init = false;
-	req.remote_socket = NULL;
+	req.remote_socket = nullptr;
 	req.remote_init = false;
 	req.connected = false;
 	req.port = port;
 	req.role = role;
-	req.tcp_sockets = NULL;
+	req.tcp_sockets = nullptr;
 }
 
 //Closes any active connections for client or server
 void close_comm(gbe_net_comm &req)
 {
-	bool is_valid_socket = (req.tcp_sockets != NULL);
+	bool is_valid_socket = (req.tcp_sockets != nullptr);
 
 	if(is_valid_socket)
 	{
-		if(req.host_socket != NULL)
+		if(req.host_socket != nullptr)
 		{
 			SDLNet_TCP_DelSocket(req.tcp_sockets, req.host_socket);
 		}
 
-		if(req.remote_socket != NULL)
+		if(req.remote_socket != nullptr)
 		{
 			if(is_valid_socket) { SDLNet_TCP_DelSocket(req.tcp_sockets, req.remote_socket); }
 		}
@@ -191,12 +191,12 @@ void close_comm(gbe_net_comm &req)
 	SDLNet_TCP_Close(req.host_socket);
 	SDLNet_TCP_Close(req.remote_socket);
 
-	req.host_socket = NULL;
+	req.host_socket = nullptr;
 	req.host_init = false;
-	req.remote_socket = NULL;
+	req.remote_socket = nullptr;
 	req.remote_init = false;
 	req.connected = false;
-	req.tcp_sockets = NULL;
+	req.tcp_sockets = nullptr;
 }
 
 } //Namespace

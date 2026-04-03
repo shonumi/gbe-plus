@@ -28,7 +28,7 @@ void soft_screen::paintEvent(QPaintEvent* event)
 	painter.setBrush(Qt::black);
 	painter.drawRect(0, 0, width(), height());
 
-	if(qt_gui::screen != NULL)
+	if(qt_gui::screen != nullptr)
 	{
 		//Maintain aspect ratio
 		if(config::maintain_aspect_ratio)
@@ -124,7 +124,7 @@ void hard_screen::initializeGL()
 /****** Hardware screen paint event ******/
 void hard_screen::paintGL()
 {
-	if(qt_gui::final_screen == NULL)
+	if(qt_gui::final_screen == nullptr)
 	{
 		QPainter painter(this);
 		painter.setPen(Qt::black);
@@ -186,7 +186,7 @@ void hard_screen::paintGL()
 /****** Hardware screen resize event ******/
 void hard_screen::resizeGL(int width, int height)
 {
-	if(main_menu::gbe_plus == NULL) { return; }
+	if(main_menu::gbe_plus == nullptr) { return; }
 
 	config::win_width = width;
 	config::win_height = height;

@@ -94,7 +94,7 @@ void S1C88::reset()
 	//256Hz timer setup
 	controllers.timer[3].prescalar_lo = 15625;
 
-	mem = NULL;
+	mem = nullptr;
 
 	std::cout<<"CPU::Initialized\n";
 }

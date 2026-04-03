@@ -96,10 +96,10 @@ u8 DMG_MMU::cam_read(u16 address)
 bool DMG_MMU::cam_load_snapshot(std::string filename)
 {
 	//Load source image
-	SDL_Surface* src_img = NULL;
+	SDL_Surface* src_img = nullptr;
 	src_img = SDL_LoadBMP(filename.c_str());
 
-	if(src_img == NULL)
+	if(src_img == nullptr)
 	{
 		std::cout<<"MMU::Error - Could not load GB snapshot " << filename << "\n";
 		return false;

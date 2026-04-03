@@ -87,7 +87,7 @@ void ARM7::reset()
 	debug_cycles = 0;
 
 	flush_pipeline();
-	mem = NULL;
+	mem = nullptr;
 
 	std::cout<<"CPU::Initialized\n";
 }

@@ -97,7 +97,7 @@ void MIN_MMU::reset()
 	debug_addr = 0;
 	#endif
 
-	timer = NULL;
+	timer = nullptr;
 }
 
 /****** Read byte from memory ******/

@@ -22,7 +22,7 @@ AGB_APU::AGB_APU()
 /****** APU Destructor ******/
 AGB_APU::~AGB_APU()
 {
-	//Always free external audio buffer, safe to call this function with NULL pointer!
+	//Always free external audio buffer, safe to call this function with nullptr pointer!
 	SDL_FreeWAV(apu_stat.ext_audio.buffer);
 	SDL_FreeWAV(apu_stat.ext_audio.karaoke_buffer);
 
@@ -139,11 +139,11 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.id = 0;
 	apu_stat.ext_audio.set_count = 0;
 	apu_stat.ext_audio.current_set = 0;
-	apu_stat.ext_audio.buffer = NULL;
+	apu_stat.ext_audio.buffer = nullptr;
 	apu_stat.ext_audio.playing = false;
 	apu_stat.ext_audio.use_headphones = false;
 
-	apu_stat.ext_audio.karaoke_buffer = NULL;
+	apu_stat.ext_audio.karaoke_buffer = nullptr;
 	apu_stat.ext_audio.karaoke_length = 0;
 
 	mic_buffer.clear();
@@ -178,7 +178,7 @@ bool AGB_APU::init()
     	desired_spec.userdata = this;
 
     	//Open SDL audio for desired specifications
-	if(SDL_OpenAudio(&desired_spec, NULL) < 0) 
+	if(SDL_OpenAudio(&desired_spec, nullptr) < 0) 
 	{ 
 		std::cout<<"APU::Failed to open audio\n";
 		init_status = false;
@@ -470,7 +470,7 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 		return;
 	}
 
-	if(apu_stat.ext_audio.buffer == NULL) { return; }
+	if(apu_stat.ext_audio.buffer == nullptr) { return; }
 
 	double sample_ratio = apu_stat.ext_audio.frequency/apu_stat.sample_rate;
 	u32 last_pos = apu_stat.ext_audio.sample_pos;

@@ -94,7 +94,7 @@ void NTR_ARM7::reset()
 	re_sync = false;
 
 	flush_pipeline();
-	mem = NULL;
+	mem = nullptr;
 
 	std::cout<<"CPU::ARM7 - Initialized\n";
 }

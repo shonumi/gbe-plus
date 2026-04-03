@@ -14,9 +14,9 @@
 
 namespace qt_gui
 {
-	QImage* screen = NULL;
-	main_menu* draw_surface = NULL;
-	SDL_Surface* final_screen = NULL;
+	QImage* screen = nullptr;
+	main_menu* draw_surface = nullptr;
+	SDL_Surface* final_screen = nullptr;
 }
 
 /****** Renders an LCD's screen buffer to a QImage ******/
@@ -26,7 +26,7 @@ void render_screen_sw(std::vector<u32>& image)
 	//Used for DMG/GBC games on GBA
 	if(config::request_resize)
 	{
-		if(qt_gui::screen != NULL) { delete qt_gui::screen; }
+		if(qt_gui::screen != nullptr) { delete qt_gui::screen; }
 		qt_gui::screen = new QImage(config::sys_width, config::sys_height, QImage::Format_ARGB32);
 	}
 
@@ -45,7 +45,7 @@ void render_screen_sw(std::vector<u32>& image)
 		for(int x = 0; x < width; x++) { pixel_data[x] = image[x + (y*width)]; }
 	}
 
-	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->update(); }
+	if(qt_gui::draw_surface != nullptr) { qt_gui::draw_surface->update(); }
 
 	QApplication::processEvents();
 }
@@ -57,7 +57,7 @@ void render_screen_hw(SDL_Surface* image)
 
 	qt_gui::final_screen = image;
 
-	if(qt_gui::draw_surface != NULL) { qt_gui::draw_surface->hw_screen->update(); }
+	if(qt_gui::draw_surface != nullptr) { qt_gui::draw_surface->hw_screen->update(); }
 
 	QApplication::processEvents();
 }

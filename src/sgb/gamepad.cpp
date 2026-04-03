@@ -62,16 +62,16 @@ void SGB_GamePad::init()
 		return;
 	}
 
-	jstick = NULL;
+	jstick = nullptr;
 	jstick = SDL_JoystickOpen(config::joy_id);
 	config::joy_sdl_id = SDL_JoystickInstanceID(jstick);
 
-	joy_init = (jstick != NULL) ? true : false;
+	joy_init = (jstick != nullptr) ? true : false;
 
-	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
-	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; return; }
+	if((jstick == nullptr) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
+	else if((jstick == nullptr) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; return; }
 
-	rumble = NULL;
+	rumble = nullptr;
 
 	//Open haptics for rumbling
 	if(config::use_haptics)
@@ -84,7 +84,7 @@ void SGB_GamePad::init()
 
 		rumble = SDL_HapticOpenFromJoystick(jstick);
 
-		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+		if(rumble == nullptr) { std::cout<<"JOY::Could not init rumble \n"; }
 	
 		else
 		{
@@ -102,8 +102,8 @@ void SGB_GamePad::close_joystick()
 {
 	joy_init = false;
 
-	if(jstick != NULL) { SDL_JoystickClose(jstick); }
-	if(rumble != NULL) { SDL_HapticClose(rumble); }
+	if(jstick != nullptr) { SDL_JoystickClose(jstick); }
+	if(rumble != nullptr) { SDL_HapticClose(rumble); }
 }
 
 /****** Handle Input From Keyboard ******/
@@ -481,7 +481,7 @@ void SGB_GamePad::process_turbo_buttons()
 {
 	for(u32 x = 0; x < 12; x++)
 	{
-		u8 *p1 = NULL;
+		u8 *p1 = nullptr;
 		u8 mask = 0;
 
 		//Grab P14 or P15 depending on button
@@ -555,7 +555,7 @@ void SGB_GamePad::process_vaus()
 /****** Start haptic force-feedback on joypad ******/
 void SGB_GamePad::start_rumble()
 {
-	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	if((jstick != nullptr) && (rumble != nullptr) && (is_rumbling == false))
 	{
 		SDL_HapticRumblePlay(rumble, 1, -1);
 		is_rumbling = true;
@@ -565,7 +565,7 @@ void SGB_GamePad::start_rumble()
 /****** Stop haptic force-feedback on joypad ******/
 void SGB_GamePad::stop_rumble()
 {
-	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	if((jstick != nullptr) && (rumble != nullptr) && (is_rumbling == true))
 	{
 		SDL_HapticRumbleStop(rumble);
        		is_rumbling = false;

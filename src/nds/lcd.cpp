@@ -17,7 +17,7 @@
 /****** LCD Constructor ******/
 NTR_LCD::NTR_LCD()
 {
-	window = NULL;
+	window = nullptr;
 	reset();
 }
 
@@ -44,12 +44,12 @@ NTR_LCD::~NTR_LCD()
 /****** Reset LCD ******/
 void NTR_LCD::reset()
 {
-	final_screen = NULL;
-	original_screen = NULL;
-	mem = NULL;
+	final_screen = nullptr;
+	original_screen = nullptr;
+	mem = nullptr;
 
-	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
-	window = NULL;
+	if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+	window = nullptr;
 
 	screen_buffer.clear();
 	gx_screen_buffer.clear();
@@ -485,7 +485,7 @@ bool NTR_LCD::init()
 			config::scaling_factor = 1;
 		}
 
-		if(final_screen == NULL) { return false; }
+		if(final_screen == nullptr) { return false; }
 
 		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
@@ -4037,7 +4037,7 @@ void NTR_LCD::update()
 				if(!try_window_rebuild)
 				{
 					try_window_rebuild = true;
-					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+					if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
 				}
 			}
@@ -4246,7 +4246,7 @@ void NTR_LCD::step()
 					dest_rect.h = config::sys_height * max_fullscreen_ratio;
 					dest_rect.x = ((config::win_width - dest_rect.w) >> 1);
 					dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
-					SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
+					SDL_BlitScaled(original_screen, nullptr, final_screen, &dest_rect);
 
 					if(SDL_UpdateWindowSurface(window) != 0)
 					{
@@ -4256,7 +4256,7 @@ void NTR_LCD::step()
 						if(!try_window_rebuild)
 						{
 							try_window_rebuild = true;
-							if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+							if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 							init();
 						}
 					}
@@ -4290,7 +4290,7 @@ void NTR_LCD::step()
 							if(!try_window_rebuild)
 							{
 								try_window_rebuild = true;
-								if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+								if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 								init();
 							}
 						}
@@ -4354,7 +4354,7 @@ void NTR_LCD::step()
 				screen_buffer.clear();
 				screen_buffer.resize(0x18000, 0xFFFFFFFF);
 					
-				if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+				if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 				init();
 					
 				if(config::sdl_render) { config::request_resize = false; }

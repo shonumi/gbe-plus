@@ -551,7 +551,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	{
 		const char* temp_driver = SDL_GetAudioDriver(x);
 
-		if(temp_driver != NULL)
+		if(temp_driver != nullptr)
 		{
 			std::string temp_str = temp_driver;
 			audio_driver->addItem(QString::fromStdString(temp_str));
@@ -584,7 +584,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	{
 		const char* temp_device = SDL_GetAudioDeviceName(x, 1);
 
-		if(temp_device != NULL)
+		if(temp_device != nullptr)
 		{
 			std::string temp_str = temp_device;
 			mic_select->addItem(QString::fromStdString(temp_str));
@@ -2627,7 +2627,7 @@ void gen_settings::screen_scale_change()
 	resize_screen = true;
 
 	//Force Main Menu PaintEvent by slightly resizing main window
-	if((main_menu::gbe_plus != NULL) && (qt_gui::draw_surface != NULL))
+	if((main_menu::gbe_plus != nullptr) && (qt_gui::draw_surface != nullptr))
 	{
 		u32 width = qt_gui::draw_surface->width();
 		u32 height = qt_gui::draw_surface->height();
@@ -2684,7 +2684,7 @@ void gen_settings::ogl_frag_change()
 		case 19: config::fragment_shader = config::data_path + "shaders/washout.fs"; break;
 	}
 
-	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
+	if((main_menu::gbe_plus != nullptr) && (config::use_opengl))
 	{
 		qt_gui::draw_surface->hw_screen->reload_shaders();
 		qt_gui::draw_surface->hw_screen->update();
@@ -2700,7 +2700,7 @@ void gen_settings::ogl_vert_change()
 		case 1: config::vertex_shader = config::data_path + "shaders/invert_x.vs"; break;
 	}
 
-	if((main_menu::gbe_plus != NULL) && (config::use_opengl))
+	if((main_menu::gbe_plus != nullptr) && (config::use_opengl))
 	{
 		qt_gui::draw_surface->hw_screen->reload_shaders();
 		qt_gui::draw_surface->hw_screen->update();
@@ -2711,7 +2711,7 @@ void gen_settings::ogl_vert_change()
 void gen_settings::volume_change() 
 {
 	//Update volume while playing
-	if((main_menu::gbe_plus != NULL) && (sound_on->isChecked()))
+	if((main_menu::gbe_plus != nullptr) && (sound_on->isChecked()))
 	{
 		main_menu::gbe_plus->update_volume(volume->value());
 	}
@@ -2727,7 +2727,7 @@ void gen_settings::update_volume() { mute(); }
 void gen_settings::mute()
 {
 	//Mute/unmute while playing
-	if(main_menu::gbe_plus != NULL)
+	if(main_menu::gbe_plus != nullptr)
 	{
 		//Unmute, use slider volume
 		if(sound_on->isChecked())

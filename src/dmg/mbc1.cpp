@@ -264,10 +264,10 @@ bool DMG_MMU::mbc1s_load_sonar_data(std::string filename)
 	if(filename.empty()) { return false; }
 
 	//Load source image
-	SDL_Surface* src_img = NULL;
+	SDL_Surface* src_img = nullptr;
 	src_img = SDL_LoadBMP(filename.c_str());
 
-	if(src_img == NULL)
+	if(src_img == nullptr)
 	{
 		std::cout<<"MMU::Error - Could not load sonar image " << filename << "\n";
 		return false;

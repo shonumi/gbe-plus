@@ -17,7 +17,7 @@ NTR_GamePad::NTR_GamePad()
 	pad = 0;
 	key_input = 0x3FF;
 	ext_key_input = 0x7F;
-	jstick = NULL;
+	jstick = nullptr;
 	mouse_x = 0;
 	mouse_y = 0xFFF;
 	up_shadow = down_shadow = left_shadow = right_shadow = false;
@@ -33,8 +33,8 @@ NTR_GamePad::NTR_GamePad()
 	vc_delta_y = 0;
 	vc_pause = 0;
 
-	nds7_input_irq = NULL;
-	nds9_input_irq = NULL;
+	nds7_input_irq = nullptr;
+	nds9_input_irq = nullptr;
 
 	joypad_irq = false;
 	joy_init = false;
@@ -53,16 +53,16 @@ void NTR_GamePad::init()
 		return;
 	}
 
-	jstick = NULL;
+	jstick = nullptr;
 	jstick = SDL_JoystickOpen(config::joy_id);
 	config::joy_sdl_id = SDL_JoystickInstanceID(jstick);
 
-	if((jstick == NULL) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
-	else if((jstick == NULL) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
+	if((jstick == nullptr) && (SDL_NumJoysticks() >= 1)) { std::cout<<"JOY::Could not initialize joystick \n"; }
+	else if((jstick == nullptr) && (SDL_NumJoysticks() == 0)) { std::cout<<"JOY::No joysticks detected \n"; }
 
-	joy_init = (jstick != NULL) ? true : false;
+	joy_init = (jstick != nullptr) ? true : false;
 
-	rumble = NULL;
+	rumble = nullptr;
 
 	//Open haptics for rumbling
 	if(config::use_haptics)
@@ -75,7 +75,7 @@ void NTR_GamePad::init()
 
 		rumble = SDL_HapticOpenFromJoystick(jstick);
 
-		if(rumble == NULL) { std::cout<<"JOY::Could not init rumble \n"; }
+		if(rumble == nullptr) { std::cout<<"JOY::Could not init rumble \n"; }
 	
 		else
 		{
@@ -105,8 +105,8 @@ void NTR_GamePad::close_joystick()
 {
 	joy_init = false;
 
-	if(jstick != NULL) { SDL_JoystickClose(jstick); }
-	if(rumble != NULL) { SDL_HapticClose(rumble); }
+	if(jstick != nullptr) { SDL_JoystickClose(jstick); }
+	if(rumble != nullptr) { SDL_HapticClose(rumble); }
 }
 
 /****** Handle input from keyboard or joystick for processing ******/
@@ -676,7 +676,7 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 		ext_key_input |= 0x80;
 		
 		//Trigger Lid hardware IRQ
-		if(nds7_input_irq != NULL) { *nds7_input_irq |= 0x400000; }
+		if(nds7_input_irq != nullptr) { *nds7_input_irq |= 0x400000; }
 	}
 	
 	//Emulate Lid Open
@@ -685,7 +685,7 @@ void NTR_GamePad::process_keyboard(int pad, bool pressed)
 		ext_key_input &= ~0x80;
 
 		//Trigger Lid hardware IRQ
-		if(nds7_input_irq != NULL) { *nds7_input_irq |= 0x400000; }
+		if(nds7_input_irq != nullptr) { *nds7_input_irq |= 0x400000; }
 	}
 
 	//Map keyboard input to touchscreen coordinates
@@ -1058,7 +1058,7 @@ void NTR_GamePad::process_virtual_cursor()
 /****** Start haptic force-feedback on joypad ******/
 void NTR_GamePad::start_rumble(s32 len)
 {
-	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == false))
+	if((jstick != nullptr) && (rumble != nullptr) && (is_rumbling == false))
 	{
 		SDL_HapticRumblePlay(rumble, 1, len);
 		is_rumbling = true;
@@ -1068,7 +1068,7 @@ void NTR_GamePad::start_rumble(s32 len)
 /****** Stop haptic force-feedback on joypad ******/
 void NTR_GamePad::stop_rumble()
 {
-	if((jstick != NULL) && (rumble != NULL) && (is_rumbling == true))
+	if((jstick != nullptr) && (rumble != nullptr) && (is_rumbling == true))
 	{
 		SDL_HapticRumbleStop(rumble);
        		is_rumbling = false;
@@ -1092,7 +1092,7 @@ void NTR_GamePad::process_turbo_buttons()
 {
 	for(u32 x = 0; x < 12; x++)
 	{
-		u16 *input = NULL;
+		u16 *input = nullptr;
 		u16 mask = 0;
 
 		//Grab the appropiate mask for each button

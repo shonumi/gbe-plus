@@ -925,15 +925,15 @@ bool AGB_MMU::tv_tuner_load_video(std::string filename)
 		SDL_RWops* io_ops = SDL_AllocRW();
 		io_ops = SDL_RWFromMem(mus_file.data(), mus_file.size());
 
-		if(io_ops != NULL)
+		if(io_ops != nullptr)
 		{
 			//Clear previous buffer if necessary
 			SDL_FreeWAV(apu_stat->ext_audio.buffer);
-			apu_stat->ext_audio.buffer = NULL;
+			apu_stat->ext_audio.buffer = nullptr;
 
 			SDL_AudioSpec file_spec;
 
-			if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == NULL)
+			if(SDL_LoadWAV_RW(io_ops, 0, &file_spec, &apu_stat->ext_audio.buffer, &apu_stat->ext_audio.length) == nullptr)
 			{
 				std::cout<<"MMU::TV Tuner could not load audio from video : " << SDL_GetError() << "\n";
 			}
@@ -1031,7 +1031,7 @@ bool AGB_MMU::tv_tuner_grab_frame_data(u32 frame)
 
 	SDL_Surface* temp_surface = IMG_LoadTyped_RW(io_ops, 0, "JPG");
 
-	if(temp_surface != NULL)
+	if(temp_surface != nullptr)
 	{
 		//Calculate ratios used to change Brightness and Hue. Contrast value can be used as is.
 		//Note that "Hue" is translated from the ATVT menu. It actually changes saturation!

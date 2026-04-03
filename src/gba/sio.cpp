@@ -62,7 +62,7 @@ AGB_SIO::~AGB_SIO()
 	#ifdef GBE_NETPLAY
 
 	//Send disconnect byte to another system
-	if(sender.host_socket != NULL)
+	if(sender.host_socket != nullptr)
 	{
 		u8 temp_buffer[6] = { 0, 0, 0, 0, 0, 0x80 };
 		
@@ -131,7 +131,7 @@ bool AGB_SIO::init()
 		return false;
 	}
 
-	//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+	//Setup server, resolve the server with nullptr as the hostname, the server will now listen for connections
 	if(net_util::resolve_host(server, "") < 0)
 	{
 		std::cout<<"SIO::Error - Server could not resolve hostname\n";
@@ -2483,7 +2483,7 @@ bool AGB_SIO::zoids_cdz_load_data()
 		std::vector<u32> temp_pixels;
 
 		//Check if file could be opened
-		if(source == NULL)
+		if(source == nullptr)
 		{
 			std::cout<<"SIO::Error - Could not load CDZ sprite data file " << file_list[index] << "\n";
 			return false;
@@ -3117,7 +3117,7 @@ bool AGB_SIO::vrs_load_data()
 		std::vector<u32> temp_pixels;
 
 		//Check if file could be opened
-		if(source == NULL)
+		if(source == nullptr)
 		{
 			std::cout<<"SIO::Error - Could not load VRS sprite data file " << file_list[index] << "\n";
 			return false;

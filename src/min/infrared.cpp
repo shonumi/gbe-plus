@@ -59,7 +59,7 @@ bool MIN_MMU::init_ir()
 
 		if(x != config::netplay_id)
 		{
-			//Setup server, resolve the server with NULL as the hostname, the server will now listen for connections
+			//Setup server, resolve the server with nullptr as the hostname, the server will now listen for connections
 			if(net_util::resolve_host(server[x], "") < 0)
 			{
 				std::cout<<"IR::Error - Server could not resolve hostname\n";

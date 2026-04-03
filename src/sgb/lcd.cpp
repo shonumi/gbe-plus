@@ -17,7 +17,7 @@
 /****** LCD Constructor ******/
 SGB_LCD::SGB_LCD()
 {
-	window = NULL;
+	window = nullptr;
 	reset();
 }
 
@@ -36,11 +36,11 @@ SGB_LCD::~SGB_LCD()
 /****** Reset LCD ******/
 void SGB_LCD::reset()
 {
-	final_screen = NULL;
-	mem = NULL;
+	final_screen = nullptr;
+	mem = nullptr;
 
-	if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
-	window = NULL;
+	if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+	window = nullptr;
 
 	screen_buffer.clear();
 	scanline_buffer.clear();
@@ -250,7 +250,7 @@ bool SGB_LCD::init()
 			original_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, config::sys_width, config::sys_height, 32, 0, 0, 0, 0);
 		}
 
-		if(final_screen == NULL) { return false; }
+		if(final_screen == nullptr) { return false; }
 
 		SDL_SetWindowIcon(window, util::load_icon(config::data_path + "icons/gbe_plus.bmp"));
 	}
@@ -977,7 +977,7 @@ void SGB_LCD::step(int cpu_clock)
 					screen_buffer.clear();
 					screen_buffer.resize(0xE000, 0xFFFFFFFF);
 					
-					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+					if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
 					
 					if(config::sdl_render) { config::request_resize = false; }
@@ -991,7 +991,7 @@ void SGB_LCD::step(int cpu_clock)
 					screen_buffer.clear();
 					screen_buffer.resize(0x5A00, 0xFFFFFFFF);
 
-					if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+					if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 					init();
 					
 					if(config::sdl_render) { config::request_resize = false; }
@@ -1045,7 +1045,7 @@ void SGB_LCD::step(int cpu_clock)
 							dest_rect.h = config::sys_height * max_fullscreen_ratio;
 							dest_rect.x = ((config::win_width - dest_rect.w) >> 1);
 							dest_rect.y = ((config::win_height - dest_rect.h) >> 1);
-							SDL_BlitScaled(original_screen, NULL, final_screen, &dest_rect);
+							SDL_BlitScaled(original_screen, nullptr, final_screen, &dest_rect);
 
 							if(SDL_UpdateWindowSurface(window) != 0)
 							{
@@ -1055,7 +1055,7 @@ void SGB_LCD::step(int cpu_clock)
 								if(!try_window_rebuild)
 								{
 									try_window_rebuild = true;
-									if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+									if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 									init();
 								}
 							}
@@ -1089,7 +1089,7 @@ void SGB_LCD::step(int cpu_clock)
 									if(!try_window_rebuild)
 									{
 										try_window_rebuild = true;
-										if((window != NULL) && (config::sdl_render)) { SDL_DestroyWindow(window); }
+										if((window != nullptr) && (config::sdl_render)) { SDL_DestroyWindow(window); }
 										init();
 									}
 								}
