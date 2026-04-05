@@ -16,6 +16,7 @@ set(HEADERS
 	dmg_core_pad.h
 	debug_util.h
 	net_util.h
+	info.h
 	)
 
 

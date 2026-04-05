@@ -1,3 +1,17 @@
+#Build info.h on a per-system basis. Execute specific scripts for more control than CMake allows
+add_custom_target(gbe_info ALL
+	COMMENT "Building GBE+ info.h"
+)
+
+if(UNIX AND NOT APPLE)
+	add_custom_command(TARGET gbe_info
+		PRE_BUILD
+		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/
+	)
+endif()
+
+add_dependencies(gbe_info)
+
 include_directories(.)
 
 add_subdirectory(common)
