@@ -9,12 +9,23 @@
 // This is main. It all begins here ;)
 
 #include "render.h"
+#include "common/info.h"
  
 #include <SDL_main.h>
 
 int main(int argc, char* args[]) 
 {
 	std::cout<<"GBE+ 1.10 [Qt]\n";
+
+	if(!gbe_info::hash.empty())
+	{
+		std::cout<<"Revision: " << gbe_info::hash << "\n\n";
+	}
+
+	else
+	{
+		std::cout<<"Revision: N/A\n\n";
+	}
 
 	config::use_external_interfaces = true;
 
