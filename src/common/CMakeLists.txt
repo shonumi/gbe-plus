@@ -5,6 +5,7 @@ set(SRCS
 	osd.cpp
 	debug_util.cpp
 	net_util.cpp
+	info.cpp
 	)
 
 set(HEADERS

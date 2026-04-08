@@ -2,22 +2,19 @@
 // Licensed under the GPLv2
 // See LICENSE.txt for full license text
 
-// File : info.h
+// File : info.cpp
 // Description : GBE+ Compile-Time Information
 //
 // Stores information such as git commit hash, install directory, etc
 // Generated dynamically when building source code
 
-#ifndef GBE_INFO
-#define GBE_INFO
-
-#include <string>
+#include "info.h"
 
 namespace gbe_info
 {
-	extern std::string hash;
-	std::string get_hash();
+
+std::string hash = "";
+
+std::string get_hash() { return hash; }
+
 }
-
-#endif // GBE_INFO
-

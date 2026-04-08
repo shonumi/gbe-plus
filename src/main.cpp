@@ -24,7 +24,7 @@ int main(int argc, char* args[])
 
 	if(!gbe_info::hash.empty())
 	{
-		std::cout<<"Revision: " << gbe_info::hash << "\n\n";
+		std::cout<<"Revision: " << gbe_info::get_hash() << "\n\n";
 	}
 
 	else
