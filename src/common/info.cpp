@@ -13,8 +13,6 @@
 namespace gbe_info
 {
 
-std::string hash = "";
-
-std::string get_hash() { return hash; }
+std::string get_hash() { return ""; }
 
 }

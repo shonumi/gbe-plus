@@ -15,7 +15,6 @@
 
 namespace gbe_info
 {
-	extern std::string hash;
 	std::string get_hash();
 }
 

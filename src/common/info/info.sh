@@ -15,6 +15,5 @@ echo -e "// Generated dynamically when building source code\n" >> info.cpp
 echo -e "#include \"info.h\"\n" >> info.cpp
 
 echo -e "namespace gbe_info\n{\n" >> info.cpp
-echo -e "std::string hash = \"${GBE_HASH}\";\n" >> info.cpp
-echo -e "std::string get_hash() { return hash; }" >> info.cpp
+echo -e "std::string get_hash() { return \"${GBE_HASH}\"; }" >> info.cpp
 echo -e "\n}" >> info.cpp

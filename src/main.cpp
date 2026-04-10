@@ -22,7 +22,7 @@ int main(int argc, char* args[])
 {
 	std::cout<<"GBE+ 1.10 [SDL]\n";
 
-	if(!gbe_info::hash.empty())
+	if(!gbe_info::get_hash().empty())
 	{
 		std::cout<<"Revision: " << gbe_info::get_hash() << "\n\n";
 	}
