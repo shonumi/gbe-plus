@@ -27,7 +27,7 @@ endif()
 
 set(SRCS main.cpp)
 
-SET(USER_HOME $ENV{HOME} CACHE STRING "Target User Home")
+SET(USER_INSTALL_DIR $ENV{HOME} CACHE STRING "Target Installation Directory")
 SET(USER $ENV{USER} CACHE STRING "Target User")
 
 add_executable(gbe_plus ${SRCS})
@@ -50,9 +50,19 @@ if (WIN32)
 	target_link_libraries(gbe_plus GLEW::GLEW)
 endif()
 
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
 	install(TARGETS gbe_plus DESTINATION ${CMAKE_INSTALL_BINDIR})
-	install(FILES gbe.ini DESTINATION ${USER_HOME}/.gbe_plus/)
-	install(DIRECTORY data DESTINATION ${USER_HOME}/.gbe_plus)
-	install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_HOME}/.gbe_plus)")
+
+	#Install configuration files to HOME directory by default. Use hidden folder naming.
+	if (${USER_INSTALL_DIR} STREQUAL $ENV{HOME})
+		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/.gbe_plus/)
+		install(DIRECTORY data DESTINATION ${USER_INSTALL_DIR}/.gbe_plus)
+		install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_INSTALL_DIR}/.gbe_plus)")
+
+	#Install configuration files to user-defined directory as normal folder.
+	else()
+		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/gbe_plus/)
+		install(DIRECTORY data DESTINATION ${USER_INSTALL_DIR}/gbe_plus)
+		install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_INSTALL_DIR}/gbe_plus)")
+	endif()
 endif()
