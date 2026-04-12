@@ -16,6 +16,7 @@
 namespace gbe_info
 {
 	std::string get_hash();
+	std::string get_install_folder();
 }
 
 #endif // GBE_INFO

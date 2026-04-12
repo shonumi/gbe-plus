@@ -1,17 +1,3 @@
-#Build info.h on a per-system basis. Execute specific scripts for more control than CMake allows
-add_custom_target(gbe_info ALL
-	COMMENT "Building GBE+ info.h"
-)
-
-if(UNIX AND NOT APPLE)
-	add_custom_command(TARGET gbe_info
-		PRE_BUILD
-		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/
-	)
-endif()
-
-add_dependencies(gbe_info)
-
 include_directories(.)
 
 add_subdirectory(common)
@@ -29,6 +15,20 @@ set(SRCS main.cpp)
 
 SET(USER_INSTALL_DIR $ENV{HOME} CACHE STRING "Target Installation Directory")
 SET(USER $ENV{USER} CACHE STRING "Target User")
+
+#Build info.h on a per-system basis. Execute specific scripts for more control than CMake allows
+add_custom_target(gbe_info ALL
+	COMMENT "Building GBE+ info.h"
+)
+
+if(UNIX AND NOT APPLE)
+	add_custom_command(TARGET gbe_info
+		PRE_BUILD
+		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${USER_INSTALL_DIR}
+	)
+endif()
+
+add_dependencies(gbe_info)
 
 add_executable(gbe_plus ${SRCS})
 target_link_libraries(gbe_plus common gba dmg sgb nds min)
@@ -55,13 +55,13 @@ if (UNIX AND NOT APPLE)
 
 	#Install configuration files to HOME directory by default. Use hidden folder naming.
 	if (${USER_INSTALL_DIR} STREQUAL $ENV{HOME})
-		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/.gbe_plus/)
+		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/.gbe_plus)
 		install(DIRECTORY data DESTINATION ${USER_INSTALL_DIR}/.gbe_plus)
 		install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_INSTALL_DIR}/.gbe_plus)")
 
 	#Install configuration files to user-defined directory as normal folder.
 	else()
-		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/gbe_plus/)
+		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/gbe_plus)
 		install(DIRECTORY data DESTINATION ${USER_INSTALL_DIR}/gbe_plus)
 		install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_INSTALL_DIR}/gbe_plus)")
 	endif()
