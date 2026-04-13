@@ -7,7 +7,7 @@ add_subdirectory(sgb)
 add_subdirectory(nds)
 add_subdirectory(min)
 
-if(QT_GUI)
+if (QT_GUI)
 	add_subdirectory(qt)
 endif()
 
@@ -16,15 +16,21 @@ set(SRCS main.cpp)
 SET(USER_INSTALL_DIR $ENV{HOME} CACHE STRING "Target Installation Directory")
 SET(USER $ENV{USER} CACHE STRING "Target User")
 
+if ((USE_HIDDEN_INSTALL_FOLDER) AND (UNIX AND NOT APPLE))
+	cmake_path(SET FINAL_INSTALL_DIR NORMALIZE ${USER_INSTALL_DIR}/.gbe_plus)
+else()
+	cmake_path(SET FINAL_INSTALL_DIR NORMALIZE ${USER_INSTALL_DIR}/gbe_plus)
+endif()
+
 #Build info.h on a per-system basis. Execute specific scripts for more control than CMake allows
 add_custom_target(gbe_info ALL
 	COMMENT "Building GBE+ info.h"
 )
 
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
 	add_custom_command(TARGET gbe_info
 		PRE_BUILD
-		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${USER_INSTALL_DIR}
+		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${FINAL_INSTALL_DIR}
 	)
 endif()
 
@@ -52,17 +58,7 @@ endif()
 
 if (UNIX AND NOT APPLE)
 	install(TARGETS gbe_plus DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-	#Install configuration files to HOME directory by default. Use hidden folder naming.
-	if (${USER_INSTALL_DIR} STREQUAL $ENV{HOME})
-		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/.gbe_plus)
-		install(DIRECTORY data DESTINATION ${USER_INSTALL_DIR}/.gbe_plus)
-		install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_INSTALL_DIR}/.gbe_plus)")
-
-	#Install configuration files to user-defined directory as normal folder.
-	else()
-		install(FILES gbe.ini DESTINATION ${USER_INSTALL_DIR}/gbe_plus)
-		install(DIRECTORY data DESTINATION ${USER_INSTALL_DIR}/gbe_plus)
-		install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${USER_INSTALL_DIR}/gbe_plus)")
-	endif()
+	install(FILES gbe.ini DESTINATION ${FINAL_INSTALL_DIR})
+	install(DIRECTORY data DESTINATION ${FINAL_INSTALL_DIR})
+	install(CODE "execute_process(COMMAND chown -R ${USER}:${USER} ${FINAL_INSTALL_DIR})")
 endif()

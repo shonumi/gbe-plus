@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 
 project(gbe_plus)
 
@@ -54,7 +54,9 @@ endif()
 
 option(QT_GUI "Enable the Qt GUI" ON)
 
-if(QT_GUI)
+option(USE_HIDDEN_INSTALL_FOLDER "Sets install folder to use the name '.gbe_plus' on Linux/Unix systems" ON)
+
+if (QT_GUI)
 	find_package(Qt5Widgets REQUIRED)
 	find_package(Qt5Gui REQUIRED)
 	set(GBE_QT_LIBS Qt5::Gui Qt5::Widgets)
