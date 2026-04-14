@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "util.h"
+#include "info.h"
 
 namespace config
 {
@@ -1140,10 +1141,22 @@ bool parse_ini_file()
 		std::string win_str = "";
 		std::string last_chr = "";
 
-		if(unix_chr != nullptr) { unix_str = unix_chr; }
+		//On Linux/Unix, check for given install folder first
+		if(!gbe_info::get_install_folder().empty())
+		{
+			unix_str = gbe_info::get_install_folder();
+		}
+
+		//Otherwise use home directory as the default
+		else if(unix_chr != nullptr)
+		{
+			unix_str = unix_chr;
+		}
+
+		//Windows will *always* use AppData folder
 		if(win_chr != nullptr) { win_str = win_chr; }
 		
-		if((win_chr == nullptr) && (unix_chr == nullptr))
+		if((win_str.empty()) && (unix_str.empty()))
 		{
 			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
 			result = false;
@@ -1152,12 +1165,25 @@ bool parse_ini_file()
 		bool config_result = false;
 
 		//Test for Linux or Unix install location next
-		if(win_chr == nullptr)
+		if(win_str.empty())
 		{
-			last_chr = unix_str[unix_str.length() - 1];
-			config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
-			config::data_path = config::cfg_path + "data/";
-			unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+			//Generate paths using HOME environment variable
+			if(gbe_info::get_install_folder().empty())
+			{
+				last_chr = unix_str[unix_str.length() - 1];
+				config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
+				config::data_path = config::cfg_path + "data/";
+				unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+			}
+
+			//Generate paths using gbe_info
+			else
+			{
+				last_chr = unix_str[unix_str.length() - 1];
+				config::cfg_path = unix_str;
+				config::data_path = (last_chr == "/") ? config::cfg_path + "data/" : config::cfg_path + "/data/";
+				unix_str += (last_chr == "/") ? "gbe.ini" : "/gbe.ini";
+			}
 
 			file.open(unix_str.c_str(), std::ios::in);
 
@@ -1171,6 +1197,7 @@ bool parse_ini_file()
 		//Test for Windows install location next
 		else
 		{
+			//Generate paths to home directory if using AppData environment variable
 			last_chr = win_str[win_str.length() - 1];
 			config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
 			config::data_path = config::cfg_path + "data/";
