@@ -1042,52 +1042,52 @@ bool parse_cli_args()
 				if(!config::use_external_interfaces) { std::cout<<"\ngbe_plus file [options ...]\n\n"; }
 				else { std::cout<<"\ngbe_plus_qt file [options ...]\n\n"; }
 
-				std::cout<<"GBE+ Command Line Options:\n";
-				std::cout<<"-b [FILE], --bios [FILE] \t\t Load and use BIOS file\n";
-				std::cout<<"-fw [FILE], --firmware [FILE] \t\t Load and use firmware file (NDS)\n";
-				std::cout<<"-d, --debug \t\t\t\t Start the command-line debugger\n";
-				std::cout<<"--mbc1m \t\t\t\t Use MBC1M multicart mode if applicable\n";
-				std::cout<<"--mmm01 \t\t\t\t Use MMM01 multicart mode if applicable\n";
-				std::cout<<"--m161 \t\t\t\t Use M161 multicart mode if applicable\n";
-				std::cout<<"--mbc1s \t\t\t\t Use MBC1S sonar cart\n";
-				std::cout<<"--mbc30 \t\t\t\t Use MBC30 for Pocket Monsters Crystal\n";
-				std::cout<<"--gbmem \t\t\t\t Use GB Memory Cartridge mapper\n";
-				std::cout<<"--agb-rtc \t\t\t\t Use GBA RTC cart\n";
-				std::cout<<"--agb-solar-sensor \t\t\t Use GBA Solar Sensor cart\n";
-				std::cout<<"--agb-rumble \t\t\t\t Use GBA Rumble cart\n";
-				std::cout<<"--agb-gyro-sensor \t\t\t Use GBA Gyro Sensor cart\n";
-				std::cout<<"--agb-tilt-sensor \t\t\t Use GBA Tilt Sensor cart\n";
-				std::cout<<"--agb-dacs \t\t\t Use GBA 8M DACS Flash cart\n";
-				std::cout<<"--agb-am3 \t\t\t Use GBA AM3 SmartCard adapter cart\n";
-				std::cout<<"--agb-jukebox \t\t\t Use GBA Music Recorder/Jukebox cart\n";
-				std::cout<<"--agb-glucoboy \t\t\t Use GBA Glucoboy cart\n";
-				std::cout<<"--agb-tv-tuner \t\t\t Use Agatsuma TV Tuner cart\n";
-				std::cout<<"--opengl \t\t\t\t Use OpenGL for screen drawing and scaling\n";
-				std::cout<<"--cheats \t\t\t\t Use Gameshark or Game Genie cheats\n";
-				std::cout<<"--patch \t\t\t\t Use a patch file for the ROM\n";
-				std::cout<<"--2x, --3x, --4x, --5x, --6x \t\t Scale screen by a given factor (OpenGL only)\n";
-				std::cout<<"--sys-auto \t\t\t\t Set the emulated system type to AUTO\n";
-				std::cout<<"--sys-dmg \t\t\t\t Set the emulated system type to DMG (old Gameboy)\n";
-				std::cout<<"--sys-gbc \t\t\t\t Set the emulated system type to GBC\n";
-				std::cout<<"--sys-gba \t\t\t\t Set the emulated system type to GBA\n";
-				std::cout<<"--sys-nds \t\t\t\t Set the emulated system type to NDS\n";
-				std::cout<<"--sys-sgb \t\t\t\t Set the emulated system type to SGB\n";
-				std::cout<<"--sys-sgb2 \t\t\t\t Set the emulated system type to SGB2\n";
-				std::cout<<"--sys-min \t\t\t\t Set the emulated system type to MIN\n";
-				std::cout<<"--save-auto \t\t\t\t Set the GBA save type to Auto Detect\n";
-				std::cout<<"--save-none \t\t\t\t Disables all GBA saves\n";
-				std::cout<<"--save-sram \t\t\t\t Force the GBA save type to SRAM\n";
-				std::cout<<"--save-eeprom \t\t\t\t Force the GBA save type to EEPROM\n";
-				std::cout<<"--save-flash64 \t\t\t\t Force the GBA save type to FLASH 64KB\n";
-				std::cout<<"--save-flash128 \t\t\t Force the GBA save type to FLASH 128KB\n";
-				std::cout<<"--turbo-file-memcard \t\t\t Enable memory card for Turbo File\n";
-				std::cout<<"--turbo-file-protect \t\t\t Enable write-proection for Turbo File\n";
-				std::cout<<"--ignore-illegal-opcodes \t\t\t Ignore Illegal CPU instructions when running\n";
-				std::cout<<"--auto-gen-smid \t\t\t\t Automatically generate 16-byte SmartMedia ID for AM3\n";
-				std::cout<<"--am3-folder \t\t\t\t Use folder of AM3 files instead of SmartMedia image\n";
-				std::cout<<"--save-import \t\t\t\t Import save from specified file\n";
-				std::cout<<"--save-export \t\t\t\t Export save to specified file\n";
-				std::cout<<"-h, --help \t\t\t\t Print these help messages\n";
+				std::cout<<"GBE+ Command Line Options:\n\n";
+				std::cout<<"-b [FILE], --bios [FILE]\n\tLoad and use BIOS file\n\n";
+				std::cout<<"-fw [FILE], --firmware [FILE]\n\tLoad and use firmware file (NDS)\n\n";
+				std::cout<<"-d, --debug\n\tStart the command-line debugger\n\n";
+				std::cout<<"--mbc1m\n\tUse MBC1M multicart mode if applicable\n\n";
+				std::cout<<"--mmm01\n\tUse MMM01 multicart mode if applicable\n\n";
+				std::cout<<"--m161\n\tUse M161 multicart mode if applicable\n\n";
+				std::cout<<"--mbc1s\n\tUse MBC1S sonar cart\n\n";
+				std::cout<<"--mbc30\n\tUse MBC30 for Pocket Monsters Crystal\n\n";
+				std::cout<<"--gbmem\n\tUse GB Memory Cartridge mapper\n\n";
+				std::cout<<"--agb-rtc\n\tUse GBA RTC cart\n\n";
+				std::cout<<"--agb-solar-sensor\n\tUse GBA Solar Sensor cart\n\n";
+				std::cout<<"--agb-rumble\n\tUse GBA Rumble cart\n\n";
+				std::cout<<"--agb-gyro-sensor\n\tUse GBA Gyro Sensor cart\n\n";
+				std::cout<<"--agb-tilt-sensor\n\tUse GBA Tilt Sensor cart\n\n";
+				std::cout<<"--agb-dacs\n\tUse GBA 8M DACS Flash cart\n\n";
+				std::cout<<"--agb-am3\n\tUse GBA AM3 SmartCard adapter cart\n\n";
+				std::cout<<"--agb-jukebox\n\tUse GBA Music Recorder/Jukebox cart\n\n";
+				std::cout<<"--agb-glucoboy\n\tUse GBA Glucoboy cart\n\n";
+				std::cout<<"--agb-tv-tuner\n\tUse Agatsuma TV Tuner cart\n\n";
+				std::cout<<"--opengl\n\tUse OpenGL for screen drawing and scaling\n\n";
+				std::cout<<"--cheats\n\tUse Gameshark or Game Genie cheats\n\n";
+				std::cout<<"--patch\n\tUse a patch file for the ROM\n\n";
+				std::cout<<"--2x, --3x, --4x, --5x, --6x\n\tScale screen by a given factor (OpenGL only)\n\n";
+				std::cout<<"--sys-auto\n\tSet the emulated system type to AUTO\n\n";
+				std::cout<<"--sys-dmg\n\tSet the emulated system type to DMG (old Gameboy)\n\n";
+				std::cout<<"--sys-gbc\n\tSet the emulated system type to GBC\n\n";
+				std::cout<<"--sys-gba\n\tSet the emulated system type to GBA\n\n";
+				std::cout<<"--sys-nds\n\tSet the emulated system type to NDS\n\n";
+				std::cout<<"--sys-sgb\n\tSet the emulated system type to SGB\n\n";
+				std::cout<<"--sys-sgb2\n\tSet the emulated system type to SGB2\n\n";
+				std::cout<<"--sys-min\n\tSet the emulated system type to MIN\n\n";
+				std::cout<<"--save-auto\n\tSet the GBA save type to Auto Detect\n\n";
+				std::cout<<"--save-none\n\tDisables all GBA saves\n\n";
+				std::cout<<"--save-sram\n\tForce the GBA save type to SRAM\n\n";
+				std::cout<<"--save-eeprom\n\tForce the GBA save type to EEPROM\n\n";
+				std::cout<<"--save-flash64\n\tForce the GBA save type to FLASH 64KB\n\n";
+				std::cout<<"--save-flash128\n\tForce the GBA save type to FLASH 128KB\n\n";
+				std::cout<<"--turbo-file-memcard\n\tEnable memory card for Turbo File\n\n";
+				std::cout<<"--turbo-file-protect\n\tEnable write-proection for Turbo File\n\n";
+				std::cout<<"--ignore-illegal-opcodes\n\tIgnore Illegal CPU instructions when running\n\n";
+				std::cout<<"--auto-gen-smid\n\tAutomatically generate 16-byte SmartMedia ID for AM3\n\n";
+				std::cout<<"--am3-folder\n\tUse folder of AM3 files instead of SmartMedia image\n\n";
+				std::cout<<"--save-import\n\tImport save from specified file\n\n";
+				std::cout<<"--save-export\n\tExport save to specified file\n\n";
+				std::cout<<"-h, --help\n\tPrint these help messages\n\n";
 				return false;
 			}
 
@@ -1565,40 +1565,17 @@ bool parse_ini_file()
 		{
 			if((x + 12) < size)
 			{
-				//A
 				util::from_str(ini_opts[++x], config::gbe_key_a);
-
-				//B
 				util::from_str(ini_opts[++x], config::gbe_key_b);
-
-				//X
 				util::from_str(ini_opts[++x], config::gbe_key_x);
-
-				//Y
 				util::from_str(ini_opts[++x], config::gbe_key_y);
-
-				//START
 				util::from_str(ini_opts[++x], config::gbe_key_start);
-
-				//SELECT
 				util::from_str(ini_opts[++x], config::gbe_key_select);
-
-				//LEFT
 				util::from_str(ini_opts[++x], config::gbe_key_left);
-
-				//RIGHT
 				util::from_str(ini_opts[++x], config::gbe_key_right);
-
-				//UP
 				util::from_str(ini_opts[++x], config::gbe_key_up);
-
-				//DOWN
 				util::from_str(ini_opts[++x], config::gbe_key_down);
-
-				//LEFT TRIGGER
 				util::from_str(ini_opts[++x], config::gbe_key_l_trigger);
-
-				//RIGHT TRIGGER
 				util::from_str(ini_opts[++x], config::gbe_key_r_trigger);
 			}
 
@@ -1614,40 +1591,17 @@ bool parse_ini_file()
 		{
 			if((x + 12) < size)
 			{
-				//A
 				util::from_str(ini_opts[++x], config::gbe_joy_a);
-
-				//B
 				util::from_str(ini_opts[++x], config::gbe_joy_b);
-
-				//X
 				util::from_str(ini_opts[++x], config::gbe_joy_x);
-
-				//Y
 				util::from_str(ini_opts[++x], config::gbe_joy_y);
-
-				//START
 				util::from_str(ini_opts[++x], config::gbe_joy_start);
-
-				//SELECT
 				util::from_str(ini_opts[++x], config::gbe_joy_select);
-
-				//LEFT
 				util::from_str(ini_opts[++x], config::gbe_joy_left);
-
-				//RIGHT
 				util::from_str(ini_opts[++x], config::gbe_joy_right);
-
-				//UP
 				util::from_str(ini_opts[++x], config::gbe_joy_up);
-
-				//DOWN
 				util::from_str(ini_opts[++x], config::gbe_joy_down);
-
-				//LEFT TRIGGER
 				util::from_str(ini_opts[++x], config::gbe_joy_l_trigger);
-
-				//RIGHT TRIGGER
 				util::from_str(ini_opts[++x], config::gbe_joy_r_trigger);
 			}
 
@@ -1664,22 +1618,11 @@ bool parse_ini_file()
 		{
 			if((x + 6) < size)
 			{
-				//LEFT
 				util::from_str(ini_opts[++x], config::con_key_left);
-
-				//RIGHT
 				util::from_str(ini_opts[++x], config::con_key_right);
-
-				//UP
 				util::from_str(ini_opts[++x], config::con_key_up);
-
-				//DOWN
 				util::from_str(ini_opts[++x], config::con_key_down);
-
-				//CON1
 				util::from_str(ini_opts[++x], config::con_key_1);
-
-				//CON2
 				util::from_str(ini_opts[++x], config::con_key_2);
 			}
 
@@ -1695,22 +1638,11 @@ bool parse_ini_file()
 		{
 			if((x + 6) < size)
 			{
-				//LEFT
 				util::from_str(ini_opts[++x], config::con_joy_left);
-
-				//RIGHT
 				util::from_str(ini_opts[++x], config::con_joy_right);
-
-				//UP
 				util::from_str(ini_opts[++x], config::con_joy_up);
-
-				//DOWN
 				util::from_str(ini_opts[++x], config::con_joy_down);
-
-				//CON1
 				util::from_str(ini_opts[++x], config::con_joy_1);
-
-				//CON2
 				util::from_str(ini_opts[++x], config::con_joy_2);
 			}
 
@@ -3404,7 +3336,7 @@ void get_firmware_hashes()
 
 	if(!std::filesystem::exists(fs_path))
 	{
-		std::cout<<"GBE::Error - Firmware folder at " << firmware_folder << "does not exist.\n";
+		std::cout<<"GBE::Error - Firmware folder at " << firmware_folder << " does not exist.\n";
 		return;
 	}
 
