@@ -32,6 +32,11 @@ if (UNIX AND NOT APPLE)
 		PRE_BUILD
 		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${FINAL_INSTALL_DIR}
 	)
+elseif (WIN32)
+	add_custom_command(TARGET gbe_info
+		PRE_BUILD
+		COMMAND cmd /c ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.bat ${CMAKE_CURRENT_SOURCE_DIR}/common/info/
+	)
 endif()
 
 add_dependencies(gbe_info)
