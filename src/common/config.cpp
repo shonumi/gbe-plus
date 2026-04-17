@@ -1046,6 +1046,7 @@ bool parse_cli_args()
 				std::cout<<"-b [FILE], --bios [FILE]\n\tLoad and use BIOS file\n\n";
 				std::cout<<"-fw [FILE], --firmware [FILE]\n\tLoad and use firmware file (NDS)\n\n";
 				std::cout<<"-d, --debug\n\tStart the command-line debugger\n\n";
+				std::cout<<"-f, --fullscreen\n\tStart GBE+ in fullscreen mode\n\n";
 				std::cout<<"--mbc1m\n\tUse MBC1M multicart mode if applicable\n\n";
 				std::cout<<"--mmm01\n\tUse MMM01 multicart mode if applicable\n\n";
 				std::cout<<"--m161\n\tUse M161 multicart mode if applicable\n\n";
@@ -1080,13 +1081,22 @@ bool parse_cli_args()
 				std::cout<<"--save-eeprom\n\tForce the GBA save type to EEPROM\n\n";
 				std::cout<<"--save-flash64\n\tForce the GBA save type to FLASH 64KB\n\n";
 				std::cout<<"--save-flash128\n\tForce the GBA save type to FLASH 128KB\n\n";
+				std::cout<<"--min-disable-colors\n\tDisable interframe blending for the Pokemon Mini\n\n";
+				std::cout<<"--min-disable-rtc\n\tDisable the real-time clock for the Pokemon Mini\n\n";
+				std::cout<<"--min-shared-eeprom\n\tUse a single EEPROM file for all games on the Pokemon Mini\n\n";
+				std::cout<<"--min-low-batter\n\tForce low-batter state for the Pokemon Mini\n\n";
 				std::cout<<"--turbo-file-memcard\n\tEnable memory card for Turbo File\n\n";
 				std::cout<<"--turbo-file-protect\n\tEnable write-proection for Turbo File\n\n";
 				std::cout<<"--ignore-illegal-opcodes\n\tIgnore Illegal CPU instructions when running\n\n";
 				std::cout<<"--auto-gen-smid\n\tAutomatically generate 16-byte SmartMedia ID for AM3\n\n";
-				std::cout<<"--am3-folder\n\tUse folder of AM3 files instead of SmartMedia image\n\n";
+				std::cout<<"--am3-folder\n\tUse folder of AM3 files instead of SmartMedia disc image\n\n";
+				std::cout<<"--dump-am3-files\n\tExtract and save files from AM3 SmartMedia disc image\n\n";
 				std::cout<<"--save-import\n\tImport save from specified file\n\n";
 				std::cout<<"--save-export\n\tExport save to specified file\n\n";
+				std::cout<<"--use-legacy-save-size\n\tUse old 128KB save format from older GBE+ versions\n\n";
+				std::cout<<"-ad [DRIVER], --audio-driver [DRIVER]\n\tSelects a specific audio driver for GBE+\n\n";
+				std::cout<<"-mf [FRAMERATE], --max-fps [FRAMERATE]\n\tSets the maximum frames per-second\n\n";
+				std::cout<<"--slot2-gba [FILE]\n\tSets Slot-2 of NDS core to use a specified GBA ROM file\n\n"; 
 				std::cout<<"-h, --help\n\tPrint these help messages\n\n";
 				return false;
 			}
