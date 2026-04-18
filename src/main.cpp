@@ -38,9 +38,9 @@ int main(int argc, char* args[])
 	SDL_Init(SDL_INIT_VIDEO);
 
 	//Grab command-line arguments
-	for(int x = 0; x++ < argc - 1;) 
+	for(int x = 1; x < argc; x++) 
 	{ 
-		std::string temp_arg = args[x]; 
+		std::string temp_arg = args[x];
 		config::cli_args.push_back(temp_arg);
 		parse_filenames();
 	}
