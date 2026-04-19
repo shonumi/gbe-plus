@@ -631,7 +631,7 @@ void validate_system_type()
 {
 	if(config::rom_file.empty()) { return; }
 	if((config::rom_file == "NOCART") || config::no_cart) { return; }
-	if((config::rom_file == "-h") || (config::rom_file == "--help")) { config::cli_args.push_back(config::rom_file); return; }
+	if((config::rom_file == "-h") || (config::rom_file == "--help")) { return; }
 
 	//When loading AM3 files, force system type to GBA
 	if(config::cart_type == AGB_AM3)
@@ -759,6 +759,14 @@ u8 get_system_type_from_file(std::string filename)
 /****** Parse arguments passed from the command-line ******/
 bool parse_cli_args()
 {
+	//Special case to display help message
+	bool need_help = false;
+	
+	if((!config::cli_args.empty()) && ((config::cli_args[0] == "-h") || (config::cli_args[0] == "--help")))
+	{
+		need_help = true;
+	}
+
 	//If no arguments were passed, cannot run without ROM file
 	//If using external interfaces (e.g. the GUI), a ROM file is not necessary
 	if((config::cli_args.size() < 1) && (!config::use_external_interfaces))
@@ -769,8 +777,10 @@ bool parse_cli_args()
 
 	else 
 	{
+		u32 arg_start = (need_help) ? 0 : 1;
+
 		//Parse the rest of the arguments if any		
-		for(int x = 1; x < config::cli_args.size(); x++)
+		for(int x = arg_start; x < config::cli_args.size(); x++)
 		{	
 			//Run GBE+ in debug mode
 			if((config::cli_args[x] == "-d") || (config::cli_args[x] == "--debug")) { config::use_debugger = true; }
@@ -1091,8 +1101,8 @@ bool parse_cli_args()
 				std::cout<<"--auto-gen-smid\n\tAutomatically generate 16-byte SmartMedia ID for AM3\n\n";
 				std::cout<<"--am3-folder\n\tUse folder of AM3 files instead of SmartMedia disc image\n\n";
 				std::cout<<"--dump-am3-files\n\tExtract and save files from AM3 SmartMedia disc image\n\n";
-				std::cout<<"--save-import\n\tImport save from specified file\n\n";
-				std::cout<<"--save-export\n\tExport save to specified file\n\n";
+				std::cout<<"--save-import [FILE]\n\tImport save from specified file\n\n";
+				std::cout<<"--save-export [FILE]\n\tExport save to specified file\n\n";
 				std::cout<<"--use-legacy-save-size\n\tUse old 128KB save format from older GBE+ versions\n\n";
 				std::cout<<"-ad [DRIVER], --audio-driver [DRIVER]\n\tSelects a specific audio driver for GBE+\n\n";
 				std::cout<<"-mf [FRAMERATE], --max-fps [FRAMERATE]\n\tSets the maximum frames per-second\n\n";
