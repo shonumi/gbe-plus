@@ -1154,8 +1154,6 @@ bool parse_ini_file()
 
 	if(!file.is_open())
 	{
-		std::cout<<"HEY\n";
-
 		const char* unix_chr = getenv("HOME");
 		const char* win_chr = getenv("LOCALAPPDATA");
 
@@ -1207,9 +1205,6 @@ bool parse_ini_file()
 				unix_str = config::cfg_path + "gbe.ini";
 			}
 
-			std::cout<<"CFG -> " << config::cfg_path << "\n";
-			std::cout<<"INI -> " << unix_str << "\n";
-
 			file.open(unix_str.c_str(), std::ios::in);
 
 			if(!file.is_open())
@@ -1237,8 +1232,6 @@ bool parse_ini_file()
 			}
 		}
 	}
-
-	std::cout<<"CFG PATH -> " << config::cfg_path << "\n";
 
 	//Generate substitute ini file if necessary
 	if(!result)
