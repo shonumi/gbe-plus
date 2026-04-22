@@ -636,7 +636,20 @@ void main_menu::update_save_state_list(QMenu* ss_menu)
 
 	for(u32 x = 0; x < ss_actions.size(); x++)
 	{
-		std::string filename = config::rom_file + ".ss" + ((x) ? util::to_str(x) : "");
+		std::string filename = ""; 
+
+		//Use config save path if applicable
+		if(!config::save_path.empty())
+		{
+			filename = config::save_path + util::get_filename_from_path(config::rom_file);
+			filename = filename + ".ss" + ((x) ? util::to_str(x) : "");
+		}
+
+		else
+		{
+			filename = config::rom_file + ".ss" + ((x) ? util::to_str(x) : "");
+		}
+
 		std::string date = get_save_state_date(filename);
 		std::string final_str = "Slot " + util::to_str(x) + "    " + date;
 
