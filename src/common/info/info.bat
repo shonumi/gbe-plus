@@ -26,6 +26,6 @@ echo #include ^"info.h^" >> info.cpp
 echo: >> info.cpp
 echo namespace gbe_info >> info.cpp
 echo { >> info.cpp
-echo(	std::string get_hash^(^) { return ^"%GBE_HASH%^"^; } >> info.cpp
-echo(	std::string get_install_folder^(^) { return ^"^"^; } >> info.cpp
+echo std::string get_hash^(^) { return ^"%GBE_HASH%^"^; } >> info.cpp
+echo std::string get_install_folder^(^) { return ^"^"^; } >> info.cpp
 echo } >> info.cpp
