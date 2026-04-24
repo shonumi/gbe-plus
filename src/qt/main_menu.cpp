@@ -262,6 +262,9 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	settings = new gen_settings();
 	settings->set_ini_options();
 
+	//Handle Special Cart setting separately via CLI args parsed above
+	settings->special_cart->setCurrentIndex(config::cart_type);
+
 	//Set up DMG-GBC debugger
 	main_menu::dmg_debugger = new dmg_debug();
 	main_menu::dmg_debugger->hide();
