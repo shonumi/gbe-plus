@@ -1185,7 +1185,7 @@ bool parse_ini_file()
 		bool config_result = false;
 
 		//Test for Linux or Unix install location next
-		if(win_str.empty())
+		if(!unix_str.empty())
 		{
 			//Generate paths using HOME environment variable
 			if(gbe_info::get_install_folder().empty())
@@ -1215,7 +1215,7 @@ bool parse_ini_file()
 		}
 
 		//Test for Windows install location next
-		else
+		else if(!win_str.empty())
 		{
 			//Generate paths to home directory if using AppData environment variable
 			last_chr = win_str[win_str.length() - 1];
