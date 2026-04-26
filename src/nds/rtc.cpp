@@ -332,8 +332,8 @@ void NTR_MMU::write_rtc()
 
 		//Wait for SCK=lo to finish read
 		case 0x103:
-			if((nds7_rtc.read_stat == 1) && ((nds7_rtc.data & 0x2) == 0)) { nds7_rtc.read_stat = 2; }
-			else if((nds7_rtc.read_stat == 3) && (nds7_rtc.data & 0x2)) { nds7_rtc.read_stat = 1; }
+			if((nds7_rtc.read_stat == 3) && ((nds7_rtc.data & 0x2) == 0)) { nds7_rtc.read_stat = 1; }
+			else if((nds7_rtc.read_stat == 1) && (nds7_rtc.data & 0x2)) { nds7_rtc.read_stat = 2; }
 			break;
 	
 		//Write data from NDS (SCK=lo)
