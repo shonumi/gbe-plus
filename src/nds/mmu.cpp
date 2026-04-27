@@ -285,7 +285,7 @@ void NTR_MMU::reset()
 	nds_aux_spi.cnt = 0;
 	nds_aux_spi.data = 0;
 	nds_aux_spi.transfer_count = 0;
-	nds_aux_spi.eeprom_stat = 0x0;
+	nds_aux_spi.eeprom_stat = 0xF0;
 	nds_aux_spi.backup_cmd = 0;
 	nds_aux_spi.backup_cmd_ready = true;
 	nds_aux_spi.state = 0;
@@ -380,14 +380,6 @@ void NTR_MMU::reset()
 
 	bg_vram_bank_enable_a = false;
 	bg_vram_bank_enable_b = false;
-
-	for(u32 y = 0; y < 4; y++)
-	{
-		for(u32 x = 0; x < 9; x++)
-		{
-			vram_bank_log[x][y] = 0;
-		}
-	}
 
 	access_mode = 1;
 	wram_mode = 3;
@@ -6015,6 +6007,8 @@ void NTR_MMU::process_spi_bus()
 /****** Handles various AUXSPI Bus interactions ******/
 void NTR_MMU::process_aux_spi_bus()
 {
+	std::cout<<"\nAUX SPI TRANSFER -> 0x" << u32(nds_aux_spi.data) << "\n";
+
 	bool new_command = false;
 	bool cs_hold = (nds_aux_spi.cnt & 0x40);
 
@@ -6032,6 +6026,7 @@ void NTR_MMU::process_aux_spi_bus()
 	{
 		new_command = true;
 		nds_aux_spi.cmd_wait = false;
+		std::cout<<"NEW AUX SPI COMMAND -> 0x" << u32(nds_aux_spi.data) << "\n";
 	}
 
 	//Handle AUX SPI save memory commands
@@ -6097,7 +6092,7 @@ void NTR_MMU::process_aux_spi_bus()
 
 			//Read from status register
 			case 0x5:
-				nds_aux_spi.data = 0xFF;
+				nds_aux_spi.data = 0x00;
 				nds_aux_spi.state = 0x5;
 				break;
 
@@ -6138,6 +6133,8 @@ void NTR_MMU::process_aux_spi_bus()
 	//Handle AUX SPI state - Command parameters or data 
 	else
 	{
+		std::cout<<"CMD PARAM STATE -> 0x" << u32(nds_aux_spi.state) << "\n";
+
 		switch(nds_aux_spi.state)
 		{
 			//Write to status
