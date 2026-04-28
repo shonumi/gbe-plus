@@ -1922,309 +1922,106 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			lcd_stat->lcd_mode = (lcd_stat->lcd_clock < 4089600) ? 0 : 2;
 			break;
 
-		//BG0 Control A
+		//BG0 - BG3 Control A
 		case NDS_BG0CNT_A:
 		case NDS_BG0CNT_A+1:
-			{
-				memory_map[address] = value;
-				lcd_stat->bg_control_a[0] = (memory_map[NDS_BG0CNT_A+1] << 8) | memory_map[NDS_BG0CNT_A];
-
-				//Determine BG Priority
-				lcd_stat->bg_priority_a[0] = lcd_stat->bg_control_a[0] & 0x3;
-			
-				//Calculate tile data and tile map addresses
-				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
-				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
-
-				u32 char_block = ((lcd_stat->bg_control_a[0] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_a[0] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_a[0] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_a[0] = (screen_base * 0x10000) + (screen_block * 0x800);
-
-				//Bit-depth
-				lcd_stat->bg_depth_a[0] = (lcd_stat->bg_control_a[0] & 0x80) ? 1 : 0;
-
-				//Screen size
-				lcd_stat->bg_size_a[0] = (lcd_stat->bg_control_a[0] >> 14) & 0x3;
-
-				switch(lcd_stat->bg_size_a[0])
-				{
-					case 0x0: lcd_stat->text_width_a[0] = 255; lcd_stat->text_height_a[0] = 255; break;
-					case 0x1: lcd_stat->text_width_a[0] = 511; lcd_stat->text_height_a[0] = 255; break;
-					case 0x2: lcd_stat->text_width_a[0] = 255; lcd_stat->text_height_a[0] = 511; break;
-					case 0x3: lcd_stat->text_width_a[0] = 511; lcd_stat->text_height_a[0] = 511; break;
-				}
-			}
-
-			break;
-
-		//BG0 Control B
-		case NDS_BG0CNT_B:
-		case NDS_BG0CNT_B+1:
-			{
-				memory_map[address] = value;
-				lcd_stat->bg_control_b[0] = (memory_map[NDS_BG0CNT_B+1] << 8) | memory_map[NDS_BG0CNT_B];
-
-				//Determine BG Priority
-				lcd_stat->bg_priority_b[0] = lcd_stat->bg_control_b[0] & 0x3;
-
-				u32 char_block = ((lcd_stat->bg_control_b[0] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_b[0] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_b[0] = (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_b[0] = (screen_block * 0x800);
-
-				//Bit-depth
-				lcd_stat->bg_depth_b[0] = (lcd_stat->bg_control_b[0] & 0x80) ? 1 : 0;
-
-				//Screen size
-				lcd_stat->bg_size_b[0] = (lcd_stat->bg_control_b[0] >> 14) & 0x3;
-
-				switch(lcd_stat->bg_size_b[0])
-				{
-					case 0x0: lcd_stat->text_width_b[0] = 255; lcd_stat->text_height_b[0] = 255; break;
-					case 0x1: lcd_stat->text_width_b[0] = 511; lcd_stat->text_height_b[0] = 255; break;
-					case 0x2: lcd_stat->text_width_b[0] = 255; lcd_stat->text_height_b[0] = 511; break;
-					case 0x3: lcd_stat->text_width_b[0] = 511; lcd_stat->text_height_b[0] = 511; break;
-				}
-			}
-
-			break;
-
-		//BG1 Control A
 		case NDS_BG1CNT_A:
 		case NDS_BG1CNT_A+1:
-			{
-				memory_map[address] = value;
-				lcd_stat->bg_control_a[1] = (memory_map[NDS_BG1CNT_A+1] << 8) | memory_map[NDS_BG1CNT_A];
-
-				//Determine BG Priority
-				lcd_stat->bg_priority_a[1] = lcd_stat->bg_control_a[1] & 0x3;
-			
-				//Calculate tile data and tile map addresses
-				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
-				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
-
-				u32 char_block = ((lcd_stat->bg_control_a[1] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_a[1] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_a[1] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_a[1] = (screen_base * 0x10000) + (screen_block * 0x800);
-
-				//Bit-depth
-				lcd_stat->bg_depth_a[1] = (lcd_stat->bg_control_a[1] & 0x80) ? 1 : 0;
-
-				//Screen size
-				lcd_stat->bg_size_a[1] = (lcd_stat->bg_control_a[1] >> 14) & 0x3;
-
-				switch(lcd_stat->bg_size_a[1])
-				{
-					case 0x0: lcd_stat->text_width_a[1] = 255; lcd_stat->text_height_a[1] = 255; break;
-					case 0x1: lcd_stat->text_width_a[1] = 511; lcd_stat->text_height_a[1] = 255; break;
-					case 0x2: lcd_stat->text_width_a[1] = 255; lcd_stat->text_height_a[1] = 511; break;
-					case 0x3: lcd_stat->text_width_a[1] = 511; lcd_stat->text_height_a[1] = 511; break;
-				}
-			}
-
-			break;
-
-		//BG1 Control B
-		case NDS_BG1CNT_B:
-		case NDS_BG1CNT_B+1:
-			{
-				memory_map[address] = value;
-				lcd_stat->bg_control_b[1] = (memory_map[NDS_BG1CNT_B+1] << 8) | memory_map[NDS_BG1CNT_B];
-
-				//Determine BG Priority
-				lcd_stat->bg_priority_b[1] = lcd_stat->bg_control_b[1] & 0x3;
-			
-				//Calculate tile data and tile map addresses
-				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
-				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
-
-				u32 char_block = ((lcd_stat->bg_control_b[1] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_b[1] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_b[1] = (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_b[1] = (screen_block * 0x800);
-
-				//Bit-depth
-				lcd_stat->bg_depth_b[1] = (lcd_stat->bg_control_b[1] & 0x80) ? 1 : 0;
-
-				//Screen size
-				lcd_stat->bg_size_b[1] = (lcd_stat->bg_control_b[1] >> 14) & 0x3;
-
-				switch(lcd_stat->bg_size_b[1])
-				{
-					case 0x0: lcd_stat->text_width_b[1] = 255; lcd_stat->text_height_b[1] = 255; break;
-					case 0x1: lcd_stat->text_width_b[1] = 511; lcd_stat->text_height_b[1] = 255; break;
-					case 0x2: lcd_stat->text_width_b[1] = 255; lcd_stat->text_height_b[1] = 511; break;
-					case 0x3: lcd_stat->text_width_b[1] = 511; lcd_stat->text_height_b[1] = 511; break;
-				}
-			}
-
-			break;
-
-		//BG2 Control A
 		case NDS_BG2CNT_A:
 		case NDS_BG2CNT_A+1:
-			{
-				memory_map[address] = value;
-				lcd_stat->bg_control_a[2] = (memory_map[NDS_BG2CNT_A+1] << 8) | memory_map[NDS_BG2CNT_A];
-
-				//Determine BG Priority
-				lcd_stat->bg_priority_a[2] = lcd_stat->bg_control_a[2] & 0x3;
-			
-				//Calculate tile data and tile map addresses
-				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
-				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
-
-				u32 char_block = ((lcd_stat->bg_control_a[2] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_a[2] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_a[2] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_a[2] = (screen_base * 0x10000) + (screen_block * 0x800);
-				lcd_stat->bg_bitmap_base_addr_a[0] = 0x6000000 + (screen_block * 0x4000);
-
-				//Bit-depth
-				lcd_stat->bg_depth_a[2] = (lcd_stat->bg_control_a[2] & 0x80) ? 1 : 0;
-
-				//Affine overflow
-				lcd_stat->bg_affine_a[0].overflow = (lcd_stat->bg_control_a[2] & 0x2000) ? true : false;
-
-				//Screen size
-				lcd_stat->bg_size_a[2] = (lcd_stat->bg_control_a[2] >> 14) & 0x3;
-
-				switch(lcd_stat->bg_size_a[2])
-				{
-					case 0x0: lcd_stat->text_width_a[2] = 255; lcd_stat->text_height_a[2] = 255; break;
-					case 0x1: lcd_stat->text_width_a[2] = 511; lcd_stat->text_height_a[2] = 255; break;
-					case 0x2: lcd_stat->text_width_a[2] = 255; lcd_stat->text_height_a[2] = 511; break;
-					case 0x3: lcd_stat->text_width_a[2] = 511; lcd_stat->text_height_a[2] = 511; break;
-				}
-			}
-
-			break;
-
-		//BG2 Control B
-		case NDS_BG2CNT_B:
-		case NDS_BG2CNT_B+1:
-			{
-				memory_map[address] = value;
-				lcd_stat->bg_control_b[2] = (memory_map[NDS_BG2CNT_B+1] << 8) | memory_map[NDS_BG2CNT_B];
-
-				//Determine BG Priority
-				lcd_stat->bg_priority_b[2] = lcd_stat->bg_control_b[2] & 0x3;
-			
-				//Calculate tile data and tile map addresses
-				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
-				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
-
-				u32 char_block = ((lcd_stat->bg_control_b[2] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_b[2] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_b[2] = (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_b[2] = (screen_block * 0x800);
-				lcd_stat->bg_bitmap_base_addr_b[0] = 0x6200000 + (screen_block * 0x4000);
-
-				//Bit-depth
-				lcd_stat->bg_depth_b[2] = (lcd_stat->bg_control_b[2] & 0x80) ? 1 : 0;
-
-				//Affine overflow
-				lcd_stat->bg_affine_b[0].overflow = (lcd_stat->bg_control_b[2] & 0x2000) ? true : false;
-
-				//Screen size
-				lcd_stat->bg_size_b[2] = (lcd_stat->bg_control_b[2] >> 14) & 0x3;
-
-				switch(lcd_stat->bg_size_b[2])
-				{
-					case 0x0: lcd_stat->text_width_b[2] = 255; lcd_stat->text_height_b[2] = 255; break;
-					case 0x1: lcd_stat->text_width_b[2] = 511; lcd_stat->text_height_b[2] = 255; break;
-					case 0x2: lcd_stat->text_width_b[2] = 255; lcd_stat->text_height_b[2] = 511; break;
-					case 0x3: lcd_stat->text_width_b[2] = 511; lcd_stat->text_height_b[2] = 511; break;
-				}
-			}
-
-			break;
-
-		//BG3 Control A
 		case NDS_BG3CNT_A:
 		case NDS_BG3CNT_A+1:
 			{
+				u8 bg_id = (address - NDS_BG0CNT_A) >> 1;
+				u32 cnt_addr = (address & ~0x01);
+
 				memory_map[address] = value;
-				lcd_stat->bg_control_a[3] = (memory_map[NDS_BG3CNT_A+1] << 8) | memory_map[NDS_BG3CNT_A];
+				lcd_stat->bg_control_a[bg_id] = (memory_map[cnt_addr+1] << 8) | memory_map[cnt_addr];
 
 				//Determine BG Priority
-				lcd_stat->bg_priority_a[3] = lcd_stat->bg_control_a[3] & 0x3;
+				lcd_stat->bg_priority_a[bg_id] = lcd_stat->bg_control_a[bg_id] & 0x3;
 			
 				//Calculate tile data and tile map addresses
 				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_a[3] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_a[3] >> 8) & 0x1F);
+				u32 char_block = ((lcd_stat->bg_control_a[bg_id] >> 2) & 0xF);
+				u32 screen_block = ((lcd_stat->bg_control_a[bg_id] >> 8) & 0x1F);
 
-				lcd_stat->bg_base_tile_addr_a[3] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_a[3] = (screen_base * 0x10000) + (screen_block * 0x800);
-				lcd_stat->bg_bitmap_base_addr_a[1] = 0x6000000 + (screen_block * 0x4000);
+				lcd_stat->bg_base_tile_addr_a[bg_id] = (char_base * 0x10000) + (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_a[bg_id] = (screen_base * 0x10000) + (screen_block * 0x800);
 
 				//Bit-depth
-				lcd_stat->bg_depth_a[3] = (lcd_stat->bg_control_a[3] & 0x80) ? 1 : 0;
-
-				//Affine overflow
-				lcd_stat->bg_affine_a[1].overflow = (lcd_stat->bg_control_a[3] & 0x2000) ? true : false;
+				lcd_stat->bg_depth_a[bg_id] = (lcd_stat->bg_control_a[bg_id] & 0x80) ? 1 : 0;
 
 				//Screen size
-				lcd_stat->bg_size_a[3] = (lcd_stat->bg_control_a[3] >> 14) & 0x3;
+				lcd_stat->bg_size_a[bg_id] = (lcd_stat->bg_control_a[bg_id] >> 14) & 0x3;
 
-				switch(lcd_stat->bg_size_a[3])
+				switch(lcd_stat->bg_size_a[bg_id])
 				{
-					case 0x0: lcd_stat->text_width_a[3] = 255; lcd_stat->text_height_a[3] = 255; break;
-					case 0x1: lcd_stat->text_width_a[3] = 511; lcd_stat->text_height_a[3] = 255; break;
-					case 0x2: lcd_stat->text_width_a[3] = 255; lcd_stat->text_height_a[3] = 511; break;
-					case 0x3: lcd_stat->text_width_a[3] = 511; lcd_stat->text_height_a[3] = 511; break;
+					case 0x0: lcd_stat->text_width_a[bg_id] = 255; lcd_stat->text_height_a[bg_id] = 255; break;
+					case 0x1: lcd_stat->text_width_a[bg_id] = 511; lcd_stat->text_height_a[bg_id] = 255; break;
+					case 0x2: lcd_stat->text_width_a[bg_id] = 255; lcd_stat->text_height_a[bg_id] = 511; break;
+					case 0x3: lcd_stat->text_width_a[bg_id] = 511; lcd_stat->text_height_a[bg_id] = 511; break;
+				}
+
+				if(bg_id >= 2)
+				{
+					lcd_stat->bg_bitmap_base_addr_a[bg_id - 2] = 0x6000000 + (screen_block * 0x4000);
+
+					//Affine overflow
+					lcd_stat->bg_affine_a[bg_id - 2].overflow = (lcd_stat->bg_control_a[bg_id] & 0x2000) ? true : false;
 				}
 			}
 
 			break;
 
-		//BG3 Control B
+		//BG0 - BG3 Control B
+		case NDS_BG0CNT_B:
+		case NDS_BG0CNT_B+1:
+		case NDS_BG1CNT_B:
+		case NDS_BG1CNT_B+1:
+		case NDS_BG2CNT_B:
+		case NDS_BG2CNT_B+1:
 		case NDS_BG3CNT_B:
 		case NDS_BG3CNT_B+1:
 			{
+				u8 reg_id = (address - NDS_BG0CNT_B) >> 1;
+				u32 reg_addr = (address & ~0x01);
+
 				memory_map[address] = value;
-				lcd_stat->bg_control_b[3] = (memory_map[NDS_BG3CNT_B+1] << 8) | memory_map[NDS_BG3CNT_B];
+				lcd_stat->bg_control_b[reg_id] = (memory_map[reg_addr+1] << 8) | memory_map[reg_addr];
 
 				//Determine BG Priority
-				lcd_stat->bg_priority_b[3] = lcd_stat->bg_control_b[3] & 0x3;
-			
+				lcd_stat->bg_priority_b[reg_id] = lcd_stat->bg_control_b[reg_id] & 0x3;
+
 				//Calculate tile data and tile map addresses
-				u32 char_base = ((lcd_stat->display_control_b >> 24) & 0x7);
-				u32 screen_base = ((lcd_stat->display_control_b >> 27) & 0x7);
+				u32 char_block = ((lcd_stat->bg_control_b[reg_id] >> 2) & 0xF);
+				u32 screen_block = ((lcd_stat->bg_control_b[reg_id] >> 8) & 0x1F);
 
-				u32 char_block = ((lcd_stat->bg_control_b[3] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_b[3] >> 8) & 0x1F);
-
-				lcd_stat->bg_base_tile_addr_b[3] = (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_b[3] = (screen_block * 0x800);
-				lcd_stat->bg_bitmap_base_addr_b[1] = 0x6200000 + (screen_block * 0x4000);
+				lcd_stat->bg_base_tile_addr_b[reg_id] = (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_b[reg_id] = (screen_block * 0x800);
 
 				//Bit-depth
-				lcd_stat->bg_depth_b[3] = (lcd_stat->bg_control_b[3] & 0x80) ? 1 : 0;
-
-				//Affine overflow
-				lcd_stat->bg_affine_b[1].overflow = (lcd_stat->bg_control_b[3] & 0x2000) ? true : false;
+				lcd_stat->bg_depth_b[reg_id] = (lcd_stat->bg_control_b[reg_id] & 0x80) ? 1 : 0;
 
 				//Screen size
-				lcd_stat->bg_size_b[3] = (lcd_stat->bg_control_b[3] >> 14) & 0x3;
+				lcd_stat->bg_size_b[reg_id] = (lcd_stat->bg_control_b[reg_id] >> 14) & 0x3;
 
-				switch(lcd_stat->bg_size_b[3])
+				switch(lcd_stat->bg_size_b[reg_id])
 				{
-					case 0x0: lcd_stat->text_width_b[3] = 255; lcd_stat->text_height_b[3] = 255; break;
-					case 0x1: lcd_stat->text_width_b[3] = 511; lcd_stat->text_height_b[3] = 255; break;
-					case 0x2: lcd_stat->text_width_b[3] = 255; lcd_stat->text_height_b[3] = 511; break;
-					case 0x3: lcd_stat->text_width_b[3] = 511; lcd_stat->text_height_b[3] = 511; break;
+					case 0x0: lcd_stat->text_width_b[reg_id] = 255; lcd_stat->text_height_b[reg_id] = 255; break;
+					case 0x1: lcd_stat->text_width_b[reg_id] = 511; lcd_stat->text_height_b[reg_id] = 255; break;
+					case 0x2: lcd_stat->text_width_b[reg_id] = 255; lcd_stat->text_height_b[reg_id] = 511; break;
+					case 0x3: lcd_stat->text_width_b[reg_id] = 511; lcd_stat->text_height_b[reg_id] = 511; break;
+				}
+
+				if(reg_id >= 2)
+				{
+					lcd_stat->bg_bitmap_base_addr_b[reg_id - 2] = 0x6200000 + (screen_block * 0x4000);
+
+					//Affine overflow
+					lcd_stat->bg_affine_b[reg_id - 2].overflow = (lcd_stat->bg_control_b[reg_id] & 0x2000) ? true : false;
 				}
 			}
 
@@ -6007,8 +5804,6 @@ void NTR_MMU::process_spi_bus()
 /****** Handles various AUXSPI Bus interactions ******/
 void NTR_MMU::process_aux_spi_bus()
 {
-	std::cout<<"\nAUX SPI TRANSFER -> 0x" << u32(nds_aux_spi.data) << "\n";
-
 	bool new_command = false;
 	bool cs_hold = (nds_aux_spi.cnt & 0x40);
 
@@ -6026,7 +5821,6 @@ void NTR_MMU::process_aux_spi_bus()
 	{
 		new_command = true;
 		nds_aux_spi.cmd_wait = false;
-		std::cout<<"NEW AUX SPI COMMAND -> 0x" << u32(nds_aux_spi.data) << "\n";
 	}
 
 	//Handle AUX SPI save memory commands
@@ -6133,8 +5927,6 @@ void NTR_MMU::process_aux_spi_bus()
 	//Handle AUX SPI state - Command parameters or data 
 	else
 	{
-		std::cout<<"CMD PARAM STATE -> 0x" << u32(nds_aux_spi.state) << "\n";
-
 		switch(nds_aux_spi.state)
 		{
 			//Write to status
