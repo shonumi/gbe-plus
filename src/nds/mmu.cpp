@@ -1932,45 +1932,45 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_BG3CNT_A:
 		case NDS_BG3CNT_A+1:
 			{
-				u8 bg_id = (address - NDS_BG0CNT_A) >> 1;
-				u32 cnt_addr = (address & ~0x01);
+				u8 reg_id = (address - NDS_BG0CNT_A) >> 1;
+				u32 reg_addr = (address & ~0x01);
 
 				memory_map[address] = value;
-				lcd_stat->bg_control_a[bg_id] = (memory_map[cnt_addr+1] << 8) | memory_map[cnt_addr];
+				lcd_stat->bg_control_a[reg_id] = (memory_map[reg_addr+1] << 8) | memory_map[reg_addr];
 
 				//Determine BG Priority
-				lcd_stat->bg_priority_a[bg_id] = lcd_stat->bg_control_a[bg_id] & 0x3;
+				lcd_stat->bg_priority_a[reg_id] = lcd_stat->bg_control_a[reg_id] & 0x3;
 			
 				//Calculate tile data and tile map addresses
 				u32 char_base = ((lcd_stat->display_control_a >> 24) & 0x7);
 				u32 screen_base = ((lcd_stat->display_control_a >> 27) & 0x7);
 
-				u32 char_block = ((lcd_stat->bg_control_a[bg_id] >> 2) & 0xF);
-				u32 screen_block = ((lcd_stat->bg_control_a[bg_id] >> 8) & 0x1F);
+				u32 char_block = ((lcd_stat->bg_control_a[reg_id] >> 2) & 0xF);
+				u32 screen_block = ((lcd_stat->bg_control_a[reg_id] >> 8) & 0x1F);
 
-				lcd_stat->bg_base_tile_addr_a[bg_id] = (char_base * 0x10000) + (char_block * 0x4000);
-				lcd_stat->bg_base_map_addr_a[bg_id] = (screen_base * 0x10000) + (screen_block * 0x800);
+				lcd_stat->bg_base_tile_addr_a[reg_id] = (char_base * 0x10000) + (char_block * 0x4000);
+				lcd_stat->bg_base_map_addr_a[reg_id] = (screen_base * 0x10000) + (screen_block * 0x800);
 
 				//Bit-depth
-				lcd_stat->bg_depth_a[bg_id] = (lcd_stat->bg_control_a[bg_id] & 0x80) ? 1 : 0;
+				lcd_stat->bg_depth_a[reg_id] = (lcd_stat->bg_control_a[reg_id] & 0x80) ? 1 : 0;
 
 				//Screen size
-				lcd_stat->bg_size_a[bg_id] = (lcd_stat->bg_control_a[bg_id] >> 14) & 0x3;
+				lcd_stat->bg_size_a[reg_id] = (lcd_stat->bg_control_a[reg_id] >> 14) & 0x3;
 
-				switch(lcd_stat->bg_size_a[bg_id])
+				switch(lcd_stat->bg_size_a[reg_id])
 				{
-					case 0x0: lcd_stat->text_width_a[bg_id] = 255; lcd_stat->text_height_a[bg_id] = 255; break;
-					case 0x1: lcd_stat->text_width_a[bg_id] = 511; lcd_stat->text_height_a[bg_id] = 255; break;
-					case 0x2: lcd_stat->text_width_a[bg_id] = 255; lcd_stat->text_height_a[bg_id] = 511; break;
-					case 0x3: lcd_stat->text_width_a[bg_id] = 511; lcd_stat->text_height_a[bg_id] = 511; break;
+					case 0x0: lcd_stat->text_width_a[reg_id] = 255; lcd_stat->text_height_a[reg_id] = 255; break;
+					case 0x1: lcd_stat->text_width_a[reg_id] = 511; lcd_stat->text_height_a[reg_id] = 255; break;
+					case 0x2: lcd_stat->text_width_a[reg_id] = 255; lcd_stat->text_height_a[reg_id] = 511; break;
+					case 0x3: lcd_stat->text_width_a[reg_id] = 511; lcd_stat->text_height_a[reg_id] = 511; break;
 				}
 
-				if(bg_id >= 2)
+				if(reg_id >= 2)
 				{
-					lcd_stat->bg_bitmap_base_addr_a[bg_id - 2] = 0x6000000 + (screen_block * 0x4000);
+					lcd_stat->bg_bitmap_base_addr_a[reg_id - 2] = 0x6000000 + (screen_block * 0x4000);
 
 					//Affine overflow
-					lcd_stat->bg_affine_a[bg_id - 2].overflow = (lcd_stat->bg_control_a[bg_id] & 0x2000) ? true : false;
+					lcd_stat->bg_affine_a[reg_id - 2].overflow = (lcd_stat->bg_control_a[reg_id] & 0x2000) ? true : false;
 				}
 			}
 
@@ -2027,116 +2027,80 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG0 Horizontal Offset A
+		//BG0 - BG3 Horizontal Offset A
 		case NDS_BG0HOFS_A:
 		case NDS_BG0HOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_a[0] = ((memory_map[NDS_BG0HOFS_A+1] << 8) | memory_map[NDS_BG0HOFS_A]) & 0x1FF;
-			break;
-
-		//BG0 Horizontal Offset B
-		case NDS_BG0HOFS_B:
-		case NDS_BG0HOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_b[0] = ((memory_map[NDS_BG0HOFS_B+1] << 8) | memory_map[NDS_BG0HOFS_B]) & 0x1FF;
-			break;
-
-		//BG0 Vertical Offset A
-		case NDS_BG0VOFS_A:
-		case NDS_BG0VOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_a[0] = ((memory_map[NDS_BG0VOFS_A+1] << 8) | memory_map[NDS_BG0VOFS_A]) & 0x1FF;
-			break;
-
-		//BG0 Vertical Offset B
-		case NDS_BG0VOFS_B:
-		case NDS_BG0VOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_b[0] = ((memory_map[NDS_BG0VOFS_B+1] << 8) | memory_map[NDS_BG0VOFS_B]) & 0x1FF;
-			break;
-
-		//BG1 Horizontal Offset A
 		case NDS_BG1HOFS_A:
 		case NDS_BG1HOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_a[1] = ((memory_map[NDS_BG1HOFS_A+1] << 8) | memory_map[NDS_BG1HOFS_A]) & 0x1FF;
-			break;
-
-		//BG1 Horizontal Offset B
-		case NDS_BG1HOFS_B:
-		case NDS_BG1HOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_b[1] = ((memory_map[NDS_BG1HOFS_B+1] << 8) | memory_map[NDS_BG1HOFS_B]) & 0x1FF;
-			break;
-
-		//BG1 Vertical Offset A
-		case NDS_BG1VOFS_A:
-		case NDS_BG1VOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_a[1] = ((memory_map[NDS_BG1VOFS_A+1] << 8) | memory_map[NDS_BG1VOFS_A]) & 0x1FF;
-			break;
-
-		//BG1 Vertical Offset B
-		case NDS_BG1VOFS_B:
-		case NDS_BG1VOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_b[1] = ((memory_map[NDS_BG1VOFS_B+1] << 8) | memory_map[NDS_BG1VOFS_B]) & 0x1FF;
-			break;
-
-		//BG2 Horizontal Offset A
 		case NDS_BG2HOFS_A:
 		case NDS_BG2HOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_a[2] = ((memory_map[NDS_BG2HOFS_A+1] << 8) | memory_map[NDS_BG2HOFS_A]) & 0x1FF;
-			break;
-
-		//BG2 Horizontal Offset B
-		case NDS_BG2HOFS_B:
-		case NDS_BG2HOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_b[2] = ((memory_map[NDS_BG2HOFS_B+1] << 8) | memory_map[NDS_BG2HOFS_B]) & 0x1FF;
-			break;
-
-		//BG2 Vertical Offset A
-		case NDS_BG2VOFS_A:
-		case NDS_BG2VOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_a[2] = ((memory_map[NDS_BG2VOFS_A+1] << 8) | memory_map[NDS_BG2VOFS_A]) & 0x1FF;
-			break;
-
-		//BG2 Vertical Offset B
-		case NDS_BG2VOFS_B:
-		case NDS_BG2VOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_b[2] = ((memory_map[NDS_BG2VOFS_B+1] << 8) | memory_map[NDS_BG2VOFS_B]) & 0x1FF;
-			break;
-
-		//BG3 Horizontal Offset A
 		case NDS_BG3HOFS_A:
 		case NDS_BG3HOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_a[3] = ((memory_map[NDS_BG3HOFS_A+1] << 8) | memory_map[NDS_BG3HOFS_A]) & 0x1FF;
+			{
+				u8 reg_id = (address - NDS_BG0HOFS_A) >> 2;
+				u32 reg_addr = (address & ~0x01);
+
+				memory_map[address] = value;
+				lcd_stat->bg_offset_x_a[reg_id] = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]) & 0x1FF;
+			}
+
 			break;
 
-		//BG3 Horizontal Offset B
+		//BG0 - BG3 Horizontal Offset B
+		case NDS_BG0HOFS_B:
+		case NDS_BG0HOFS_B+1:
+		case NDS_BG1HOFS_B:
+		case NDS_BG1HOFS_B+1:
+		case NDS_BG2HOFS_B:
+		case NDS_BG2HOFS_B+1:
 		case NDS_BG3HOFS_B:
 		case NDS_BG3HOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_x_b[3] = ((memory_map[NDS_BG3HOFS_B+1] << 8) | memory_map[NDS_BG3HOFS_B]) & 0x1FF;
+			{
+				u8 reg_id = (address - NDS_BG0HOFS_B) >> 2;
+				u32 reg_addr = (address & ~0x01);
+
+				memory_map[address] = value;
+				lcd_stat->bg_offset_x_b[reg_id] = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]) & 0x1FF;
+			}
+
 			break;
 
-		//BG3 Vertical Offset A
+		//BG0 - BG3 Vertical Offset A
+		case NDS_BG0VOFS_A:
+		case NDS_BG0VOFS_A+1:
+		case NDS_BG1VOFS_A:
+		case NDS_BG1VOFS_A+1:
+		case NDS_BG2VOFS_A:
+		case NDS_BG2VOFS_A+1:
 		case NDS_BG3VOFS_A:
 		case NDS_BG3VOFS_A+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_a[3] = ((memory_map[NDS_BG3VOFS_A+1] << 8) | memory_map[NDS_BG3VOFS_A]) & 0x1FF;
+			{
+				u8 reg_id = (address - NDS_BG0VOFS_A) >> 2;
+				u32 reg_addr = (address & ~0x01);
+
+				memory_map[address] = value;
+				lcd_stat->bg_offset_y_a[reg_id] = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]) & 0x1FF;
+			}
+
 			break;
 
-		//BG3 Vertical Offset B
+		//BG0 - BG3 Vertical Offset B
+		case NDS_BG0VOFS_B:
+		case NDS_BG0VOFS_B+1:
+		case NDS_BG1VOFS_B:
+		case NDS_BG1VOFS_B+1:
+		case NDS_BG2VOFS_B:
+		case NDS_BG2VOFS_B+1:
 		case NDS_BG3VOFS_B:
 		case NDS_BG3VOFS_B+1:
-			memory_map[address] = value;
-			lcd_stat->bg_offset_y_b[3] = ((memory_map[NDS_BG3VOFS_B+1] << 8) | memory_map[NDS_BG3VOFS_B]) & 0x1FF;
+			{
+				u8 reg_id = (address - NDS_BG0VOFS_B) >> 2;
+				u32 reg_addr = (address & ~0x01);
+
+				memory_map[address] = value;
+				lcd_stat->bg_offset_y_b[reg_id] = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]) & 0x1FF;
+			}
+
 			break;
 
 		//BG2 Scale/Rotation Parameter A - Engine A
