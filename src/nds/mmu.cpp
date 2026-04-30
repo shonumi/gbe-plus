@@ -2103,90 +2103,42 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG2 Scale/Rotation Parameter A - Engine A
+		//BG2 Scale/Rotation Parameters - Engine A
 		case NDS_BG2PA_A:
 		case NDS_BG2PA_A+1:
-			memory_map[address] = value;
-			
-			{
-				u16 raw_value = ((memory_map[NDS_BG2PA_A+1] << 8) | memory_map[NDS_BG2PA_A]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[0].dx = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_a[0].dx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[0].dx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG2 Scale/Rotation Parameter B - Engine A
 		case NDS_BG2PB_A:
 		case NDS_BG2PB_A+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG2PB_A+1] << 8) | memory_map[NDS_BG2PB_A]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[0].dmx = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_a[0].dmx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[0].dmx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG2 Scale/Rotation Parameter C - Engine A
 		case NDS_BG2PC_A:
 		case NDS_BG2PC_A+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG2PC_A+1] << 8) | memory_map[NDS_BG2PC_A]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[0].dy = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_a[0].dy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[0].dy += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG2 Scale/Rotation Parameter D - Engine A
 		case NDS_BG2PD_A:
 		case NDS_BG2PD_A+1:
 			memory_map[address] = value;
-
+			
 			{
-				u16 raw_value = ((memory_map[NDS_BG2PD_A+1] << 8) | memory_map[NDS_BG2PD_A]);
+				u8 reg_id = (address - NDS_BG2PA_A) >> 1;
+				u32 reg_addr = (address & ~0x01);
+				float* reg_val = nullptr;
+
+				switch(reg_id)
+				{
+					case 0: reg_val = &lcd_stat->bg_affine_a[0].dx; break;
+					case 1: reg_val = &lcd_stat->bg_affine_a[0].dmx; break;
+					case 2: reg_val = &lcd_stat->bg_affine_a[0].dy; break;
+					case 3: reg_val = &lcd_stat->bg_affine_a[0].dmy; break;
+				}
+
+				u16 raw_value = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]);
 				
 				//Note: The reference points are 8-bit signed 2's complement
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
 					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[0].dmy = -1.0 * p;
+					*reg_val = -1.0 * p;
 				}
 
-				else { lcd_stat->bg_affine_a[0].dmy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[0].dmy += (raw_value & 0xFF) / 256.0; }
+				else { *reg_val = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -2243,87 +2195,42 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG3 Scale/Rotation Parameter A - Engine A
+		//BG3 Scale/Rotation Parameters - Engine A
 		case NDS_BG3PA_A:
 		case NDS_BG3PA_A+1:
-			memory_map[address] = value;
-			{
-				u16 raw_value = ((memory_map[NDS_BG3PA_A+1] << 8) | memory_map[NDS_BG3PA_A]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[1].dx = -1.0 * p;
-				}
-				else { lcd_stat->bg_affine_a[1].dx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[1].dx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG3 Scale/Rotation Parameter B - Engine A
 		case NDS_BG3PB_A:
 		case NDS_BG3PB_A+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG3PB_A+1] << 8) | memory_map[NDS_BG3PB_A]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[1].dmx = -1.0 * p;
-				}
-				else { lcd_stat->bg_affine_a[1].dmx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[1].dmx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG3 Scale/Rotation Parameter C - Engine A
 		case NDS_BG3PC_A:
 		case NDS_BG3PC_A+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG3PC_A+1] << 8) | memory_map[NDS_BG3PC_A]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[1].dy = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_a[1].dy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[1].dy += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG3 Scale/Rotation Parameter D - Engine A
 		case NDS_BG3PD_A:
 		case NDS_BG3PD_A+1:
 			memory_map[address] = value;
-
+			
 			{
-				u16 raw_value = ((memory_map[NDS_BG3PD_A+1] << 8) | memory_map[NDS_BG3PD_A]);
+				u8 reg_id = (address - NDS_BG3PA_A) >> 1;
+				u32 reg_addr = (address & ~0x01);
+				float* reg_val = nullptr;
+
+				switch(reg_id)
+				{
+					case 0: reg_val = &lcd_stat->bg_affine_a[1].dx; break;
+					case 1: reg_val = &lcd_stat->bg_affine_a[1].dmx; break;
+					case 2: reg_val = &lcd_stat->bg_affine_a[1].dy; break;
+					case 3: reg_val = &lcd_stat->bg_affine_a[1].dmy; break;
+				}
+
+				u16 raw_value = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]);
 				
 				//Note: The reference points are 8-bit signed 2's complement
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
 					p = (~p & 0xFF);
-					lcd_stat->bg_affine_a[1].dmy = -1.0 * p;
+					*reg_val = -1.0 * p;
 				}
 
-				else { lcd_stat->bg_affine_a[1].dmy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_a[1].dmy += (raw_value & 0xFF) / 256.0; }
+				else { *reg_val = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -2380,90 +2287,42 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG2 Scale/Rotation Parameter A - Engine B
+		//BG2 Scale/Rotation Parameters - Engine B
 		case NDS_BG2PA_B:
 		case NDS_BG2PA_B+1:
-			memory_map[address] = value;
-			
-			{
-				u16 raw_value = ((memory_map[NDS_BG2PA_B+1] << 8) | memory_map[NDS_BG2PA_B]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[0].dx = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_b[0].dx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG2 Scale/Rotation Parameter B - Engine B
 		case NDS_BG2PB_B:
 		case NDS_BG2PB_B+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG2PB_B+1] << 8) | memory_map[NDS_BG2PB_B]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[0].dmx = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_b[0].dmx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dmx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG2 Scale/Rotation Parameter C - Engine B
 		case NDS_BG2PC_B:
 		case NDS_BG2PC_B+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG2PC_B+1] << 8) | memory_map[NDS_BG2PC_B]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[0].dy = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_b[0].dy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dy += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG2 Scale/Rotation Parameter D - Engine B
 		case NDS_BG2PD_B:
 		case NDS_BG2PD_B+1:
 			memory_map[address] = value;
-
+			
 			{
-				u16 raw_value = ((memory_map[NDS_BG2PD_B+1] << 8) | memory_map[NDS_BG2PD_B]);
+				u8 reg_id = (address - NDS_BG2PA_B) >> 1;
+				u32 reg_addr = (address & ~0x01);
+				float* reg_val = nullptr;
+
+				switch(reg_id)
+				{
+					case 0: reg_val = &lcd_stat->bg_affine_b[0].dx; break;
+					case 1: reg_val = &lcd_stat->bg_affine_b[0].dmx; break;
+					case 2: reg_val = &lcd_stat->bg_affine_b[0].dy; break;
+					case 3: reg_val = &lcd_stat->bg_affine_b[0].dmy; break;
+				}
+
+				u16 raw_value = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]);
 				
 				//Note: The reference points are 8-bit signed 2's complement
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
 					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[0].dmy = -1.0 * p;
+					*reg_val = -1.0 * p;
 				}
 
-				else { lcd_stat->bg_affine_b[0].dmy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[0].dmy += (raw_value & 0xFF) / 256.0; }
+				else { *reg_val = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
@@ -2520,87 +2379,42 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//BG3 Scale/Rotation Parameter A - Engine B
+		//BG3 Scale/Rotation Parameters - Engine B
 		case NDS_BG3PA_B:
 		case NDS_BG3PA_B+1:
-			memory_map[address] = value;
-			{
-				u16 raw_value = ((memory_map[NDS_BG3PA_B+1] << 8) | memory_map[NDS_BG3PA_B]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[1].dx = -1.0 * p;
-				}
-				else { lcd_stat->bg_affine_b[1].dx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG3 Scale/Rotation Parameter B - Engine B
 		case NDS_BG3PB_B:
 		case NDS_BG3PB_B+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG3PB_B+1] << 8) | memory_map[NDS_BG3PB_B]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[1].dmx = -1.0 * p;
-				}
-				else { lcd_stat->bg_affine_b[1].dmx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dmx += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG3 Scale/Rotation Parameter C - Engine B
 		case NDS_BG3PC_B:
 		case NDS_BG3PC_B+1:
-			memory_map[address] = value;
-
-			{
-				u16 raw_value = ((memory_map[NDS_BG3PC_B+1] << 8) | memory_map[NDS_BG3PC_B]);
-				
-				//Note: The reference points are 8-bit signed 2's complement
-				if(raw_value & 0x8000) 
-				{ 
-					u16 p = ((raw_value >> 8) - 1);
-					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[1].dy = -1.0 * p;
-				}
-
-				else { lcd_stat->bg_affine_b[1].dy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dy += (raw_value & 0xFF) / 256.0; }
-			}
-
-			break;
-
-		//BG3 Scale/Rotation Parameter D - Engine B
 		case NDS_BG3PD_B:
 		case NDS_BG3PD_B+1:
 			memory_map[address] = value;
-
+			
 			{
-				u16 raw_value = ((memory_map[NDS_BG3PD_B+1] << 8) | memory_map[NDS_BG3PD_B]);
+				u8 reg_id = (address - NDS_BG3PA_B) >> 1;
+				u32 reg_addr = (address & ~0x01);
+				float* reg_val = nullptr;
+
+				switch(reg_id)
+				{
+					case 0: reg_val = &lcd_stat->bg_affine_b[1].dx; break;
+					case 1: reg_val = &lcd_stat->bg_affine_b[1].dmx; break;
+					case 2: reg_val = &lcd_stat->bg_affine_b[1].dy; break;
+					case 3: reg_val = &lcd_stat->bg_affine_b[1].dmy; break;
+				}
+
+				u16 raw_value = ((memory_map[reg_addr+1] << 8) | memory_map[reg_addr]);
 				
 				//Note: The reference points are 8-bit signed 2's complement
 				if(raw_value & 0x8000) 
 				{ 
 					u16 p = ((raw_value >> 8) - 1);
 					p = (~p & 0xFF);
-					lcd_stat->bg_affine_b[1].dmy = -1.0 * p;
+					*reg_val = -1.0 * p;
 				}
 
-				else { lcd_stat->bg_affine_b[1].dmy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine_b[1].dmy += (raw_value & 0xFF) / 256.0; }
+				else { *reg_val = (raw_value >> 8); }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
 			}
 
 			break;
