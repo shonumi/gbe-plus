@@ -577,6 +577,8 @@ class NTR_MMU
 	//Only the MMU and APU should communicate through this structure
 	ntr_apu_data* apu_stat;
 
+	u8 dma_reg_lut[48];
+
 	u32* nds7_pc;
 	u32* nds9_pc;
 };

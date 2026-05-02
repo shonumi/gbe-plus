@@ -386,6 +386,10 @@ void NTR_MMU::reset()
 	rumble_state = 0;
 	do_save = false;
 
+	//Small LUT for quickly getting DMAx register IDs.
+	//Each DMA register set is 12-bytes long, so this avoids using division frequently to get the ID
+	for(u32 x = 0; x < 48; x++) { dma_reg_lut[x] = x / 12; }
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	debug_read = false;
@@ -3006,330 +3010,89 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//DMA0 Start Address
+		//DMA0 - DMA3 Start Address
 		case NDS_DMA0SAD:
 		case NDS_DMA0SAD+1:
 		case NDS_DMA0SAD+2:
 		case NDS_DMA0SAD+3:
-
-			//NDS9 DMA0 SAD
-			if(access_mode)
-			{
-				dma[0].raw_sad[address & 0x3] = value;
-				dma[0].start_address = ((dma[0].raw_sad[3] << 24) | (dma[0].raw_sad[2] << 16) | (dma[0].raw_sad[1] << 8) | dma[0].raw_sad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA0 SAD
-			else
-			{
-				dma[4].raw_sad[address & 0x3] = value;
-				dma[4].start_address = ((dma[4].raw_sad[3] << 24) | (dma[4].raw_sad[2] << 16) | (dma[4].raw_sad[1] << 8) | dma[4].raw_sad[0]) & 0x7FFFFFF;
-			}
-
-			break;
-
-		//DMA0 Destination Address
-		case NDS_DMA0DAD:
-		case NDS_DMA0DAD+1:
-		case NDS_DMA0DAD+2:
-		case NDS_DMA0DAD+3:
-
-			//NDS9 DMA0 DAD
-			if(access_mode)
-			{
-				dma[0].raw_dad[address & 0x3] = value;
-				dma[0].destination_address = ((dma[0].raw_dad[3] << 24) | (dma[0].raw_dad[2] << 16) | (dma[0].raw_dad[1] << 8) | dma[0].raw_dad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA0 DAD
-			else
-			{
-				dma[4].raw_dad[address & 0x3] = value;
-				dma[4].destination_address = ((dma[4].raw_dad[3] << 24) | (dma[4].raw_dad[2] << 16) | (dma[4].raw_dad[1] << 8) | dma[4].raw_dad[0]) & 0x7FFFFFF;
-			}
-
-			break;
-
-		//DMA0 Control
-		case NDS_DMA0CNT:
-		case NDS_DMA0CNT+1:
-		case NDS_DMA0CNT+2:
-		case NDS_DMA0CNT+3:
-			
-			//NDS9 DMA0 CNT
-			if(access_mode)
-			{
-				dma[0].raw_cnt[address & 0x3] = value;
-				dma[0].control = ((dma[0].raw_cnt[3] << 24) | (dma[0].raw_cnt[2] << 16) | (dma[0].raw_cnt[1] << 8) | dma[0].raw_cnt[0]);
-				dma[0].word_count = dma[0].control & 0x1FFFFF;
-				dma[0].dest_addr_ctrl = (dma[0].control >> 21) & 0x3;
-				dma[0].src_addr_ctrl = (dma[0].control >> 23) & 0x3;
-				dma[0].word_type = (dma[0].control & 0x4000000) ? 1 : 0;
-			
-				dma[0].enable = true;
-				dma[0].started = false;
-				dma[0].delay = 2;
-			}
-
-			//NDS7 DMA0 CNT
-			else
-			{
-				dma[4].raw_cnt[address & 0x3] = value;
-				dma[4].control = ((dma[4].raw_cnt[3] << 24) | (dma[4].raw_cnt[2] << 16) | (dma[4].raw_cnt[1] << 8) | dma[4].raw_cnt[0]);
-				dma[4].word_count = dma[4].control & 0x3FFF;
-				dma[4].dest_addr_ctrl = (dma[4].control >> 21) & 0x3;
-				dma[4].src_addr_ctrl = (dma[4].control >> 23) & 0x3;
-				dma[4].word_type = (dma[4].control & 0x4000000) ? 1 : 0;
-			
-				dma[4].enable = true;
-				dma[4].started = false;
-				dma[4].delay = 2;
-			}
-
-			break;
-
-		//DMA1 Start Address
 		case NDS_DMA1SAD:
 		case NDS_DMA1SAD+1:
 		case NDS_DMA1SAD+2:
 		case NDS_DMA1SAD+3:
-
-			//NDS9 DMA1 SAD
-			if(access_mode)
-			{
-				dma[1].raw_sad[address & 0x3] = value;
-				dma[1].start_address = ((dma[1].raw_sad[3] << 24) | (dma[1].raw_sad[2] << 16) | (dma[1].raw_sad[1] << 8) | dma[1].raw_sad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA1 SAD
-			else
-			{
-				dma[5].raw_sad[address & 0x3] = value;
-				dma[5].start_address = ((dma[5].raw_sad[3] << 24) | (dma[5].raw_sad[2] << 16) | (dma[5].raw_sad[1] << 8) | dma[5].raw_sad[0]) & 0xFFFFFFF;
-			}
-
-			break;
-
-		//DMA1 Destination Address
-		case NDS_DMA1DAD:
-		case NDS_DMA1DAD+1:
-		case NDS_DMA1DAD+2:
-		case NDS_DMA1DAD+3:
-
-			//NDS9 DMA1 DAD
-			if(access_mode)
-			{
-				dma[1].raw_dad[address & 0x3] = value;
-				dma[1].destination_address = ((dma[1].raw_dad[3] << 24) | (dma[1].raw_dad[2] << 16) | (dma[1].raw_dad[1] << 8) | dma[1].raw_dad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA1 DAD
-			else
-			{
-				dma[5].raw_dad[address & 0x3] = value;
-				dma[5].destination_address = ((dma[5].raw_dad[3] << 24) | (dma[5].raw_dad[2] << 16) | (dma[5].raw_dad[1] << 8) | dma[5].raw_dad[0]) & 0x7FFFFFF;
-			}
-
-			break;
-
-		//DMA1 Control
-		case NDS_DMA1CNT:
-		case NDS_DMA1CNT+1:
-		case NDS_DMA1CNT+2:
-		case NDS_DMA1CNT+3:
-
-			//NDS9 DMA1 CNT
-			if(access_mode)
-			{
-				dma[1].raw_cnt[address & 0x3] = value;
-				dma[1].control = ((dma[1].raw_cnt[3] << 24) | (dma[1].raw_cnt[2] << 16) | (dma[1].raw_cnt[1] << 8) | dma[1].raw_cnt[0]);
-				dma[1].word_count = dma[1].control & 0x1FFFFF;
-				dma[1].dest_addr_ctrl = (dma[1].control >> 21) & 0x3;
-				dma[1].src_addr_ctrl = (dma[1].control >> 23) & 0x3;
-				dma[1].word_type = (dma[1].control & 0x4000000) ? 1 : 0;
-			
-				dma[1].enable = true;
-				dma[1].started = false;
-				dma[1].delay = 2;
-			}
-
-			//NDS7 DMA1 CNT
-			else
-			{
-				dma[5].raw_cnt[address & 0x3] = value;
-				dma[5].control = ((dma[5].raw_cnt[3] << 24) | (dma[5].raw_cnt[2] << 16) | (dma[5].raw_cnt[1] << 8) | dma[5].raw_cnt[0]);
-				dma[5].word_count = dma[5].control & 0x3FFF;
-				dma[5].dest_addr_ctrl = (dma[5].control >> 21) & 0x3;
-				dma[5].src_addr_ctrl = (dma[5].control >> 23) & 0x3;
-				dma[5].word_type = (dma[5].control & 0x4000000) ? 1 : 0;
-			
-				dma[5].enable = true;
-				dma[5].started = false;
-				dma[5].delay = 2;
-			}
-
-			break;
-
-		//DMA2 Start Address
 		case NDS_DMA2SAD:
 		case NDS_DMA2SAD+1:
 		case NDS_DMA2SAD+2:
 		case NDS_DMA2SAD+3:
-
-			//NDS9 DMA2 SAD
-			if(access_mode)
-			{
-				dma[2].raw_sad[address & 0x3] = value;
-				dma[2].start_address = ((dma[2].raw_sad[3] << 24) | (dma[2].raw_sad[2] << 16) | (dma[2].raw_sad[1] << 8) | dma[2].raw_sad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA2 SAD
-			else
-			{
-				dma[6].raw_sad[address & 0x3] = value;
-				dma[6].start_address = ((dma[6].raw_sad[3] << 24) | (dma[6].raw_sad[2] << 16) | (dma[6].raw_sad[1] << 8) | dma[6].raw_sad[0]) & 0xFFFFFFF;
-			}
-
-			break;
-
-		//DMA2 Destination Address
-		case NDS_DMA2DAD:
-		case NDS_DMA2DAD+1:
-		case NDS_DMA2DAD+2:
-		case NDS_DMA2DAD+3:
-
-			//NDS9 DMA2 DAD
-			if(access_mode)
-			{
-				dma[2].raw_dad[address & 0x3] = value;
-				dma[2].destination_address = ((dma[2].raw_dad[3] << 24) | (dma[2].raw_dad[2] << 16) | (dma[2].raw_dad[1] << 8) | dma[2].raw_dad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA2 DAD
-			else
-			{
-				dma[6].raw_dad[address & 0x3] = value;
-				dma[6].destination_address = ((dma[6].raw_dad[3] << 24) | (dma[6].raw_dad[2] << 16) | (dma[6].raw_dad[1] << 8) | dma[6].raw_dad[0]) & 0x7FFFFFF;
-			}
-
-			break;
-
-		//DMA2 Control
-		case NDS_DMA2CNT:
-		case NDS_DMA2CNT+1:
-		case NDS_DMA2CNT+2:
-		case NDS_DMA2CNT+3:
-
-			//NDS9 DMA2 CNT
-			if(access_mode)
-			{
-				dma[2].raw_cnt[address & 0x3] = value;
-				dma[2].control = ((dma[2].raw_cnt[3] << 24) | (dma[2].raw_cnt[2] << 16) | (dma[2].raw_cnt[1] << 8) | dma[2].raw_cnt[0]);
-				dma[2].word_count = dma[2].control & 0x1FFFFF;
-				dma[2].dest_addr_ctrl = (dma[2].control >> 21) & 0x3;
-				dma[2].src_addr_ctrl = (dma[2].control >> 23) & 0x3;
-				dma[2].word_type = (dma[2].control & 0x4000000) ? 1 : 0;
-			
-				dma[2].enable = true;
-				dma[2].started = false;
-				dma[2].delay = 2;
-			}
-
-			//NDS7 DMA2 CNT
-			else
-			{
-				dma[6].raw_cnt[address & 0x3] = value;
-				dma[6].control = ((dma[6].raw_cnt[3] << 24) | (dma[6].raw_cnt[2] << 16) | (dma[6].raw_cnt[1] << 8) | dma[6].raw_cnt[0]);
-				dma[6].word_count = dma[6].control & 0x3FFF;
-				dma[6].dest_addr_ctrl = (dma[6].control >> 21) & 0x3;
-				dma[6].src_addr_ctrl = (dma[6].control >> 23) & 0x3;
-				dma[6].word_type = (dma[6].control & 0x4000000) ? 1 : 0;
-			
-				dma[6].enable = true;
-				dma[6].started = false;
-				dma[6].delay = 2;
-			}
-
-			break;
-
-		//DMA3 Start Address
 		case NDS_DMA3SAD:
 		case NDS_DMA3SAD+1:
 		case NDS_DMA3SAD+2:
 		case NDS_DMA3SAD+3:
-
-			//NDS9 DMA3 SAD
-			if(access_mode)
 			{
-				dma[3].raw_sad[address & 0x3] = value;
-				dma[3].start_address = ((dma[3].raw_sad[3] << 24) | (dma[3].raw_sad[2] << 16) | (dma[3].raw_sad[1] << 8) | dma[3].raw_sad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA3 SAD
-			else
-			{
-				dma[7].raw_sad[address & 0x3] = value;
-				dma[7].start_address = ((dma[7].raw_sad[3] << 24) | (dma[7].raw_sad[2] << 16) | (dma[7].raw_sad[1] << 8) | dma[7].raw_sad[0]) & 0xFFFFFFF;
+				u8 reg_id = dma_reg_lut[address - NDS_DMA0SAD];
+				reg_id += (access_mode) ? 0 : 4;
+				dma[reg_id].raw_sad[address & 0x3] = value;
 			}
 
 			break;
 
-		//DMA3 Destination Address
+		//DMA0 - DMA3 Destination Address
+		case NDS_DMA0DAD:
+		case NDS_DMA0DAD+1:
+		case NDS_DMA0DAD+2:
+		case NDS_DMA0DAD+3:
+		case NDS_DMA1DAD:
+		case NDS_DMA1DAD+1:
+		case NDS_DMA1DAD+2:
+		case NDS_DMA1DAD+3:
+		case NDS_DMA2DAD:
+		case NDS_DMA2DAD+1:
+		case NDS_DMA2DAD+2:
+		case NDS_DMA2DAD+3:
 		case NDS_DMA3DAD:
 		case NDS_DMA3DAD+1:
 		case NDS_DMA3DAD+2:
 		case NDS_DMA3DAD+3:
-
-			//NDS9 DMA3 DAD
-			if(access_mode)
 			{
-				dma[3].raw_dad[address & 0x3] = value;
-				dma[3].destination_address = ((dma[3].raw_dad[3] << 24) | (dma[3].raw_dad[2] << 16) | (dma[3].raw_dad[1] << 8) | dma[3].raw_dad[0]) & 0xFFFFFFF;
-			}
-
-			//ND7 DMA3 DAD
-			else
-			{
-				dma[7].raw_dad[address & 0x3] = value;
-				dma[7].destination_address = ((dma[7].raw_dad[3] << 24) | (dma[7].raw_dad[2] << 16) | (dma[7].raw_dad[1] << 8) | dma[7].raw_dad[0]) & 0xFFFFFFF;
+				u8 reg_id = dma_reg_lut[address - NDS_DMA0SAD];
+				reg_id += (access_mode) ? 0 : 4;
+				dma[reg_id].raw_dad[address & 0x3] = value;
 			}
 
 			break;
 
-		//DMA3 Control
+		//DMA0 - DMA3 Control
+		case NDS_DMA0CNT:
+		case NDS_DMA0CNT+1:
+		case NDS_DMA0CNT+2:
+		case NDS_DMA0CNT+3:
+		case NDS_DMA1CNT:
+		case NDS_DMA1CNT+1:
+		case NDS_DMA1CNT+2:
+		case NDS_DMA1CNT+3:
+		case NDS_DMA2CNT:
+		case NDS_DMA2CNT+1:
+		case NDS_DMA2CNT+2:
+		case NDS_DMA2CNT+3:
 		case NDS_DMA3CNT:
 		case NDS_DMA3CNT+1:
 		case NDS_DMA3CNT+2:
 		case NDS_DMA3CNT+3:
-
-			//NDS9 DMA3 CNT
-			if(access_mode)
 			{
-				dma[3].raw_cnt[address & 0x3] = value;
-				dma[3].control = ((dma[3].raw_cnt[3] << 24) | (dma[3].raw_cnt[2] << 16) | (dma[3].raw_cnt[1] << 8) | dma[3].raw_cnt[0]);
-				dma[3].word_count = dma[3].control & 0x1FFFFF;
-				dma[3].dest_addr_ctrl = (dma[3].control >> 21) & 0x3;
-				dma[3].src_addr_ctrl = (dma[3].control >> 23) & 0x3;
-				dma[3].word_type = (dma[3].control & 0x4000000) ? 1 : 0;
-			
-				dma[3].enable = true;
-				dma[3].started = false;
-				dma[3].delay = 2;
-			}
 
-			//NDS7 DMA3 CNT
-			else
-			{
-				dma[7].raw_cnt[address & 0x3] = value;
-				dma[7].control = ((dma[7].raw_cnt[3] << 24) | (dma[7].raw_cnt[2] << 16) | (dma[7].raw_cnt[1] << 8) | dma[7].raw_cnt[0]);
-				dma[7].word_count = dma[7].control & 0xFFFF;
-				dma[7].dest_addr_ctrl = (dma[7].control >> 21) & 0x3;
-				dma[7].src_addr_ctrl = (dma[7].control >> 23) & 0x3;
-				dma[7].word_type = (dma[7].control & 0x4000000) ? 1 : 0;
+				u8 reg_id = dma_reg_lut[address - NDS_DMA0SAD];
+				reg_id += (access_mode) ? 0 : 4;
+				u32 reg_mask = (access_mode) ? 0x1FFFFF : 0x3FFF;
+
+				dma[reg_id].raw_cnt[address & 0x3] = value;
+				dma[reg_id].control = ((dma[reg_id].raw_cnt[3] << 24) | (dma[reg_id].raw_cnt[2] << 16) | (dma[reg_id].raw_cnt[1] << 8) | dma[reg_id].raw_cnt[reg_id]);
+				dma[reg_id].word_count = dma[reg_id].control & reg_mask;
+				dma[reg_id].dest_addr_ctrl = (dma[reg_id].control >> 21) & 0x3;
+				dma[reg_id].src_addr_ctrl = (dma[reg_id].control >> 23) & 0x3;
+				dma[reg_id].word_type = (dma[reg_id].control & 0x4000000) ? 1 : 0;
 			
-				dma[7].enable = true;
-				dma[7].started = false;
-				dma[7].delay = 2;
+				dma[reg_id].enable = true;
+				dma[reg_id].started = false;
+				dma[reg_id].delay = 2;
 			}
 
 			break;
