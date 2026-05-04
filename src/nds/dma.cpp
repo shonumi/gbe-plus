@@ -20,12 +20,6 @@ void NTR_ARM9::nds9_dma(u8 index)
 	//Check DMA control register to start transfer
 	if((mem->dma[index].control & 0x80000000) == 0) { mem->dma[index].enable = false; return; }
 
-	mem->dma[index].start_address =
-	((mem->dma[index].raw_sad[3] << 24) | (mem->dma[index].raw_sad[2] << 16) | (mem->dma[index].raw_sad[1] << 8) | mem->dma[index].raw_sad[0]) & 0xFFFFFFF;
-
-	mem->dma[index].destination_address =
-	((mem->dma[index].raw_dad[3] << 24) | (mem->dma[index].raw_dad[2] << 16) | (mem->dma[index].raw_dad[1] << 8) | mem->dma[index].raw_dad[0]) & 0xFFFFFFF;
-
 	u32 temp_value = 0;
 	u32 original_dest_addr = mem->dma[index].destination_address;
 	u8 dma_mode = ((mem->dma[index].control >> 27) & 0x7);
@@ -210,12 +204,6 @@ void NTR_ARM7::nds7_dma(u8 index)
 	index &= 0x7;
 
 	if((mem->dma[index].control & 0x80000000) == 0) { mem->dma[index].enable = false; return; }
-
-	mem->dma[index].start_address =
-	((mem->dma[index].raw_sad[3] << 24) | (mem->dma[index].raw_sad[2] << 16) | (mem->dma[index].raw_sad[1] << 8) | mem->dma[index].raw_sad[0]) & 0x7FFFFFF;
-
-	mem->dma[index].destination_address =
-	((mem->dma[index].raw_dad[3] << 24) | (mem->dma[index].raw_dad[2] << 16) | (mem->dma[index].raw_dad[1] << 8) | mem->dma[index].raw_dad[0]) & 0x7FFFFFF;
 
 	u32 temp_value = 0;
 	u32 original_dest_addr = mem->dma[index].destination_address;

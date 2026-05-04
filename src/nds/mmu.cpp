@@ -252,7 +252,12 @@ void NTR_MMU::reset()
 		dma[x].dest_addr_ctrl = 0;
 		dma[x].src_addr_ctrl = 0;
 		dma[x].delay = 0;
+		dma[x].word_mask = (x < 4) ? 0x1FFFFF : 0x3FFF;
+		dma[x].addr_mask = (x < 4) ? 0xFFFFFFFF : 0x7FFFFFFF;
 	}
+
+	//Special case word mask for NDS7 DMA3
+	dma[7].word_mask = 0xFFFF;
 
 	//Setup NDS Sound Capture info
 	for(int x = 0; x < 2; x++)
@@ -3030,7 +3035,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				u8 reg_id = dma_reg_lut[address - NDS_DMA0SAD];
 				reg_id += (access_mode) ? 0 : 4;
+
 				dma[reg_id].raw_sad[address & 0x3] = value;
+				dma[reg_id].start_address = ((dma[reg_id].raw_sad[3] << 24) | (dma[reg_id].raw_sad[2] << 16) | (dma[reg_id].raw_sad[1] << 8) | dma[reg_id].raw_sad[0]);
+				dma[reg_id].start_address &= dma[reg_id].addr_mask;
 			}
 
 			break;
@@ -3055,7 +3063,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			{
 				u8 reg_id = dma_reg_lut[address - NDS_DMA0SAD];
 				reg_id += (access_mode) ? 0 : 4;
+
 				dma[reg_id].raw_dad[address & 0x3] = value;
+				dma[reg_id].destination_address = ((dma[reg_id].raw_dad[3] << 24) | (dma[reg_id].raw_dad[2] << 16) | (dma[reg_id].raw_dad[1] << 8) | dma[reg_id].raw_dad[0]);
+				dma[reg_id].destination_address &= dma[reg_id].addr_mask;
 			}
 
 			break;
@@ -3081,11 +3092,10 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				u8 reg_id = dma_reg_lut[address - NDS_DMA0SAD];
 				reg_id += (access_mode) ? 0 : 4;
-				u32 reg_mask = (access_mode) ? 0x1FFFFF : 0x3FFF;
 
 				dma[reg_id].raw_cnt[address & 0x3] = value;
-				dma[reg_id].control = ((dma[reg_id].raw_cnt[3] << 24) | (dma[reg_id].raw_cnt[2] << 16) | (dma[reg_id].raw_cnt[1] << 8) | dma[reg_id].raw_cnt[reg_id]);
-				dma[reg_id].word_count = dma[reg_id].control & reg_mask;
+				dma[reg_id].control = ((dma[reg_id].raw_cnt[3] << 24) | (dma[reg_id].raw_cnt[2] << 16) | (dma[reg_id].raw_cnt[1] << 8) | dma[reg_id].raw_cnt[0]);
+				dma[reg_id].word_count = dma[reg_id].control & dma[reg_id].word_mask;
 				dma[reg_id].dest_addr_ctrl = (dma[reg_id].control >> 21) & 0x3;
 				dma[reg_id].src_addr_ctrl = (dma[reg_id].control >> 23) & 0x3;
 				dma[reg_id].word_type = (dma[reg_id].control & 0x4000000) ? 1 : 0;
