@@ -92,8 +92,8 @@ class NTR_MMU
 
 	u8 gx_fifo_mem[4];
 	
-	//NDS7 IPC FIFO
-	struct nds7_interprocess
+	//NDS IPC FIFO
+	struct nds_interprocess
 	{
 		//MMIO registers
 		u16 sync;
@@ -103,20 +103,10 @@ class NTR_MMU
 		std::queue <u32> fifo;
 		u32 fifo_latest;
 		u32 fifo_incoming;
-	} nds7_ipc;
+	};
 
-	//NDS9 IPC FIFO
-	struct nds9_interprocess
-	{
-		//MMIO registers
-		u16 sync;
-		u16 cnt;
-
-		//IPC FIFO data
-		std::queue <u32> fifo;
-		u32 fifo_latest;
-		u32 fifo_incoming;
-	} nds9_ipc;
+	nds_interprocess nds7_ipc;
+	nds_interprocess nds9_ipc;
 
 	//NDS7 SPI Bus
 	struct nds7_spi_bus
