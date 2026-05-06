@@ -3212,235 +3212,138 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_IPCSYNC: break;
 
 		case NDS_IPCSYNC+1:
-
-			//NDS9 -> NDS7
-			if(access_mode)
 			{
+				nds_interprocess* src_ipc = (access_mode) ? &nds9_ipc : &nds7_ipc;
+				nds_interprocess* dst_ipc = (access_mode) ? &nds7_ipc : &nds9_ipc;
+				u32* dst_if = (access_mode) ? &nds7_if : &nds9_if;
+
 				//Set new Bits 8-15
-				nds9_ipc.sync &= 0xFF;
-				nds9_ipc.sync |= ((value & 0x6F) << 8);
+				src_ipc->sync &= 0xFF;
+				src_ipc->sync |= ((value & 0x6F) << 8);
 				
-				//Copy Bits 8-11 from NDS9 to Bits 0-3 on the NDS7
-				nds7_ipc.sync &= 0xFFF0;
-				nds7_ipc.sync |= (value & 0xF);
+				//Copy Bits 8-11 from source CPU to Bits 0-3 on the destination CPU
+				dst_ipc->sync &= 0xFFF0;
+				dst_ipc->sync |= (value & 0xF);
 
-				//Trigger IPC IRQ on NDS7 if sending IRQ is enabled
-				if((nds9_ipc.sync & 0x2000) && (nds7_ipc.sync & 0x4000))
+				//Trigger IPC IRQ on the destination CPU if sending IRQ is enabled
+				if((src_ipc->sync & 0x2000) && (dst_ipc->sync & 0x4000))
 				{
-					nds7_if |= 0x10000;
-				}
-			}
-
-			//NDS7 -> NDS9
-			else
-			{
-				//Set new Bits 8-15
-				nds7_ipc.sync &= 0xFF;
-				nds7_ipc.sync |= ((value & 0x6F) << 8);
-				
-				//Copy Bits 8-11 from NDS7 to Bits 0-3 on the NDS9
-				nds9_ipc.sync &= 0xFFF0;
-				nds9_ipc.sync |= (value & 0xF);
-
-				//Trigger IPC IRQ on NDS9 if sending IRQ is enabled
-				if((nds7_ipc.sync & 0x2000) && (nds9_ipc.sync & 0x4000))
-				{
-					nds9_if |= 0x10000;
+					*dst_if |= 0x10000;
 				}
 			}
 
 			break;
 
 		case NDS_IPCFIFOCNT:
-			if(access_mode)
 			{
-				u16 irq_trigger = (nds9_ipc.cnt & 0x5);
+				nds_interprocess* src_ipc = (access_mode) ? &nds9_ipc : &nds7_ipc;
+				nds_interprocess* dst_ipc = (access_mode) ? &nds7_ipc : &nds9_ipc;
+				u32* src_if = (access_mode) ? &nds9_if : &nds7_if;
 
-				nds9_ipc.cnt &= 0xFFF3;
-				nds9_ipc.cnt |= (value & 0xC);
+				u16 irq_trigger = (src_ipc->cnt & 0x5);
 
-				//Raise Send FIFO Empty IRQ when Bit 2 goes from 0 to 1
-				if((irq_trigger != 0x5) && ((nds9_ipc.cnt & 0x5) == 0x5)) { nds9_if |= 0x20000; }
+				src_ipc->cnt &= 0xFFF3;
+				src_ipc->cnt |= (value & 0xC);
+
+				//Raise Send FIFO Empty IRQ on source CPU when Bit 2 goes from 0 to 1
+				if((irq_trigger != 0x5) && ((src_ipc->cnt & 0x5) == 0x5)) { *src_if |= 0x20000; }
 
 				//Clear Send FIFO
-				if(nds9_ipc.cnt & 0x8)
+				if(src_ipc->cnt & 0x8)
 				{
-					while(!nds9_ipc.fifo.empty()) { nds9_ipc.fifo.pop(); }
+					while(!src_ipc->fifo.empty()) { src_ipc->fifo.pop(); }
 					
-					//Set SNDFIFO EMPTY Status on NDS9
-					nds9_ipc.cnt |= 0x1;
+					//Set SNDFIFO EMPTY Status on source CPU
+					src_ipc->cnt |= 0x1;
 
-					//Set RECVFIFO EMPTY Status on NDS7
-					nds7_ipc.cnt |= 0x100;
+					//Set RECVFIFO EMPTY Status on destination CPU
+					dst_ipc->cnt |= 0x100;
 
 					//Raise Send FIFO EMPTY IRQ if necessary
-					if(nds9_ipc.cnt & 0x4) { nds9_if |= 0x20000; }
+					if(src_ipc->cnt & 0x4) { *src_if |= 0x20000; }
 
 					//Set latest readable RECV value to zero
-					nds9_ipc.fifo_latest = 0;
+					src_ipc->fifo_latest = 0;
 
 					//Bit 3 is write only, so effectively never set it
-					nds9_ipc.cnt &= ~0x8;
-				}
-			}
-
-			else
-			{
-				u16 irq_trigger = (nds7_ipc.cnt & 0x5);
-
-				nds7_ipc.cnt &= 0xFFF3;
-				nds7_ipc.cnt |= (value & 0xC);
-
-				//Raise Send FIFO Empty IRQ when Bit 2 goes from 0 to 1
-				if((irq_trigger != 0x5) && ((nds7_ipc.cnt & 0x5) == 0x5)) { nds7_if |= 0x20000; }
-
-				//Clear Send FIFO
-				if(nds7_ipc.cnt & 0x8)
-				{
-					while(!nds7_ipc.fifo.empty()) { nds7_ipc.fifo.pop(); }
-					
-					//Set SNDFIFO EMPTY Status on NDS7
-					nds7_ipc.cnt |= 0x1;
-
-					//Set RECVFIFO EMPTY Status on NDS9
-					nds9_ipc.cnt |= 0x100;
-
-					//Raise Send FIFO EMPTY IRQ if necessary
-					if(nds7_ipc.cnt & 0x4) { nds7_if |= 0x20000; }
-
-					//Set latest readable RECV value to zero
-					nds7_ipc.fifo_latest = 0;
-
-					//Bit 3 is write only, so effectively never set it
-					nds7_ipc.cnt &= ~0x8;
+					src_ipc->cnt &= ~0x8;
 				}
 			}
 
 			break;
 
 		case NDS_IPCFIFOCNT+1:
-			if(access_mode)
 			{
+				nds_interprocess* src_ipc = (access_mode) ? &nds9_ipc : &nds7_ipc;
+				nds_interprocess* dst_ipc = (access_mode) ? &nds7_ipc : &nds9_ipc;
+				u32* src_if = (access_mode) ? &nds9_if : &nds7_if;
+
 				//Acknowledge IPCFIFO error bit
 				if(value & 0x40) { value &= ~0x40; }
-				else if(nds9_ipc.cnt & 0x4000) { value |= 0x40; }
+				else if(src_ipc->cnt & 0x4000) { value |= 0x40; }
 
-				u16 irq_trigger = (nds9_ipc.cnt & 0x500);
+				u16 irq_trigger = (src_ipc->cnt & 0x500);
 
-				nds9_ipc.cnt &= 0x3FF;
-				nds9_ipc.cnt |= ((value & 0xC4) << 8);
-
-				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
-				if((irq_trigger != 0x400) && ((nds9_ipc.cnt & 0x500) == 0x400)) { nds9_if |= 0x40000; }
-			}
-
-			else
-			{
-				//Acknowledge IPCFIFO error bit
-				if(value & 0x40) { value &= ~0x40; }
-				else if(nds7_ipc.cnt & 0x4000) { value |= 0x40; }
-	
-				u16 irq_trigger = (nds7_ipc.cnt & 0x500);
-
-				nds7_ipc.cnt &= 0x3FF;
-				nds7_ipc.cnt |= ((value & 0xC4) << 8);
+				src_ipc->cnt &= 0x3FF;
+				src_ipc->cnt |= ((value & 0xC4) << 8);
 
 				//Raise Receive FIFO Not Empty IRQ when Bit 10 goes from 0 to 1
-				if((irq_trigger != 0x400) && ((nds7_ipc.cnt & 0x500) == 0x400)) { nds7_if |= 0x40000; }
+				if((irq_trigger != 0x400) && ((src_ipc->cnt & 0x500) == 0x400)) { *src_if |= 0x40000; }
 			}
 
 			break;
 
 		case NDS_IPCFIFOSND:
-			if((access_mode) && (nds9_ipc.cnt & 0x8000))
 			{
-				nds9_ipc.fifo_incoming &= ~0xFF;
-				nds9_ipc.fifo_incoming |= value;
+				nds_interprocess* src_ipc = (access_mode) ? &nds9_ipc : &nds7_ipc;
+				nds_interprocess* dst_ipc = (access_mode) ? &nds7_ipc : &nds9_ipc;
+				u32* dst_if = (access_mode) ? &nds7_if : &nds9_if;
 
-				//FIFO can only hold a maximum of 16 words
-				if(nds9_ipc.fifo.size() == 16)
+				if(src_ipc->cnt & 0x8000)
 				{
-					nds9_ipc.fifo.pop();
+					src_ipc->fifo_incoming &= ~0xFF;
+					src_ipc->fifo_incoming |= value;
 
-					//Set Bit 14 of IPCFIFOCNT to indicate error
-					nds9_ipc.cnt |= 0x4000;
-				}
+					//FIFO can only hold a maximum of 16 words
+					if(src_ipc->fifo.size() == 16)
+					{
+						src_ipc->fifo.pop();
 
-				else
-				{
-					//Unset Bit 14 of IPCFIFOCNT to indicate no errors
-					nds9_ipc.cnt &= ~0x4000;
-				}
+						//Set Bit 14 of IPCFIFOCNT to indicate error
+						src_ipc->cnt |= 0x4000;
+					}
 
-				//Unset SNDFIFO Empty Status on NDS9
-				nds9_ipc.cnt &= ~0x1;
+					else
+					{
+						//Unset Bit 14 of IPCFIFOCNT to indicate no errors
+						src_ipc->cnt &= ~0x4000;
+					}
 
-				//Unset RECVFIFO Empty Status on NDS7
-				nds7_ipc.cnt &= ~0x100;
+					//Unset SNDFIFO Empty Status on source CPU
+					src_ipc->cnt &= ~0x1;
 
-				//Set RECVFIFO Not Empty IRQ on NDS7
-				if((nds7_ipc.cnt & 0x400) && (nds9_ipc.fifo.empty())) { nds7_if |= 0x40000; }
+					//Unset RECVFIFO Empty Status on source CPU
+					dst_ipc->cnt &= ~0x100;
 
-				//Push new word to back of FIFO, also save that value in case FIFO is emptied
-				nds9_ipc.fifo.push(nds9_ipc.fifo_incoming);
-				nds9_ipc.fifo_latest = nds9_ipc.fifo_incoming;
-				nds9_ipc.fifo_incoming = 0;
+					//Set RECVFIFO Not Empty IRQ on destination
+					if((dst_ipc->cnt & 0x400) && (src_ipc->fifo.empty())) { *dst_if |= 0x40000; }
 
-				//Set Send FIFO Full Status
-				if(nds9_ipc.fifo.size() == 16)
-				{
-					//Set SNDFIFO FULL Status on NDS9
-					nds9_ipc.cnt |= 0x2;
+					//Push new word to back of FIFO, also save that value in case FIFO is emptied
+					src_ipc->fifo.push(src_ipc->fifo_incoming);
+					src_ipc->fifo_latest = src_ipc->fifo_incoming;
+					src_ipc->fifo_incoming = 0;
 
-					//Set RECVFIFO FULL Status on NDS7
-					nds7_ipc.cnt |= 0x200;
+					//Set Send FIFO Full Status
+					if(src_ipc->fifo.size() == 16)
+					{
+						//Set SNDFIFO FULL Status on source CPU
+						src_ipc->cnt |= 0x2;
+
+						//Set RECVFIFO FULL Status on destination CPU
+						dst_ipc->cnt |= 0x200;
+					}
 				}
 			}
-
-			else if((!access_mode) && (nds7_ipc.cnt & 0x8000))
-			{
-				nds7_ipc.fifo_incoming &= ~0xFF;
-				nds7_ipc.fifo_incoming |= value;
-
-				//FIFO can only hold a maximum of 16 words
-				if(nds7_ipc.fifo.size() == 16)
-				{
-					nds7_ipc.fifo.pop();
-
-					//Set Bit 14 of IPCFIFOCNT to indicate error
-					nds7_ipc.cnt |= 0x4000;
-				}
-
-				else
-				{
-					//Unset Bit 14 of IPCFIFOCNT to indicate no errors
-					nds7_ipc.cnt &= ~0x4000;
-				}
-
-				//Unset SNDFIFO Empty Status on NDS7
-				nds7_ipc.cnt &= ~0x1;
-
-				//Unset RECVFIFO Empty Status on NDS9
-				nds9_ipc.cnt &= ~0x100;
-
-				//Set RECVFIFO Not Empty IRQ on NDS9
-				if((nds9_ipc.cnt & 0x400) && (nds7_ipc.fifo.empty())) { nds9_if |= 0x40000; }
-
-				//Push new word to back of FIFO, also save that value in case FIFO is emptied
-				nds7_ipc.fifo.push(nds7_ipc.fifo_incoming);
-				nds7_ipc.fifo_latest = nds7_ipc.fifo_incoming;
-				nds7_ipc.fifo_incoming = 0;
-
-				//Set Send FIFO Full Status
-				if(nds7_ipc.fifo.size() == 16)
-				{
-					//Set SNDFIFO FULL Status on NDS7
-					nds7_ipc.cnt |= 0x2;
-
-					//Set RECVFIFO FULL Status on NDS9
-					nds9_ipc.cnt |= 0x200;
-				}
-			}	
 
 			break;
 
