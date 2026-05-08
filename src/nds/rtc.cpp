@@ -17,7 +17,7 @@
 void NTR_MMU::write_rtc()
 {
 	//Stop transfer when CS goes low
-	if(((nds7_rtc.data & 0x4) == 0x0) && (nds7_rtc.state != 0x100)) { nds7_rtc.state = 0x100; std::cout<<"STOP\n"; return; }
+	if(((nds7_rtc.data & 0x4) == 0x0) && (nds7_rtc.state != 0x100)) { nds7_rtc.state = 0x100; return; }
 
 	//Perform actions based on current internal state of serial communications with RTC
 	switch(nds7_rtc.state)
@@ -60,8 +60,6 @@ void NTR_MMU::write_rtc()
 						u8 param = ((nds7_rtc.serial_byte >> 4) & 0x7);
 						bool read_data = (nds7_rtc.serial_byte & 0x80) ? true : false;
 
-						std::cout<<"\nRTC CMD -> 0x" << u32(param) << "\n";
-
 						//Change state based on the received parameter
 						switch(param)
 						{
@@ -85,7 +83,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
-									nds7_rtc.state = 0x105;
+									nds7_rtc.state = 0x104;
 								}
 						
 								break;
@@ -110,7 +108,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
-									nds7_rtc.state = 0x105;
+									nds7_rtc.state = 0x104;
 								}
 
 								break;
@@ -249,7 +247,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_len = 3;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
-									nds7_rtc.state = 0x105;
+									nds7_rtc.state = 0x104;
 								}
 
 								break;
@@ -275,7 +273,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_len = 3;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
-									nds7_rtc.state = 0x105;
+									nds7_rtc.state = 0x104;
 								}
 
 								break;
@@ -298,7 +296,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
-									nds7_rtc.state = 0x105;
+									nds7_rtc.state = 0x104;
 								}
 
 								break;
@@ -321,7 +319,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_len = 1;
 									nds7_rtc.serial_counter = 0;
 									nds7_rtc.data_index = 0;
-									nds7_rtc.state = 0x105;
+									nds7_rtc.state = 0x104;
 								}
 
 								break;
@@ -332,23 +330,13 @@ void NTR_MMU::write_rtc()
 
 			break;
 
-		//Wait for SCK=lo to start read
+		//Wait for SCK=lo to start/finish read
 		case 0x103:
-			if((nds7_rtc.data & 0x2) == 0)
-			{
-				nds7_rtc.state = 0x104;
-				nds7_rtc.read_stat = 0;
-			}
-
-			break;
-
-		//Wait for SCK=lo to finish read
-		case 0x104:
-			if(nds7_rtc.data & 0x2) { nds7_rtc.read_stat |= 0x1; }
+			if((nds7_rtc.data & 0x2) == 0) { nds7_rtc.read_stat |= 0x1; }
 			break;
 	
 		//Write data from NDS (SCK=lo)
-		case 0x105:
+		case 0x104:
 			if((nds7_rtc.data & 0x2) == 0)
 			{
 				//Set serial data from Bit 1 of SIO
@@ -406,9 +394,9 @@ void NTR_MMU::write_rtc()
 u8 NTR_MMU::read_rtc()
 {
 	//Reply to NDS with data
-	if((nds7_rtc.read_stat & 0x1) && (nds7_rtc.state == 0x104))
+	if((nds7_rtc.read_stat & 0x1) && (nds7_rtc.state == 0x103))
 	{
-		nds7_rtc.read_stat &= 0x1;
+		nds7_rtc.read_stat &= ~0x1;
 
 		//Set or unset Bit 1 of SIO data depending on the serial data being sent back
 		if(nds7_rtc.serial_data[nds7_rtc.data_index] & 0x1) { memory_map[NDS_RTC] |= 0x1; }
@@ -431,6 +419,7 @@ u8 NTR_MMU::read_rtc()
 			}
 		}
 	}
+
 
 	return memory_map[NDS_RTC];
 }
