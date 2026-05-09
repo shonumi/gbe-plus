@@ -198,7 +198,7 @@ void NTR_MMU::write_rtc()
 									//Hours
 									nds7_rtc.serial_data[0] = current_time->tm_hour;
 									nds7_rtc.serial_data[0] += config::rtc_offset[2];
-									nds7_rtc.serial_data[0] = (nds7_rtc.regs[0] & 0x40) ? (nds7_rtc.serial_data[0] % 24) : (nds7_rtc.serial_data[0] % 12);
+									nds7_rtc.serial_data[0] = (nds7_rtc.regs[0] & 0x2) ? (nds7_rtc.serial_data[0] % 24) : (nds7_rtc.serial_data[0] % 12);
 									raw_hours = nds7_rtc.serial_data[0];
 									nds7_rtc.serial_data[0] = util::get_bcd(nds7_rtc.serial_data[0]);
 
