@@ -157,7 +157,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_data[4] = util::get_bcd(nds7_rtc.serial_data[4]);
 
 									//AM-PM flag
-									if(current_time->tm_hour >= 12) { nds7_rtc.serial_data[4] |= 0x40; }
+									if(((current_time->tm_hour + config::rtc_offset[2]) % 24) >= 12) { nds7_rtc.serial_data[0] |= 0x40; }
 									
 									//Minutes
 									nds7_rtc.serial_data[5] = current_time->tm_min;
@@ -203,7 +203,7 @@ void NTR_MMU::write_rtc()
 									nds7_rtc.serial_data[0] = util::get_bcd(nds7_rtc.serial_data[0]);
 
 									//AM-PM flag
-									if(current_time->tm_hour >= 12) { nds7_rtc.serial_data[0] |= 0x40; }
+									if(((current_time->tm_hour + config::rtc_offset[2]) % 24) >= 12) { nds7_rtc.serial_data[0] |= 0x40; }
 	
 									//Minutes
 									nds7_rtc.serial_data[1] = current_time->tm_min;
