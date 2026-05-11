@@ -26,7 +26,6 @@ void ARM7::dma0()
 		mem->dma[0].word_type = (mem->read_u16_fast(DMA0CNT_H) & 0x400) ? 1 : 0;
 
 		u32 temp_value = 0;
-		u32 original_dest_addr = mem->dma[0].destination_address;
 
 		if((mem->dma[0].control & 0x8000) == 0) { mem->dma[0].enable = false; return; }
 
@@ -91,11 +90,7 @@ void ARM7::dma0()
 				}
 
 				//Reload if control flags are set to 0x3
-				if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address = original_dest_addr; }
-
-				//Write back internal registers to real registers
-				mem->write_u32_fast(DMA0SAD, mem->dma[0].start_address);
-				mem->write_u32_fast(DMA0DAD, mem->dma[0].destination_address);
+				if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address = mem->dma[0].original_destination_address; };
 
 				mem->dma[0].control &= ~0x8000;
 				mem->write_u16_fast(DMA0CNT_H, mem->dma[0].control);
@@ -172,11 +167,7 @@ void ARM7::dma0()
 					}
 
 					//Reload if control flags are set to 0x3
-					if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address = original_dest_addr; }
-
-					//Write back internal registers to real registers
-					mem->write_u32_fast(DMA0SAD, mem->dma[0].start_address);
-					mem->write_u32_fast(DMA0DAD, mem->dma[0].destination_address);
+					if(mem->dma[0].dest_addr_ctrl == 3) { mem->dma[0].destination_address = mem->dma[0].original_destination_address; };
 
 					//Reset enable bit if HBlank DMA is non-repeating
 					if((mem->dma[0].control & 0x200) == 0)

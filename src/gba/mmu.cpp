@@ -151,6 +151,7 @@ void AGB_MMU::reset()
 		dma[x].started = false;
 		dma[x].start_address = 0;
 		dma[x].original_start_address = 0;
+		dma[x].original_destination_address = 0;
 		dma[x].destination_address = 0;
 		dma[x].current_dma_position = 0;
 		dma[x].word_count = 0;
@@ -1675,24 +1676,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			memory_map[address] &= ~value;
 			break;
 
-		//DMA0 Start Address
-		case DMA0SAD:
-		case DMA0SAD+1:
-		case DMA0SAD+2:
-		case DMA0SAD+3:
-			memory_map[address] = value;
-			dma[0].start_address = ((memory_map[DMA0SAD+3] << 24) | (memory_map[DMA0SAD+2] << 16) | (memory_map[DMA0SAD+1] << 8) | memory_map[DMA0SAD]) & 0x7FFFFFF;
-			break;
-
-		//DMA0 Destination Address
-		case DMA0DAD:
-		case DMA0DAD+1:
-		case DMA0DAD+2:
-		case DMA0DAD+3:
-			memory_map[address] = value;
-			dma[0].destination_address = ((memory_map[DMA0DAD+3] << 24) | (memory_map[DMA0DAD+2] << 16) | (memory_map[DMA0DAD+1] << 8) | memory_map[DMA0DAD]) & 0x7FFFFFF;
-			break;
-
 		//DMA0 Control
 		case DMA0CNT_H:
 		case DMA0CNT_H+1:
@@ -1704,6 +1687,17 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			dma[0].enable = true;
 			dma[0].started = false;
 			dma[0].delay = 2;
+
+			//Set internal start and destination addresses when DMA enabled
+			if((address == DMA0CNT_H+1) && (value & 0x80))
+			{
+				dma[0].start_address = read_u32_fast(DMA0SAD) & 0x7FFFFFF;
+				dma[0].destination_address = read_u32_fast(DMA0DAD) & 0x7FFFFFF;
+
+				dma[0].original_start_address = dma[0].start_address;
+				dma[0].original_destination_address = dma[0].destination_address;
+			}
+
 			break;
 
 		//DMA1 Start Address
