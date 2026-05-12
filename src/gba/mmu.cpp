@@ -1700,25 +1700,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			break;
 
-		//DMA1 Start Address
-		case DMA1SAD:
-		case DMA1SAD+1:
-		case DMA1SAD+2:
-		case DMA1SAD+3:
-			memory_map[address] = value;
-			dma[1].start_address = ((memory_map[DMA1SAD+3] << 24) | (memory_map[DMA1SAD+2] << 16) | (memory_map[DMA1SAD+1] << 8) | memory_map[DMA1SAD]) & 0xFFFFFFF;
-			dma[1].original_start_address = dma[1].start_address;
-			break;
-
-		//DMA1 Destination Address
-		case DMA1DAD:
-		case DMA1DAD+1:
-		case DMA1DAD+2:
-		case DMA1DAD+3:
-			memory_map[address] = value;
-			dma[1].destination_address = ((memory_map[DMA1DAD+3] << 24) | (memory_map[DMA1DAD+2] << 16) | (memory_map[DMA1DAD+1] << 8) | memory_map[DMA1DAD]) & 0x7FFFFFF;
-			break;
-
 		//DMA1 Control
 		case DMA1CNT_H:
 		case DMA1CNT_H+1:
@@ -1726,31 +1707,21 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			dma[1].control = ((memory_map[DMA1CNT_H+1] << 8) | memory_map[DMA1CNT_H]);
 			dma[1].dest_addr_ctrl = (dma[1].control >> 5) & 0x3;
 			dma[1].src_addr_ctrl = (dma[1].control >> 7) & 0x3;
-
-			if((dma[1].control & 0x200) == 0) { dma[1].start_address = dma[1].original_start_address; }
-
+			
 			dma[1].enable = true;
 			dma[1].started = false;
 			dma[1].delay = 2;
-			break;
 
-		//DMA2 Start Address
-		case DMA2SAD:
-		case DMA2SAD+1:
-		case DMA2SAD+2:
-		case DMA2SAD+3:
-			memory_map[address] = value;
-			dma[2].start_address = ((memory_map[DMA2SAD+3] << 24) | (memory_map[DMA2SAD+2] << 16) | (memory_map[DMA2SAD+1] << 8) | memory_map[DMA2SAD]) & 0xFFFFFFF;
-			dma[2].original_start_address = dma[2].start_address;
-			break;
+			//Set internal start and destination addresses when DMA enabled
+			if((address == DMA1CNT_H+1) && (value & 0x80))
+			{
+				dma[1].start_address = read_u32_fast(DMA1SAD) & 0xFFFFFFF;
+				dma[1].destination_address = read_u32_fast(DMA1DAD) & 0x7FFFFFF;
 
-		//DMA2 Destination Address
-		case DMA2DAD:
-		case DMA2DAD+1:
-		case DMA2DAD+2:
-		case DMA2DAD+3:
-			memory_map[address] = value;
-			dma[2].destination_address = ((memory_map[DMA2DAD+3] << 24) | (memory_map[DMA2DAD+2] << 16) | (memory_map[DMA2DAD+1] << 8) | memory_map[DMA2DAD]) & 0x7FFFFFF;
+				dma[1].original_start_address = dma[1].start_address;
+				dma[1].original_destination_address = dma[1].destination_address;
+			}
+
 			break;
 
 		//DMA2 Control
@@ -1760,30 +1731,21 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			dma[2].control = ((memory_map[DMA2CNT_H+1] << 8) | memory_map[DMA2CNT_H]);
 			dma[2].dest_addr_ctrl = (dma[2].control >> 5) & 0x3;
 			dma[2].src_addr_ctrl = (dma[2].control >> 7) & 0x3;
-
-			if((dma[2].control & 0x200) == 0) { dma[2].start_address = dma[2].original_start_address; }
-
+			
 			dma[2].enable = true;
 			dma[2].started = false;
 			dma[2].delay = 2;
-			break;
 
-		//DMA3 Start Address
-		case DMA3SAD:
-		case DMA3SAD+1:
-		case DMA3SAD+2:
-		case DMA3SAD+3:
-			memory_map[address] = value;
-			dma[3].start_address = ((memory_map[DMA3SAD+3] << 24) | (memory_map[DMA3SAD+2] << 16) | (memory_map[DMA3SAD+1] << 8) | memory_map[DMA3SAD]) & 0xFFFFFFF;
-			break;
+			//Set internal start and destination addresses when DMA enabled
+			if((address == DMA2CNT_H+1) && (value & 0x80))
+			{
+				dma[2].start_address = read_u32_fast(DMA2SAD) & 0xFFFFFFF;
+				dma[2].destination_address = read_u32_fast(DMA2DAD) & 0x7FFFFFF;
 
-		//DMA3 Destination Address
-		case DMA3DAD:
-		case DMA3DAD+1:
-		case DMA3DAD+2:
-		case DMA3DAD+3:
-			memory_map[address] = value;
-			dma[3].destination_address = ((memory_map[DMA3DAD+3] << 24) | (memory_map[DMA3DAD+2] << 16) | (memory_map[DMA3DAD+1] << 8) | memory_map[DMA3DAD]) & 0xFFFFFFF;
+				dma[2].original_start_address = dma[2].start_address;
+				dma[2].original_destination_address = dma[2].destination_address;
+			}
+
 			break;
 
 		//DMA3 Control
@@ -1793,10 +1755,21 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			dma[3].control = ((memory_map[DMA3CNT_H+1] << 8) | memory_map[DMA3CNT_H]);
 			dma[3].dest_addr_ctrl = (dma[3].control >> 5) & 0x3;
 			dma[3].src_addr_ctrl = (dma[3].control >> 7) & 0x3;
-
+			
 			dma[3].enable = true;
 			dma[3].started = false;
 			dma[3].delay = 2;
+
+			//Set internal start and destination addresses when DMA enabled
+			if((address == DMA3CNT_H+1) && (value & 0x80))
+			{
+				dma[3].start_address = read_u32_fast(DMA3SAD) & 0xFFFFFFF;
+				dma[3].destination_address = read_u32_fast(DMA3DAD) & 0xFFFFFFF;
+
+				dma[3].original_start_address = dma[3].start_address;
+				dma[3].original_destination_address = dma[3].destination_address;
+			}
+
 			break;
 
 		case KEYINPUT:
