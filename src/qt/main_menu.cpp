@@ -1135,6 +1135,10 @@ void main_menu::boot_game()
 	update_save_state_list(state_save_list);
 	update_save_state_list(state_load_list);
 
+	//Update .ini and cheats file now, in case unexpected exits or crashes occur later
+	save_ini_file();
+	save_cheats_file();
+
 	//Actually run the core
 	main_menu::gbe_plus->run_core();
 }
