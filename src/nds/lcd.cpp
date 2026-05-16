@@ -1530,8 +1530,8 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 						//2D addressing
 						else
 						{
-							obj_addr = base + ((obj[obj_id].tile_number + meta_x + (meta_y << 5)) << 5);
-							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift; 
+							obj_addr += ((meta_x + (meta_y * (16 << pixel_shift))) * bit_depth);
+							obj_addr += (((obj_y % 8) * 8) + (obj_x % 8)) >> pixel_shift;
 						}
 
 						raw_color = mem->memory_map[obj_addr];
