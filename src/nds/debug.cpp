@@ -2320,35 +2320,36 @@ void NTR_core::debug_process_command()
 		//Print help information
 		else if(command == "h")
 		{
-			std::cout<<"n \t\t Run next Fetch-Decode-Execute stage\n";
-			std::cout<<"c \t\t Continue until next breakpoint\n";
-			std::cout<<"sc \t\t Switch CPU (NDS9 or NDS7)\n";
-			std::cout<<"bp \t\t Set breakpoint, format 0x1234ABCD\n";
-			std::cout<<"bc \t\t Set breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n";
+			std::cout<<"\nGBE+ Command Line Debugging Options (NDS Core):\n\n";
+			std::cout<<"n\n\tRun next Fetch-Decode-Execute stage\n\n";
+			std::cout<<"c\n\tContinue until next breakpoint\n\n";
+			std::cout<<"sc\n\tSwitch CPU (NDS9 or NDS7)\n\n";
+			std::cout<<"bp\n\tSet breakpoint, format 0x1234ABCD\n\n";
+			std::cout<<"bc\n\tSet breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n\n";
 
 			//Advanced debugging
 			#ifdef GBE_DEBUG
-			std::cout<<"bw \t\t Set breakpoint on memory write, format 0x1234ABCD for addr\n";
-			std::cout<<"br \t\t Set breakpoint on memory read, format 0x1234ABCD for addr\n";
+			std::cout<<"bw\n\tSet breakpoint on memory write, format 0x1234ABCD for addr\n\n";
+			std::cout<<"br\n\tSet breakpoint on memory read, format 0x1234ABCD for addr\n\n";
 			#endif
 
-			std::cout<<"del \t\t Deletes ALL current breakpoints\n";
-			std::cout<<"u8 \t\t Show BYTE @ memory, format 0x1234ABCD\n";
-			std::cout<<"u8s \t\t Show 16 BYTES @ memory, format 0x1234\n";
-			std::cout<<"u16 \t\t Show HALFWORD @ memory, format 0x1234ABCD\n";
-			std::cout<<"u32 \t\t Show WORD @ memory, format 0x1234ABCD\n";
-			std::cout<<"dq \t\t Quit the debugger\n";
-			std::cout<<"dc \t\t Toggle CPU cycle display\n";
-			std::cout<<"da \t\t Disassembles some ARM instructions, format 0x1234ABCD for addr\n";
-			std::cout<<"dt \t\t Disassembles some THUMB instructions, format 0x1234ABCD for addr\n";
-			std::cout<<"cr \t\t Reset CPU cycle counter\n";
-			std::cout<<"rs \t\t Reset emulation\n";
-			std::cout<<"vb \t\t Run emulation until next VBlank\n";
-			std::cout<<"pa \t\t Toggles printing all instructions to screen\n";
-			std::cout<<"pc \t\t Toggles printing all Program Counter values to screen\n";
-			std::cout<<"ls \t\t Loads a given save state (0-9)\n";
-			std::cout<<"ss \t\t Saves a given save state (0-9)\n"; 
-			std::cout<<"q \t\t Quit GBE+\n\n";
+			std::cout<<"del\n\tDeletes ALL current breakpoints\n\n";
+			std::cout<<"u8\n\tShow BYTE @ memory, format 0x1234ABCD\n\n";
+			std::cout<<"u8s\n\tShow 16 BYTES @ memory, format 0x1234\n\n";
+			std::cout<<"u16\n\tShow HALFWORD @ memory, format 0x1234ABCD\n\n";
+			std::cout<<"u32\n\tShow WORD @ memory, format 0x1234ABCD\n\n";
+			std::cout<<"dq\n\tQuit the debugger\n\n";
+			std::cout<<"dc\n\tToggle CPU cycle display\n\n";
+			std::cout<<"da\n\tDisassembles some ARM instructions, format 0x1234ABCD for addr\n\n";
+			std::cout<<"dt\n\tDisassembles some THUMB instructions, format 0x1234ABCD for addr\n\n";
+			std::cout<<"cr\n\tReset CPU cycle counter\n\n";
+			std::cout<<"rs\n\tReset emulation\n\n";
+			std::cout<<"vb\n\tRun emulation until next VBlank\n\n";
+			std::cout<<"pa\n\tToggles printing all instructions to screen\n\n";
+			std::cout<<"pc\n\tToggles printing all Program Counter values to screen\n\n";
+			std::cout<<"ls\n\tLoads a given save state (0-9)\n\n";
+			std::cout<<"ss\n\tSaves a given save state (0-9)\n\n"; 
+			std::cout<<"q\n\tQuit GBE+\n\n";
 
 			valid_command = true;
 			db_unit.last_command = "h";
