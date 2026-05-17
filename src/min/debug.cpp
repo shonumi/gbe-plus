@@ -1578,32 +1578,35 @@ void MIN_core::debug_process_command()
 		else if(command == "h")
 		{
 			std::cout<<"\nGBE+ Command Line Debugging Options (MIN Core):\n\n";
-			std::cout<<"n\n\t Run next Fetch-Decode-Execute stage\n\n";
-			std::cout<<"c\n\t Continue until next breakpoint\n\n";
-			std::cout<<"bp\n\t Set breakpoint, format 0x1234\n\n";
-			std::cout<<"bc\n\t Set breakpoint on memory change, format 0x1234 for addr, 0x12 for value\n\n";
+			std::cout<<"n\n\tRun next Fetch-Decode-Execute stage\n\n";
+			std::cout<<"c\n\tContinue until next breakpoint\n\n";
+			std::cout<<"bp\n\tSet breakpoint\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"bc\n\tSet breakpoint on memory change\n\tFormat 0x1234 for addr, 0x12 for value\n\n";
 
 			//Advanced debugging
 			#ifdef GBE_DEBUG
-			std::cout<<"bw\n\t Set breakpoint on memory write, format 0x1234 for addr\n\n";
-			std::cout<<"br\n\t Set breakpoint on memory read, format 0x1234 for addr\n\n";
+			std::cout<<"bw\n\tSet breakpoint on memory write\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"br\n\tSet breakpoint on memory read\n\tFormat 0x1234 for addr\n\n";
 			#endif
 
-			std::cout<<"del\n\t Deletes ALL current breakpoints\n\n";
-			std::cout<<"u8\n\t Show BYTE @ memory, format 0x1234\n\n";
-			std::cout<<"u8s\n\t Show 16 BYTES @ memory, format 0x1234\n\n";
-			std::cout<<"u16\n\t Show WORD @ memory, format 0x1234\n\n";
-			std::cout<<"w8\n\t Write BYTE @ memory, format 0x1234 for addr, 0x12 for value\n\n";
-			std::cout<<"w16\n\t Write WORD @ memory, format 0x1234 for addr, 0x1234 for value\n\n";
-			std::cout<<"dq\n\t Quit the debugger\n\n";
-			std::cout<<"ri\n\t Runs CPU for specified number of instructions, format 0x1234ABCD\n\n";
-			std::cout<<"rs\n\t Reset emulation\n\n";
-			std::cout<<"vb\n\t Run emulation until next VBlank\n\n";
-			std::cout<<"pa\n\t Toggles printing all instructions to screen\n\n";
-			std::cout<<"pc\n\t Toggles printing all Program Counter values to screen\n\n";
-			std::cout<<"ls\n\t Loads a given save state (0-9)\n\n";
-			std::cout<<"ss\n\t Saves a given save state (0-9)\n\n";  
-			std::cout<<"q\n\t Quit GBE+\n\n";
+			std::cout<<"del\n\tDeletes ALL current breakpoints\n\n";
+			std::cout<<"u8\n\tShow BYTE @ memory\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"u8s\n\tShow 16 BYTES @ memory\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"u16\n\tShow WORD @ memory\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"w8\n\tWrite BYTE @ memory\n\tFormat 0x1234 for addr, 0x12 for value\n\n";
+			std::cout<<"w16\n\tWrite WORD @ memory\n\tFormat 0x1234 for addr, 0x1234 for value\n\n";
+			std::cout<<"sbs\n\tShow 64 BYTES @ memory\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"sbm\n\tShow 128 BYTES @ memory\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"sbl\n\tShow 256 BYTES @ memory\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"dq\n\tQuit the debugger\n\n";
+			std::cout<<"ri\n\tRuns CPU for specified number of instructions\n\tFormat 0x1234ABCD\n\n";
+			std::cout<<"rs\n\tReset emulation\n\n";
+			std::cout<<"vb\n\tRun emulation until next VBlank\n\n";
+			std::cout<<"pa\n\tToggles printing all instructions to screen\n\n";
+			std::cout<<"pc\n\tToggles printing all Program Counter values to screen\n\n";
+			std::cout<<"ls\n\tLoads a given save state (0-9)\n\n";
+			std::cout<<"ss\n\tSaves a given save state (0-9)\n\n";  
+			std::cout<<"q\n\tQuit GBE+\n\n";
 
 			valid_command = true;
 			db_unit.last_command = "h";

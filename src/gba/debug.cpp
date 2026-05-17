@@ -1289,30 +1289,33 @@ void AGB_core::debug_process_command()
 			std::cout<<"\nGBE+ Command Line Debugging Options (GBA Core):\n\n";
 			std::cout<<"n\n\tRun next Fetch-Decode-Execute stage\n\n";
 			std::cout<<"c\n\tContinue until next breakpoint\n\n";
-			std::cout<<"bp\n\tSet breakpoint, format 0x1234ABCD\n\n";
-			std::cout<<"bc\n\tSet breakpoint on memory change, format 0x1234ABCD for addr, 0x12 for value\n\n";
+			std::cout<<"bp\n\tSet breakpoint\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"bc\n\tSet breakpoint on memory change\n\tFormat 0x1234ABCD for addr, 0x12 for value\n\n";
 
 			//Advanced debugging
 			#ifdef GBE_DEBUG
-			std::cout<<"bw\n\tSet breakpoint on memory write, format 0x1234ABCD for addr\n\n";
-			std::cout<<"br\n\tSet breakpoint on memory read, format 0x1234ABCD for addr\n\n";
+			std::cout<<"bw\n\tSet breakpoint on memory write\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"br\n\tSet breakpoint on memory read\n\tFormat 0x1234ABCD for addr\n\n";
 			#endif
 
 			std::cout<<"del\n\tDeletes ALL current breakpoints\n\n";
-			std::cout<<"u8\n\tShow BYTE @ memory, format 0x1234ABCD\n\n";
-			std::cout<<"u8s\n\tShow 16 BYTES @ memory, format 0x1234\n\n";
-			std::cout<<"u16\n\tShow HALFWORD @ memory, format 0x1234ABCD\n\n";
-			std::cout<<"u32\n\tShow WORD @ memory, format 0x1234ABCD\n\n";
-			std::cout<<"w8\n\tWrite BYTE @ memory, format 0x1234ABCD for addr, 0x12 for value\n\n";
-			std::cout<<"w16\n\tWrite HALFWORD @ memory, format 0x1234ABCD for addr, 0x1234 for value\n\n";
-			std::cout<<"w32\n\tWrite WORD @ memory, format 0x1234ABCD for addr, 0x1234ABCD for value\n\n";
+			std::cout<<"u8\n\tShow BYTE @ memory\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"u8s\n\tShow 16 BYTES @ memory\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"u16\n\tShow HALFWORD @ memory\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"u32\n\tShow WORD @ memory\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"w8\n\tWrite BYTE @ memory\n\tFormat 0x1234ABCD for addr, 0x12 for value\n\n";
+			std::cout<<"w16\n\tWrite HALFWORD @ memory\n\tFormat 0x1234ABCD for addr, 0x1234 for value\n\n";
+			std::cout<<"w32\n\tWrite WORD @ memory\n\tFormat 0x1234ABCD for addr, 0x1234ABCD for value\n\n";
+			std::cout<<"sbs\n\tShow 64 BYTES @ memory\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"sbm\n\tShow 128 BYTES @ memory\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"sbl\n\tShow 256 BYTES @ memory\n\tFormat 0x1234ABCD for addr\n\n";
 			std::cout<<"reg\n\tChange register value (0-36) \n\n";
 			std::cout<<"dq\n\tQuit the debugger\n\n";
 			std::cout<<"dc\n\tToggle CPU cycle display\n\n";
-			std::cout<<"dt\n\tDisassembles some THUMB instructions, format 0x1234ABCD for addr\n\n";
-			std::cout<<"da\n\tDisassembles some ARM instructions, format 0x1234ABCD for addr\n\n";
+			std::cout<<"dt\n\tDisassembles some THUMB instructions\n\tFormat 0x1234ABCD for addr\n\n";
+			std::cout<<"da\n\tDisassembles some ARM instructions\n\tFormat 0x1234ABCD for addr\n\n";
 			std::cout<<"cr\n\tReset CPU cycle counter\n\n";
-			std::cout<<"ri\n\tRuns emulation for a # of instructions, format 0x1234ABCD\n\n";
+			std::cout<<"ri\n\tRuns emulation for a # of instructions\n\tFormat 0x1234ABCD\n\n";
 			std::cout<<"rs\n\tReset emulation\n\n";
 			std::cout<<"vb\n\tRun emulation until next VBlank\n\n";
 			std::cout<<"pa\n\tToggles printing all instructions to screen\n\n";
