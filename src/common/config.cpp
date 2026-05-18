@@ -1245,6 +1245,7 @@ bool parse_ini_file()
 	config::temp_karaoke_file = config::data_path + "gbe_plus_karaoke";
 
 	int touch_zone_counter = 0;
+	u8 temp_cart_type = 0xFF;
 
 	//Cycle through whole file, line-by-line
 	while(getline(file, input_line))
@@ -1324,6 +1325,9 @@ bool parse_ini_file()
 		//Set emulated system type
 		if(!parse_ini_number(ini_item, "#system_type", config::gb_type, ini_opts, x, 0, 7)) { return false; }
 		if(ini_item == "#system_type") { validate_system_type(); }
+
+		//Set emulated cartridge type
+		if(!parse_ini_number(ini_item, "#cart_type", temp_cart_type, ini_opts, x, 0, 20)) { return false; }
 
 		//Use cheats
 		if(!parse_ini_bool(ini_item, "#use_cheats", config::use_cheats, ini_opts, x)) { return false; }
@@ -1970,6 +1974,13 @@ bool parse_ini_file()
 				else { x--; }
 			}
 		}
+	}
+
+	//Set cartridge type *IF* .ini file specifies it
+	//This should only be set when loading per-game .ini files! Default .ini file does not have this field!
+	if(temp_cart_type <= 20)
+	{
+		config::cart_type = static_cast<special_cart_types>(temp_cart_type);
 	}
 
 	//Grab firmware hashes - Must be done AFTER a valid data folder is obtained
