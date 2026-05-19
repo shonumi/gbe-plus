@@ -475,11 +475,23 @@ void ARM7::swi_div()
 	//Grab the denominator - R1
 	s32 den = get_reg(1);
 
-	s32 result = 0;
+	s64 result = 0;
 	s32 modulo = 0;
 
 	//Do NOT divide by 0
-	if(den == 0) { std::cout<<"SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+	if(den == 0)
+	{
+		std::cout<<"SWI::Warning - Div tried to divide by zero (ignoring operation) \n";
+		return;
+	}
+
+	//Special case of -MAX / -1. Same results as NDS math coprocessor
+	//Result simply equals -MAX, so here denominator is just set to 1
+	if((num == 0x80000000) && (den == 0xFFFFFFFF))
+	{
+		std::cout<<"SWI::Warning - Div used -MAX/-1 \n";
+		den = 1;
+	}
 
 	//R0 = result of division
 	result = num/den;
