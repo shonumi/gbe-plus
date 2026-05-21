@@ -519,7 +519,19 @@ void ARM7::swi_divarm()
 	s32 modulo = 0;
 
 	//Do NOT divide by 0
-	if(den == 0) { std::cout<<"SWI::Warning - DivARM tried to divide by zero (ignoring operation) \n"; return; }
+	if(den == 0)
+	{
+		std::cout<<"SWI::Warning - DivARM tried to divide by zero (ignoring operation) \n";
+		return;
+	}
+
+	//Special case of -MAX / -1. Same results as NDS math coprocessor
+	//Result simply equals -MAX, so here denominator is just set to 1
+	if((num == 0x80000000) && (den == 0xFFFFFFFF))
+	{
+		std::cout<<"SWI::Warning - DivARM used -MAX/-1 \n";
+		den = 1;
+	}
 
 	//R0 = result of division
 	result = num/den;
