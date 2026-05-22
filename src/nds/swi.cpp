@@ -248,7 +248,19 @@ void NTR_ARM9::swi_div()
 	s32 modulo = 0;
 
 	//Do NOT divide by 0
-	if(den == 0) { std::cout<<"ARM9::SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+	if(den == 0)
+	{
+		std::cout<<"ARM9::SWI::Warning - Div tried to divide by zero (ignoring operation) \n";
+		return;
+	}
+
+	//Special case of -MAX / -1. Same results as NDS math coprocessor
+	//Result simply equals -MAX, so here denominator is just set to 1
+	if((num == 0x80000000) && (den == 0xFFFFFFFF))
+	{
+		std::cout<<"SWI::Warning - Div used -MAX/-1 \n";
+		den = 1;
+	}
 
 	//R0 = result of division
 	result = num/den;
@@ -959,7 +971,19 @@ void NTR_ARM7::swi_div()
 	s32 modulo = 0;
 
 	//Do NOT divide by 0
-	if(den == 0) { std::cout<<"ARM7::SWI::Warning - Div tried to divide by zero (ignoring operation) \n"; return; }
+	if(den == 0)
+	{
+		std::cout<<"ARM7::SWI::Warning - Div tried to divide by zero (ignoring operation) \n";
+		return;
+	}
+
+	//Special case of -MAX / -1. Same results as NDS math coprocessor
+	//Result simply equals -MAX, so here denominator is just set to 1
+	if((num == 0x80000000) && (den == 0xFFFFFFFF))
+	{
+		std::cout<<"SWI::Warning - DivARM used -MAX/-1 \n";
+		den = 1;
+	}
 
 	//R0 = result of division
 	result = num/den;
