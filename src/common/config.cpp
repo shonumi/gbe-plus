@@ -1389,37 +1389,33 @@ bool parse_ini_file()
 		//Fragment shader
 		if(ini_item == "#fragment_shader")
 		{
-			if((x + 1) < size) 
+			parse_ini_str(ini_item, "#fragment_shader", config::fragment_shader, ini_opts, x);
+
+			if(!config::fragment_shader.empty())
 			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::fragment_shader = config::data_path + "shaders/" + ini_item; }
-				else { config::fragment_shader = config::data_path + "shaders/fragment.fs"; x--;}
- 
+				config::fragment_shader = config::data_path + "shaders/" + config::fragment_shader;
 			}
 
-			else { config::fragment_shader = config::data_path + "shaders/fragment.fs"; }
+			else
+			{
+				config::fragment_shader = config::data_path + "shaders/fragment.fs";
+			}
 		}
 
 		//Vertex shader
 		if(ini_item == "#vertex_shader")
 		{
-			if((x + 1) < size) 
+			parse_ini_str(ini_item, "#vertex_shader", config::vertex_shader, ini_opts, x);
+
+			if(!config::vertex_shader.empty())
 			{
-				ini_item = ini_opts[++x];
-				std::string first_char = "";
-				first_char = ini_item[0];
-				
-				//When left blank, don't parse the next line item
-				if(first_char != "#") { config::vertex_shader = config::data_path + "shaders/" + ini_item; }
-				else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; x--;}
- 
+				config::vertex_shader = config::data_path + "shaders/" + config::vertex_shader;
 			}
 
-			else { config::vertex_shader = config::data_path + "shaders/vertex.vs"; }
+			else
+			{
+				config::vertex_shader = config::data_path + "shaders/vertex.vs";
+			}
 		}
 
 		//Max FPS
