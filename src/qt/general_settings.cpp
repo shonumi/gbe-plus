@@ -2086,7 +2086,7 @@ void gen_settings::set_ini_options()
 	else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { ogl_frag_shader->setCurrentIndex(19); }
 
 	//OpenGL Vertex Shader
-	if(config::vertex_shader == (config::data_path + "shaders/vertex.fs")) { ogl_vert_shader->setCurrentIndex(0); }
+	if(config::vertex_shader == (config::data_path + "shaders/vertex.vs")) { ogl_vert_shader->setCurrentIndex(0); }
 	else if(config::vertex_shader == (config::data_path + "shaders/invert_x.vs")) { ogl_vert_shader->setCurrentIndex(1); }
 
 	//OpenGL option
