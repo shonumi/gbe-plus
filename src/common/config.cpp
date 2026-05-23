@@ -2491,28 +2491,30 @@ bool save_ini_file()
 		{
 			line_pos = output_count[x];
 
-			if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { config::fragment_shader = "fragment.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/2xBR.fs")) { config::fragment_shader = "2xBR.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/4xBR.fs")) { config::fragment_shader = "4xBR.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/8_bit.fs")) { config::fragment_shader = "8_bit.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { config::fragment_shader = "bad_bloom.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/badder_bloom.fs")) { config::fragment_shader = "badder_bloom.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { config::fragment_shader = "chrono.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/dmg_mode.fs")) { config::fragment_shader = "dmg_mode.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/gba_gamma.fs")) { config::fragment_shader = "gba_gamma.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/gbc_gamma.fs")) { config::fragment_shader = "gbc_gamma.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { config::fragment_shader = "grayscale.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/lcd_mode.fs")) { config::fragment_shader = "lcd_mode.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { config::fragment_shader = "pastel.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/pixelate.fs")) { config::fragment_shader = "pixelate.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { config::fragment_shader = "scale2x.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { config::fragment_shader = "scale3x.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { config::fragment_shader = "sepia.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { config::fragment_shader = "spotlight.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { config::fragment_shader = "tv_mode.fs"; }
-			else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { config::fragment_shader = "washout.fs"; }
+			std::string shader = "";
 
-			output_lines[line_pos] = "[#fragment_shader:'" + config::fragment_shader + "']";
+			if(config::fragment_shader == (config::data_path + "shaders/fragment.fs")) { shader = "fragment.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/2xBR.fs")) { shader = "2xBR.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/4xBR.fs")) { shader = "4xBR.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/8_bit.fs")) { shader = "8_bit.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/bad_bloom.fs")) { shader = "bad_bloom.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/badder_bloom.fs")) { shader = "badder_bloom.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/chrono.fs")) { shader = "chrono.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/dmg_mode.fs")) { shader = "dmg_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/gba_gamma.fs")) { shader = "gba_gamma.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/gbc_gamma.fs")) { shader = "gbc_gamma.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/grayscale.fs")) { shader = "grayscale.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/lcd_mode.fs")) { shader = "lcd_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/pastel.fs")) { shader = "pastel.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/pixelate.fs")) { shader = "pixelate.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/scale2x.fs")) { shader = "scale2x.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/scale3x.fs")) { shader = "scale3x.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/sepia.fs")) { shader = "sepia.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/spotlight.fs")) { shader = "spotlight.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/tv_mode.fs")) { shader = "tv_mode.fs"; }
+			else if(config::fragment_shader == (config::data_path + "shaders/washout.fs")) { shader = "washout.fs"; }
+
+			output_lines[line_pos] = "[#fragment_shader:'" + shader + "']";
 		}
 
 		//OpenGL Vertex Shader
@@ -2520,10 +2522,12 @@ bool save_ini_file()
 		{
 			line_pos = output_count[x];
 
-			if(config::vertex_shader == (config::data_path + "shaders/vertex.vs")) { config::vertex_shader = "vertex.vs"; }
-			else if(config::vertex_shader == (config::data_path + "shaders/invert_x.vs")) { config::vertex_shader = "invert_x.vs"; }
+			std::string shader = "";
 
-			output_lines[line_pos] = "[#vertex_shader:'" + config::vertex_shader + "']";
+			if(config::vertex_shader == (config::data_path + "shaders/vertex.vs")) { shader = "vertex.vs"; }
+			else if(config::vertex_shader == (config::data_path + "shaders/invert_x.vs")) { shader = "invert_x.vs"; }
+
+			output_lines[line_pos] = "[#vertex_shader:'" + shader + "']";
 		}
 
 		//Max FPS
