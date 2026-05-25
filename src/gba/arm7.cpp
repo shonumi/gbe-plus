@@ -1623,6 +1623,42 @@ void ARM7::clock_emulated_sio_device()
 {
 	switch(config::sio_device)
 	{
+		case SIO_NONE:
+			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT) || (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
+			{
+				//Reset Bit 7 in SIO_CNT and set null data for transfer response
+				mem->memory_map[SIO_CNT] &= ~0x80;
+				mem->write_u16_fast(SIO_CNT, controllers.serial_io.sio_stat.cnt);
+
+				if(controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT)
+				{
+					mem->memory_map[SIO_DATA_8] = 0xFF;
+				}
+
+				else
+				{
+					mem->write_u32_fast(SIO_DATA_32_L, 0xFFFFFFFF);
+				}
+
+				//Raise SIO IRQ after transfer
+				if(controllers.serial_io.sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+			}
+
+			else if(controllers.serial_io.sio_stat.sio_mode == MULTIPLAY_16BIT)
+			{
+				//Reset Bit 7 in SIO_CNT and set null data for transfer response
+				mem->memory_map[SIO_CNT] &= ~0x80;
+				mem->write_u16_fast(SIO_CNT, controllers.serial_io.sio_stat.cnt);
+
+				//Raise SIO IRQ after transfer
+				if(controllers.serial_io.sio_stat.cnt & 0x4000) { mem->memory_map[REG_IF] |= 0x80; }
+			}
+
+			controllers.serial_io.sio_stat.emu_device_ready = false;
+			controllers.serial_io.sio_stat.active_transfer = false;
+
+			break;
+
 		case SIO_MOBILE_ADAPTER:
 			if((controllers.serial_io.sio_stat.sio_mode == NORMAL_8BIT) || (controllers.serial_io.sio_stat.sio_mode == NORMAL_32BIT))
 			{

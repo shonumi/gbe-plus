@@ -3399,7 +3399,8 @@ void AGB_MMU::process_sio()
 			write_u32_fast(0x4000124, 0xFFFFFFFF);
 
 			//Initiate transfer to emulated Battle Chip Gate or VRS
-			if((sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_VRS))
+			if((sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_VRS)
+			|| (sio_stat->sio_type == NO_GBA_DEVICE))
 			{
 				sio_stat->emu_device_ready = true;
 			}
@@ -3424,7 +3425,9 @@ void AGB_MMU::process_sio()
 			//Initiate transfer to Mobile Adapter GB
 			//Initiate transfer to emulated Battle Chip Gate
 			//Initiate transfer to emulated GBA Wireless Adapter
-			if((sio_stat->sio_type == GBA_MOBILE_ADAPTER) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE) || (sio_stat->sio_type == GBA_WIRELESS_ADAPTER))
+			//Null transfer for disconnected Link Cable
+			if((sio_stat->sio_type == GBA_MOBILE_ADAPTER) || (sio_stat->sio_type == GBA_BATTLE_CHIP_GATE)
+			|| (sio_stat->sio_type == GBA_WIRELESS_ADAPTER) || (sio_stat->sio_type == NO_GBA_DEVICE))
 			{
 				sio_stat->transfer_data = read_u32_fast(SIO_DATA_32_L);
 				sio_stat->emu_device_ready = true;
@@ -3481,7 +3484,8 @@ void AGB_MMU::process_sio()
 		if((!sio_stat->active_transfer) && (sio_stat->internal_clock) && (sio_stat->cnt & 0x80))
 		{
 			//Turn Power Antenna on or off
-			if((sio_stat->sio_type == GBA_POWER_ANTENNA) && ((sio_stat->cnt & 0x80) || (!sio_stat->internal_clock)))
+			//Null transfer for disconnected Link Cable
+			if((sio_stat->sio_type == GBA_POWER_ANTENNA) || (sio_stat->sio_type == NO_GBA_DEVICE))
 			{
 				sio_stat->emu_device_ready = true;
 				sio_stat->active_transfer = true;
