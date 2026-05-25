@@ -553,16 +553,17 @@ std::string to_hex_str(u32 input, u8 bit_level)
 	std::string result = "";
 	u32 num = (input & 0xFF);
 
-	//Limit to 32-bit max
+	//Limit to 32-bit max, 8-bit as min
 	if(bit_level > 4) { bit_level = 4; }
+	if(bit_level < 1) { bit_level = 1; }
 
-	for(u32 x = 0; x < bit_level; x++)
+	u8 str_len = bit_level * 2;
+	temp << std::hex << std::uppercase << num;
+	result += temp.str();
+
+	while(result.length() < str_len)
 	{
-		temp << std::hex << std::uppercase << num;
-		result += temp.str();
-		if(num < 0x10) { result = "0" + result; }
-		num = ((input >> ((x+1) * 8)) & 0xFF);
-		temp.str(std::string());
+		result = "0" + result;
 	}
 
 	result = "0x" + result;
