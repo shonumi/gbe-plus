@@ -960,7 +960,7 @@ void MIN_core::debug_process_command()
 
 				for(u32 y = 0; y < len; y++)
 				{
-					std::cout<< util::to_hex_str(mem_location + (y * 16))  << " ";
+					std::cout<< util::to_hex_str(mem_location + (y * 16), 2)  << " ";
 
 					for(u32 x = 0; x < 16; x++)
 					{
