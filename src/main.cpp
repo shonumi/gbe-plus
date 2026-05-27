@@ -45,8 +45,8 @@ int main(int argc, char* args[])
 		parse_filenames();
 	}
 
-	//Parse .ini options
-	parse_ini_file();
+	//Load .ini options
+	load_ini_file("gbe.ini");
 
 	//Load OSD font
 	load_osd_font();

@@ -1132,117 +1132,16 @@ void parse_filenames()
 	validate_system_type();
 }
 
-/****** Parse options from the .ini file ******/
-bool parse_ini_file()
+/****** Parse the contents of a file for .ini options ******/
+bool parse_ini_file(std::string filename)
 {
-	//Test for Windows or Portable version first
-	//Always give preference to portable .ini settings on every OS
-	std::ifstream file("gbe.ini", std::ios::in);
-	config::data_path = "./data/";
-
+	std::ifstream file(filename.c_str(), std::ios::in);
 	std::string input_line = "";
 	std::string line_char = "";
 
-	//Clear recent files
+	//Clear recent files and set up new ini options
 	config::recent_files.clear();
-
-	//Clear existing .ini parameters
 	std::vector <std::string> ini_opts;
-	ini_opts.clear();
-
-	bool result = true;
-
-	if(!file.is_open())
-	{
-		const char* unix_chr = getenv("HOME");
-		const char* win_chr = getenv("LOCALAPPDATA");
-
-		std::string unix_str = "";
-		std::string win_str = "";
-		std::string last_chr = "";
-
-		//On Linux/Unix, check for given install folder first
-		if(!gbe_info::get_install_folder().empty())
-		{
-			unix_str = gbe_info::get_install_folder();
-		}
-
-		//Otherwise use home directory as the default
-		else if(unix_chr != nullptr)
-		{
-			unix_str = unix_chr;
-		}
-
-		//Windows will *always* use AppData folder
-		if(win_chr != nullptr) { win_str = win_chr; }
-		
-		if((win_str.empty()) && (unix_str.empty()))
-		{
-			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-			result = false;
-		}
-
-		bool config_result = false;
-
-		//Test for Linux or Unix install location next
-		if(!unix_str.empty())
-		{
-			//Generate paths using HOME environment variable
-			if(gbe_info::get_install_folder().empty())
-			{
-				last_chr = unix_str[unix_str.length() - 1];
-				config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
-				config::data_path = config::cfg_path + "data/";
-				unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
-			}
-
-			//Generate paths using gbe_info
-			else
-			{
-				last_chr = unix_str[unix_str.length() - 1];
-				config::cfg_path = (last_chr == "/") ? unix_str : unix_str + "/";
-				config::data_path = config::cfg_path + "data/";
-				unix_str = config::cfg_path + "gbe.ini";
-			}
-
-			file.open(unix_str.c_str(), std::ios::in);
-
-			if(!file.is_open())
-			{
-				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-				result = false;
-			}
-		}
-
-		//Test for Windows install location next
-		else if(!win_str.empty())
-		{
-			//Generate paths to home directory if using AppData environment variable
-			last_chr = win_str[win_str.length() - 1];
-			config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
-			config::data_path = config::cfg_path + "data/";
-			win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
-
-			file.open(win_str.c_str(), std::ios::in);
-
-			if(!file.is_open())
-			{
-				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
-				result = false;
-			}
-		}
-	}
-
-	//Generate substitute ini file if necessary
-	if(!result)
-	{
-		result = generate_ini_file();
-		if(!result) { return false; }
-	}
-
-	//After the location of the data directory is known, set path of temporary media file and karaoke file
-	config::temp_media_file = config::data_path + "gbe_plus_temp_media";
-	config::temp_karaoke_file = config::data_path + "gbe_plus_karaoke";
 
 	int touch_zone_counter = 0;
 	u8 temp_cart_type = 0xFF;
@@ -1978,6 +1877,114 @@ bool parse_ini_file()
 	{
 		config::cart_type = static_cast<special_cart_types>(temp_cart_type);
 	}
+
+	return true;
+}
+
+/****** Loads .ini options from a specific file ******/
+bool load_ini_file(std::string filename)
+{
+	//Test for Windows or Portable version first
+	//Always give preference to portable .ini settings on every OS
+	std::ifstream file(filename.c_str(), std::ios::in);
+	config::data_path = "./data/";
+
+	bool result = true;
+
+	if(!file.is_open())
+	{
+		const char* unix_chr = getenv("HOME");
+		const char* win_chr = getenv("LOCALAPPDATA");
+
+		std::string unix_str = "";
+		std::string win_str = "";
+		std::string last_chr = "";
+
+		//On Linux/Unix, check for given install folder first
+		if(!gbe_info::get_install_folder().empty())
+		{
+			unix_str = gbe_info::get_install_folder();
+		}
+
+		//Otherwise use home directory as the default
+		else if(unix_chr != nullptr)
+		{
+			unix_str = unix_chr;
+		}
+
+		//Windows will *always* use AppData folder
+		if(win_chr != nullptr) { win_str = win_chr; }
+		
+		if((win_str.empty()) && (unix_str.empty()))
+		{
+			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+			result = false;
+		}
+
+		bool config_result = false;
+
+		//Test for Linux or Unix install location next
+		if(!unix_str.empty())
+		{
+			//Generate paths using HOME environment variable
+			if(gbe_info::get_install_folder().empty())
+			{
+				last_chr = unix_str[unix_str.length() - 1];
+				config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
+				config::data_path = config::cfg_path + "data/";
+				unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+			}
+
+			//Generate paths using gbe_info
+			else
+			{
+				last_chr = unix_str[unix_str.length() - 1];
+				config::cfg_path = (last_chr == "/") ? unix_str : unix_str + "/";
+				config::data_path = config::cfg_path + "data/";
+				unix_str = config::cfg_path + "gbe.ini";
+			}
+
+			file.open(unix_str.c_str(), std::ios::in);
+
+			if(!file.is_open())
+			{
+				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				result = false;
+			}
+		}
+
+		//Test for Windows install location next
+		else if(!win_str.empty())
+		{
+			//Generate paths to home directory if using AppData environment variable
+			last_chr = win_str[win_str.length() - 1];
+			config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
+			config::data_path = config::cfg_path + "data/";
+			win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
+
+			file.open(win_str.c_str(), std::ios::in);
+
+			if(!file.is_open())
+			{
+				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				result = false;
+			}
+		}
+	}
+
+	//Generate substitute ini file if necessary
+	if(!result)
+	{
+		result = generate_ini_file();
+		if(!result) { return false; }
+	}
+
+	//After the location of the data directory is known, set path of temporary media file and karaoke file
+	config::temp_media_file = config::data_path + "gbe_plus_temp_media";
+	config::temp_karaoke_file = config::data_path + "gbe_plus_karaoke";
+
+	//Parse actual .ini options from a given file once valid data folder is obtained
+	if(!parse_ini_file(filename)) { return false; }
 
 	//Grab firmware hashes - Must be done AFTER a valid data folder is obtained
 	get_firmware_hashes();

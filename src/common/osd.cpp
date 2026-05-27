@@ -18,7 +18,7 @@
 /****** Loads a font into a buffer to be drawn by a core for OSD ******/
 bool load_osd_font()
 {
-	//Should be called after parse_ini_file() to get correct data path
+	//Should be called after load_ini_file() to get correct data path
 	std::string font_file = config::data_path + "fonts/block_font.bin";
 
 	std::ifstream file(font_file.c_str(), std::ios::binary);
@@ -325,7 +325,7 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 /****** Loads an 8x8 BMP used as the NDS virtual cursor ******/
 bool load_virtual_cursor()
 {
-	//Should be called after parse_ini_file() to get correct data path
+	//Should be called after load_ini_file() to get correct data path
 	SDL_Surface* source = SDL_LoadBMP(config::vc_file.c_str());
 
 	if(source == nullptr)

@@ -184,8 +184,8 @@ main_menu::main_menu(QWidget *parent) : QWidget(parent)
 	hw_screen->hide();
 	hw_screen->setEnabled(false);
 
-	//Parse .ini options
-	parse_ini_file();
+	//Load .ini options
+	load_ini_file("gbe.ini");
 
 	//Load OSD font
 	load_osd_font();
