@@ -1932,7 +1932,19 @@ bool load_ini_file(std::string filename)
 				last_chr = unix_str[unix_str.length() - 1];
 				config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
 				config::data_path = config::cfg_path + "data/";
-				unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+
+				//Standard .ini
+				if(filename == "gbe.ini")
+				{
+					unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+				}
+
+				//Custom .ini file (per-game settings)
+				else
+				{
+					unix_str += (last_chr == "/") ? ".gbe_plus/data/ini/" : "/.gbe_plus/data/ini/";
+					unix_str += filename;
+				}
 			}
 
 			//Generate paths using gbe_info
@@ -1941,7 +1953,18 @@ bool load_ini_file(std::string filename)
 				last_chr = unix_str[unix_str.length() - 1];
 				config::cfg_path = (last_chr == "/") ? unix_str : unix_str + "/";
 				config::data_path = config::cfg_path + "data/";
-				unix_str = config::cfg_path + "gbe.ini";
+
+				//Standard .ini
+				if(filename == "gbe.ini")
+				{
+					unix_str = config::cfg_path + "gbe.ini";
+				}
+
+				//Custom .ini file (per-game settings)
+				else
+				{
+					unix_str = config::data_path + "ini/" + filename;
+				}
 			}
 
 			file.open(unix_str.c_str(), std::ios::in);
@@ -1960,7 +1983,19 @@ bool load_ini_file(std::string filename)
 			last_chr = win_str[win_str.length() - 1];
 			config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
 			config::data_path = config::cfg_path + "data/";
-			win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
+
+			//Standard .ini
+			if(filename == "gbe.ini")
+			{
+				win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
+			}
+
+			//Custom .ini file (per-game settings)
+			else
+			{
+				win_str += (last_chr == "\\") ? "gbe_plus/data/ini/" : "/gbe_plus/data/ini/";
+				win_str += filename;
+			}			
 
 			file.open(win_str.c_str(), std::ios::in);
 
