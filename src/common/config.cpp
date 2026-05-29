@@ -42,6 +42,7 @@ namespace config
 	std::string external_image_file = "";
 	std::string external_data_file = "";
 	std::string raw_barcode = "";
+	std::string game_ini_file = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
 	std::vector <std::string> bin_files;
@@ -674,6 +675,9 @@ void validate_system_type()
 		config::gb_type = SYS_GBC;
 		config::gba_enhance = true;
 	}
+
+	//Set per-game .ini filename once system type has been validated
+	config::game_ini_file = get_game_ini_filename();
 }
 
 /****** Returns the emulated system type from a given filename ******/
@@ -3439,6 +3443,110 @@ void get_firmware_hashes()
 			config::bin_hashes.push_back(crc);
 		}
 	}
+}
+
+/****** Returns a string representing per-game .ini filename in data/ini/ folder ******/
+std::string get_game_ini_filename()
+{
+	std::string result = "";
+	std::ifstream file(config::rom_file.c_str(), std::ios::binary);
+	std::vector<u8> temp_buffer;
+
+	if(!file.is_open()) { return result; }
+
+	u32 file_size = util::get_file_size(config::rom_file);
+	if(!file_size) { return result; }
+
+	temp_buffer.resize(file_size, 0x00);
+	file.read(reinterpret_cast<char*> (&temp_buffer[0]), file_size);
+	
+	//Generate .ini file as system code + "_" + Game Title (from ROM header)
+	switch(config::gb_type)
+	{
+		//All 8-bit Gameboy models are "DMG", regardless if system type is GBC or SGB
+		//For AUTO system type, assume an 8-bit Game Boy
+		//All other systems are tested for explicitly by the validate_system_type()
+		case SYS_AUTO:
+		case SYS_DMG:
+		case SYS_GBC:
+		case SYS_SGB:
+		case SYS_SGB2:
+			result = "DMG_";
+
+			if(file_size >= 0x143)
+			{
+				for(u32 x = 0; x < 16; x++)
+				{
+					u8 chr = temp_buffer[0x134 + x];
+					result += chr;
+				}
+			}
+
+			break;
+		
+		case SYS_GBA:
+			result = "AGB_";
+
+			if(file_size >= 0xAC)
+			{
+				for(u32 x = 0; x < 12; x++)
+				{
+					u8 chr = temp_buffer[0xA0 + x];
+					result += chr;
+				}
+			}
+
+			break;
+
+		case SYS_NDS:
+			result = "NTR_";
+
+			if(file_size >= 0x0C)
+			{
+				for(u32 x = 0; x < 12; x++)
+				{
+					u8 chr = temp_buffer[x];
+					result += chr;
+				}
+			}
+
+			break;
+
+		case SYS_MIN:
+			result = "MIN_";
+
+			if(file_size >= 0x21BC)
+			{
+				for(u32 x = 0; x < 12; x++)
+				{
+					u8 chr = temp_buffer[0x21B0 + x];
+					result += chr;
+				}
+			}
+
+			break;
+	}
+
+	//Replace any spaces or dashes with underscores (ASCII)
+	//Convert to uppercase as well
+	for(u32 x = 0; x < result.length(); x++)
+	{
+		u8 chr = result[x];
+
+		if((chr == 0x20) || (chr == 0x2D))
+		{
+			result[x] = 0x5F;
+		}
+
+		else if((chr >= 0x61) && (chr <= 0x7A))
+		{
+			result[x] -= 0x1A;
+		}
+	}
+
+	result = result + ".ini";
+
+	return result;
 }
 
 /****** Parses .ini string for boolean values ******/

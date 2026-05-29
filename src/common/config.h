@@ -32,6 +32,7 @@ bool save_ini_file();
 bool generate_ini_file();
 bool save_cheats_file();
 void get_firmware_hashes();
+std::string get_game_ini_filename();
 
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos);
 void parse_ini_str(std::string ini_item, std::string search_item, std::string &ini_str, std::vector <std::string> &ini_opts, u32 &ini_pos);
@@ -199,6 +200,7 @@ namespace config
 	extern std::string external_image_file;
 	extern std::string external_data_file;
 	extern std::string raw_barcode;
+	extern std::string game_ini_file;
 	extern std::vector <std::string> recent_files;
 	extern std::vector <std::string> cli_args;
 	extern std::vector <std::string> bin_files;
