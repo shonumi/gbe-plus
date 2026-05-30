@@ -157,6 +157,44 @@ void AGB_LCD::reset()
 		lcd_stat.mode_0_height[x] = 256;
 	}
 
+	for(int x = 0; x < 128; x++)
+	{
+		obj[x].x = 0;
+		obj[x].y = 0;
+		obj[x].right = 0;
+		obj[x].left = 0;
+		obj[x].top = 0;
+		obj[x].bottom = 0;
+		obj[x].h_flip = false;
+		obj[x].v_flip = false;
+		obj[x].x_wrap = false;
+		obj[x].y_wrap = false;
+		obj[x].x_wrap_val = 0;
+		obj[x].y_wrap_val = 0;
+		obj[x].shape = 0;
+		obj[x].size = 0;
+		obj[x].width = 0;
+		obj[x].height = 0;
+		obj[x].affine_width = 0;
+		obj[x].affine_height = 0;
+		obj[x].cx = 0;
+		obj[x].cy = 0;
+		obj[x].cw = 0;
+		obj[x].ch = 0;
+		obj[x].addr = 0;
+		obj[x].tile_number = 0;
+		obj[x].bg_priority = 0;
+		obj[x].bit_depth = 0;
+		obj[x].palette_number = 0;
+		obj[x].type = 0;
+		obj[x].mode = 0;
+		obj[x].affine_enable = 0;
+		obj[x].affine_group = 0;
+		obj[x].visible = false;
+		obj[x].mosiac = false;
+		obj_render_list[x] = 0;
+	}
+
 	//Initialize system screen dimensions
 	config::sys_width = 240;
 	config::sys_height = 160;
