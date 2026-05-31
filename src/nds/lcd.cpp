@@ -151,12 +151,57 @@ void NTR_LCD::reset()
 	lcd_stat.current_sfx_type_a = NDS_NORMAL;
 	lcd_stat.current_sfx_type_b = NDS_NORMAL;
 
-	//OAM initialization
+	//OAM and OBJ initialization
 	lcd_stat.oam_update = true;
+	obj_render_length_a = 0;
+	obj_render_length_b = 0;
 
 	for(u32 x = 0; x < 0x100; x++)
 	{
 		lcd_stat.oam_update_list[x] = true;
+	}
+
+	for(int x = 0; x < 0x100; x++)
+	{
+		obj[x].x = 0;
+		obj[x].y = 0;
+		obj[x].right = 0;
+		obj[x].left = 0;
+		obj[x].top = 0;
+		obj[x].bottom = 0;
+		obj[x].h_flip = false;
+		obj[x].v_flip = false;
+		obj[x].x_wrap = false;
+		obj[x].y_wrap = false;
+		obj[x].x_wrap_val = 0;
+		obj[x].y_wrap_val = 0;
+		obj[x].shape = 0;
+		obj[x].size = 0;
+		obj[x].width = 0;
+		obj[x].height = 0;
+		obj[x].affine_width = 0;
+		obj[x].affine_height = 0;
+		obj[x].cx = 0;
+		obj[x].cy = 0;
+		obj[x].cw = 0;
+		obj[x].ch = 0;
+		obj[x].addr = 0;
+		obj[x].tile_number = 0;
+		obj[x].bg_priority = 0;
+		obj[x].bit_depth = 0;
+		obj[x].palette_number = 0;
+		obj[x].type = 0;
+		obj[x].mode = 0;
+		obj[x].affine_enable = 0;
+		obj[x].affine_group = 0;
+		obj[x].visible = false;
+		obj[x].mosiac = false;
+	}
+
+	for(int x = 0; x < 0x80; x++)
+	{
+		obj_render_list_a[x] = 0;
+		obj_render_list_b[x] = 0;
 	}
 
 	lcd_stat.update_bg_control_a = false;
