@@ -3487,11 +3487,19 @@ std::string get_game_ini_filename()
 		case SYS_GBA:
 			result = "AGB_";
 
-			if(file_size >= 0xAC)
+			if(file_size >= 0xB0)
 			{
 				for(u32 x = 0; x < 12; x++)
 				{
 					u8 chr = temp_buffer[0xA0 + x];
+					result += chr;
+				}
+
+				result += "_";
+
+				for(u32 x = 0; x < 4; x++)
+				{
+					u8 chr = temp_buffer[0xAC + x];
 					result += chr;
 				}
 			}
@@ -3501,11 +3509,19 @@ std::string get_game_ini_filename()
 		case SYS_NDS:
 			result = "NTR_";
 
-			if(file_size >= 0x0C)
+			if(file_size >= 0x10)
 			{
 				for(u32 x = 0; x < 12; x++)
 				{
 					u8 chr = temp_buffer[x];
+					result += chr;
+				}
+
+				result += "_";
+
+				for(u32 x = 0; x < 4; x++)
+				{
+					u8 chr = temp_buffer[0x0C + x];
 					result += chr;
 				}
 			}
@@ -3522,10 +3538,20 @@ std::string get_game_ini_filename()
 					u8 chr = temp_buffer[0x21B0 + x];
 					result += chr;
 				}
+
+				result += "_";
+
+				for(u32 x = 0; x < 4; x++)
+				{
+					u8 chr = temp_buffer[0x21AC + x];
+					result += chr;
+				}
 			}
 
 			break;
 	}
+
+	result = util::make_ascii_printable(result);
 
 	//Replace any spaces or dashes with underscores (ASCII)
 	//Convert to uppercase as well
