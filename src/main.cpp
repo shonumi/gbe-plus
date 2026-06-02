@@ -47,6 +47,7 @@ int main(int argc, char* args[])
 
 	//Load .ini options
 	load_ini_file("gbe.ini");
+	load_ini_file(config::game_ini_file);
 
 	//Load OSD font
 	load_osd_font();

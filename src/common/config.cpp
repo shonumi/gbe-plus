@@ -1410,7 +1410,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#rtc_offset) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#rtc_offset) \n";
 				return false;
 			}
 		}
@@ -1438,7 +1438,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_custom_bg_pal) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#dmg_custom_bg_pal) \n";
 				return false;
 			}
 		}
@@ -1463,7 +1463,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#dmg_custom_bg_pal) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#dmg_custom_bg_pal) \n";
 				return false;
 			}
 		}
@@ -1478,7 +1478,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#min_custom_color) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#min_custom_color) \n";
 				return false;
 			}
 		}
@@ -1504,7 +1504,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbe_key_controls) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#gbe_key_controls) \n";
 				return false;
 			}
 		}
@@ -1531,7 +1531,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbe_joy_controls) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#gbe_joy_controls) \n";
 				return false;
 			}
 		}
@@ -1551,7 +1551,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#con_key_controls) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#con_key_controls) \n";
 				return false;
 			}
 		}
@@ -1571,7 +1571,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#con_joy_controls) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#con_joy_controls) \n";
 				return false;
 			}
 		}
@@ -1591,7 +1591,7 @@ bool parse_ini_file(std::string filename)
 
 			else
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#gbe_turbo_button) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#gbe_turbo_button) \n";
 				return false;
 			}
 		}
@@ -1650,7 +1650,7 @@ bool parse_ini_file(std::string filename)
 
 			else 
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#hotkeys) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#hotkeys) \n";
 				return false;
 			}
 		}
@@ -1688,7 +1688,7 @@ bool parse_ini_file(std::string filename)
 
 				else 
 				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#nds_touch_zone) \n";
+					std::cout<<"GBE::Error - Could not parse .ini (#nds_touch_zone) \n";
 					return false;
 				}
 			}
@@ -1766,7 +1766,7 @@ bool parse_ini_file(std::string filename)
 				//Value must be in hex format with "0x"
 				if(format != "0x")
 				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+					std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
 					return false;
 				}
 
@@ -1775,7 +1775,7 @@ bool parse_ini_file(std::string filename)
 				//Value must not be more than 4 characters long for 16-bit
 				if(id.size() > 4)
 				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+					std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
 					return false;
 				}
 
@@ -1784,7 +1784,7 @@ bool parse_ini_file(std::string filename)
 				//Parse the string into hex
 				if(!util::from_hex_str(id, final_id))
 				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+					std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
 					return false;
 				}
 
@@ -1793,7 +1793,7 @@ bool parse_ini_file(std::string filename)
 
 			else
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#mpos_id) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
 				return false;
 			}
 		}
@@ -1813,7 +1813,7 @@ bool parse_ini_file(std::string filename)
 				//Parse the string into hex
 				if(!util::from_hex_str(ini_item, steps))
 				{
-					std::cout<<"GBE::Error - Could not parse gbe.ini (#utp_steps) \n";
+					std::cout<<"GBE::Error - Could not parse .ini (#utp_steps) \n";
 					return false;
 				}
 
@@ -1822,7 +1822,7 @@ bool parse_ini_file(std::string filename)
 
 			else
 			{
-				std::cout<<"GBE::Error - Could not parse gbe.ini (#utp_steps) \n";
+				std::cout<<"GBE::Error - Could not parse .ini (#utp_steps) \n";
 				return false;
 			}
 		}
@@ -1888,10 +1888,20 @@ bool parse_ini_file(std::string filename)
 /****** Loads .ini options from a specific file ******/
 bool load_ini_file(std::string filename)
 {
+	config::data_path = "./data/";
+	std::string test_name = filename;
+
+	//Check if loading standard .ini or custom per-game one
+	//For per-games, check for portable data folder before looking at install dir
+	if(filename != "gbe.ini")
+	{
+		test_name = config::data_path + "ini/" + filename;
+		if(std::filesystem::exists(test_name)) { filename = test_name; }
+	}
+
 	//Test for Windows or Portable version first
 	//Always give preference to portable .ini settings on every OS
-	std::ifstream file(filename.c_str(), std::ios::in);
-	config::data_path = "./data/";
+	std::ifstream file(test_name.c_str(), std::ios::in);
 
 	bool result = true;
 
@@ -1921,7 +1931,11 @@ bool load_ini_file(std::string filename)
 		
 		if((win_str.empty()) && (unix_str.empty()))
 		{
-			std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+			if(filename == "gbe.ini")
+			{
+				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+			}
+
 			result = false;
 		}
 
@@ -1975,9 +1989,15 @@ bool load_ini_file(std::string filename)
 
 			if(!file.is_open())
 			{
-				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				if(filename == "gbe.ini")
+				{
+					std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				}
+
 				result = false;
 			}
+
+			filename = unix_str;
 		}
 
 		//Test for Windows install location next
@@ -2005,14 +2025,20 @@ bool load_ini_file(std::string filename)
 
 			if(!file.is_open())
 			{
-				std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				if(filename == "gbe.ini")
+				{
+					std::cout<<"GBE::Error - Could not open gbe.ini configuration file. Check file path or permissions. \n";
+				}
+
 				result = false;
 			}
+
+			filename = win_str;
 		}
 	}
 
 	//Generate substitute ini file if necessary
-	if(!result)
+	if((!result) && (filename == "gbe.ini"))
 	{
 		result = generate_ini_file();
 		if(!result) { return false; }
@@ -3592,7 +3618,7 @@ bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_boo
 
 		else 
 		{ 
-			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			std::cout<<"GBE::Error - Could not parse .ini (" << search_item << ") \n";
 			return false;
 		}
 	}
@@ -3637,7 +3663,7 @@ bool parse_ini_number(std::string ini_item, std::string search_item, u32 &ini_nu
  
 		else 
 		{ 
-			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			std::cout<<"GBE::Error - Could not parse .ini (" << search_item << ") \n";
 			return false;
 		}
 	}
@@ -3661,7 +3687,7 @@ bool parse_ini_number(std::string ini_item, std::string search_item, u16 &ini_nu
  
 		else 
 		{ 
-			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			std::cout<<"GBE::Error - Could not parse .ini (" << search_item << ") \n";
 			return false;
 		}
 	}
@@ -3685,7 +3711,7 @@ bool parse_ini_number(std::string ini_item, std::string search_item, u8 &ini_num
  
 		else 
 		{ 
-			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			std::cout<<"GBE::Error - Could not parse .ini (" << search_item << ") \n";
 			return false;
 		}
 	}
@@ -3709,7 +3735,7 @@ bool parse_ini_number(std::string ini_item, std::string search_item, double &ini
  
 		else 
 		{ 
-			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			std::cout<<"GBE::Error - Could not parse .ini (" << search_item << ") \n";
 			return false;
 		}
 	}
@@ -3730,7 +3756,7 @@ bool parse_ini_number(std::string ini_item, std::string search_item, float &ini_
 
 		else 
 		{ 
-			std::cout<<"GBE::Error - Could not parse gbe.ini (" << search_item << ") \n";
+			std::cout<<"GBE::Error - Could not parse .ini (" << search_item << ") \n";
 			return false;
 		}
 	}
