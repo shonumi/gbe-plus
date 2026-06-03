@@ -805,6 +805,15 @@ void main_menu::boot_game()
 	std::string test_bios_path = "";
 	u8 system_type = get_system_type_from_file(config::rom_file);
 
+	//Load custom per-game settings now if applicable
+	load_ini_file(config::game_ini_file);
+
+	//Check if per-game ini has custom cart type
+	if(old_cart_type != config::cart_type)
+	{
+		settings->special_cart->setCurrentIndex(config::cart_type);	
+	}
+
 	switch(system_type)
 	{
 		case SYS_DMG: test_bios_path = config::dmg_bios_path; break;

@@ -757,6 +757,12 @@ u8 get_system_type_from_file(std::string filename)
 		}
 	}
 
+	//Set per-game .ini filename once system type has been validated
+	u8 old_type = config::gb_type;
+	config::gb_type = gb_type;
+	config::game_ini_file = get_game_ini_filename();
+	config::gb_type = old_type;
+
 	return gb_type;
 }
 
