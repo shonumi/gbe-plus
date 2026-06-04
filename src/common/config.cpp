@@ -42,6 +42,7 @@ namespace config
 	std::string external_image_file = "";
 	std::string external_data_file = "";
 	std::string raw_barcode = "";
+	std::string ini_file = "";
 	std::string game_ini_file = "";
 	std::vector <std::string> recent_files;
 	std::vector <std::string> cli_args;
@@ -1149,8 +1150,12 @@ bool parse_ini_file(std::string filename)
 	std::string input_line = "";
 	std::string line_char = "";
 
-	//Clear recent files and set up new ini options
-	config::recent_files.clear();
+	//Clear recent files and set up new ini options - gbe.ini ONLY!
+	if(util::get_filename_from_path(filename) == "gbe.ini")
+	{
+		config::recent_files.clear();
+	}
+
 	std::vector <std::string> ini_opts;
 
 	int touch_zone_counter = 0;
@@ -1861,7 +1866,7 @@ bool parse_ini_file(std::string filename)
 		if(!parse_ini_number(ini_item, "#wave_scanner_level", config::wave_scanner_level, ini_opts, x, 0, 99)) { return false; }
 
 		//Recent files
-		if(ini_item == "#recent_files")
+		if((ini_item == "#recent_files") && (util::get_filename_from_path(filename) == "gbe.ini"))
 		{
 			if((x + 1) < size) 
 			{
@@ -1903,6 +1908,11 @@ bool load_ini_file(std::string filename)
 	{
 		test_name = config::data_path + "ini/" + filename;
 		if(std::filesystem::exists(test_name)) { filename = test_name; }
+	}
+
+	else
+	{
+		config::ini_file = "gbe.ini";
 	}
 
 	//Test for Windows or Portable version first
@@ -1961,6 +1971,7 @@ bool load_ini_file(std::string filename)
 				if(filename == "gbe.ini")
 				{
 					unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
+					config::ini_file = unix_str;
 				}
 
 				//Custom .ini file (per-game settings)
@@ -1982,6 +1993,7 @@ bool load_ini_file(std::string filename)
 				if(filename == "gbe.ini")
 				{
 					unix_str = config::cfg_path + "gbe.ini";
+					config::ini_file = unix_str;
 				}
 
 				//Custom .ini file (per-game settings)
@@ -2018,6 +2030,7 @@ bool load_ini_file(std::string filename)
 			if(filename == "gbe.ini")
 			{
 				win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
+				config::ini_file = win_str;
 			}
 
 			//Custom .ini file (per-game settings)
@@ -2044,7 +2057,7 @@ bool load_ini_file(std::string filename)
 	}
 
 	//Generate substitute ini file if necessary
-	if((!result) && (filename == "gbe.ini"))
+	if((!result) && (util::get_filename_from_path(filename) == "gbe.ini"))
 	{
 		result = generate_ini_file();
 		if(!result) { return false; }
@@ -2066,10 +2079,7 @@ bool load_ini_file(std::string filename)
 /****** Save options to the .ini file ******/
 bool save_ini_file()
 {
-	//Test for Windows or Portable version first
-	//Always give preference to portable .ini settings on every OS
-	std::string ini_path = config::cfg_path + "gbe.ini";
-	std::ifstream in_file(ini_path.c_str(), std::ios::in);
+	std::ifstream in_file(config::ini_file.c_str(), std::ios::in);
 
 	std::string input_line = "";
 	std::string line_char = "";
@@ -3017,7 +3027,7 @@ bool save_ini_file()
 	}
 
 	//Write contents to .ini file
-	std::ofstream out_file(ini_path.c_str(), std::ios::out);
+	std::ofstream out_file(config::ini_file.c_str(), std::ios::out);
 
 	if(!out_file.is_open())
 	{
