@@ -1156,6 +1156,11 @@ bool parse_ini_file(std::string filename)
 		config::recent_files.clear();
 	}
 
+	else
+	{
+		std::cout<<"GBE::Per-game .ini file: " << util::get_filename_from_path(filename) << "\n";
+	}
+
 	std::vector <std::string> ini_opts;
 
 	int touch_zone_counter = 0;
@@ -3608,7 +3613,7 @@ std::string get_game_ini_filename()
 
 		else if((chr >= 0x61) && (chr <= 0x7A))
 		{
-			result[x] -= 0x1A;
+			result[x] -= 0x20;
 		}
 	}
 
