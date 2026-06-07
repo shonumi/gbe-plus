@@ -195,6 +195,8 @@ void AGB_LCD::reset()
 		obj_render_list[x] = 0;
 	}
 
+	obj_render_length = 0;
+
 	//Initialize system screen dimensions
 	config::sys_width = 240;
 	config::sys_height = 160;
