@@ -84,6 +84,7 @@ void DMG_MMU::reset()
 
 	cart.flash_cmd = 0;
 	cart.flash_get_id = false;
+	cart.flash_last_write = 0;
 
 	if(cart.flash_stat != 0x40)
 	{

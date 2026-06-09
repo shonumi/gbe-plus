@@ -109,7 +109,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		u8 bank = (address < 0x6000) ? bank_0 : bank_1;
 
 		//Signal write command finish
-		if(((address & 0x7F) == 0x7F) && (value == 0)) { cart.flash_stat |= 0x80; return; }
+		if(((address & 0x7F) == 0x7F) && (address == cart.flash_last_write) && (value == 0)) { cart.flash_stat |= 0x80; return; }
 
 		//Grab FLASH handshake
 		if((address == 0x7555) && (cart.flash_cmd == 0) && (value == 0xAA)) { cart.flash_cmd = 1; cart.flash_stat &= ~0x81; }
@@ -128,7 +128,7 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 					cart.flash_cmd = 0;
 					cart.flash_io_bank = bank;
 
-					for(u32 x = 0; x < 0x2000; x++) { flash[cart.flash_io_bank][x] = 0x00; }
+					for(u32 x = 0; x < 0x2000; x++) { flash[cart.flash_io_bank][x] = 0xFF; }
 
 					break;
 
@@ -171,6 +171,8 @@ void DMG_MMU::mbc6_write(u16 address, u8 value)
 		//Write to FLASH normally
 		else if(address >= 0x6000) { flash[cart.flash_io_bank][address - 0x6000] = value; }
 		else { flash[cart.flash_io_bank][address - 0x4000] = value; }
+
+		cart.flash_last_write = address;
 	}	
 }
 
