@@ -210,7 +210,7 @@ The minigame format is essentially the same as that found on the MBC6 ROM. Using
 0x24 - ...			::	Text for dialog box. Null terminated.
 0x44				::	Must be 0xFF for the minigame to be considered valid.
 0x4D - 0x6C			::	Append data. Format depends on the append ID and the minigame being appended.
-0x6D - 0x6E			::	Sum of all the other bytes of this minigame (little-endian); or 0x3B, 0xB3 to bypass checksum verification altogether.
+0x6D - 0x6E			::	Sum of all the other bytes of this minigame including any padding bytes (little-endian); or 0x3B, 0xB3 to bypass checksum verification altogether. If the minigame is larger than 56KB (7 banks), the sum is only of the first 256 bytesw
 0x6F - ...			::	Code + Data.
 
 Generally, the jump instruction goes right to Byte 0x6F, but not always. When the minigame is selected from the menu and the play (あそぶ) option is selected, the MBC6 switches Bank 0 (0x4000 - 0x5FFF) with flash ROM, then performs a CALL 0x4000, which in turn executes the jump instruction and starts the minigame. It should also be noted that the downloaded minigame code is actually executed from flash ROM rather than copying it somewhere else first like WRAM.
