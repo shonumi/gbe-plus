@@ -3601,12 +3601,14 @@ std::string get_game_ini_filename()
 	result = util::make_ascii_printable(result);
 
 	//Replace any spaces or dashes with underscores (ASCII)
+	//Replace any slashes with underscores (ASCII)
 	//Convert to uppercase as well
 	for(u32 x = 0; x < result.length(); x++)
 	{
 		u8 chr = result[x];
 
-		if((chr == 0x20) || (chr == 0x2D))
+		if((chr == 0x20) || (chr == 0x2D)
+		|| (chr == 0x2F) || (chr == 0x5C))
 		{
 			result[x] = 0x5F;
 		}
