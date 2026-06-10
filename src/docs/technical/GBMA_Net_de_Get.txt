@@ -1,6 +1,6 @@
-Net de Get GB Mobile Adapter Server Technical Documentation 0.3
-July 24, 2024
-Shonumi aka D.S. Baxter, Winter1760
+Net de Get GB Mobile Adapter Server Technical Documentation 0.4
+June 9, 2026
+Shonumi aka D.S. Baxter, OtherLiz
 
 ***************************************************
 1. Introduction
@@ -51,16 +51,17 @@ This file contains a message to the player. Once it has been downloaded, the gam
 ----------------------------------
 File format
 ----------------------------------
-0x00 - 0x17			::	Background palettes 0-2, used for text.
+0x00 - 0x07			::	Background palette 0, used for regular text and parts of the background.
+0x08 - 0x17			::	Background palettes 1-2, used for colored text.
 0x18 - 0x37			::	Background palettes 3-6, unused.
-0x38 - 0x3F			::	Background palette 7, used for background and other elements.
+0x38 - 0x3F			::	Background palette 7, used for most of the background, the header, and the B button hint.
 0x40 - 0x47			::	Object palette 0, used for blinking arrows.
 0x48 - 0x7F			::	Object palettes 1-7, unused.
-0x80				::	Number of pages. No known maximum, but page numbers above 10 use garbage tiles.
+0x80				::	Number of pages (1-10).
 0x81 - 0x82			::	Pointer to page 1 text.
 ...				::	Repeat pointers as needed.
 
-Palettes are in GBC format (that is, four colors each in little-endian RGB555). For background palettes, color 0 is the foreground, color 1 is a shadow, and color 3 is the background. The file's contents are read from 0xB000, so the text pointers can be considered as file offsets with 0xB000 added to them.
+Palettes are in GBC format (that is, four colors each in little-endian RGB555). For background palettes, color 0 is the foreground, color 1 is a shadow, and color 3 is the background, meaning color 3 should be the same between background palettes 0 and 7. The file's contents are read from 0xB000, so the text pointers can be considered as file offsets with 0xB000 added to them.
 
 ***************************************************
 5. RomList.cgb
@@ -71,7 +72,7 @@ This file contains a list of all available minigames the server has to offer. It
 ----------------------------------
 Entry Count - 1 byte
 ----------------------------------
-0x00 - Number of entries	::	(1 - ?) Maximum not currently known.
+0x00 - Number of entries	::	(1 - 78)
 
 ----------------------------------
 Data Offsets - 2 bytes each
@@ -83,19 +84,20 @@ Data Offsets - 2 bytes each
 ----------------------------------
 Data Structure
 ----------------------------------
-0x00	 			::	Number of memory blocks necessary for the download (modulus 100). Should be 0x00 - 0x63 ideally.
-0x01				::	Mini-game icon type. See Icon Type below for details.
+0x00	 			::	Number of memory blocks necessary for the download. If greater than 0x10, this minigame cannot be downloaded.
+0x01				::	Mini-game category. See Category Icon below for details.
 0x02 - 0x05			::	Game ID, simply in the format "Gxyz" where "xyz" are three numbers. E.g. the first minigame ID in the Net de Get ROM is "G000"
 0x08 - 0x0A			::	Minimum levels in each category to download this minigame. If all 3 are not met, the menu item is grayed out and cannot be selected.
-0x0C - 0x0D			::	If both are not zero, the menu item does not appear.
-0x0E				::	Minimum hidden level to download this minigame. If not met, the minigame's name does not appear and it cannot be selected.
-0x0F				::	If not zero, the menu item does not appear.
+0x0C - 0x0D			::	Minimum hidden level A (little-endian) to download this minigame. If not met, this entry does not appear.
+0x0E - 0x0F			::	Minimum hidden level B (little-endian) to download this minigame. If not met, this entry does not appear.
 0x10				::	String Length 1. Each menu item should ideally be 12 characters or less (font is fixed width). Used for minigame name.
 0x11 - ...			::	Menu Item Text (see String Format below).
 0x11 + String Length 1		::	String Length 2. Each menu item draws additional text to a small on-screen textbox. Used brief explanations about minigame. Ideal max is 0xF.
 0x11 + 1 + String Length 1 	::	Additional textbox string.
-0x11 + 2 + String Length 1 & 2	::	The price of the minigame download in yen. 4 digits max.
-0x11 + 6 + String Length 1 & 2	::	Unique ID for download. 8 characters max.
+0x11 + 1 + String Length 1 & 2	::	String Length 3. Used for minigame filename.
+0x11 + 2 + String Length 1 & 2	::	Minigame filename on server. The first 4 characters or the characters before the first period (whichever is shorter) is displayed as the price in yen.
+0x11 + 2 + String Length 1,2,&3	::	Should be 0x00 to terminate the filename. Not counted in String Length 3.
+0x11 + 3 + String Length 1,2,&3	::	Minigame type. See Minigame Type below for details.
 
 
 The offset to the data structure is technically (ADDRESS - 0x4). If the data structure is located at 0x44, the offset is written as 0x40.
@@ -103,7 +105,7 @@ The offset to the data structure is technically (ADDRESS - 0x4). If the data str
 Minigames have their own categories and can be assigned their own specific icons. The following bytes dictate what icon is drawn:
 
 ----------------------------------
-Icon Type
+Category Icon
 ----------------------------------
 0x00				::	Question Mark		不定その他	Unspecified other aka misc.
 0x01				::	Boxing Glove		アクション	Action
@@ -113,21 +115,25 @@ Icon Type
 0x05				::	Green Sheet		シミュレーション 	Simulation
 0x06				::	Fighter Jet		シューティング	Shooter/Shooting game 
 0x07				::	Red Square		アドベンチャー	Adventure 
-0x08				::	Blue Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data.
-0x09				::	Green Square (D)	???		???
-0x0A				::	Red Square (A)		アペンド		Additional minigame data.
-0x0B				::	Brown Square (S)	???		???
 
-Each mini game has two icons. The first describes the main type, "Program" for the main minigame, or "Append" for additional data or content. The 2nd icon describes the sub-type for the minigame. Apparently for minigame downloads, the main type is forcibly set to "Program". Byte 0x01 of the data structure controls only the 2nd icon, the sub-type. In that regard, only values of 0x00 through 0x07 are contextually correct. It should also be noted that two other main types seem to exist (the Green and Brown squares), but they are unused, or at least have no mention whatsoever in the game manual.
+Each minigame also has a type, and each type has its own icon. The following bytes dictate the minigame type:
+
+----------------------------------
+Minigame Type
+----------------------------------
+0x01				::	Blue Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data.
+0x02				::	Green Square (D)	???		???
+0x04				::	Red Square (A)		アペンド		Additional minigame data.
+0x08				::	Brown Square (S)	???		???
 
 
 ***************************************************
 6. cgb/download?name=/A4/CGB-BMVJ/*
 ***************************************************
 
-The GB Mobile Adapter attempts to access this URL for downloading minigames. The file containing the minigame is appended to the base URL. The appended part should be 12 characters, 4 for the price in yen, followed by 8 characters for rest of the unique ID. Although it is unknown if this really was the case, it would make sense to use the minigame ID (e.g. "G000") along with ".cgb". Thus a full URL would be something like:
+The GB Mobile Adapter attempts to access this URL for downloading minigames. The file containing the minigame is appended to the base URL. The appended part should be the price in yen, followed by a period, and finally the unique ID. Although it is unknown if this really was the case, it would make sense to use the minigame ID (e.g. "G000") along with ".cgb". Thus a full URL would be something like:
 
-	http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/1234G000.cgb
+	http://gameboy.datacenter.ne.jp/cgb/download?name=/A4/CGB-BMVJ/1234.G000.cgb
 
 Note that the filename of the minigame should start with numbers (the price) since this indicates a service fee for the download. The server responds with the required binary data. Net de Get will blindly receive data, regardless of what it is. That is to say, no error checking of the minigame itself is done during the download phase.
 
@@ -138,39 +144,53 @@ Note that the filename of the minigame should start with numbers (the price) sin
 
 Rather than simply downloading the minigame data as-is, Net de Get expects minigames to have come in a sort of wrapper file. This consists of a brief header followed by the actual minigame data as described in the next section below. The wrapper header is as follows:
 
-0x00:				::	Offset to the rest of the wrapper data. This is the 1-byte value + 1, so 1-256.
-Offset + 0x00			::	???
-Offset + 0x01			::	For most minigame downloads, this should be 0x00. When set to 0x05, it seems to do a block-fill operation on the MBC6 flash ROM.
-Offset + 0x02			::	???
-Offset + 0x03			::	???
-Offset + 0x04			::	Minigame size (low-byte).
-Offset + 0x05			::	Minigame size (high-byte). Should not be zero.
-Offset + 0x06			::	???
-Offset + 0x07			::	???
-Offset + 0x08 ...		::	Minigame data (as described below in Minigame Format).
+0x00				::	String length for the comment.
+0x01 - Length			::	Comment (unused).
+Length + 0x01			::	Number of blocks? Unused.
+Length + 0x02			::	For most minigame downloads, this should be 0x05. Setting this to 0x00 disables compression.
+Length + 0x03			::	Compressed size (low-byte). Unused when compression is disabled.
+Length + 0x04			::	Compressed size (high-byte). Unused when compression is disabled.
+Length + 0x05			::	Uncompressed size (low-byte).
+Length + 0x06			::	Uncompressed size (high-byte).
+Length + 0x07			::	Even check byte? Unused.
+Length + 0x08			::	Odd check byte? Unused.
+Length + 0x09 ...		::	Compressed minigame data.
 
-The minigame is copied to various RAM locations (SRAM and WRAM) until it is finally written to flash. A maximum of 0x200 bytes is copied at a time. The wrapper, however, expects a 0x100 "footer" to be inserted after each of the 0x200 chunks. This is only necessary if the minigame size is greater than 0x200 bytes. For example, if a minigame is only 0x100 bytes, then the footer can be ignored, although such a small size is rather impractical. Additionally, only the last footer technically needs to be correctly formatted. The default footer is as follows:
+The minigame data is compressed in a proprietary format involving several Huffman trees. These trees are in canonical format; that is, codes with fewer bits will be less than codes with more bits when interpreted as binary numbers, as will codes with the same number of bits representing lesser character numbers. Additionally, the compressed format uses fields of various bit sizes. These fields are packed together in big-endian order with no padding or spacing between them, even between separate compressed chunks.
 
-0x00, 0x00, 0x01, 0x00,
-0x02, 0x00, 0x03, 0x00,
-0x04, 0x00, 0x05, 0x00,
-0x06, 0x00, 0x07, 0x00,
-0x08, 0x00, 0x09, 0x00,
-0x0A, 0x00, 0x0B, 0x00,
-0x0C, 0x00, 0x0D, 0x00,
-0x0E, 0x00, 0xFF, 0x00,
-... (the remaining 224 bytes should be 0x00).
+----------------------------------
+Compressed Chunk Format
+----------------------------------
+16 bits				::	Number of data symbols.
+5 bits				::	Highest character number in auxiliary tree A + 1. Must be 1-19.
+For each character, starting at #0:
+	3+ bits			::	Bit length of code for this character. A length of zero indicates that this character is not present in the tree. If the first three bits are ones, the game will continue reading bits until it reaches a zero, and the actual bit length will be the total number of one bits + 4, which must be 16 or less.
+	After character #2 (even if it is the highest character):
+		2 bits		::	Number of characters to skip here (i.e. the next character number is this value + 3).
+9 bits				::	Highest character number in data tree + 1. Must be 0-262.
+If the above field is 0:
+	9 bits			::	Constant character number for data tree. Must be 0-261. Data characters will take zero bits, and will all be the character specified here.
+Otherwise, for each character, starting at #0:
+	Aux. tree A character	::	Character #0 indicates that this character is not present in the tree, character #1 indicates that this and 2-17 characters after it are not present, and character #2 indicates that this and 19+ characters after it are not present. Higher character numbers indicate the bit length of this character's code + 2.
+	After auxiliary character #1:
+		4 bits		::	Number of characters to skip - 3.
+	After auxiliary character #2:
+		9 bits		::	Number of characters to skip - 20.
+4 bits				::	Highest character in auxiliary tree B + 1. Must be 1-10.
+For each character, starting at #0:
+	3+ bits			::	Bit length of code for this character. See auxiliary tree A for details.
+For each data symbol:
+	Data tree character	::	Characters #0-#255 copy raw bytes to the output stream. Higher character numbers indicate a number of bytes to copy from earlier output + 253. It is possible to copy data from a previous chunk.
+	After character #256+:
+		Aux tree B char	::	Character #0 indicates that the previous output character should simply be repeated. Higher character numbers indicate the highest set bit of the offset + 1.
+		0+ bits		::	The remaining bits of the offset.
 
-So in summary, the wrapper effectively looks like this:
+The decompressed data of every chunk is concatenated, again with no padding, to form the total decompressed data. This is what gets written to flash, padded with 0x00 to a multiple of 4KB, then (if necessary) padded with 0xFF to a multiple of 8KB.
 
-Wrapper Header ->
-	Minigame Data Chunk (0x200 max)
-		Footer (0x100)
-	Minigame Data Chunk (0x200 max)
-		Footer (0x100)
-	...
+With compression disabled, the data is written in chunks of 512 bytes each (except the last, which may or may not be shorter). The chunks are concatenated and padded in the same way as if compression were enabled. Each chunk has 256 bytes of extra data after it, with a footer starting at offset 0x200. Up to 256 bytes of the last footer (stopping if 0xFF is encountered) is saved to the player's minigame organization, which is simply a series of byte pairs in the following format:
 
-Note that the footer is written to SRAM later on, not flash. Improperly formatted footers may crash the game when booting or trying to access the minigame menu. There are other valid footers, but the default above is the only one tested extensively. It is currently unknown exactly how this data should be formatted.
+0x00				::	Minigame number. 0x00-0x0E indicate one of the 15 games that come with Net de Get, in their default order. 0x10-0x8F indicate the first bank of a flash minigame + 0x10. 0xFF terminates the list.
+0x01				::	Box number (0x00-0x06). Entries with invalid box numbers are ignored.
 
 
 ***************************************************
@@ -180,22 +200,25 @@ Note that the footer is written to SRAM later on, not flash. Improperly formatte
 The minigame format is essentially the same as that found on the MBC6 ROM. Using the base address of the flash ROM bank, minigames look like so:
 
 0x00 - 0x02			::	Typically contains a JR or JP instuction.
+0x03 - 0x04			::	Size of this header (little-endian). Always 0x6F.
 0x05 				::	Number of memory blocks used by the minigame.
 0x06				::	Primary minigame icon.
 0x07				::	Secondary minigame icon.
 0x09 - 0x0C			::	Game ID, simply in the format "Gxyz" where "xyz" are three numbers. E.g. the first minigame ID in the Net de Get ROM is "G000"
+0x0D - 0x0E			::	Append ID. 0x00 for minigames that don't accept or act as appendices.
 0x0F - ...			::	Text for game title. Null terminated, but nothing stops it from being too long. Text can technically spill over multiple lines.
 0x24 - ...			::	Text for dialog box. Null terminated.
-0x44				::	If this is 0xFF, it prints the game title, otherwise the title is blank. Oddly enough, the dialog box is unaffected and always printed.
-0x6D - 0x6E			::	Always 0x3B, 0xB3. Acts like a watermark for valid minigames. Net de Get checks this specifically to tell if a game is on flash ROM.
+0x44				::	Must be 0xFF for the minigame to be considered valid.
+0x4D - 0x6C			::	Append data. Format depends on the append ID and the minigame being appended.
+0x6D - 0x6E			::	Sum of all the other bytes of this minigame including any padding bytes (little-endian); or 0x3B, 0xB3 to bypass checksum verification altogether. If the minigame is larger than 56KB (7 banks), the sum is only of the first 256 bytesw
 0x6F - ...			::	Code + Data.
 
 Generally, the jump instruction goes right to Byte 0x6F, but not always. When the minigame is selected from the menu and the play (あそぶ) option is selected, the MBC6 switches Bank 0 (0x4000 - 0x5FFF) with flash ROM, then performs a CALL 0x4000, which in turn executes the jump instruction and starts the minigame. It should also be noted that the downloaded minigame code is actually executed from flash ROM rather than copying it somewhere else first like WRAM.
 
-Unlike the previous icons from RomList.cgb, each minigame's primary icon can be specified. The secondary minigame icon is nearly identical to the format in RomList.cgb, but contains some variations:
+There are some additional minigame type icons here compared to RomList.cgb:
 
 ----------------------------------
-Primary Minigame Icon Type
+Minigame Type
 ----------------------------------
 0x00				::	Gray Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data. Might be "disabled" since it's gray.
 0x01				::	Blue Square (P)		プログラム	Program i.e. a full minigame, as opposed to additional data.
@@ -207,8 +230,10 @@ Primary Minigame Icon Type
 0x07				::	Gray Square (A)		アペンド		Additional minigame data (disabled?).
 0x08				::	Brown Square (S)	???		???
 
+Additionally, some category icons appear differently:
+
 ----------------------------------
-Secondary Minigame Icon Type
+Category Icon
 ----------------------------------
 0x00				::	Question Mark		不定その他	Unspecified other aka misc.
 0x01				::	Boxing Glove		アクション	Action
@@ -219,14 +244,68 @@ Secondary Minigame Icon Type
 0x06				::	Fighter Jet		シューティング	Shooter/Shooting game 
 0x07				::	Green Square		アドベンチャー	Adventure
 
-For the secondary icon, everything above 0x08 results in garbage tile data being drawn on-screen. 0x07 is the same icon as in RomList.cgb, except the color is now green instead of Red. Strangely enough, the game manual only shows the red version of that icon. 
-
+For the category icon, everything above 0x08 results in garbage tile data being drawn on-screen. 0x07 is the same icon as in RomList.cgb, except the color is now green instead of Red. Strangely enough, the game manual only shows the red version of that icon. 
 
 ***************************************************
-9. String Format
+9. Slide Puzzle Append Format
 ***************************************************
 
-Blank entries represent values that are not used and can effectively be treated as spaces.
+The final minigame in the default order, とんではねてそろえて, allows the player to choose any of 3 built-in images to play a 6x4 slide puzzle. It also allows additional images to be downloaded in the form of minigames with the append ID 0x05, 0x00 in the header. The append data in the header is not used; instead, the first bank of such a minigame should contain image data in the following format:
+
+0x00A0 - 0x00D7			::	Background palettes 0-6, used only for the puzzle tiles.
+0x00D8 - 0x00DF			::	Background palette 7, used for the border and timer.
+0x00E0 - 0x00EF			::	Object palettes 0-1, unused.
+0x00F0 - 0x00F7			::	Object palette 2, used for the cursor.
+0x00F8 - 0x00FF			::	Object palette 3, used for the arrows around the cursor.
+0x0100 - 0x0107			::	Object palette 4, used for the "CLEAR!" graphic.
+0x0108 - 0x010F			::	Object palette 5, used for the "PRESS A BUTTON" graphic.
+0x0110 - 0x011F			::	Object palettes 6-7, unused.
+0x0120 - 0x0133			::	Tilemap for the top row of the preview.
+0x0134 - 0x0147			::	Attribute map for the top row of the preview.
+0x0148 - 0x015B			::	Tilemap for the bottom row of the preview.
+0x015C - 0x016F			::	Attribute map for the bottom row of the preview.
+0x0170 - 0x017F			::	Tilemap for the left column of the preview.
+0x0180 - 0x018F			::	Attribute map for the left column of the preview.
+0x0190 - 0x019F			::	Tilemap for the right column of the preview.
+0x01A0 - 0x01AF			::	Attribute map for the right column of the preview.
+0x01B0 - 0x01BB			::	Tilemap for the top-left puzzle tile (3x4 tiles).
+0x01BC - 0x01C7			::	Attribute map for the top-left puzzle tile (3x4 tiles).
+0x01C8 - 0x03D7			::	Tilemaps and attribute maps for the next 22 puzzle tiles.
+0x03D8 - 0x03E3			::	Tilemap for the bottom-right puzzle tile.
+0x03E4 - 0x03EF			::	Attribute map for the bottom-right puzzle tile.
+0x03F0 - 0x13EF			::	VRAM bank 0, tiles 0x080-0x17F.
+0x13F0 - 0x1BEF			::	VRAM bank 1, tiles 0x080-0x0FF.
+0x1BF0 - 0x1C07			::	Image title. Does not need to match the minigame title.
+
+The 3 built-in images have the same colors for background palette 7 and for all object palettes: 0x7FFF, 0x1637, 0x1972, 0x0CA8 for the border; 0x7FFF, 0x2116, 0x000B for the cursor; 0x001F, 0x17FF, 0x7FFF for the arrows; 0x35BF, 0x001F, 0x7FFF for the "CLEAR!" graphic; and 0x0000, 0x001B, 0x7FFF for the "PRESS A BUTTON" graphic.
+
+***************************************************
+10. Rope Puzzle Append Format
+***************************************************
+
+The third game in the default order, ごろうのロ—プパズル, is a puzzle game with 16 stages. It checks for downloaded games with the append ID 0x01, 0x00 in the header, and contains code to load 16 extra stages from the first one it finds, but this code goes unused. It expects the append data in the header to begin with a pointer to 1472 bytes of data in the first bank of the minigame, in the following format:
+
+0x00 - 0x01			::	Offset to stage 01 data (little-endian).
+0x02 - 0x03			::	Offset to stage 02 data (little-endian).
+0x04 - 0x1F			::	Offsets to stage 03-16 data.
+
+Each stage's data consists of 90 bytes, one for each tile, read row-by-row, top to bottom, left to right. Each byte can have one of the following values:
+
+----------------------------------
+Tile Type
+----------------------------------
+0x00				::	Empty tile.
+0x01				::	Unmovable block.
+0x02				::	Movable block.
+0x03				::	Ladder.
+0x04				::	Finish door (one per stage).
+0x10				::	Starting point (one per stage).
+
+***************************************************
+11. String Format
+***************************************************
+
+Blank entries represent values that are not used and can effectively be treated as spaces, although the base game consistently uses 0x10 for a space.
 
         0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 0x10         !    "    #    $    %    &    '    (    )    *    +    ‘    -    .    /
@@ -245,7 +324,7 @@ Blank entries represent values that are not used and can effectively be treated 
 0xC0    ァ    ア    ィ    イ    ゥ    ウ    ェ    エ    ォ    オ    カ    キ    ク    ケ    コ    サ
 0xD0    シ    ス    セ    ン    タ    チ    ッ    ツ    テ    ト    ナ    ニ    ヌ    ネ    ノ    ハ      
 0xE0    ヒ    フ    ヘ    ホ    マ    ミ    ム    メ    モ    ャ    ヤ    ュ    ユ    ョ    ヨ    ラ 
-0xF0    リ    ル 	   レ    ロ    ヮ    ワ    ヲ    ン    ☎    ♪    ☺    ☺    ★    ❤     ﾟ     ﾞ
+0xF0    リ    ル 	   レ    ロ    ヮ    ワ    ヲ    ン    ☎    ♪    ☺    ☺    ★    ❤     ﾞ     ﾟ
 
 A couple of things to note, since some characters listed are not quite the same in Unicode as they are on Net de Get:
 
@@ -254,6 +333,7 @@ A couple of things to note, since some characters listed are not quite the same 
 * 0x7B and 0x7C are actually inverted color-wise (black circle with white "A" or "B" in the center). These are presumably the GBC's A and B buttons.
 * 0xF8 is actually inverted color-wise (black outlines, white on the inside).
 * 0xFB is a "smiley face" like 0xFA, but it's kind of lumpy and missing an eye.
+* 0xFE and 0xFF appear before the character they modify, not after.
 
 Additionally, there are a few control codes:
 
@@ -265,7 +345,7 @@ Additionally, there are a few control codes:
 * 0x0F causes the game to wait for the A button to be pressed, then continues printing text. However, this continuation is broken and probably shouldn't be used.
 
 ***************************************************
-10. MBC6 Flash Operation
+12. MBC6 Flash Operation
 ***************************************************
 
 The MBC6 writes games to flash ROM for long-time data storage. Although technically it has a limited number of lifetime writes, it does not rely on a battery unlike cartridge SRAM for DMG/GBC games. The MBC6 uses the MX29F008TC-14. While no specific documentation about the MX29F008TC-14 is available, the following information has been reverse-engineered based on how Net de Get's code expects flash ROM to work.

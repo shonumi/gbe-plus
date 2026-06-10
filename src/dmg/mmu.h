@@ -102,6 +102,7 @@ class DMG_MMU
 		u8 flash_stat;
 		u8 flash_io_bank;
 		bool flash_get_id;
+		u16 flash_last_write;
 
 		//MBC7
 		bool idle;
