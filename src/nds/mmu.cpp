@@ -4071,7 +4071,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 		case NDS_SOUNDXSAD + 3:
 			if(access_mode) { return; }
 			memory_map[address | (apu_io_id << 4)] = value;
-			apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 4)) & 0x7FFFFFF;
+			apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 4)) & 0x7FFFFFC;
 
 			break;
 
