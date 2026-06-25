@@ -4002,16 +4002,17 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 last_start_flag = (apu_stat->channel[apu_io_id].cnt & 0x80000000);
 				apu_stat->channel[apu_io_id].cnt = read_u32_fast(NDS_SOUNDXCNT | (apu_io_id << 4));
 				u32 next_start_flag = (apu_stat->channel[apu_io_id].cnt & 0x80000000);
+
 				apu_stat->channel[apu_io_id].volume = (apu_stat->channel[apu_io_id].cnt & 0x7F);
+				apu_stat->channel[apu_io_id].format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
 
 				//Begin playing sound channel
 				if(next_start_flag && !last_start_flag)
 				{
 					apu_stat->channel[apu_io_id].playing = true;
-					u8 format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
 
 					//Determine loop start offset and sample length
-					switch(format)
+					switch(apu_stat->channel[apu_io_id].format)
 					{
 						//PCM8
 						case 0x0:
@@ -4073,6 +4074,38 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			memory_map[address | (apu_io_id << 4)] = value;
 			apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 4)) & 0x7FFFFFC;
 
+			//Calculate loop start offset
+			switch(apu_stat->channel[apu_io_id].format)
+			{
+				//PCM8
+				case 0x0:
+					apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+					break;
+
+				//PCM16
+				case 0x1:
+					apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+					break;
+
+				//IMA-ADPCM
+				case 0x2:
+					apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
+
+					//Grab header
+					apu_stat->channel[apu_io_id].adpcm_header = read_u32(apu_stat->channel[apu_io_id].data_src);
+					apu_stat->channel[apu_io_id].data_src += 4;
+
+					//Set up initial ADPCM stuff
+					apu_stat->channel[apu_io_id].adpcm_val = (apu_stat->channel[apu_io_id].adpcm_header & 0xFFFF);
+					apu_stat->channel[apu_io_id].adpcm_index = ((apu_stat->channel[apu_io_id].adpcm_header >> 16) & 0x7F);
+					apu_stat->channel[apu_io_id].adpcm_pos = 0;
+
+					//Decode ADPCM audio
+					apu_stat->channel[apu_io_id].decode_adpcm = true;
+
+					break;
+			}
+
 			break;
 
 		case NDS_SOUNDXTMR:
@@ -4115,6 +4148,24 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode) { return; }
 			memory_map[address | (apu_io_id << 4)] = value;
 			apu_stat->channel[apu_io_id].length = read_u32_fast(NDS_SOUNDXLEN | (apu_io_id << 4)) & 0x3FFFFF;
+
+			switch(apu_stat->channel[apu_io_id].format)
+			{
+				//PCM8
+				case 0x0:
+					apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4);
+					break;
+
+				//PCM16
+				case 0x1:
+					apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2);
+					break;
+
+				//IMA-ADPCM
+				case 0x2:
+					apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8);
+					break;
+			}
 
 			break;
 

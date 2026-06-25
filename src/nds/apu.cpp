@@ -51,6 +51,7 @@ void NTR_APU::reset()
 		apu_stat.channel[x].cnt = 0;
 		apu_stat.channel[x].timer = 0;
 		apu_stat.channel[x].volume = 0;
+		apu_stat.channel[x].format = 0;
 
 		apu_stat.channel[x].playing = false;
 		apu_stat.channel[x].enable = false;
@@ -132,7 +133,6 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 {
 	double sample_ratio = (apu_stat.channel[id].output_frequency / apu_stat.sample_rate);
 	u32 sample_pos = apu_stat.channel[id].data_pos;
-	u8 format = ((apu_stat.channel[id].cnt >> 29) & 0x3);
 	u8 loop_mode = ((apu_stat.channel[id].cnt >> 27) & 0x3);
 
 	//Calculate volume
@@ -154,7 +154,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 		if((apu_stat.channel[id].samples) && (apu_stat.channel[id].playing))
 		{
 			//PCM8
-			if(format == 0)
+			if(apu_stat.channel[id].format == 0)
 			{
 				u32 data_addr = (sample_pos + (sample_ratio * x));
 				nds_sample_8 = mem->memory_map[sample_pos + (sample_ratio * x)];
@@ -186,7 +186,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			}
 
 			//PCM16
-			else if(format == 1)
+			else if(apu_stat.channel[id].format == 1)
 			{
 				u32 data_addr = (sample_pos + (sample_ratio * x));
 				data_addr &= ~0x1;
@@ -218,7 +218,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			}
 
 			//IMA-ADPCM
-			else if(format == 2)
+			else if(apu_stat.channel[id].format == 2)
 			{
 				u32 data_pos = (apu_stat.channel[id].adpcm_pos + (sample_ratio * x));
 				if(data_pos > apu_stat.channel[id].adpcm_buffer.size()) { data_pos = (apu_stat.channel[id].adpcm_buffer.size() - 1); }
@@ -258,7 +258,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	}
 
 	//Advance data pointer to sound samples
-	switch(format)
+	switch(apu_stat.channel[id].format)
 	{
 		case 0x0:
 			apu_stat.channel[id].data_pos += (sample_ratio * samples_played);
