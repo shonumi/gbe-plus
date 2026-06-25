@@ -189,6 +189,15 @@ void NTR_MMU::reset()
 	gx_fifo_param_length = 0;
 	gx_command = false;
 
+	dtcm_addr = 0xDEADC0DE;
+	dtcm_end = 0xDEADC0DE;
+	dtcm_load_mode = false;
+	itcm_addr = 0;
+	itcm_load_mode = false;
+
+	dtcm.clear();
+	dtcm.resize(0x4000, 0);
+
 	//HLE MMIO stuff
 	if(!config::use_bios || !config::use_firmware)
 	{
@@ -356,15 +365,6 @@ void NTR_MMU::reset()
 	g_pad = nullptr;
 	nds9_timer = nullptr;
 	nds7_timer = nullptr;
-
-	dtcm_addr = 0xDEADC0DE;
-	dtcm_end = 0xDEADC0DE;
-	dtcm_load_mode = false;
-	itcm_addr = 0;
-	itcm_load_mode = false;
-
-	dtcm.clear();
-	dtcm.resize(0x4000, 0);
 
 	pal_a_bg_slot[0] = 0x6880000;
 	pal_a_bg_slot[1] = 0x6890000;
