@@ -262,11 +262,14 @@ void NTR_MMU::reset()
 		dma[x].src_addr_ctrl = 0;
 		dma[x].delay = 0;
 		dma[x].word_mask = (x < 4) ? 0x1FFFFF : 0x3FFF;
-		dma[x].addr_mask = (x < 4) ? 0xFFFFFFFF : 0x7FFFFFFF;
+		dma[x].src_addr_mask = 0xFFFFFFFF;
+		dma[x].dst_addr_mask = (x < 4) ? 0xFFFFFFFF : 0x7FFFFFFF;
 	}
 
-	//Special case word mask for NDS7 DMA3
+	//Special case masks for NDS7 DMAs
+	dma[4].src_addr_mask = 0x7FFFFFFF;
 	dma[7].word_mask = 0xFFFF;
+	dma[7].dst_addr_mask = 0xFFFFFFFF;
 
 	//Setup NDS Sound Capture info
 	for(int x = 0; x < 2; x++)
@@ -3038,7 +3041,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				dma[reg_id].raw_sad[address & 0x3] = value;
 				dma[reg_id].start_address = ((dma[reg_id].raw_sad[3] << 24) | (dma[reg_id].raw_sad[2] << 16) | (dma[reg_id].raw_sad[1] << 8) | dma[reg_id].raw_sad[0]);
-				dma[reg_id].start_address &= dma[reg_id].addr_mask;
+				dma[reg_id].start_address &= dma[reg_id].src_addr_mask;
 			}
 
 			break;
@@ -3066,7 +3069,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 
 				dma[reg_id].raw_dad[address & 0x3] = value;
 				dma[reg_id].destination_address = ((dma[reg_id].raw_dad[3] << 24) | (dma[reg_id].raw_dad[2] << 16) | (dma[reg_id].raw_dad[1] << 8) | dma[reg_id].raw_dad[0]);
-				dma[reg_id].destination_address &= dma[reg_id].addr_mask;
+				dma[reg_id].destination_address &= dma[reg_id].dst_addr_mask;
 			}
 
 			break;
@@ -4016,18 +4019,21 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					{
 						//PCM8
 						case 0x0:
+							std::cout<<"PCM8 -> " << u32(apu_io_id) << "\n";
 							apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 							apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4);
 							break;
 
 						//PCM16
 						case 0x1:
+							std::cout<<"PCM16 -> " << u32(apu_io_id) << "\n";
 							apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 							apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2);
 							break;
 
 						//IMA-ADPCM
 						case 0x2:
+							std::cout<<"ADPCM -> " << u32(apu_io_id) << "\n";
 							apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 							apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8);
 

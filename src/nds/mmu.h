@@ -381,7 +381,8 @@ class NTR_MMU
 		u8 raw_cnt[4];
 
 		u32 word_mask;
-		u32 addr_mask;
+		u32 src_addr_mask;
+		u32 dst_addr_mask;
 	} dma[8];
 
 	//Structure to handle microphone sound capture
