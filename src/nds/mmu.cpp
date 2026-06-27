@@ -3196,6 +3196,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				timer->enable = (timer->cnt & 0x80) ?  true : false;
 				timer->interrupt = (timer->cnt & 0x40) ? true : false;
 				if(timer->enable && !prev_enable) { timer->counter = timer->reload_value; }
+				if(reg_id) { timer->count_up = (timer->cnt & 0x4) ? true : false; }
 
 				switch(timer->cnt & 0x3)
 				{
@@ -4019,21 +4020,18 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					{
 						//PCM8
 						case 0x0:
-							std::cout<<"PCM8 -> " << u32(apu_io_id) << "\n";
 							apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 							apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 4);
 							break;
 
 						//PCM16
 						case 0x1:
-							std::cout<<"PCM16 -> " << u32(apu_io_id) << "\n";
 							apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 							apu_stat->channel[apu_io_id].samples = (apu_stat->channel[apu_io_id].length * 2);
 							break;
 
 						//IMA-ADPCM
 						case 0x2:
-							std::cout<<"ADPCM -> " << u32(apu_io_id) << "\n";
 							apu_stat->channel[apu_io_id].data_pos = apu_stat->channel[apu_io_id].data_src;
 							apu_stat->channel[apu_io_id].samples = ((apu_stat->channel[apu_io_id].length - 1) * 8);
 
