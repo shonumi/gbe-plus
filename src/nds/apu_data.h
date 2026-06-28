@@ -28,6 +28,7 @@ struct ntr_apu_data
 		u32 cnt;
 		u16 timer;
 		u8 volume;
+		u8 pan;
 		u8 format;
 
 		bool playing;

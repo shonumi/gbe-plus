@@ -4008,6 +4008,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				u32 next_start_flag = (apu_stat->channel[apu_io_id].cnt & 0x80000000);
 
 				apu_stat->channel[apu_io_id].volume = (apu_stat->channel[apu_io_id].cnt & 0x7F);
+				apu_stat->channel[apu_io_id].pan = ((apu_stat->channel[apu_io_id].cnt >> 16) & 0x7F);
 				apu_stat->channel[apu_io_id].format = ((apu_stat->channel[apu_io_id].cnt >> 29) & 0x3);
 
 				//Begin playing sound channel

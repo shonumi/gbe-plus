@@ -51,6 +51,7 @@ void NTR_APU::reset()
 		apu_stat.channel[x].cnt = 0;
 		apu_stat.channel[x].timer = 0;
 		apu_stat.channel[x].volume = 0;
+		apu_stat.channel[x].pan = 0;
 		apu_stat.channel[x].format = 0;
 
 		apu_stat.channel[x].playing = false;
