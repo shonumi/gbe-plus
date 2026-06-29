@@ -161,10 +161,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				nds_sample_8 = mem->memory_map[sample_pos + (sample_ratio * x)];
 
 				//Scale S8 audio to S16
-				stream[x] += (nds_sample_8 * 256);
-
-				//Adjust volume level
-				stream[x] *= vol;
+				stream[x] += ((nds_sample_8 * 256) * vol);
 
 				if(data_addr >= (apu_stat.channel[id].data_src + apu_stat.channel[id].samples))
 				{
@@ -193,10 +190,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				data_addr &= ~0x1;
 				nds_sample_16 = mem->read_u16_fast(data_addr);
 
-				stream[x] += nds_sample_16;
-
-				//Adjust volume level
-				stream[x] *= vol;
+				stream[x] += (nds_sample_16 * vol);
 
 				if(data_addr >= (apu_stat.channel[id].data_src + apu_stat.channel[id].samples))
 				{
@@ -225,10 +219,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 				if(data_pos > apu_stat.channel[id].adpcm_buffer.size()) { data_pos = (apu_stat.channel[id].adpcm_buffer.size() - 1); }
 				nds_sample_16 = apu_stat.channel[id].adpcm_buffer[data_pos];
 
-				stream[x] += nds_sample_16;
-
-				//Adjust volume level
-				stream[x] *= vol;
+				stream[x] += (nds_sample_16 * vol);
 
 				if(data_pos >= apu_stat.channel[id].samples)
 				{
