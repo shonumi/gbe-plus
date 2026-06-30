@@ -1475,7 +1475,8 @@ void NTR_LCD::render_obj_scanline(u32 bg_control)
 
 		else
 		{
-			pal_id = (ext_pal) ? (obj[obj_id].palette_number << 8) : (obj[obj_id].palette_number << 4);
+			pal_id = obj[obj_id].palette_number << 4;
+			ext_pal = false;
 		}
 		
 		//Check to see if OBJ is even onscreen
