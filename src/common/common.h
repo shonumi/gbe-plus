@@ -42,6 +42,15 @@ const u32 CPSR_MODE_ABT = 0x17;
 const u32 CPSR_MODE_UND = 0x1B;
 const u32 CPSR_MODE_SYS = 0x1F;
 
+/* Signed MIN-MAX Ranges */
+const s32 MIN_8 = -128;
+const s32 MAX_8 = 127;
+const s32 MIN_16 = -32768;
+const s32 MAX_16 = 32767;
+const s64 MIN_32 = -2147483648;
+const s64 MAX_32 = 2147483647;
+
+/* Core Save State Versioning */
 const u32 DMG_SAVE_STATE_VERSION = 0x05;
 const u32 SGB_SAVE_STATE_VERSION = 0x05;
 const u32 AGB_SAVE_STATE_VERSION = 0x05;

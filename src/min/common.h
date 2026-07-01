@@ -15,12 +15,8 @@
 #define PM_COMMON
 
 //CPU Overflow
-const s32 MIN_8 = -128;
-const s32 MAX_8 = 127;
 const s32 MIN_8_UNPACK = -8;
 const s32 MAX_8_UNPACK = 7;
-const s32 MIN_16 = -32768;
-const s32 MAX_16 = 32767;
 
 //ROM Header
 const u32 MIN_GAME_CODE = 0x21AC;
