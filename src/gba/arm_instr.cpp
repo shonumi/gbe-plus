@@ -287,11 +287,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition)
-			{
-				update_condition_arithmetic(input, (u64(operand) + shift_out), result, true);
-			}
-
+			if(set_condition) { update_condition_arithmetic(input, operand, result, true, shift_out); }
 			break;
 
 		//SBC
@@ -303,8 +299,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, (u64(operand) - shift_out + 1), result, false); }
-
+			if(set_condition) { update_condition_arithmetic(input, operand, result, false, (-shift_out + 1)); }
 			break;
 
 		//RSC
@@ -316,7 +311,7 @@ void ARM7::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(operand, (u64(input) - shift_out + 1), result, false); }
+			if(set_condition) { update_condition_arithmetic(operand, input, result, false, (-shift_out + 1)); }
 			break;
 
 		//TST
