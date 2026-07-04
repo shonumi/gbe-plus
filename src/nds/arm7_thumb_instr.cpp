@@ -306,7 +306,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 		//ADC
 		case 0x5:
 			result = (input + operand + carry_out);
-			update_condition_arithmetic(input, operand, result, true);
+			update_condition_arithmetic(input, operand, result, true, carry_out);
 
 			set_reg(dest_reg, result);
 
@@ -319,7 +319,7 @@ void NTR_ARM7::alu_ops(u16 current_thumb_instruction)
 			else { carry_out = 1; }
 
 			result = (input - operand - carry_out);
-			update_condition_arithmetic(input, operand, result, false);
+			update_condition_arithmetic(input, operand, result, false, -carry_out);
 
 			set_reg(dest_reg, result);
 
