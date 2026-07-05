@@ -280,7 +280,7 @@ class NTR_ARM9
 
 	//Misc CPU helpers
 	void update_condition_logical(u32 result, u8 shift_out);
-	void update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition);
+	void update_condition_arithmetic(u32 input, u32 operand, u32 result, bool addition, s64 carry_op = 0);
 	u8 update_sticky_overflow(u32 input, u32 operand, u32 result, bool addition);
 	bool check_condition(u32 current_arm_instruction) const;
 	u8 logical_shift_left(u32& input, u8 offset);

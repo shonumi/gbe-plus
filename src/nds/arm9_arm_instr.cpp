@@ -319,12 +319,7 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition)
-			{
-				update_condition_arithmetic(input, (operand + shift_out), result, true);
-				if(shift_out && ((input == 0xFFFFFFFF) || (operand == 0xFFFFFFFF))) { reg.cpsr |= CPSR_C_FLAG; }
-			}
-
+			if(set_condition) { update_condition_arithmetic(input, operand, result, true, shift_out); }
 			break;
 
 		//SBC
@@ -336,7 +331,7 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic(input, (operand + shift_out - 1), result, false); }
+			if(set_condition) { update_condition_arithmetic(input, operand, result, false, (-shift_out + 1)); }
 			break;
 
 		//RSC
@@ -348,7 +343,7 @@ void NTR_ARM9::data_processing(u32 current_arm_instruction)
 			set_reg(dest_reg, result);
 
 			//Update condtion codes
-			if(set_condition) { update_condition_arithmetic((operand + shift_out - 1), input, result, false); }
+			if(set_condition) { update_condition_arithmetic(operand, input, result, false, (-shift_out + 1)); }
 			break;
 
 		//TST
