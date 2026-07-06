@@ -198,6 +198,23 @@ void NTR_MMU::reset()
 	dtcm.clear();
 	dtcm.resize(0x4000, 0);
 
+	pal_a_bg_slot[0] = 0x6880000;
+	pal_a_bg_slot[1] = 0x6890000;
+	pal_a_bg_slot[2] = 0x6894000;
+	pal_a_bg_slot[3] = 0x6894000;
+
+	pal_b_bg_slot[0] = 0x6898000;
+	pal_b_bg_slot[1] = 0x689A000;
+	pal_b_bg_slot[2] = 0x689C000;
+	pal_b_bg_slot[3] = 0x689E000;
+
+	pal_a_obj_slot[0] = 0x6890000;
+
+	vram_tex_slot[0] = 0;
+	vram_tex_slot[1] = 0;
+	vram_tex_slot[2] = 0;
+	vram_tex_slot[3] = 0;
+
 	//HLE MMIO stuff
 	if(!config::use_bios || !config::use_firmware)
 	{
@@ -368,23 +385,6 @@ void NTR_MMU::reset()
 	g_pad = nullptr;
 	nds9_timer = nullptr;
 	nds7_timer = nullptr;
-
-	pal_a_bg_slot[0] = 0x6880000;
-	pal_a_bg_slot[1] = 0x6890000;
-	pal_a_bg_slot[2] = 0x6894000;
-	pal_a_bg_slot[3] = 0x6894000;
-
-	pal_b_bg_slot[0] = 0x6898000;
-	pal_b_bg_slot[1] = 0x689A000;
-	pal_b_bg_slot[2] = 0x689C000;
-	pal_b_bg_slot[3] = 0x689E000;
-
-	pal_a_obj_slot[0] = 0x6890000;
-
-	vram_tex_slot[0] = 0;
-	vram_tex_slot[1] = 0;
-	vram_tex_slot[2] = 0;
-	vram_tex_slot[3] = 0;
 
 	bg_vram_bank_enable_a = false;
 	bg_vram_bank_enable_b = false;
