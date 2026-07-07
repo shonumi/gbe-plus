@@ -110,41 +110,53 @@ void NTR_LCD::reset()
 	full_scanline_render_b = false;
 
 	//BG palette initialization
-	lcd_stat.bg_pal_update_a = true;
-	lcd_stat.bg_pal_update_b = true;
+	lcd_stat.bg_pal_update_a = false;
+	lcd_stat.bg_pal_update_b = false;
 
 	for(u32 x = 0; x < 0x100; x++)
 	{
-		lcd_stat.bg_pal_update_list_a[x] = true;
-		lcd_stat.bg_pal_update_list_b[x] = true;
+		lcd_stat.bg_pal_update_list_a[x] = false;
+		lcd_stat.bg_pal_update_list_b[x] = false;
+		
+		lcd_stat.bg_pal_a[x] = 0;
+		lcd_stat.bg_pal_b[x] = 0;
 	}
 
-	lcd_stat.bg_ext_pal_update_a = true;
-	lcd_stat.bg_ext_pal_update_b = true;
+	lcd_stat.bg_ext_pal_update_a = false;
+	lcd_stat.bg_ext_pal_update_b = false;
 
 	for(u32 x = 0; x < 0x4000; x++)
 	{
-		lcd_stat.bg_ext_pal_update_list_a[x] = true;
-		lcd_stat.bg_ext_pal_update_list_b[x] = true;
+		lcd_stat.bg_ext_pal_update_list_a[x] = false;
+		lcd_stat.bg_ext_pal_update_list_b[x] = false;
+		
+		lcd_stat.bg_ext_pal_a[x] = 0;
+		lcd_stat.bg_ext_pal_b[x] = 0;
 	}
 
 	//OBJ palette initialization
-	lcd_stat.obj_pal_update_a = true;
-	lcd_stat.obj_pal_update_b = true;
+	lcd_stat.obj_pal_update_a = false;
+	lcd_stat.obj_pal_update_b = false;
 
 	for(u32 x = 0; x < 0x100; x++)
 	{
-		lcd_stat.obj_pal_update_list_a[x] = true;
-		lcd_stat.obj_pal_update_list_b[x] = true;
+		lcd_stat.obj_pal_update_list_a[x] = false;
+		lcd_stat.obj_pal_update_list_b[x] = false;
+
+		lcd_stat.obj_pal_a[x] = 0;
+		lcd_stat.obj_pal_b[x] = 0;
 	}
 
-	lcd_stat.obj_ext_pal_update_a = true;
-	lcd_stat.obj_ext_pal_update_b = true;
+	lcd_stat.obj_ext_pal_update_a = false;
+	lcd_stat.obj_ext_pal_update_b = false;
 
 	for(u32 x = 0; x < 0x1000; x++)
 	{
-		lcd_stat.obj_ext_pal_update_list_a[x] = true;
-		lcd_stat.obj_ext_pal_update_list_b[x] = true;
+		lcd_stat.obj_ext_pal_update_list_a[x] = false;
+		lcd_stat.obj_ext_pal_update_list_b[x] = false;
+
+		lcd_stat.obj_ext_pal_a[x] = 0;
+		lcd_stat.obj_ext_pal_b[x] = 0;
 	}
 
 	//SFX and Window initialization
@@ -152,13 +164,13 @@ void NTR_LCD::reset()
 	lcd_stat.current_sfx_type_b = NDS_NORMAL;
 
 	//OAM and OBJ initialization
-	lcd_stat.oam_update = true;
+	lcd_stat.oam_update = false;
 	obj_render_length_a = 0;
 	obj_render_length_b = 0;
 
 	for(u32 x = 0; x < 0x100; x++)
 	{
-		lcd_stat.oam_update_list[x] = true;
+		lcd_stat.oam_update_list[x] = false;
 	}
 
 	for(int x = 0; x < 0x100; x++)
