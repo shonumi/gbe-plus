@@ -4015,6 +4015,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				if(next_start_flag && !last_start_flag)
 				{
 					apu_stat->channel[apu_io_id].playing = true;
+					apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 4)) & 0x7FFFFFC;
 
 					//Determine loop start offset and sample length
 					switch(apu_stat->channel[apu_io_id].format)
