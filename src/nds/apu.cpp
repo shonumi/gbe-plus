@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "apu.h"
+#include "common/util.h"
 
 /****** APU Constructor ******/
 NTR_APU::NTR_APU()
@@ -304,14 +305,14 @@ void NTR_APU::decode_adpcm_samples(u8 id)
 		if(half_byte & 0x2) { diff += (apu_stat.adpcm_table[apu_stat.channel[id].adpcm_index] / 2); }
 		if(half_byte & 0x4) { diff += apu_stat.adpcm_table[apu_stat.channel[id].adpcm_index]; }
 
-		high_result = apu_stat.channel[id].adpcm_val + diff;
+		high_result = s16(apu_stat.channel[id].adpcm_val) + diff;
 		if(high_result > 32767) { high_result = 32767; }
 
-		low_result = apu_stat.channel[id].adpcm_val - diff;
+		low_result = s16(apu_stat.channel[id].adpcm_val) - diff;
 		if(low_result < -32768) { low_result = -32768; }
 
-		if(half_byte & 0x8) { apu_stat.channel[id].adpcm_val = high_result; }
-		else { apu_stat.channel[id].adpcm_val = low_result; }
+		if(half_byte & 0x8) { apu_stat.channel[id].adpcm_val = low_result; }
+		else { apu_stat.channel[id].adpcm_val = high_result; }
 
 		//Calculate next index
 		next_index = apu_stat.channel[id].adpcm_index + apu_stat.index_table[half_byte & 0x7];
