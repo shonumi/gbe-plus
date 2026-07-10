@@ -13,13 +13,13 @@
 #define GBE_NET_UTIL
 
 #include <string>
-
 #include <SDL.h>
-#include <SDL_net.h>
 
 #include "common.h"
 
 #ifdef GBE_NETPLAY
+
+#include <SDL_net.h>
 
 enum net_comm_role
 {
