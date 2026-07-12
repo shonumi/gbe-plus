@@ -282,17 +282,19 @@ void NTR_APU::decode_adpcm_samples(u8 id)
 	s32 high_result, low_result = 0;
 	s16 next_index;
 
+	u32 adpcm_addr = apu_stat.channel[id].data_src + 4;
+
 	//Decode IMA-ADPCM from memory
 	while(current_pos < apu_stat.channel[id].samples)
 	{
 		//Verify data read address first
-		if((apu_stat.channel[id].data_src + (current_pos >> 1)) >= 0x10000000) { return; }
+		if((adpcm_addr + (current_pos >> 1)) >= 0x10000000) { return; }
 
 		//Grab data from memory, 1 byte at a time for every 2 samples
 		//Also determine if current sample uses upper or lower half of byte from memory
 		if((current_pos & 0x1) == 0)
 		{
-			full_byte = mem->memory_map[apu_stat.channel[id].data_src + (current_pos >> 1)];
+			full_byte = mem->memory_map[adpcm_addr + (current_pos >> 1)];
 			half_byte = (full_byte & 0xF);
 		}
 
