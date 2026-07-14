@@ -850,6 +850,67 @@ void DMG_core::debug_process_command()
 			}
 		}
 
+		//Dump memory range
+		else if(dbg_util::check_command_len(command, "dm", dbg_util::HEX_PARAMETER))
+		{
+			bool valid_value = false;
+			u32 mem_location = 0;
+			u32 mem_size = 0;
+
+			//Convert hex string into usable u32
+			valid_command = dbg_util::validate_command(command, "dm", dbg_util::HEX_PARAMETER, mem_location);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid memory address : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nInput dump size: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), mem_size);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+				}
+
+				std::vector<u8> mem_dump;
+				std::ofstream file("memory_dump.bin", std::ios::binary);
+
+				for(u32 x = 0; x < mem_size; x++)
+				{
+					mem_dump.push_back(core_mmu.read_u8(mem_location + x));
+				}
+
+				if(!file.is_open()) 
+				{
+					std::cout<<"GBE::Error - Debug memory dump could not be written. Check file path or permissions. \n";
+				}
+				
+				else
+				{
+					file.write(reinterpret_cast<char*> (&mem_dump[0]), mem_dump.size());
+					std::cout<<"GBE::Debug memory dump saved to memory_dump.bin\n";
+				}
+
+				file.close();
+			}
+
+			valid_command = true;
+			db_unit.last_command = "dm";
+			debug_process_command();
+		}
+
 		//Toggle display of CPU cycles
 		else if(command == "dc")
 		{
@@ -1028,6 +1089,7 @@ void DMG_core::debug_process_command()
 			std::cout<<"rom\n\tDisplay current ROM bank (if any)\n\n";
 			std::cout<<"ram\n\tDisplay current RAM bank (if any)\n\n";
 			std::cout<<"dz\n\tDisassembles some SM83 instructions\n\tFormat 0x1234 for addr\n\n";
+			std::cout<<"dm\n\tDumps memory to file\n\tFormat 0x1234 for addr and 0x1234 for size\n\n";
 			std::cout<<"dq\n\tQuit the debugger\n\n";
 			std::cout<<"dc\n\tToggle CPU cycle display\n\n";
 			std::cout<<"cr\n\tReset CPU cycle counter\n\n";
