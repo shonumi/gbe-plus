@@ -1972,8 +1972,6 @@ bool load_ini_file(std::string filename)
 			result = false;
 		}
 
-		bool config_result = false;
-
 		//Test for Linux or Unix install location next
 		if(!unix_str.empty())
 		{
@@ -1981,12 +1979,13 @@ bool load_ini_file(std::string filename)
 			if(gbe_info::get_install_folder().empty())
 			{
 				last_chr = unix_str[unix_str.length() - 1];
-				config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
-				config::data_path = config::cfg_path + "data/";
 
 				//Standard .ini
 				if(filename == "gbe.ini")
 				{
+					config::cfg_path = (last_chr == "/") ? unix_str + ".gbe_plus/" : unix_str + "/.gbe_plus/";
+					config::data_path = config::cfg_path + "data/";
+
 					unix_str += (last_chr == "/") ? ".gbe_plus/gbe.ini" : "/.gbe_plus/gbe.ini";
 					config::ini_file = unix_str;
 				}
@@ -2003,12 +2002,13 @@ bool load_ini_file(std::string filename)
 			else
 			{
 				last_chr = unix_str[unix_str.length() - 1];
-				config::cfg_path = (last_chr == "/") ? unix_str : unix_str + "/";
-				config::data_path = config::cfg_path + "data/";
 
 				//Standard .ini
 				if(filename == "gbe.ini")
 				{
+					config::cfg_path = (last_chr == "/") ? unix_str : unix_str + "/";
+					config::data_path = config::cfg_path + "data/";
+
 					unix_str = config::cfg_path + "gbe.ini";
 					config::ini_file = unix_str;
 				}
@@ -2040,12 +2040,13 @@ bool load_ini_file(std::string filename)
 		{
 			//Generate paths to home directory if using AppData environment variable
 			last_chr = win_str[win_str.length() - 1];
-			config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
-			config::data_path = config::cfg_path + "data/";
 
 			//Standard .ini
 			if(filename == "gbe.ini")
 			{
+				config::cfg_path = (last_chr == "\\") ? win_str + "gbe_plus/" : win_str + "/gbe_plus/";
+				config::data_path = config::cfg_path + "data/";
+
 				win_str += (last_chr == "\\") ? "gbe_plus/gbe.ini" : "/gbe_plus/gbe.ini";
 				config::ini_file = win_str;
 			}
