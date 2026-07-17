@@ -2077,6 +2077,9 @@ bool load_ini_file(std::string filename)
 	//Generate substitute ini file if necessary
 	if((!result) && (util::get_filename_from_path(filename) == "gbe.ini"))
 	{
+		config::data_path = "./data/";
+		config::cfg_path = "";
+
 		result = generate_ini_file();
 		if(!result) { return false; }
 	}
