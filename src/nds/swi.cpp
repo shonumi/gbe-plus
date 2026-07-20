@@ -1539,6 +1539,7 @@ void NTR_ARM7::swi_getsinetable()
 	if(index > 64)
 	{
 		std::cout<<"ARM7::SWI::Warning - Invalid GetSineTable index results in garbage data\n";
+		return;
 	}
 
 	reg.r0 = sine_lut[index];
@@ -1552,6 +1553,7 @@ void NTR_ARM7::swi_getpitchtable()
 	if(index > 768)
 	{
 		std::cout<<"ARM7::SWI::Warning - Invalid GetPitchTable index results in garbage data\n";
+		return;
 	}
 
 	reg.r0 = pitch_lut[index];
@@ -1565,6 +1567,7 @@ void NTR_ARM7::swi_getvolumetable()
 	if(index > 723)
 	{
 		std::cout<<"ARM7::SWI::Warning - Invalid GetVolumeTable index results in garbage data\n";
+		return;
 	}
 
 	reg.r0 = vol_lut[index];
