@@ -163,7 +163,7 @@ u16 pitch_lut[768]
 	0xFC51, 0xFCC7, 0xFD3C, 0xFDB2, 0xFE28, 0xFE9E, 0xFF14, 0xFF8A
 };
 
-u16 sine_lut[64]
+u16 nds7_sine_lut[64]
 {
 	0x0000, 0x0324, 0x0648, 0x096A, 0x0C8C, 0x0FAB, 0x12C8, 0x15E2,
 	0x18F9, 0x1C0B, 0x1F1A, 0x2223, 0x2528, 0x2826, 0x2B1F, 0x2E11,
@@ -943,19 +943,19 @@ void NTR_ARM7::process_swi(u32 comment)
 
 		//GetSineTable
 		case 0x1A:
-			std::cout<<"ARM7::SWI::GetSineTable\n";
+			//std::cout<<"ARM7::SWI::GetSineTable\n";
 			swi_getsinetable();
 			break;
 
 		//GetPitchTable
 		case 0x1B:
-			std::cout<<"ARM7::SWI::GetPitchTable\n";
+			//std::cout<<"ARM7::SWI::GetPitchTable\n";
 			swi_getpitchtable();
 			break;
 
 		//GetVolumeTable
 		case 0x1C:
-			std::cout<<"ARM7::SWI::GetVolumeTable \n";
+			//std::cout<<"ARM7::SWI::GetVolumeTable \n";
 			swi_getvolumetable();
 			break;
 
@@ -1542,7 +1542,7 @@ void NTR_ARM7::swi_getsinetable()
 		return;
 	}
 
-	reg.r0 = sine_lut[index];
+	reg.r0 = nds7_sine_lut[index];
 }
 
 /****** HLE implementation of GetPitchTable - NDS7 ******/

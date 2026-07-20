@@ -71,16 +71,19 @@ void AGB_LCD::reset()
 	scanline_buffer.resize(0x100, 0);
 
 	//Initialize various LCD status variables
-	lcd_stat.oam_update = true;
-	for(int x = 0; x < 128; x++) { lcd_stat.oam_update_list[x] = true; }
+	lcd_stat.oam_update = false;
+	for(int x = 0; x < 128; x++) { lcd_stat.oam_update_list[x] = false; }
 
-	lcd_stat.bg_pal_update = true;
-	lcd_stat.obj_pal_update = true;
+	lcd_stat.bg_pal_update = false;
+	lcd_stat.obj_pal_update = false;
 
 	for(int x = 0; x < 256; x++)
 	{
-		lcd_stat.bg_pal_update_list[x] = true;
-		lcd_stat.obj_pal_update_list[x] = true;
+		lcd_stat.bg_pal_update_list[x] = false;
+		pal[x][0] = 0xFF000000;
+		
+		lcd_stat.obj_pal_update_list[x] = false;
+		pal[x][1] = 0xFF000000;
 	}
 
 	lcd_stat.frame_base = 0x6000000;
@@ -94,6 +97,16 @@ void AGB_LCD::reset()
 	lcd_stat.in_window = false;
 	lcd_stat.obj_win_enable = false;
 	lcd_stat.current_sfx_type = NORMAL;
+
+	lcd_stat.brightness_coef = 0;
+	lcd_stat.alpha_a_coef = 0;
+	lcd_stat.alpha_b_coef = 0;
+
+	for(int x = 0; x < 6; x++)
+	{
+		lcd_stat.sfx_target[x][0] = 0;
+		lcd_stat.sfx_target[x][1] = 0;
+	}
 
 	//BG2/3 affine parameters
 	for(int x = 0; x < 2; x++)
