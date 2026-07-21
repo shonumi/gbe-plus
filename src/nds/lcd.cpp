@@ -118,8 +118,8 @@ void NTR_LCD::reset()
 		lcd_stat.bg_pal_update_list_a[x] = false;
 		lcd_stat.bg_pal_update_list_b[x] = false;
 		
-		lcd_stat.bg_pal_a[x] = 0;
-		lcd_stat.bg_pal_b[x] = 0;
+		lcd_stat.bg_pal_a[x] = 0xFF000000;
+		lcd_stat.bg_pal_b[x] = 0xFF000000;
 	}
 
 	lcd_stat.bg_ext_pal_update_a = false;
@@ -130,8 +130,8 @@ void NTR_LCD::reset()
 		lcd_stat.bg_ext_pal_update_list_a[x] = false;
 		lcd_stat.bg_ext_pal_update_list_b[x] = false;
 		
-		lcd_stat.bg_ext_pal_a[x] = 0;
-		lcd_stat.bg_ext_pal_b[x] = 0;
+		lcd_stat.bg_ext_pal_a[x] = 0xFF000000;
+		lcd_stat.bg_ext_pal_b[x] = 0xFF000000;
 	}
 
 	//OBJ palette initialization
@@ -143,8 +143,8 @@ void NTR_LCD::reset()
 		lcd_stat.obj_pal_update_list_a[x] = false;
 		lcd_stat.obj_pal_update_list_b[x] = false;
 
-		lcd_stat.obj_pal_a[x] = 0;
-		lcd_stat.obj_pal_b[x] = 0;
+		lcd_stat.obj_pal_a[x] = 0xFF000000;
+		lcd_stat.obj_pal_b[x] = 0xFF000000;
 	}
 
 	lcd_stat.obj_ext_pal_update_a = false;
@@ -155,8 +155,8 @@ void NTR_LCD::reset()
 		lcd_stat.obj_ext_pal_update_list_a[x] = false;
 		lcd_stat.obj_ext_pal_update_list_b[x] = false;
 
-		lcd_stat.obj_ext_pal_a[x] = 0;
-		lcd_stat.obj_ext_pal_b[x] = 0;
+		lcd_stat.obj_ext_pal_a[x] = 0xFF000000;
+		lcd_stat.obj_ext_pal_b[x] = 0xFF000000;
 	}
 
 	//SFX and Window initialization
