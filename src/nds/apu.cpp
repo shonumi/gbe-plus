@@ -170,9 +170,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 					if(loop_mode == 1)
 					{
 						u32 src_addr = mem->read_u32_fast(NDS_SOUNDXSAD | (id << 4)) & 0x7FFFFFF;
-						apu_stat.channel[id].data_src = src_addr + (apu_stat.channel[id].loop_start * 4);
-						apu_stat.channel[id].data_pos = apu_stat.channel[id].data_src;
-						apu_stat.channel[id].samples = (apu_stat.channel[id].length * 4);
+						apu_stat.channel[id].data_pos = src_addr + (apu_stat.channel[id].loop_start * 4);
 					}
 					
 					//Stop sound
@@ -199,9 +197,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 					if(loop_mode == 1)
 					{
 						u32 src_addr = mem->read_u32_fast(NDS_SOUNDXSAD | (id << 4)) & 0x7FFFFFF;
-						apu_stat.channel[id].data_src = src_addr + (apu_stat.channel[id].loop_start * 2);
-						apu_stat.channel[id].data_pos = apu_stat.channel[id].data_src;
-						apu_stat.channel[id].samples = (apu_stat.channel[id].length * 2);
+						apu_stat.channel[id].data_pos = src_addr + (apu_stat.channel[id].loop_start * 4);
 					}
 					
 					//Stop sound
