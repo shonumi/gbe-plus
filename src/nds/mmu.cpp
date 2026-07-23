@@ -4078,6 +4078,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 			if(access_mode) { return; }
 			memory_map[address | (apu_io_id << 4)] = value;
 			apu_stat->channel[apu_io_id].data_src = read_u32_fast(NDS_SOUNDXSAD | (apu_io_id << 4)) & 0x7FFFFFC;
+			apu_stat->channel[apu_io_id].play_src = apu_stat->channel[apu_io_id].data_src;
 
 			//Calculate loop start offset
 			switch(apu_stat->channel[apu_io_id].format)

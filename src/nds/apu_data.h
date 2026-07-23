@@ -20,6 +20,7 @@ struct ntr_apu_data
 	struct digital_channels
 	{
 		double output_frequency;
+		u32 play_src;
 		u32 data_src;
 		u32 data_pos;
 		u32 loop_start;
