@@ -751,24 +751,6 @@ bool MIN_MMU::read_file(std::string filename)
 	std::cout<<"MMU::ROM CRC32: " << std::hex << util::get_crc32(&memory_map[0x2100], file_size) << "\n";
 	std::cout<<"MMU::" << filename << " loaded successfully. \n";
 
-	//Apply patches to the ROM data
-	if(config::use_patches)
-	{
-		std::size_t dot = filename.find_last_of(".");
-		if(dot == std::string::npos) { dot = filename.size(); }
-
-		std::string patch_file = filename.substr(0, dot);
-
-		//Attempt a IPS patch
-		bool patch_pass = util::patch_ips((patch_file + ".ips"), memory_map, 0, 0x200000);
-
-		//Attempt a UPS patch
-		if(!patch_pass)
-		{
-			patch_pass = util::patch_ups((patch_file + ".ups"), memory_map, 0, 0x200000);
-		}
-	}
-
 	load_backup(config::save_file);
 
 	return true;
