@@ -551,14 +551,13 @@ std::string to_hex_str(u32 input, u8 bit_level)
 {
 	std::stringstream temp;
 	std::string result = "";
-	u32 num = (input & 0xFF);
 
 	//Limit to 32-bit max, 8-bit as min
 	if(bit_level > 4) { bit_level = 4; }
 	if(bit_level < 1) { bit_level = 1; }
 
 	u8 str_len = bit_level * 2;
-	temp << std::hex << std::uppercase << num;
+	temp << std::hex << std::uppercase << input;
 	result += temp.str();
 
 	while(result.length() < str_len)
