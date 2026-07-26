@@ -464,12 +464,6 @@ u16 DMG_MMU::read_u16(u16 address)
 /****** Write Byte To Memory ******/
 void DMG_MMU::write_u8(u16 address, u8 value) 
 {
-	//Advanced debugging
-	#ifdef GBE_DEBUG
-	debug_write = true;
-	debug_addr = address;
-	#endif
-
 	if(cart.mbc_type != ROM_ONLY) 
 	{
 		mbc_write(address, value);
@@ -1469,6 +1463,12 @@ void DMG_MMU::write_u8(u16 address, u8 value)
 	}
 
 	else if(address > 0x7FFF) { memory_map[address] = value; }
+
+	//Advanced debugging
+	#ifdef GBE_DEBUG
+	debug_write = true;
+	debug_addr = address;
+	#endif
 }
 
 /****** Write word to memory ******/
