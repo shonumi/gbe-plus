@@ -23,6 +23,7 @@ AGB_core::AGB_core()
 {
 	//Link CPU and MMU
 	core_cpu.mem = &core_mmu;
+	core_mmu.set_cpu_pc(&core_cpu.reg.r15);
 
 	//Link LCD and MMU
 	core_cpu.controllers.video.mem = &core_mmu;

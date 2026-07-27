@@ -274,7 +274,7 @@ u8 AGB_MMU::read_u8(u32 address)
 
 		//Unused memory at 0x10000000 and above
 		default:
-			//std::cout<<"Out of bounds read : 0x" << std::hex << address << "\n";
+			std::cout<<"Out of bounds read : 0x" << std::hex << address << " @ 0x" << *pc << "\n";
 			return 0;
 			
 	}
@@ -671,7 +671,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//Unused memory at 0x10000000 and above
 		default:
-			//std::cout<<"Out of bounds write : 0x" << std::hex << address << "\n";
+			std::cout<<"Out of bounds write : 0x" << std::hex << address << " @ 0x" << *pc << "\n";
 			return;
 	}
 
@@ -3585,6 +3585,9 @@ void AGB_MMU::set_sio_data(agb_sio_data* ex_sio_stat) { sio_stat = ex_sio_stat; 
 
 /****** Points the MMU to a mag_watch structure (FROM SIO ITSELF) ******/
 void AGB_MMU::set_mw_data(mag_watch* ex_mw_data) { mw = ex_mw_data; }
+
+/****** Points the MMU to the CPU Program Counter ******/
+void AGB_MMU::set_cpu_pc(u32* ex_pc) { pc = ex_pc; }
 
 /****** Read MMU data from save state ******/
 bool AGB_MMU::mmu_read(u32 offset, std::string filename)

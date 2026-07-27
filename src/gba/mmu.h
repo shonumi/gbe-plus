@@ -805,6 +805,7 @@ class AGB_MMU
 	void set_apu_data(agb_apu_data* ex_apu_stat);
 	void set_sio_data(agb_sio_data* ex_sio_stat);
 	void set_mw_data(mag_watch* ex_mw_data);
+	void set_cpu_pc(u32* ex_pc);
 
 	AGB_GamePad* g_pad;
 	std::vector<gba_timer>* timer;
@@ -827,6 +828,8 @@ class AGB_MMU
 
 	//Only the MMU and SIO should communicate through this structure
 	mag_watch* mw;
+
+	u32 *pc;
 };
 
 #endif // GBA_MMU
