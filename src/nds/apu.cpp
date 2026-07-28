@@ -109,7 +109,7 @@ bool NTR_APU::init()
 	//Setup the desired audio specifications
     	desired_spec.freq = apu_stat.sample_rate;
 	desired_spec.format = AUDIO_S16SYS;
-    	desired_spec.channels = 1;
+	desired_spec.channels = (config::use_stereo) ? 2 : 1;
     	desired_spec.samples = (config::sample_size) ? config::sample_size : 4096;
     	desired_spec.callback = ntr_audio_callback;
     	desired_spec.userdata = this;
@@ -147,11 +147,15 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	s16 nds_sample_16 = 0;
 	u32 samples_played = 0;
 	u32 adpcm_pos = 0;
+	u32 segment_pos = 0;
+	s32 output_sample = 0;
 
-	for(u32 x = 0; x < length; x++)
+	for(u32 x = 0; x < length;)
 	{
+		segment_pos = (config::use_stereo) ? (x/2) : x;
+
 		//Channel 0 should set default data
-		if(id == 0) { stream[x] = 0; }
+		if(id == 0) { output_sample = 0; }
 
 		//Pull data from NDS memory
 		if((apu_stat.channel[id].samples) && (apu_stat.channel[id].playing))
@@ -159,11 +163,11 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			//PCM8
 			if(apu_stat.channel[id].format == 0)
 			{
-				u32 data_addr = (sample_pos + (sample_ratio * x));
-				nds_sample_8 = mem->memory_map[sample_pos + (sample_ratio * x)];
+				u32 data_addr = (sample_pos + (sample_ratio * segment_pos));
+				nds_sample_8 = mem->memory_map[sample_pos + (sample_ratio * segment_pos)];
 
 				//Scale S8 audio to S16
-				stream[x] += ((nds_sample_8 * 256) * vol);
+				output_sample = ((nds_sample_8 * 256) * vol);
 
 				if(data_addr >= (apu_stat.channel[id].play_src + apu_stat.channel[id].samples))
 				{
@@ -185,11 +189,11 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			//PCM16
 			else if(apu_stat.channel[id].format == 1)
 			{
-				u32 data_addr = (sample_pos + (sample_ratio * x));
+				u32 data_addr = (sample_pos + (sample_ratio * segment_pos));
 				data_addr &= ~0x1;
 				nds_sample_16 = mem->read_u16_fast(data_addr);
 
-				stream[x] += (nds_sample_16 * vol);
+				output_sample = (nds_sample_16 * vol);
 
 				if(data_addr >= (apu_stat.channel[id].play_src + apu_stat.channel[id].samples))
 				{
@@ -211,11 +215,11 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			//IMA-ADPCM
 			else if(apu_stat.channel[id].format == 2)
 			{
-				u32 data_pos = (apu_stat.channel[id].adpcm_pos + (sample_ratio * x));
+				u32 data_pos = (apu_stat.channel[id].adpcm_pos + (sample_ratio * segment_pos));
 				if(data_pos > apu_stat.channel[id].adpcm_buffer.size()) { data_pos = (apu_stat.channel[id].adpcm_buffer.size() - 1); }
 				nds_sample_16 = apu_stat.channel[id].adpcm_buffer[data_pos];
 
-				stream[x] += (nds_sample_16 * vol);
+				output_sample = (nds_sample_16 * vol);
 
 				if(data_pos >= apu_stat.channel[id].samples)
 				{
@@ -236,13 +240,28 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 
 			}
 
-			else { stream[x] += (-32768 * vol); }
+			else { output_sample = (-32768 * vol); }
 
 			samples_played++;
 		}
 
 		//Generate silence if sound has run out of samples or is not playing
-		else { stream[x] += (-32768 * vol); }
+		else { output_sample = (-32768 * vol); }
+
+		//Move output sample to sample buffer
+		//Adjust volume for stereo panning if necessary
+		if(config::use_stereo)
+		{
+			stream[x] += output_sample;
+			stream[x + 1] += output_sample;
+			x += 2;
+		}
+
+		else
+		{
+			stream[x] += output_sample;
+			x += 1;
+		}
 	}
 
 	//Advance data pointer to sound samples
