@@ -143,6 +143,14 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	vol *= (apu_stat.main_volume / 127.0);
 	vol *= (config::volume / 128.0);
 
+	float pan_left = (127 - (apu_stat.channel[id].pan)) / 127.0;
+	float pan_right = (apu_stat.channel[id].pan / 127.0);
+
+	if(id == 4)
+	{
+		printf("PAN -> 0x%x\n", apu_stat.channel[id].pan);
+	}
+
 	s8 nds_sample_8 = 0;
 	s16 nds_sample_16 = 0;
 	u32 samples_played = 0;
@@ -252,8 +260,8 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 		//Adjust volume for stereo panning if necessary
 		if(config::use_stereo)
 		{
-			stream[x] += output_sample;
-			stream[x + 1] += output_sample;
+			stream[x] += (output_sample * pan_left);
+			stream[x + 1] += (output_sample * pan_right);
 			x += 2;
 		}
 
