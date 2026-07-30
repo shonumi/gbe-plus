@@ -472,9 +472,12 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 
 	if(apu_stat.ext_audio.buffer == nullptr) { return; }
 
+	bool is_src_mono = (apu_stat.ext_audio.channels == 1);
+
 	double sample_ratio = apu_stat.ext_audio.frequency/apu_stat.sample_rate;
 	u32 last_pos = apu_stat.ext_audio.sample_pos;
 	u32 buffer_pos = 0;
+	u32 output_sample = 0;
 
 	//Convert existing buffer to S16
 	s16* e_stream = (s16*) apu_stat.ext_audio.buffer;
@@ -489,58 +492,84 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 
 	for(int x = 0; x < length; x++)
 	{
-		buffer_pos = last_pos + (sample_ratio * x);
-		u32 temp_pos = (apu_stat.ext_audio.channels == 1) ? buffer_pos : (buffer_pos * 2);
-		apu_stat.ext_audio.last_pos = temp_pos;
+		//Stereo Input -> Stereo Output
+		//Mono Input -> Mono Output
+		if(config::use_stereo != is_src_mono)
+		{
+			buffer_pos = last_pos + (sample_ratio * x);
+		}
+
+		//Mono Input -> Stereo Output
+		else
+		{
+			buffer_pos = last_pos + (sample_ratio * (x/2));
+		}
+
+		apu_stat.ext_audio.last_pos = buffer_pos;
 
 		u32 sample_limit = (apu_stat.ext_audio.channels) ? (apu_stat.ext_audio.channels - 1) : 0;
-		sample_limit += temp_pos;
+		sample_limit += buffer_pos;
 
 		//Pull audio from buffer if possible
 		if(sample_limit < stream_size)
 		{
-			//Mono Audio
-			if(apu_stat.ext_audio.channels == 1)
+			//Mono Audio Input
+			if(is_src_mono)
 			{
 				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (temp_pos < karaoke_size)) 
+				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (buffer_pos < karaoke_size)) 
 				{
-					stream[x] = k_stream[temp_pos];
+					output_sample = k_stream[buffer_pos];
 
 					//When recording, use the karaoke track samples
 					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
 					{
-						e_stream[temp_pos] = stream[x];
+						e_stream[buffer_pos] = output_sample;
 					}
 				}
 
 				//Normal Audio
 				else
 				{
-					stream[x] = (is_seek_video) ? -32768 : e_stream[temp_pos];
+					output_sample = (is_seek_video) ? -32768 : e_stream[buffer_pos];
+				}
+
+				//Mono Input Audio to Mono Output Audio
+				if(!config::use_stereo)
+				{
+					stream[x] = output_sample;
+				}
+
+				//Mono Input Audio to Stereo Output Audio
+				else
+				{
+					stream[x] = output_sample;
+					stream[x + 1] = output_sample;
 				}
 			}
 
-			//Stereo Audio
+			//Stereo Audio Input
 			else
 			{
 				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && ((temp_pos + 1) < karaoke_size)) 
+				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (buffer_pos < karaoke_size)) 
 				{
-					s32 out_sample = (k_stream[temp_pos] + k_stream[temp_pos + 1]) / 2;
-					stream[x] = out_sample;
+					//Mono source to stereo output, 
+					stream[x] = k_stream[buffer_pos];
 
 					//When recording, use the karaoke track samples
 					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
 					{
-						e_stream[temp_pos] = stream[x];
+						e_stream[buffer_pos] = stream[x];
 					}
 				}
 
 				//Normal Audio
 				else
 				{
-					s32 out_sample = (e_stream[temp_pos] + e_stream[temp_pos + 1]) / 2;
+					//Mono source to stereo output, 
+					s32 out_sample = e_stream[buffer_pos];
+
 					stream[x] = (is_seek_video) ? -32768 : out_sample;
 				}
 			}	
@@ -590,7 +619,9 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				apu_stat.ext_audio.current_set++;
 				if(apu_stat.ext_audio.current_set >= 0x09) { apu_stat.ext_audio.current_set = 0; }
 			}
-		}	
+		}
+
+		x += (config::use_stereo) ? 2 : 1;
 	}
 
 	apu_stat.ext_audio.sample_pos = buffer_pos;
@@ -638,8 +669,9 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 {
 	s16* stream = (s16*) _stream;
 	int length = _length/2;
+	u32 ext_audio_length = length;
 
-	//Set correct length for stereo
+	//Set correct length for stereo for PSG and DMA channels
 	if(config::use_stereo) { length /= 2; }
 
 	std::vector<s16> channel_1_stream(length);
@@ -650,7 +682,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	std::vector<s16> dma_a_stream(length);
 	std::vector<s16> dma_b_stream(length);
 
-	std::vector<s16> ext_stream(length);
+	std::vector<s16> ext_stream(ext_audio_length);
 
 	AGB_APU* apu_link = (AGB_APU*) _apu;
 	apu_link->generate_channel_1_samples(&channel_1_stream[0], length);
@@ -726,7 +758,7 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 		//Generate raw samples (high quality)
 		if((apu_link->apu_stat.ext_audio.use_headphones) || (config::cart_type == AGB_CAMPHO) || (config::cart_type == AGB_TV_TUNER))
 		{
-			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], length);
+			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], ext_audio_length);
 		}
 
 		//Generate GBA samples (low quality)
@@ -736,29 +768,14 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 		}
 
 		//Custom software mixing
-		for(u32 x = 0; x < length; x++)
-		{
-			//Mono audio
-			if(!config::use_stereo)
-			{	
-				s32 out_sample = stream[x] + (ext_stream[x] * ext_ratio * emu_volume);
+		for(u32 x = 0; x < ext_audio_length; x++)
+		{	
+			s32 out_sample = stream[x] + (ext_stream[x] * ext_ratio * emu_volume);
 			
-				//Divide final wave by total amount of channels
-				out_sample /= 2;
+			//Divide final wave by total amount of channels
+			out_sample /= 2;
 
-				stream[x] = out_sample;
-			}
-
-			//Stereo audio - Mono for the time being, duplicated over L/R channels
-			else
-			{
-				s32 out_sample = stream[x] + (ext_stream[x >> 1] * ext_ratio * emu_volume);
-			
-				//Divide final wave by total amount of channels
-				out_sample /= 2;
-
-				stream[x] = out_sample;
-			}
+			stream[x] = out_sample;
 		}
 	}
 }
