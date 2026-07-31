@@ -473,112 +473,58 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	if(apu_stat.ext_audio.buffer == nullptr) { return; }
 
 	bool is_src_mono = (apu_stat.ext_audio.channels == 1);
+	bool is_karaoke = ((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]));
 
 	double sample_ratio = apu_stat.ext_audio.frequency/apu_stat.sample_rate;
-	u32 last_pos = apu_stat.ext_audio.sample_pos;
-	u32 buffer_pos = 0;
-	u32 output_sample = 0;
+	if(!is_src_mono) { sample_ratio /= 2.0; }
 
 	//Convert existing buffer to S16
-	s16* e_stream = (s16*) apu_stat.ext_audio.buffer;
-	s16* k_stream = (s16*) apu_stat.ext_audio.karaoke_buffer;
+	s16* e_stream = is_karaoke ? (s16*) apu_stat.ext_audio.karaoke_buffer : (s16*) apu_stat.ext_audio.buffer;
 
 	u32 set_size = (apu_stat.sample_rate / 60.0) / 9.0;
-	u32 stream_size = apu_stat.ext_audio.length / 2;
-	u32 karaoke_size = apu_stat.ext_audio.karaoke_length / 2;
+	u32 stream_size = is_karaoke ? (apu_stat.ext_audio.karaoke_length / 2) : (apu_stat.ext_audio.length / 2);
+	u32 src_length;
+
+	if(!is_src_mono && !config::use_stereo) { src_length = (length * 2); }
+	else if(is_src_mono && config::use_stereo) { src_length = (length / 2); }
+	else { src_length = length; }
 
 	//Play-Yan - Silence audio when seeking forwards/backwards through videos
 	bool is_seek_video = (mem->play_yan.is_video_playing && mem->play_yan.is_media_paused);
 
-	for(int x = 0; x < length; x++)
+	std::vector<s16> temp_buffer;
+	std::vector<s16> output_buffer;
+	temp_buffer.resize(src_length, -32768);
+
+	//Grab input stream at given sample ratio
+	for(u32 x = 0; x < src_length; x++)
 	{
-		//Stereo Input -> Stereo Output
-		//Mono Input -> Mono Output
-		if(config::use_stereo != is_src_mono)
+		u32 sample_pos = apu_stat.ext_audio.sample_pos + (sample_ratio * x);
+		if(!is_src_mono) { sample_pos *= 2; }
+
+		u32 sample_test_limit = is_src_mono ? sample_pos : (sample_pos + 1);
+		
+		//Grab sample data if available
+		if(sample_test_limit < stream_size)
 		{
-			buffer_pos = last_pos + (sample_ratio * x);
-		}
-
-		//Mono Input -> Stereo Output
-		else
-		{
-			buffer_pos = last_pos + (sample_ratio * (x/2));
-		}
-
-		apu_stat.ext_audio.last_pos = buffer_pos;
-
-		u32 sample_limit = (apu_stat.ext_audio.channels) ? (apu_stat.ext_audio.channels - 1) : 0;
-		sample_limit += buffer_pos;
-
-		//Pull audio from buffer if possible
-		if(sample_limit < stream_size)
-		{
-			//Mono Audio Input
 			if(is_src_mono)
 			{
-				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (buffer_pos < karaoke_size)) 
-				{
-					output_sample = k_stream[buffer_pos];
-
-					//When recording, use the karaoke track samples
-					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
-					{
-						e_stream[buffer_pos] = output_sample;
-					}
-				}
-
-				//Normal Audio
-				else
-				{
-					output_sample = (is_seek_video) ? -32768 : e_stream[buffer_pos];
-				}
-
-				//Mono Input Audio to Mono Output Audio
-				if(!config::use_stereo)
-				{
-					stream[x] = output_sample;
-				}
-
-				//Mono Input Audio to Stereo Output Audio
-				else
-				{
-					stream[x] = output_sample;
-					stream[x + 1] = output_sample;
-				}
+				temp_buffer[x] = e_stream[sample_pos];
 			}
 
-			//Stereo Audio Input
 			else
 			{
-				//Karaoke Audio
-				if((mem->jukebox.enable_karaoke) && (mem->jukebox.io_regs[0x008F]) && (buffer_pos < karaoke_size)) 
-				{
-					//Mono source to stereo output, 
-					stream[x] = k_stream[buffer_pos];
+				//Right Channel Sample
+				if(x & 0x01) { temp_buffer[x] = e_stream[sample_pos + 1]; }
 
-					//When recording, use the karaoke track samples
-					if((mem->jukebox.current_category == 2) && (mem->jukebox.is_recording))
-					{
-						e_stream[buffer_pos] = stream[x];
-					}
-				}
-
-				//Normal Audio
-				else
-				{
-					//Mono source to stereo output, 
-					s32 out_sample = e_stream[buffer_pos];
-
-					stream[x] = (is_seek_video) ? -32768 : out_sample;
-				}
-			}	
+				//Left Channel Sample
+				else { temp_buffer[x] = e_stream[sample_pos]; }
+			}
 		}
 
-		//Otherwise, generate silence
+		//Sample data here is silence, halt external audio playback
 		else
 		{
-			stream[x] = -32768;
 			apu_stat.ext_audio.playing = false;
 
 			//Terminate Play-Yan SFX
@@ -597,34 +543,36 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 				mem->memory_map[REG_IF + 1] |= 0x20;
 			}
 		}
-
-		//GBA Jukebox - Average samples for spectrum analyzer
-		if(apu_stat.ext_audio.id == 1)
-		{
-			apu_stat.ext_audio.set_count++;
-			mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] += (u32(stream[x]) + 32768);
-
-			if(apu_stat.ext_audio.set_count >= set_size)
-			{
-				apu_stat.ext_audio.set_count = 0;
-				mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] /= set_size;
-			
-				u32 val_1 = mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set];
-				double val_2 = (val_1 / 65535.0);
-				u16 final_val = 20 * val_2;
-			
-				mem->jukebox.io_regs[0x90 + apu_stat.ext_audio.current_set] = final_val;
-				mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] = 0;
-
-				apu_stat.ext_audio.current_set++;
-				if(apu_stat.ext_audio.current_set >= 0x09) { apu_stat.ext_audio.current_set = 0; }
-			}
-		}
-
-		x += (config::use_stereo) ? 2 : 1;
 	}
 
-	apu_stat.ext_audio.sample_pos = buffer_pos;
+	//Convert temporary stream data to stereo if necessary
+	if(config::use_stereo && is_src_mono)
+	{
+		for(u32 x = 0; x < temp_buffer.size(); x++)
+		{
+			output_buffer.push_back(temp_buffer[x]);
+			output_buffer.push_back(temp_buffer[x]);
+		}
+	}
+
+	//Convert temporary stream data to mono if necessary
+	else if(!config::use_stereo && !is_src_mono)
+	{
+		for(u32 x = 0; x < temp_buffer.size(); x += 2)
+		{
+			u32 output_sample = (temp_buffer[x] + temp_buffer[x + 1]) / 2;
+			output_buffer.push_back(output_sample);
+		}
+	}
+
+	else { output_buffer.assign(temp_buffer.begin(), temp_buffer.end()); }
+
+	for(int x = 0; x < output_buffer.size(); x++)
+	{
+		stream[x] = output_buffer[x];
+	}
+
+	apu_stat.ext_audio.sample_pos += (sample_ratio * src_length);
 }
 
 /****** Generate raw samples for playback on external audio channel - Campho Audio Edition ******/
