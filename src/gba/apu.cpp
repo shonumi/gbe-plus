@@ -570,6 +570,39 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 	for(int x = 0; x < output_buffer.size(); x++)
 	{
 		stream[x] = output_buffer[x];
+
+		//GBA Jukebox - Average samples for spectrum analyzer
+		if(apu_stat.ext_audio.id == 1)
+		{
+			if((config::use_stereo) && ((x & 0x01) == 0))
+			{
+				u32 spectrum_sample = (stream[x] + stream[x + 1]) / 2;
+				apu_stat.ext_audio.set_count++;
+				mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] += (spectrum_sample + 32768);
+			}
+
+			else if(!config::use_stereo)
+			{
+				apu_stat.ext_audio.set_count++;
+				mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] += (stream[x] + 32768);
+			}
+
+			if(apu_stat.ext_audio.set_count >= set_size)
+			{
+				apu_stat.ext_audio.set_count = 0;
+				mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] /= set_size;
+			
+				u32 val_1 = mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set];
+				double val_2 = (val_1 / 65535.0);
+				u16 final_val = 20 * val_2;
+			
+				mem->jukebox.io_regs[0x90 + apu_stat.ext_audio.current_set] = final_val;
+				mem->jukebox.spectrum_values[apu_stat.ext_audio.current_set] = 0;
+
+				apu_stat.ext_audio.current_set++;
+				if(apu_stat.ext_audio.current_set >= 0x09) { apu_stat.ext_audio.current_set = 0; }
+			}
+		}
 	}
 
 	apu_stat.ext_audio.sample_pos += (sample_ratio * src_length);
