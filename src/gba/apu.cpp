@@ -507,12 +507,12 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 		//Grab sample data if available
 		if(sample_test_limit < stream_size)
 		{
-			if(is_src_mono)
+			if(is_src_mono && !is_seek_video)
 			{
 				temp_buffer[x] = e_stream[sample_pos];
 			}
 
-			else
+			else if(!is_src_mono && !is_seek_video)
 			{
 				//Right Channel Sample
 				if(x & 0x01) { temp_buffer[x] = e_stream[sample_pos + 1]; }
