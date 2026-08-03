@@ -235,6 +235,11 @@ bool AGB_APU::init()
 						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support S16 audio\n";
 					}
 
+					else if(final_spec.channels != 1)
+					{
+						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support mono audio\n";
+					}
+
 					else if((final_spec.freq != 22050) && (config::cart_type == AGB_CAMPHO))
 					{
 						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " does not support 22050Hz audio\n";
