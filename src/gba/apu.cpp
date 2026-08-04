@@ -617,14 +617,19 @@ void AGB_APU::generate_ext_audio_hi_samples(s16* stream, int length)
 void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
 {
 	double sample_ratio = 22050.0 / apu_stat.sample_rate;
-	u32 buffer_pos = 0;
-	u32 buffer_size = mem->campho.microphone_in_buffer.size();
-	s16 sample = 0;
 	double volume = (mem->campho.speaker_volume) ? (mem->campho.speaker_volume / 100.0) : 0;
 
-	for(int x = 0; x < length; x++)
+	u32 buffer_pos = 0;
+	u32 buffer_size = mem->campho.microphone_in_buffer.size();
+	u32 src_length = (config::use_stereo) ? (length / 2) : length;
+	u32 sample_pos = 0;
+	s16 sample = 0;
+
+	for(int x = 0; x < src_length; x++)
 	{
+		//Resample microphone input 
 		buffer_pos = (sample_ratio * x);
+		sample_pos = (config::use_stereo) ? (x * 2) : x;
 
 		if(buffer_pos < buffer_size)
 		{
@@ -634,7 +639,18 @@ void AGB_APU::generate_campho_audio_samples(s16* stream, int length)
 			sample *= volume;
 		}
 
-		stream[x] = sample;
+		//Convert to stereo output if necessary
+		//Note that all microphone input will be mono
+		if(config::use_stereo)
+		{
+			stream[sample_pos] = sample;
+			stream[sample_pos + 1] = sample;
+		}
+
+		else
+		{
+			stream[sample_pos] = sample;
+		}
 	}
 
 	//Delete samples that have already been played
