@@ -43,10 +43,7 @@ class AGB_APU
 	void buffer_channel_3();
 	void buffer_channel_4();
 
-	void generate_channel_1_samples(s16* stream, int length);
-	void generate_channel_2_samples(s16* stream, int length);
-	void generate_channel_3_samples(s16* stream, int length);
-	void generate_channel_4_samples(s16* stream, int length);
+	void generate_psg_samples(u8 id, s16* stream, int length);
 	void generate_dma_a_samples(s16* stream, int length);
 	void generate_dma_b_samples(s16* stream, int length);
 	void generate_ext_audio_hi_samples(s16* stream, int length);

@@ -268,111 +268,37 @@ bool AGB_APU::init()
 	return init_status;
 }
 
-/******* Generate samples for GBA sound channel 1 ******/
-void AGB_APU::generate_channel_1_samples(s16* stream, int length)
+/******* Generate samples for GBA sound channels 1-4 ******/
+void AGB_APU::generate_psg_samples(u8 id, s16* stream, int length)
 {
 	//Determine if more data needs to be buffered
-	while(apu_stat.channel[0].buffer_size < length)
+	while(apu_stat.channel[id].buffer_size < length)
 	{
-		buffer_channel_1();
+		switch(id)
+		{
+			case 0: buffer_channel_1(); break;
+			case 1: buffer_channel_2(); break;
+			case 2: buffer_channel_3(); break;
+			case 3: buffer_channel_4(); break;
+		}
+
 		apu_stat.psg_needs_fill = false;
 	}
 
 	//Copy from last position in the buffer
 	for(int x = 0; x < length; x++)
 	{
-		stream[x] = apu_stat.channel[0].buffer[apu_stat.channel[0].last_index++];
+		stream[x] = apu_stat.channel[id].buffer[apu_stat.channel[id].last_index++];
 	}
 
-	apu_stat.channel[0].buffer_size -= length;
+	apu_stat.channel[id].buffer_size -= length;
 
 	//Drain buffer if it gets too large
-	if(apu_stat.channel[0].buffer_size >= 512)
+	if(apu_stat.channel[id].buffer_size >= 512)
 	{
-		apu_stat.channel[0].buffer_size = 0;
-		apu_stat.channel[0].last_index = 0;
-		apu_stat.channel[0].current_index = 0;
-	}
-}
-
-/******* Generate samples for GBA sound channel 2 ******/
-void AGB_APU::generate_channel_2_samples(s16* stream, int length)
-{
-	//Determine if more data needs to be buffered
-	while(apu_stat.channel[1].buffer_size < length)
-	{
-		buffer_channel_2();
-		apu_stat.psg_needs_fill = false;
-	}
-
-	//Copy from last position in the buffer
-	for(int x = 0; x < length; x++)
-	{
-		stream[x] = apu_stat.channel[1].buffer[apu_stat.channel[1].last_index++];
-	}
-
-	apu_stat.channel[1].buffer_size -= length;
-
-	//Drain buffer if it gets too large
-	if(apu_stat.channel[1].buffer_size >= 512)
-	{
-		apu_stat.channel[1].buffer_size = 0;
-		apu_stat.channel[1].last_index = 0;
-		apu_stat.channel[1].current_index = 0;
-	}
-}
-
-/******* Generate samples for GBA sound channel 3 ******/
-void AGB_APU::generate_channel_3_samples(s16* stream, int length)
-{
-	//Determine if more data needs to be buffered
-	while(apu_stat.channel[2].buffer_size < length)
-	{
-		buffer_channel_3();
-		apu_stat.psg_needs_fill = false;
-	}
-
-	//Copy from last position in the buffer
-	for(int x = 0; x < length; x++)
-	{
-		stream[x] = apu_stat.channel[2].buffer[apu_stat.channel[2].last_index++];
-	}
-
-	apu_stat.channel[2].buffer_size -= length;
-
-	//Drain buffer if it gets too large
-	if(apu_stat.channel[2].buffer_size >= 512)
-	{
-		apu_stat.channel[2].buffer_size = 0;
-		apu_stat.channel[2].last_index = 0;
-		apu_stat.channel[2].current_index = 0;
-	}
-}
-
-/******* Generate samples for GBA sound channel 4 ******/
-void AGB_APU::generate_channel_4_samples(s16* stream, int length)
-{
-	//Determine if more data needs to be buffered
-	while(apu_stat.channel[3].buffer_size < length)
-	{
-		buffer_channel_4();
-		apu_stat.psg_needs_fill = false;
-	}
-
-	//Copy from last position in the buffer
-	for(int x = 0; x < length; x++)
-	{
-		stream[x] = apu_stat.channel[3].buffer[apu_stat.channel[3].last_index++];
-	}
-
-	apu_stat.channel[3].buffer_size -= length;
-
-	//Drain buffer if it gets too large
-	if(apu_stat.channel[3].buffer_size >= 512)
-	{
-		apu_stat.channel[3].buffer_size = 0;
-		apu_stat.channel[3].last_index = 0;
-		apu_stat.channel[3].current_index = 0;
+		apu_stat.channel[id].buffer_size = 0;
+		apu_stat.channel[id].last_index = 0;
+		apu_stat.channel[id].current_index = 0;
 	}
 }
 
@@ -687,10 +613,10 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	std::vector<s16> ext_stream(ext_audio_length);
 
 	AGB_APU* apu_link = (AGB_APU*) _apu;
-	apu_link->generate_channel_1_samples(&channel_1_stream[0], length);
-	apu_link->generate_channel_2_samples(&channel_2_stream[0], length);
-	apu_link->generate_channel_3_samples(&channel_3_stream[0], length);
-	apu_link->generate_channel_4_samples(&channel_4_stream[0], length);
+	apu_link->generate_psg_samples(0, &channel_1_stream[0], length);
+	apu_link->generate_psg_samples(1, &channel_2_stream[0], length);
+	apu_link->generate_psg_samples(2, &channel_3_stream[0], length);
+	apu_link->generate_psg_samples(3, &channel_4_stream[0], length);
 	apu_link->generate_dma_a_samples(&dma_a_stream[0], length);
 	apu_link->generate_dma_b_samples(&dma_b_stream[0], length);
 
