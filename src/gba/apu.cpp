@@ -302,21 +302,21 @@ void AGB_APU::generate_psg_samples(u8 id, s16* stream, int length)
 	}
 }
 
-/******* Generate samples for GBA DMA channel A ******/
-void AGB_APU::generate_dma_a_samples(s16* stream, int length)
+/******* Generate samples for GBA DMA channel A and B ******/
+void AGB_APU::generate_dma_samples(u8 id, s16* stream, int length)
 {
 	//Generate samples from the last output of the channel
-	if((apu_stat.dma[0].left_enable || apu_stat.dma[0].right_enable) && (apu_stat.dma[0].length != 0))
+	if((apu_stat.dma[id].left_enable || apu_stat.dma[id].right_enable) && (apu_stat.dma[id].length != 0))
 	{
-		double sample_ratio = apu_stat.dma[0].output_frequency/apu_stat.sample_rate;
+		double sample_ratio = apu_stat.dma[id].output_frequency/apu_stat.sample_rate;
 		u8 buffer_sample = 0;
 		s8 buffer_output = 0;
 		u16 buffer_pos = 0;
 
 		for(int x = 0; x < length; x++)
 		{
-			if((sample_ratio * x) < apu_stat.dma[0].length) { buffer_pos = apu_stat.dma[0].last_position + (sample_ratio * x); }
-			buffer_sample = apu_stat.dma[0].buffer[buffer_pos];
+			if((sample_ratio * x) < apu_stat.dma[id].length) { buffer_pos = apu_stat.dma[id].last_position + (sample_ratio * x); }
+			buffer_sample = apu_stat.dma[id].buffer[buffer_pos];
 			
 			if(buffer_sample & 0x80)
 			{
@@ -332,64 +332,19 @@ void AGB_APU::generate_dma_a_samples(s16* stream, int length)
 			stream[x] = buffer_output * 256;
 		}
 
-		//Reset DMA channel A buffer
-		apu_stat.dma[0].counter = apu_stat.dma[0].last_position = buffer_pos;
+		//Reset DMA channel buffer
+		apu_stat.dma[id].counter = apu_stat.dma[id].last_position = buffer_pos;
 	}
 
 	//Otherwise, generate silence
 	else 
 	{
 		for(int x = 0; x < length; x++) { stream[x] = -32768; }
-		apu_stat.dma[0].counter = apu_stat.dma[0].last_position = 0;
+		apu_stat.dma[id].counter = apu_stat.dma[id].last_position = 0;
 	}
 
-	if(apu_stat.dma[0].length > length) { apu_stat.dma[0].length -= length; }
-	else { apu_stat.dma[0].length = 0; }
-}
-
-/******* Generate samples for GBA DMA channel B ******/
-void AGB_APU::generate_dma_b_samples(s16* stream, int length)
-{
-	//Generate samples from the last output of the channel
-	if((apu_stat.dma[1].left_enable || apu_stat.dma[1].right_enable) && (apu_stat.dma[1].length != 0))
-	{
-		double sample_ratio = apu_stat.dma[1].output_frequency/apu_stat.sample_rate;
-		u8 buffer_sample = 0;
-		s8 buffer_output = 0;
-		u16 buffer_pos = 0;
-
-		for(int x = 0; x < length; x++)
-		{
-			if((sample_ratio * x) < apu_stat.dma[1].length) { buffer_pos = apu_stat.dma[1].last_position + (sample_ratio * x); }
-			buffer_sample = apu_stat.dma[1].buffer[buffer_pos];
-			
-			if(buffer_sample & 0x80)
-			{
-				buffer_sample--;
-				buffer_sample = ~buffer_sample;
-				buffer_output = 0 - buffer_sample;
-			}
-
-			else { buffer_output = buffer_sample; }
-			
-
-			//Scale S8 audio to S16
-			stream[x] = buffer_output * 256;
-		}
-
-		//Reset DMA channel A buffer
-		apu_stat.dma[1].counter = apu_stat.dma[1].last_position = buffer_pos;
-	}
-
-	//Otherwise, generate silence
-	else 
-	{
-		for(int x = 0; x < length; x++) { stream[x] = -32768; }
-		apu_stat.dma[1].counter = apu_stat.dma[1].last_position = 0;
-	}
-
-	if(apu_stat.dma[1].length > length) { apu_stat.dma[1].length -= length; }
-	else { apu_stat.dma[1].length = 0; }
+	if(apu_stat.dma[id].length > length) { apu_stat.dma[id].length -= length; }
+	else { apu_stat.dma[id].length = 0; }
 }
 
 /****** Generate raw samples for playback on external audio channel ******/
@@ -617,8 +572,8 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 	apu_link->generate_psg_samples(1, &channel_2_stream[0], length);
 	apu_link->generate_psg_samples(2, &channel_3_stream[0], length);
 	apu_link->generate_psg_samples(3, &channel_4_stream[0], length);
-	apu_link->generate_dma_a_samples(&dma_a_stream[0], length);
-	apu_link->generate_dma_b_samples(&dma_b_stream[0], length);
+	apu_link->generate_dma_samples(0, &dma_a_stream[0], length);
+	apu_link->generate_dma_samples(1, &dma_b_stream[0], length);
 
 	double channel_ratio = apu_link->apu_stat.channel_master_volume / 128.0;
 	double dma_a_ratio = apu_link->apu_stat.dma[0].master_volume / 128.0;
