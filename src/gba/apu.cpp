@@ -271,6 +271,8 @@ bool AGB_APU::init()
 /******* Generate samples for GBA sound channels 1-4 ******/
 void AGB_APU::generate_psg_samples(u8 id, s16* stream, int length)
 {
+	if(id > 3) { return; }
+
 	//Determine if more data needs to be buffered
 	while(apu_stat.channel[id].buffer_size < length)
 	{
@@ -305,6 +307,8 @@ void AGB_APU::generate_psg_samples(u8 id, s16* stream, int length)
 /******* Generate samples for GBA DMA channel A and B ******/
 void AGB_APU::generate_dma_samples(u8 id, s16* stream, int length)
 {
+	if(id > 1) { return; }
+
 	//Generate samples from the last output of the channel
 	if((apu_stat.dma[id].left_enable || apu_stat.dma[id].right_enable) && (apu_stat.dma[id].length != 0))
 	{
