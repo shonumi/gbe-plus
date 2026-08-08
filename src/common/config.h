@@ -299,6 +299,7 @@ namespace config
 	extern bool use_stereo;
 	extern bool use_microphone;
 	extern u32 microphone_id;
+	extern u8 microphone_sensitivity;
 	extern std::string override_audio_driver;
 	
 	extern u32 sys_width;

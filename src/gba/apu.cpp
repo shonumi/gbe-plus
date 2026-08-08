@@ -648,12 +648,6 @@ void agb_audio_callback(void* _apu, u8 *_stream, int _length)
 			apu_link->generate_ext_audio_hi_samples(&ext_stream[0], ext_audio_length);
 		}
 
-		//Generate GBA samples (low quality)
-		else
-		{
-			//TODO
-		}
-
 		//Custom software mixing
 		for(u32 x = 0; x < ext_audio_length; x++)
 		{	
@@ -818,6 +812,8 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		{
 			if(config::cart_type == AGB_JUKEBOX)
 			{
+				printf("RECORDING...\n");
+
 				for(u32 x = 0; x < length; x++)
 				{
 					if(apu_link->apu_stat.is_recording) { apu_link->mic_buffer.push_back(stream[x]); }
@@ -826,6 +822,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 				//Calculate average mic volume
 				mic_volume /= length;
+				printf("VOLUME -> %d\n", mic_volume);
 				double ratio = (mic_volume / 32767.0);
 				apu_link->mem->jukebox.io_regs[0x008B] = 0xFFEE + (22 * ratio);
 			}

@@ -191,6 +191,7 @@ namespace config
 	bool use_stereo = false;
 	bool use_microphone = false;
 	u32 microphone_id = 0;
+	u8 microphone_sensitivity = 0;
 	std::string override_audio_driver = "";
 
 	//Virtual Cursor parameters for NDS
@@ -1377,6 +1378,9 @@ bool parse_ini_file(std::string filename)
 		//Microphone ID
 		if(!parse_ini_number(ini_item, "#microphone_id", config::microphone_id, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
+		//Microphone sensitivity
+		if(!parse_ini_number(ini_item, "#microphone_sensitivity", config::microphone_sensitivity, ini_opts, x, 1, 8)) { return false; }
+
 		//Force cart audio sync
 		if(!parse_ini_bool(ini_item, "#force_cart_audio_sync", config::force_cart_audio_sync, ini_opts, x)) { return false; }
 
@@ -2504,6 +2508,14 @@ bool save_ini_file()
 			output_lines[line_pos] = "[#microphone_id:" + util::to_str(config::microphone_id) + "]";
 		}
 
+		//Microphone sensitivity
+		else if(ini_item == "#microphone_sensitivity")
+		{
+			line_pos = output_count[x];
+
+			output_lines[line_pos] = "[#microphone_sensitivity:" + util::to_str(config::microphone_sensitivity) + "]";
+		}
+
 		//Force cart audio sync
 		else if(ini_item == "#force_cart_audio_sync")
 		{
@@ -3300,6 +3312,7 @@ bool generate_ini_file()
 	ini_contents += "[#use_stereo]\n\n";
 	ini_contents += "[#use_microphone]\n\n";
 	ini_contents += "[#microphone_id]\n\n";
+	ini_contents += "[#microphone_sensitivity]\n\n";
 	ini_contents += "[#force_cart_audio_sync]\n\n";
 	ini_contents += "[#override_audio_driver]\n\n";
 	ini_contents += "[#use_osd]\n\n";
