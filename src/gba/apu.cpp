@@ -810,10 +810,18 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		//Grab samples from microphone and add to the buffer
 		else if(apu_link->apu_stat.is_mic_on)
 		{
+			//Scale input samples according to microphone sensitivity
+			for(u32 x = 0; x < length; x++)
+			{
+				s32 test_sample = (stream[x] * config::microphone_sensitivity);
+
+				if(test_sample > MAX_16) { stream[x] = MAX_16; }
+				else if(test_sample < MIN_16) { stream[x] = MIN_16; }
+				else { stream[x] = test_sample; }
+			}
+
 			if(config::cart_type == AGB_JUKEBOX)
 			{
-				printf("RECORDING...\n");
-
 				for(u32 x = 0; x < length; x++)
 				{
 					if(apu_link->apu_stat.is_recording) { apu_link->mic_buffer.push_back(stream[x]); }
@@ -822,7 +830,6 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 
 				//Calculate average mic volume
 				mic_volume /= length;
-				printf("VOLUME -> %d\n", mic_volume);
 				double ratio = (mic_volume / 32767.0);
 				apu_link->mem->jukebox.io_regs[0x008B] = 0xFFEE + (22 * ratio);
 			}
@@ -834,7 +841,9 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 				for(u32 x = 0; x < length; x++)
 				{
 					//Apply volume from Campho Advance user settings
-					u16 sample = (stream[x] * volume);
+					u32 sample = (stream[x] * volume);
+					if(sample > MAX_16) { sample = MAX_16; }
+
 					apu_link->mem->campho.microphone_out_buffer.push_back(sample & 0xFF);
 					apu_link->mem->campho.microphone_out_buffer.push_back(sample >> 8);
 				}

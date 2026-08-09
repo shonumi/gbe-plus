@@ -191,7 +191,7 @@ namespace config
 	bool use_stereo = false;
 	bool use_microphone = false;
 	u32 microphone_id = 0;
-	u8 microphone_sensitivity = 0;
+	u8 microphone_sensitivity = 1;
 	std::string override_audio_driver = "";
 
 	//Virtual Cursor parameters for NDS
