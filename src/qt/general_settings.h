@@ -77,6 +77,7 @@ class gen_settings : public QDialog
 	QComboBox* freq;
 	QSpinBox* sound_samples;
 	QSlider* volume;
+	QSlider* mic_sens;
 	QCheckBox* sound_on;
 	QCheckBox* stereo_enable;
 	QCheckBox* mic_enable;
@@ -263,6 +264,7 @@ class gen_settings : public QDialog
 	void ogl_frag_change();
 	void ogl_vert_change();
 	void volume_change();
+	void mic_sens_change();
 	void sample_rate_change();
 	void sample_size_change();
 	void audio_driver_change();

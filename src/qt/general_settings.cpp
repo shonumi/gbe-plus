@@ -626,6 +626,22 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	volume_layout->addWidget(volume);
 	volume_set->setLayout(volume_layout);
 
+	//Sound settings - Microphone Sensitivity
+	QWidget* mic_sens_set = new QWidget(sound);
+	QLabel* mic_sens_label = new QLabel("Microphone Sensitivity : ");
+	mic_sens = new QSlider(sound);
+	mic_sens->setToolTip("Microphone sensitivity for GBE+");
+	mic_sens->setMaximum(8);
+	mic_sens->setMinimum(1);
+	mic_sens->setValue(1);
+	mic_sens->setOrientation(Qt::Horizontal);
+
+	QHBoxLayout* mic_sens_layout = new QHBoxLayout;
+	mic_sens_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+	mic_sens_layout->addWidget(mic_sens_label);
+	mic_sens_layout->addWidget(mic_sens);
+	mic_sens_set->setLayout(mic_sens_layout);
+
 	QVBoxLayout* audio_layout = new QVBoxLayout;
 	audio_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 	audio_layout->addWidget(freq_set);
@@ -636,6 +652,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	audio_layout->addWidget(fcas_enable_set);
 	audio_layout->addWidget(audio_driver_set);
 	audio_layout->addWidget(mic_select_set);
+	audio_layout->addWidget(mic_sens_set);
 	audio_layout->addWidget(volume_set);
 	sound->setLayout(audio_layout);
 
@@ -1628,6 +1645,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(dmg_gbc_pal, SIGNAL(currentIndexChanged(int)), this, SLOT(dmg_gbc_pal_change()));
 	connect(ogl_frag_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_frag_change()));
 	connect(ogl_vert_shader, SIGNAL(currentIndexChanged(int)), this, SLOT(ogl_vert_change()));
+	connect(mic_sens, SIGNAL(valueChanged(int)), this, SLOT(mic_sens_change()));
 	connect(volume, SIGNAL(valueChanged(int)), this, SLOT(volume_change()));
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_samples, SIGNAL(valueChanged(int)), this, SLOT(sample_size_change()));
@@ -2155,6 +2173,9 @@ void gen_settings::set_ini_options()
 
 	//Sample size
 	sound_samples->setValue(config::sample_size);
+
+	//Microphone sensitivity option
+	mic_sens->setValue(config::microphone_sensitivity);
 
 	//Volume option
 	volume->setValue(config::volume);
@@ -2718,6 +2739,12 @@ void gen_settings::volume_change()
 
 	//Update the volume while using only the GUI
 	else { config::volume = volume->value(); }	
+}
+
+/****** Changes microphone input sensitivity ******/
+void gen_settings::mic_sens_change()
+{
+	config::microphone_sensitivity = mic_sens->value();
 }
 
 /****** Updates the core's volume - Used when loading save states ******/
