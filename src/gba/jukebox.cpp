@@ -176,11 +176,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Music Files
 					case 0x09:
 						//Turn on microphone if possible
-						if(config::use_microphone && apu_stat->mic_init)
+						if(config::use_microphone && apu_stat->mic.init)
 						{
-							apu_stat->is_mic_on = true;
+							apu_stat->mic.is_on = true;
 							apu_stat->save_recording = false;
-							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+							SDL_PauseAudioDevice(apu_stat->mic.id, 0);
 						}
 
 						jukebox.current_category = 0;
@@ -220,11 +220,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Voice Files
 					case 0x0B:
 						//Turn on microphone if possible
-						if(config::use_microphone && apu_stat->mic_init)
+						if(config::use_microphone && apu_stat->mic.init)
 						{
-							apu_stat->is_mic_on = true;
+							apu_stat->mic.is_on = true;
 							apu_stat->save_recording = false;
-							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+							SDL_PauseAudioDevice(apu_stat->mic.id, 0);
 						}
 
 						jukebox.current_category = 1;
@@ -263,11 +263,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 					//Record Karaoke Files
 					case 0x0D:
 						//Turn on microphone if possible
-						if(config::use_microphone && apu_stat->mic_init)
+						if(config::use_microphone && apu_stat->mic.init)
 						{
-							apu_stat->is_mic_on = true;
+							apu_stat->mic.is_on = true;
 							apu_stat->save_recording = false;
-							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+							SDL_PauseAudioDevice(apu_stat->mic.id, 0);
 						}
 
 						jukebox.current_category = 0;
@@ -375,11 +375,11 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						}
 
 						//Start recording via microphone if possible
-						if(config::use_microphone && apu_stat->mic_init && jukebox.is_recording)
+						if(config::use_microphone && apu_stat->mic.init && jukebox.is_recording)
 						{
 							apu_stat->is_recording = true;
 							apu_stat->save_recording = false;
-							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+							SDL_PauseAudioDevice(apu_stat->mic.id, 0);
 						}
 
 						break;
@@ -389,10 +389,10 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						jukebox.is_recording = false;
 
 						//Turn off microphone if possible
-						if(config::use_microphone && apu_stat->mic_init)
+						if(config::use_microphone && apu_stat->mic.init)
 						{
-							apu_stat->is_mic_on = true;
-							SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+							apu_stat->mic.is_on = true;
+							SDL_PauseAudioDevice(apu_stat->mic.id, 1);
 						}
 
 						//Setup remaining playback time if not recording
@@ -558,7 +558,7 @@ void AGB_MMU::write_jukebox(u32 address, u8 value)
 						apu_stat->ext_audio.playing = false;
 
 						//Stop recording via microphone if possible
-						if(config::use_microphone && apu_stat->mic_init)
+						if(config::use_microphone && apu_stat->mic.init)
 						{
 							apu_stat->save_recording = true;
 						}

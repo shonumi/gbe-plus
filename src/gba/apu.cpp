@@ -40,8 +40,8 @@ void AGB_APU::reset()
 
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
-	apu_stat.mic_init = false;
-	apu_stat.is_mic_on = false;
+	apu_stat.mic.init = false;
+	apu_stat.mic.is_on = false;
 	apu_stat.is_recording = false;
 	apu_stat.save_recording = false;
 
@@ -147,7 +147,7 @@ void AGB_APU::reset()
 	apu_stat.ext_audio.karaoke_length = 0;
 
 	mic_buffer.clear();
-	apu_stat.mic_id = 0;
+	apu_stat.mic.id = 0;
 }
 
 /****** Initialize APU with SDL ******/
@@ -250,8 +250,8 @@ bool AGB_APU::init()
 						std::cout<<"APU::Microphone Recording Device - #" << std::dec << mic_id << " :: " << SDL_GetAudioDeviceName(x, 1) << "\n";
 						std::cout<<"APU::Microphone Channels - " << u32(final_spec.channels) << std::hex << "\n";
 
-						apu_stat.mic_init = true;
-						apu_stat.mic_id = mic_id;
+						apu_stat.mic.init = true;
+						apu_stat.mic.id = mic_id;
 
 						break;
 					}
@@ -259,7 +259,7 @@ bool AGB_APU::init()
 			}
 		}
 
-		if(!apu_stat.mic_init)
+		if(!apu_stat.mic.init)
 		{
 			std::cout<<"APU::No Microphone Recording Device found\n";
 		}
@@ -670,7 +670,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 	AGB_APU* apu_link = (AGB_APU*) _apu;
 	u32 mic_volume = 0;
 
-	if(apu_link->apu_stat.mic_init)
+	if(apu_link->apu_stat.mic.init)
 	{
 		//Save samples from microphone to file
 		if(apu_link->apu_stat.save_recording)
@@ -808,7 +808,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 		}	
 
 		//Grab samples from microphone and add to the buffer
-		else if(apu_link->apu_stat.is_mic_on)
+		else if(apu_link->apu_stat.mic.is_on)
 		{
 			//Scale input samples according to microphone sensitivity
 			for(u32 x = 0; x < length; x++)

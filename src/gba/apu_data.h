@@ -94,13 +94,20 @@ struct agb_apu_data
 		u32 karaoke_length;
 	} ext_audio;
 
+	//Microphone input for cartridges like the Jukebox or Campho Advance
+	struct microphone_data
+	{
+		bool init;
+		bool is_on;
+		bool id;
+		double frequency;
+	} mic;
+
 	bool psg_needs_fill;
 	u32 psg_fill_rate;
 
 	bool sound_on;
 	bool stereo;
-	bool mic_init;
-	bool is_mic_on;
 	bool is_recording;
 	bool save_recording;
 
@@ -125,8 +132,6 @@ struct agb_apu_data
 	u8 noise_stages;
 	u8 noise_7_stage_lsfr;
 	u16 noise_15_stage_lsfr;
-
-	u32 mic_id;
 };
 
 #endif // GBA_APU_DATA

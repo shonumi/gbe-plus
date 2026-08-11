@@ -1859,10 +1859,10 @@ void AGB_MMU::campho_process_networking()
 			campho.last_slice = 0;
 
 			//Turn on microphone if possible
-			if(config::use_microphone && apu_stat->mic_init)
+			if(config::use_microphone && apu_stat->mic.init)
 			{
-				apu_stat->is_mic_on = true;
-				SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+				apu_stat->mic.is_on = true;
+				SDL_PauseAudioDevice(apu_stat->mic.id, 0);
 			}
 
 			apu_stat->ext_audio.playing = true;
@@ -1891,10 +1891,10 @@ void AGB_MMU::campho_process_networking()
 							campho.call_state = 5;
 
 							//Turn off microphone if possible
-							if(config::use_microphone && apu_stat->mic_init)
+							if(config::use_microphone && apu_stat->mic.init)
 							{
-								apu_stat->is_mic_on = false;
-								SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+								apu_stat->mic.is_on = false;
+								SDL_PauseAudioDevice(apu_stat->mic.id, 1);
 							}
 
 							apu_stat->ext_audio.playing = false;
@@ -2117,10 +2117,10 @@ void AGB_MMU::campho_process_networking()
 						campho.last_slice = 0;
 
 						//Turn on microphone if possible
-						if(config::use_microphone && apu_stat->mic_init)
+						if(config::use_microphone && apu_stat->mic.init)
 						{
-							apu_stat->is_mic_on = true;
-							SDL_PauseAudioDevice(apu_stat->mic_id, 0);
+							apu_stat->mic.is_on = true;
+							SDL_PauseAudioDevice(apu_stat->mic.id, 0);
 						}
 
 						apu_stat->ext_audio.playing = true;
@@ -2259,10 +2259,10 @@ void AGB_MMU::campho_process_networking()
 			}
 
 			//Turn off microphone if possible
-			if(config::use_microphone && apu_stat->mic_init)
+			if(config::use_microphone && apu_stat->mic.init)
 			{
-				apu_stat->is_mic_on = false;
-				SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+				apu_stat->mic.is_on = false;
+				SDL_PauseAudioDevice(apu_stat->mic.id, 1);
 			}
 
 			apu_stat->ext_audio.playing = false;
@@ -2283,10 +2283,10 @@ void AGB_MMU::campho_process_networking()
 			campho_reset_network();
 
 			//Turn off microphone if possible
-			if(config::use_microphone && apu_stat->mic_init)
+			if(config::use_microphone && apu_stat->mic.init)
 			{
-				apu_stat->is_mic_on = false;
-				SDL_PauseAudioDevice(apu_stat->mic_id, 1);
+				apu_stat->mic.is_on = false;
+				SDL_PauseAudioDevice(apu_stat->mic.id, 1);
 			}
 
 			apu_stat->ext_audio.playing = false;
