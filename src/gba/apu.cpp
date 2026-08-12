@@ -40,8 +40,6 @@ void AGB_APU::reset()
 
 	apu_stat.sound_on = false;
 	apu_stat.stereo = false;
-	apu_stat.mic.init = false;
-	apu_stat.mic.is_on = false;
 	apu_stat.is_recording = false;
 	apu_stat.save_recording = false;
 
@@ -130,6 +128,12 @@ void AGB_APU::reset()
 		apu_stat.dma[1].buffer[x] = -127;
 	}
 
+	mic_buffer.clear();
+	apu_stat.mic.id = 0;
+	apu_stat.mic.init = false;
+	apu_stat.mic.is_on = false;
+	apu_stat.mic_frequency = 44100.0;
+
 	apu_stat.ext_audio.frequency = 0;
 	apu_stat.ext_audio.length = 0;
 	apu_stat.ext_audio.sample_pos = 0;
@@ -145,9 +149,6 @@ void AGB_APU::reset()
 
 	apu_stat.ext_audio.karaoke_buffer = nullptr;
 	apu_stat.ext_audio.karaoke_length = 0;
-
-	mic_buffer.clear();
-	apu_stat.mic.id = 0;
 }
 
 /****** Initialize APU with SDL ******/
@@ -252,6 +253,7 @@ bool AGB_APU::init()
 
 						apu_stat.mic.init = true;
 						apu_stat.mic.id = mic_id;
+						apu_stat.mic.frequency = final_spec.freq;
 
 						break;
 					}
@@ -673,7 +675,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 	if(apu_link->apu_stat.mic.init)
 	{
 		//Save samples from microphone to file
-		if(apu_link->apu_stat.save_recording)
+		if((apu_link->apu_stat.save_recording) && (apu_link->mem->jukebox.current_category != 0))
 		{
 			std::string filename = config::data_path + "jukebox/" + apu_link->mem->jukebox.recorded_file;
 			std::ofstream file(filename.c_str(), std::ios::binary | std::ios::trunc);
@@ -691,8 +693,7 @@ void agb_microphone_callback(void* _apu, u8 *_stream, int _length)
 			{
 				//Resample current microphone buffer at 11025Hz
 				//This matches output from a real GBA Music Recorder/Jukebox
-				double target_freq = (apu_link->mem->jukebox.current_category == 0) ? 44100.0 : 11025.0; 
-				double resample_rate = apu_link->microphone_spec.freq / target_freq;
+				double resample_rate = (apu_link->mic.frequency / 11025.0);
 				u32 temp_pos = 0;
 				std::vector <s16> resampled_buffer;
 
