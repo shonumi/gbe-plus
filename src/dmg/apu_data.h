@@ -72,4 +72,3 @@ struct dmg_apu_data
 };
 
 #endif // GB_APU_DATA
- 

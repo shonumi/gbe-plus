@@ -37,5 +37,3 @@ struct min_apu_data
 };
 
 #endif // PM_APU_DATA
- 
- 

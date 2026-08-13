@@ -135,4 +135,3 @@ struct agb_apu_data
 };
 
 #endif // GBA_APU_DATA
- 

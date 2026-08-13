@@ -61,4 +61,3 @@ struct ntr_apu_data
 };
 
 #endif // NDS_APU_DATA
- 
