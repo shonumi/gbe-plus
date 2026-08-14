@@ -419,7 +419,7 @@ void AGB_LCD::update_oam()
 
 				else { lcd_stat.obj_affine[x] = (attribute >> 8); }
 
-				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 256.0; }
+				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 255.0; }
 			}
 
 			else { lcd_stat.obj_affine[x] = 0.0; }
@@ -1952,7 +1952,7 @@ void AGB_LCD::reload_affine_references(u32 bg_control)
 	
 	else { lcd_stat.bg_affine[aff_id].x_ref = (x_raw >> 8) & 0x7FFFF; }
 	
-	if((x_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
+	if((x_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].x_ref += (x_raw & 0xFF) / 255.0; }
 
 	//Set current X position as the new reference point
 	lcd_stat.bg_affine[aff_id].x_pos = lcd_stat.bg_affine[aff_id].x_ref;
@@ -1968,7 +1968,7 @@ void AGB_LCD::reload_affine_references(u32 bg_control)
 	
 	else { lcd_stat.bg_affine[aff_id].y_ref = (y_raw >> 8) & 0x7FFFF; }
 	
-	if((y_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
+	if((y_raw & 0xFF) != 0) { lcd_stat.bg_affine[aff_id].y_ref += (y_raw & 0xFF) / 255.0; }
 
 	//Set current Y position as the new reference point
 	lcd_stat.bg_affine[aff_id].y_pos = lcd_stat.bg_affine[aff_id].y_ref;

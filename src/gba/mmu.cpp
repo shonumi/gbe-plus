@@ -888,7 +888,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[0].dx = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[0].dx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dx += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dx += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -909,7 +909,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[0].dmx = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[0].dmx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dmx += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dmx += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -930,7 +930,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[0].dy = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[0].dy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dy += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dy += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -951,7 +951,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[0].dmy = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[0].dmy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dmy += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[0].dmy += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -974,7 +974,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[0].x_ref = -1.0 * x;
 				}
 				else { lcd_stat->bg_affine[0].x_ref = (x_raw >> 8) & 0x7FFFF; }
-				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine[0].x_ref += (x_raw & 0xFF) / 256.0; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine[0].x_ref += (x_raw & 0xFF) / 255.0; }
 
 				//Set current X position as the new reference point
 				lcd_stat->bg_affine[0].x_pos = lcd_stat->bg_affine[0].x_ref;
@@ -1000,7 +1000,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[0].y_ref = -1.0 * y;
 				}
 				else { lcd_stat->bg_affine[0].y_ref = (y_raw >> 8) & 0x7FFFF; }
-				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine[0].y_ref += (y_raw & 0xFF) / 256.0; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine[0].y_ref += (y_raw & 0xFF) / 255.0; }
 
 				//Set current Y position as the new reference point
 				lcd_stat->bg_affine[0].y_pos = lcd_stat->bg_affine[0].y_ref;
@@ -1024,7 +1024,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[1].dx = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[1].dx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dx += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dx += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -1045,7 +1045,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[1].dmx = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[1].dmx = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dmx += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dmx += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -1066,7 +1066,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[1].dy = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[1].dy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dy += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dy += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -1087,7 +1087,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[1].dmy = -1.0 * p;
 				}
 				else { lcd_stat->bg_affine[1].dmy = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dmy += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { lcd_stat->bg_affine[1].dmy += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -1110,7 +1110,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[1].x_ref = -1.0 * x;
 				}
 				else { lcd_stat->bg_affine[1].x_ref = (x_raw >> 8) & 0x7FFFF; }
-				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine[1].x_ref += (x_raw & 0xFF) / 256.0; }
+				if((x_raw & 0xFF) != 0) { lcd_stat->bg_affine[1].x_ref += (x_raw & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -1133,7 +1133,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 					lcd_stat->bg_affine[1].y_ref = -1.0 * y;
 				}
 				else { lcd_stat->bg_affine[1].y_ref = (y_raw >> 8) & 0x7FFFF; }
-				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine[1].y_ref += (y_raw & 0xFF) / 256.0; }
+				if((y_raw & 0xFF) != 0) { lcd_stat->bg_affine[1].y_ref += (y_raw & 0xFF) / 255.0; }
 			}
 
 			break;
