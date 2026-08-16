@@ -712,7 +712,7 @@ void NTR_LCD::update_oam()
 
 				else { lcd_stat.obj_affine[x] = (attribute >> 8); }
 
-				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 256.0; }
+				if((attribute & 0xFF) != 0) { lcd_stat.obj_affine[x] += (attribute & 0xFF) / 255.0; }
 			}
 
 			else { lcd_stat.obj_affine[x] = 0.0; }
@@ -4604,8 +4604,8 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 	
 	if((x_raw & 0xFF) != 0)
 	{
-		if(engine_a) { lcd_stat.bg_affine_a[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
-		else { lcd_stat.bg_affine_b[aff_id].x_ref += (x_raw & 0xFF) / 256.0; }
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].x_ref += (x_raw & 0xFF) / 255.0; }
+		else { lcd_stat.bg_affine_b[aff_id].x_ref += (x_raw & 0xFF) / 255.0; }
 	}
 
 	//Set current X position as the new reference point
@@ -4630,8 +4630,8 @@ void NTR_LCD::reload_affine_references(u32 bg_control)
 	
 	if((y_raw & 0xFF) != 0)
 	{
-		if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
-		else { lcd_stat.bg_affine_b[aff_id].y_ref += (y_raw & 0xFF) / 256.0; }
+		if(engine_a) { lcd_stat.bg_affine_a[aff_id].y_ref += (y_raw & 0xFF) / 255.0; }
+		else { lcd_stat.bg_affine_b[aff_id].y_ref += (y_raw & 0xFF) / 255.0; }
 	}
 
 	//Set current Y position as the new reference point

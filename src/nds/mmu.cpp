@@ -2150,7 +2150,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 
 				else { *reg_val = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -2182,7 +2182,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					*reg_val = -1.0 * xy;
 				}
 				else { *reg_val = (xy_raw >> 8) & 0x7FFFF; }
-				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 256.0; }
+				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 255.0; }
 
 				//Set current XY position as the new reference point
 				*reg_pos = *reg_val;
@@ -2225,7 +2225,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 
 				else { *reg_val = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -2257,7 +2257,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					*reg_val = -1.0 * xy;
 				}
 				else { *reg_val = (xy_raw >> 8) & 0x7FFFF; }
-				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 256.0; }
+				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 255.0; }
 
 				//Set current XY position as the new reference point
 				*reg_pos = *reg_val;
@@ -2300,7 +2300,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 
 				else { *reg_val = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -2332,7 +2332,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					*reg_val = -1.0 * xy;
 				}
 				else { *reg_val = (xy_raw >> 8) & 0x7FFFF; }
-				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 256.0; }
+				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 255.0; }
 
 				//Set current XY position as the new reference point
 				*reg_pos = *reg_val;
@@ -2375,7 +2375,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 				}
 
 				else { *reg_val = (raw_value >> 8); }
-				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 256.0; }
+				if((raw_value & 0xFF) != 0) { *reg_val += (raw_value & 0xFF) / 255.0; }
 			}
 
 			break;
@@ -2407,7 +2407,7 @@ void NTR_MMU::write_u8(u32 address, u8 value)
 					*reg_val = -1.0 * xy;
 				}
 				else { *reg_val = (xy_raw >> 8) & 0x7FFFF; }
-				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 256.0; }
+				if((xy_raw & 0xFF) != 0) { *reg_val += (xy_raw & 0xFF) / 255.0; }
 
 				//Set current XY position as the new reference point
 				*reg_pos = *reg_val;
