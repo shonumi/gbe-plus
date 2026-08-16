@@ -26,6 +26,10 @@ class NTR_APU
 	ntr_apu_data apu_stat;
 
 	SDL_AudioSpec desired_spec;
+	SDL_AudioSpec microphone_spec;
+
+	//Recording buffer for microphone input
+	std::vector<s16> mic_buffer;
 
 	NTR_APU();
 	~NTR_APU();
@@ -39,5 +43,8 @@ class NTR_APU
 
 /****** SDL Audio Callback ******/ 
 void ntr_audio_callback(void* _apu, u8 *_stream, int _length);
+
+/****** SDL Audio Callback - Microphone ******/ 
+void ntr_microphone_callback(void* _apu, u8 *_stream, int _length);
 
 #endif // NDS_APU 

@@ -43,6 +43,15 @@ struct ntr_apu_data
 		bool decode_adpcm;
 	} channel[16];
 
+	//Microphone input for cartridges like the Jukebox or Campho Advance
+	struct microphone_data
+	{
+		bool init;
+		bool is_on;
+		bool id;
+		double frequency;
+	} mic;
+
 	//IMA-ADPCM table
 	u16 adpcm_table[128];
 
