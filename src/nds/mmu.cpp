@@ -904,7 +904,7 @@ u8 NTR_MMU::read_u8(u32 address)
 		//Special handling for microphone input
 		if((touchscreen_state == 0x0C) || (touchscreen_state == 0x0D))
 		{
-			return (address & 0x1) ? (apu_stat->mic_out >> 8) : apu_stat->mic_out;
+			return (address & 0x1) ? (apu_stat->mic.output >> 8) : apu_stat->mic.output;
 		} 
 
 		//Return SPIDATA
@@ -5670,7 +5670,7 @@ void NTR_MMU::process_microphone()
 	switch(config::mic_device)
 	{
 		case MIC_NONE:
-			apu_stat->mic_out = 0;
+			apu_stat->mic.output = 0;
 			break;
 
 		case MIC_NDS:
@@ -5680,7 +5680,7 @@ void NTR_MMU::process_microphone()
 			break;
 
 		case MIC_NOISE:
-			apu_stat->mic_out = (rand() % 0xFF);
+			apu_stat->mic.output = (rand() % 0xFF);
 			break;
 
 		case MIC_WANTAME:

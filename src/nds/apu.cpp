@@ -87,7 +87,7 @@ void NTR_APU::reset()
 	apu_stat.index_table[7] = 8;
 
 	mic_buffer.clear();
-	apu_stat.mic_out = 0;
+	apu_stat.mic.output = 0;
 	apu_stat.mic.id = 0;
 	apu_stat.mic.init = false;
 	apu_stat.mic.is_on = false;

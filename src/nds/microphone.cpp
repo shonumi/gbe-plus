@@ -15,7 +15,7 @@ void NTR_MMU::wantame_scanner_process()
 {
 	if(wcs.data.empty())
 	{
-		apu_stat->mic_out = 0;
+		apu_stat->mic.output = 0;
 	}
 
 	else
@@ -24,12 +24,12 @@ void NTR_MMU::wantame_scanner_process()
 		{
 			wcs.index = 0;
 			wcs.data.clear();
-			apu_stat->mic_out = 0;
+			apu_stat->mic.output = 0;
 
 			return;
 		}
 
-		apu_stat->mic_out = wcs.data[wcs.index++];
+		apu_stat->mic.output = wcs.data[wcs.index++];
 	}
 }
 
@@ -150,7 +150,7 @@ void NTR_MMU::wave_scanner_process()
 {
 	if(wave_scanner.data.empty())
 	{
-		apu_stat->mic_out = 0;
+		apu_stat->mic.output = 0;
 	}
 
 	else
@@ -159,12 +159,12 @@ void NTR_MMU::wave_scanner_process()
 		{
 			wave_scanner.index = 0;
 			wave_scanner.data.clear();
-			apu_stat->mic_out = 0;
+			apu_stat->mic.output = 0;
 
 			return;
 		}
 
-		apu_stat->mic_out = wave_scanner.data[wave_scanner.index++];
+		apu_stat->mic.output = wave_scanner.data[wave_scanner.index++];
 	}
 }
 

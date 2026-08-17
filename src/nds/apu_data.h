@@ -50,6 +50,7 @@ struct ntr_apu_data
 		bool is_on;
 		bool id;
 		double frequency;
+		u16 output;
 	} mic;
 
 	//IMA-ADPCM table
@@ -65,8 +66,6 @@ struct ntr_apu_data
 	double sample_rate;
 
 	u8 channel_master_volume;
-
-	u16 mic_out;
 };
 
 #endif // NDS_APU_DATA
