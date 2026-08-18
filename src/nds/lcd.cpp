@@ -4402,11 +4402,14 @@ void NTR_LCD::step()
 				config::title.str("");
 				config::title << "GBE+ " << fps_count << "FPS";
 				SDL_SetWindowTitle(window, config::title.str().c_str());
-				fps_count = 0; 
+				fps_count = 0;
 			}
 
 			//Process Turbo Buttons
 			if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
+
+			//Estimate microphone input sample rate based on SPI reads
+			if(mem->is_mic_active) { mem->update_mic_sample_rate(); }
 
 			//Check for screen resize - Horizontal vs Vertical
 			if(config::request_resize)

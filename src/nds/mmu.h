@@ -338,6 +338,7 @@ class NTR_MMU
 	bool do_save;
 	bool fetch_request;
 	bool gx_command;
+	bool is_mic_active;
 
 	//Structure for handling DS cart headers
 	struct cart_header
@@ -503,6 +504,7 @@ class NTR_MMU
 	void write_rtc();
 	u8 read_rtc();
 	void setup_default_firmware();
+	void update_mic_sample_rate();
 
 	u8 read_slot2_device(u32 address);
 	void write_slot2_device(u32 address, u8 value);

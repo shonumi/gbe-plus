@@ -393,6 +393,7 @@ void NTR_MMU::reset()
 	wram_mode = 3;
 	rumble_state = 0;
 	do_save = false;
+	is_mic_active = false;
 
 	//Small LUT for quickly getting DMAx register IDs.
 	//Each DMA register set is 12-bytes long, so this avoids using division frequently to get the ID
@@ -904,6 +905,9 @@ u8 NTR_MMU::read_u8(u32 address)
 		//Special handling for microphone input
 		if((touchscreen_state == 0x0C) || (touchscreen_state == 0x0D))
 		{
+			apu_stat->mic.poll_rate++;
+			is_mic_active = true;
+
 			return (address & 0x1) ? (apu_stat->mic.output >> 8) : apu_stat->mic.output;
 		} 
 
@@ -5782,6 +5786,14 @@ void NTR_MMU::setup_default_firmware()
 	touchscreen.scr_y2 = read_u8(0x27FFCE3);
 }
 
+/****** Updates the estimated microphone sample rate ******/
+void NTR_MMU::update_mic_sample_rate()
+{
+	apu_stat->mic.estimated_sample_rate = (apu_stat->mic.poll_rate / 4) * 60;
+	apu_stat->mic.poll_rate = 0;
+	is_mic_active = false;
+}
+
 /****** Calculates parameter length (in words) for a given GX packed or unpacked command ******/
 void NTR_MMU::get_gx_fifo_param_length()
 {
@@ -6096,6 +6108,7 @@ bool NTR_MMU::mmu_read(u32 offset, std::string filename)
 	file.read((char*)&do_save, sizeof(do_save));
 	file.read((char*)&fetch_request, sizeof(fetch_request));
 	file.read((char*)&gx_command, sizeof(gx_command));
+	file.read((char*)&is_mic_active, sizeof(is_mic_active));
 
 	//Serialize DMA and Sound Capture data from save state
 	file.read((char*)&dma, sizeof(dma));
@@ -6277,6 +6290,7 @@ bool NTR_MMU::mmu_write(std::string filename)
 	file.write((char*)&do_save, sizeof(do_save));
 	file.write((char*)&fetch_request, sizeof(fetch_request));
 	file.write((char*)&gx_command, sizeof(gx_command));
+	file.write((char*)&is_mic_active, sizeof(is_mic_active));
 
 	//Serialize DMA and Sound Capture data to save state
 	file.write((char*)&dma, sizeof(dma));

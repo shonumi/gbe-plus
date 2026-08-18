@@ -92,6 +92,8 @@ void NTR_APU::reset()
 	apu_stat.mic.init = false;
 	apu_stat.mic.is_on = false;
 	apu_stat.mic.frequency = 44100.0;
+	apu_stat.mic.poll_rate = 0;
+	apu_stat.mic.estimated_sample_rate = 0;
 }
 
 /****** Initialize APU with SDL ******/

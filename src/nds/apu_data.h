@@ -51,6 +51,8 @@ struct ntr_apu_data
 		bool id;
 		double frequency;
 		u16 output;
+		u32 poll_rate;
+		u32 estimated_sample_rate;
 	} mic;
 
 	//IMA-ADPCM table
