@@ -5792,6 +5792,29 @@ void NTR_MMU::update_mic_sample_rate()
 	apu_stat->mic.estimated_sample_rate = (apu_stat->mic.poll_rate / 4) * 60;
 	apu_stat->mic.poll_rate = 0;
 	is_mic_active = false;
+
+	//Refine estimate based on active timers
+	u32 base_freq = (1 << 25);
+	u32 refined_freq = 0;
+	s32 new_freq_diff = 0;
+	s32 last_freq_diff = base_freq;
+
+	for(u32 x = 0; x < 4; x++)
+	{
+		printf("TIMER %d RELOAD: %x\n", x, nds7_timer->at(x).reload_value);
+		printf("TIMER %d SCALAR: %d\n", x, nds7_timer->at(x).prescalar); 
+
+		u32 timer_freq = base_freq / (0xFFFF - (nds7_timer->at(x).reload_value * nds7_timer->at(x).prescalar));
+		new_freq_diff = abs(s32(apu_stat->mic.estimated_sample_rate - timer_freq));
+
+		if(new_freq_diff < last_freq_diff)
+		{
+			last_freq_diff = new_freq_diff;
+			refined_freq = timer_freq;
+		} 
+	}
+
+	apu_stat->mic.estimated_sample_rate = refined_freq;
 }
 
 /****** Calculates parameter length (in words) for a given GX packed or unpacked command ******/
