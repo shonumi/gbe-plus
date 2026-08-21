@@ -99,7 +99,7 @@ struct agb_apu_data
 	{
 		bool init;
 		bool is_on;
-		bool id;
+		u32 id;
 		double frequency;
 	} mic;
 

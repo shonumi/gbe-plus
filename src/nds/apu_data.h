@@ -48,7 +48,7 @@ struct ntr_apu_data
 	{
 		bool init;
 		bool is_on;
-		bool id;
+		u32 id;
 		double frequency;
 		u16 output;
 		u32 poll_rate;
