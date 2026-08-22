@@ -393,7 +393,9 @@ void NTR_MMU::reset()
 	wram_mode = 3;
 	rumble_state = 0;
 	do_save = false;
+
 	is_mic_active = false;
+	mic_deactivation_count = 0;
 
 	//Small LUT for quickly getting DMAx register IDs.
 	//Each DMA register set is 12-bytes long, so this avoids using division frequently to get the ID
@@ -907,6 +909,15 @@ u8 NTR_MMU::read_u8(u32 address)
 		{
 			apu_stat->mic.poll_rate++;
 			is_mic_active = true;
+			mic_deactivation_count = 30;
+			
+			//Turn on microphone if possible
+			if((config::mic_device == MIC_NDS) && (!apu_stat->mic.is_on)
+			&& (apu_stat->mic.init))
+			{
+				apu_stat->mic.is_on = true;
+				SDL_PauseAudioDevice(apu_stat->mic.id, 0);
+			}
 
 			return (address & 0x1) ? (apu_stat->mic.output >> 8) : apu_stat->mic.output;
 		} 
@@ -5791,7 +5802,6 @@ void NTR_MMU::update_mic_sample_rate()
 {
 	apu_stat->mic.estimated_sample_rate = (apu_stat->mic.poll_rate / 4) * 60;
 	apu_stat->mic.poll_rate = 0;
-	is_mic_active = false;
 
 	//Refine estimate based on active timers
 	u32 base_freq = (1 << 25);
@@ -5815,6 +5825,18 @@ void NTR_MMU::update_mic_sample_rate()
 	}
 
 	apu_stat->mic.estimated_sample_rate = refined_freq;
+
+	//Stop microphone input after period of inactivity
+	if(mic_deactivation_count == 0)
+	{
+		is_mic_active = false;
+
+		//Turn on microphone if possible
+		if((config::mic_device == MIC_NDS) && (apu_stat->mic.init))
+		{
+			apu_stat->mic.is_on = false;
+		}
+	}
 }
 
 /****** Calculates parameter length (in words) for a given GX packed or unpacked command ******/

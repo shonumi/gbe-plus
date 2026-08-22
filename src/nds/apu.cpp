@@ -99,6 +99,8 @@ void NTR_APU::reset()
 /****** Initialize APU with SDL ******/
 bool NTR_APU::init()
 {
+	bool init_status = false;
+
 	//Override SDL audio driver if necessary
 	if(!config::override_audio_driver.empty())
 	{
@@ -125,7 +127,7 @@ bool NTR_APU::init()
 	if(SDL_OpenAudio(&desired_spec, nullptr) < 0) 
 	{ 
 		std::cout<<"APU::Failed to open audio\n";
-		return false; 
+		init_status = false;
 	}
 
 	else
@@ -133,8 +135,8 @@ bool NTR_APU::init()
 		apu_stat.channel_master_volume = config::volume;
 
 		SDL_PauseAudio(0);
+		init_status = true;
 		std::cout<<"APU::Initialized\n";
-		return true;
 	}
 
 	//Open microphone if enabled and if possible
@@ -193,6 +195,8 @@ bool NTR_APU::init()
 			std::cout<<"APU::No Microphone Recording Device found\n";
 		}
 	}
+
+	return init_status;
 }
 
 /****** Generates samples for NDS sound channels ******/
@@ -464,10 +468,11 @@ void ntr_microphone_callback(void* _apu, u8 *_stream, int _length)
 			}
 		}
 
-		//Clear microphone buffer if turned off
+		//Stop input and clear microphone buffer if turned off
 		else
 		{
-			if(!apu_link->mic_buffer.empty()) { apu_link->mic_buffer.clear(); }
+			apu_link->mic_buffer.clear();
+			SDL_PauseAudioDevice(apu_link->apu_stat.mic.id, 1);
 		}
 	}
 }

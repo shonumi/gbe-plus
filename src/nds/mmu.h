@@ -338,7 +338,9 @@ class NTR_MMU
 	bool do_save;
 	bool fetch_request;
 	bool gx_command;
+
 	bool is_mic_active;
+	u8 mic_deactivation_count;
 
 	//Structure for handling DS cart headers
 	struct cart_header

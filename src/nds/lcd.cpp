@@ -4408,6 +4408,9 @@ void NTR_LCD::step()
 			//Process Turbo Buttons
 			if(mem->g_pad->turbo_button_enabled) { mem->g_pad->process_turbo_buttons(); }
 
+			//Deactivate microphone after 30 frames on inactivity
+			if(mem->mic_deactivation_count) { mem->mic_deactivation_count--; }
+
 			//Estimate microphone input sample rate based on SPI reads
 			if(mem->is_mic_active) { mem->update_mic_sample_rate(); }
 
