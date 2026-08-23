@@ -94,6 +94,7 @@ void NTR_APU::reset()
 	apu_stat.mic.frequency = 44100.0;
 	apu_stat.mic.poll_rate = 0;
 	apu_stat.mic.estimated_sample_rate = 0;
+	apu_stat.mic.sample_index = 0;
 }
 
 /****** Initialize APU with SDL ******/
@@ -463,8 +464,22 @@ void ntr_microphone_callback(void* _apu, u8 *_stream, int _length)
 				if(test_sample > MAX_16) { stream[x] = MAX_16; }
 				else if(test_sample < MIN_16) { stream[x] = MIN_16; }
 				else { stream[x] = test_sample; }
+			}
 
-				apu_link->mic_buffer.push_back(test_sample);
+			if(apu_link->apu_stat.mic.estimated_sample_rate)
+			{
+				double sample_ratio = apu_link->apu_stat.sample_rate / apu_link->apu_stat.mic.estimated_sample_rate;
+				double buffer_pos = 0.0;
+
+				while(buffer_pos < length)
+				{
+					u32 sample_pos = buffer_pos;
+					buffer_pos += sample_ratio;
+
+					//Convert to 8-bit audio data
+					u8 sample_data = (stream[sample_pos] >> 8);
+					apu_link->mic_buffer.push_back(sample_data);
+				}
 			}
 		}
 
@@ -472,6 +487,7 @@ void ntr_microphone_callback(void* _apu, u8 *_stream, int _length)
 		else
 		{
 			apu_link->mic_buffer.clear();
+			apu_link->apu_stat.mic.sample_index = 0;
 			SDL_PauseAudioDevice(apu_link->apu_stat.mic.id, 1);
 		}
 	}

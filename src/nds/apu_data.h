@@ -43,7 +43,7 @@ struct ntr_apu_data
 		bool decode_adpcm;
 	} channel[16];
 
-	//Microphone input for cartridges like the Jukebox or Campho Advance
+	//Microphone input for NDS
 	struct microphone_data
 	{
 		bool init;
@@ -53,6 +53,8 @@ struct ntr_apu_data
 		u16 output;
 		u32 poll_rate;
 		u32 estimated_sample_rate;
+		u32 sample_index;
+		std::vector<u8> sample_buffer;
 	} mic;
 
 	//IMA-ADPCM table

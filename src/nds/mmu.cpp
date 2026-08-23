@@ -911,12 +911,21 @@ u8 NTR_MMU::read_u8(u32 address)
 			is_mic_active = true;
 			mic_deactivation_count = 30;
 			
-			//Turn on microphone if possible
-			if((config::mic_device == MIC_NDS) && (!apu_stat->mic.is_on)
-			&& (apu_stat->mic.init))
+			if((config::mic_device == MIC_NDS) && (apu_stat->mic.init))
 			{
-				apu_stat->mic.is_on = true;
-				SDL_PauseAudioDevice(apu_stat->mic.id, 0);
+				//Turn on microphone if possible
+				if(!apu_stat->mic.is_on)
+				{
+					apu_stat->mic.is_on = true;
+					SDL_PauseAudioDevice(apu_stat->mic.id, 0);
+				}
+
+				//Return microphone samples if available
+				if(apu_stat->mic.sample_index < apu_stat->mic.sample_buffer.size())
+				{
+					apu_stat->mic.output = apu_stat->mic.sample_buffer[apu_stat->mic.sample_index++];
+					return apu_stat->mic.output;
+				}
 			}
 
 			return (address & 0x1) ? (apu_stat->mic.output >> 8) : apu_stat->mic.output;
