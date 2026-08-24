@@ -910,7 +910,7 @@ u8 NTR_MMU::read_u8(u32 address)
 			apu_stat->mic.poll_rate++;
 			is_mic_active = true;
 			mic_deactivation_count = 30;
-			
+
 			if((config::mic_device == MIC_NDS) && (apu_stat->mic.init))
 			{
 				//Turn on microphone if possible
@@ -924,6 +924,7 @@ u8 NTR_MMU::read_u8(u32 address)
 				if(apu_stat->mic.sample_index < apu_stat->mic.sample_buffer.size())
 				{
 					apu_stat->mic.output = apu_stat->mic.sample_buffer[apu_stat->mic.sample_index++];
+					printf("HE -> %d :: %x\n", apu_stat->mic.output, address);
 					return apu_stat->mic.output;
 				}
 			}
