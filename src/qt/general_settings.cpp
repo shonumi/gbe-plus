@@ -631,7 +631,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* mic_sens_label = new QLabel("Microphone Sensitivity : ");
 	mic_sens = new QSlider(sound);
 	mic_sens->setToolTip("Microphone sensitivity for GBE+");
-	mic_sens->setMaximum(8);
+	mic_sens->setMaximum(256);
 	mic_sens->setMinimum(1);
 	mic_sens->setValue(1);
 	mic_sens->setOrientation(Qt::Horizontal);

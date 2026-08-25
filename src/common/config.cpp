@@ -1379,7 +1379,7 @@ bool parse_ini_file(std::string filename)
 		if(!parse_ini_number(ini_item, "#microphone_id", config::microphone_id, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Microphone sensitivity
-		if(!parse_ini_number(ini_item, "#microphone_sensitivity", config::microphone_sensitivity, ini_opts, x, 1, 8)) { return false; }
+		if(!parse_ini_number(ini_item, "#microphone_sensitivity", config::microphone_sensitivity, ini_opts, x, 1, 256)) { return false; }
 
 		//Force cart audio sync
 		if(!parse_ini_bool(ini_item, "#force_cart_audio_sync", config::force_cart_audio_sync, ini_opts, x)) { return false; }
