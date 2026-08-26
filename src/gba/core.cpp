@@ -603,7 +603,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		while(hex_ticks.length() < 8) { hex_ticks = "0" + hex_ticks; }
 		save_name += (util::get_long_date(false) + "_" + hex_ticks);
 
-		util::save_image(core_cpu.controllers.video.final_screen, save_name);
+		util::save_image(core_cpu.controllers.video.final_screen, save_name, true);
 
 		//OSD
 		config::osd_message = "SAVED SCREENSHOT";
