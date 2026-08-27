@@ -1090,7 +1090,7 @@ bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot)
 	#ifdef GBE_OGL
 	//Special handling for OpenGL for SDL/CLI version
 	//Manually grab data by glReadPixels for SDL_Surface conversion
-	if(config::use_opengl && is_screenshot)
+	if(config::use_opengl && is_screenshot && !config::use_external_interfaces)
 	{
 		std::vector<u8> temp_img;
 		std::vector<u8> final_img;
@@ -1133,7 +1133,7 @@ bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot)
 
 	//Make sure to free surface *only* if it's a local copy!
 	#ifdef GBE_OGL
-	if(config::use_opengl && is_screenshot) { SDL_FreeSurface(src_copy); }
+	if(config::use_opengl && is_screenshot && !config::use_external_interfaces) { SDL_FreeSurface(src_copy); }
 	#endif	
 
 	return result;
