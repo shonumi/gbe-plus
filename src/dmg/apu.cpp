@@ -118,6 +118,11 @@ bool DMG_APU::init()
 
 	else
 	{
+		if(desired_spec.freq != apu_stat.sample_rate)
+		{
+			std::cout<<"APU::Warning - Sample Rate is " << std::dec << desired_spec.freq << " instead of configured value\n";
+		}
+
 		apu_stat.channel_master_volume = (config::volume >> 2);
 		apu_stat.sample_rate *= 4;
 
