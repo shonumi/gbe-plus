@@ -1391,7 +1391,7 @@ bool parse_ini_file(std::string filename)
 		parse_ini_str(ini_item, "#override_audio_driver", config::override_audio_driver, ini_opts, x);
 
 		//Sample rate
-		if(!parse_ini_number(ini_item, "#sample_rate", config::sample_rate, ini_opts, x, 1, 48000)) { return false; }
+		if(!parse_ini_number(ini_item, "#sample_rate", config::sample_rate, ini_opts, x, 1, 96000)) { return false; }
 
 		//Sample size
 		if(!parse_ini_number(ini_item, "#sample_size", config::sample_size, ini_opts, x, 0, 4096)) { return false; }
