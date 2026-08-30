@@ -770,10 +770,11 @@ void main_menu::quit()
 
 	switch(settings->freq->currentIndex())
 	{
-		case 0: config::sample_rate = 48000.0; break;
-		case 1: config::sample_rate = 44100.0; break;
-		case 2: config::sample_rate = 22050.0; break;
-		case 3: config::sample_rate = 11025.0; break;
+		case 0: config::sample_rate = 96000.0; break;
+		case 1: config::sample_rate = 48000.0; break;
+		case 2: config::sample_rate = 44100.0; break;
+		case 3: config::sample_rate = 22050.0; break;
+		case 4: config::sample_rate = 11025.0; break;
 	}
 
 	save_ini_file();

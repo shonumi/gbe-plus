@@ -459,6 +459,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QLabel* freq_label = new QLabel("Output Frequency : ");
 	freq = new QComboBox(freq_set);
 	freq->setToolTip("Selects the final output frequency of all sound.");
+	freq->addItem("96000Hz");
 	freq->addItem("48000Hz");
 	freq->addItem("44100Hz");
 	freq->addItem("22050Hz");
@@ -2133,10 +2134,16 @@ void gen_settings::set_ini_options()
 	//Sample rate option
 	switch((int)config::sample_rate)
 	{
-		case 11025: freq->setCurrentIndex(3); break;
-		case 22050: freq->setCurrentIndex(2); break;
-		case 44100: freq->setCurrentIndex(1); break;
-		case 48000: freq->setCurrentIndex(0); break;
+		case 11025: freq->setCurrentIndex(4); break;
+		case 22050: freq->setCurrentIndex(3); break;
+		case 44100: freq->setCurrentIndex(2); break;
+		case 48000: freq->setCurrentIndex(1); break;
+		case 96000: freq->setCurrentIndex(0); break;
+
+		//Force 44100Hz as default if unrecognized frequency set for Qt version
+		default:
+			freq->setCurrentIndex(2);
+			sample_rate = 44100.0;
 	}
 
 	//Audio driver
@@ -2795,10 +2802,11 @@ void gen_settings::sample_rate_change()
 {
 	switch(freq->currentIndex())
 	{
-		case 0: sample_rate = 48000.0; break;
-		case 1: sample_rate = 44100.0; break;
-		case 2: sample_rate = 22050.0; break;
-		case 3: sample_rate = 11025.0; break;
+		case 0: sample_rate = 96000.0; break;
+		case 1: sample_rate = 48000.0; break;
+		case 2: sample_rate = 44100.0; break;
+		case 3: sample_rate = 22050.0; break;
+		case 4: sample_rate = 11025.0; break;
 	}
 }
 
