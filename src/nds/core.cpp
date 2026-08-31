@@ -225,6 +225,8 @@ void NTR_core::load_state(u8 slot)
 	if(!core_cpu_nds7.cpu_read(offset, state_file)) { return; }
 	offset += core_cpu_nds7.size();
 
+	if(!core_cpu_nds7.controllers.audio.apu_read(offset, state_file)) { return; }
+	offset += core_cpu_nds7.controllers.audio.size();
 
 	if(!core_mmu.mmu_read(offset, state_file)) { return; }
 	offset += core_mmu.size();
@@ -260,6 +262,7 @@ void NTR_core::save_state(u8 slot)
 	if(!set_save_state_info(state_file)) { return; }
 	if(!core_cpu_nds9.cpu_write(state_file)) { return; }
 	if(!core_cpu_nds7.cpu_write(state_file)) { return; }
+	if(!core_cpu_nds7.controllers.audio.apu_write(state_file)) { return; }
 	if(!core_mmu.mmu_write(state_file)) { return; }
 	if(!core_cpu_nds9.controllers.video.lcd_write(state_file)) { return; }
 

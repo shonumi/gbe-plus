@@ -499,3 +499,159 @@ void ntr_microphone_callback(void* _apu, u8 *_stream, int _length)
 		}
 	}
 }
+
+/****** Read APU data from save state ******/
+bool NTR_APU::apu_read(u32 offset, std::string filename)
+{
+	std::ifstream file(filename.c_str(), std::ios::binary);
+	
+	if(!file.is_open()) { return false; }
+
+	//Go to offset
+	file.seekg(offset);
+
+	//Serialize APU data from save state
+	for(u32 x = 0; x < 16; x++)
+	{
+		file.read((char*)&apu_stat.channel[x].output_frequency, sizeof(apu_stat.channel[x].output_frequency));
+		file.read((char*)&apu_stat.channel[x].play_src, sizeof(apu_stat.channel[x].play_src));
+		file.read((char*)&apu_stat.channel[x].data_src, sizeof(apu_stat.channel[x].data_src));
+		file.read((char*)&apu_stat.channel[x].data_pos, sizeof(apu_stat.channel[x].data_pos));
+		file.read((char*)&apu_stat.channel[x].loop_start, sizeof(apu_stat.channel[x].loop_start));
+		file.read((char*)&apu_stat.channel[x].length, sizeof(apu_stat.channel[x].length));
+		file.read((char*)&apu_stat.channel[x].samples, sizeof(apu_stat.channel[x].samples));
+		file.read((char*)&apu_stat.channel[x].cnt, sizeof(apu_stat.channel[x].cnt));
+		file.read((char*)&apu_stat.channel[x].timer, sizeof(apu_stat.channel[x].timer));
+		file.read((char*)&apu_stat.channel[x].volume, sizeof(apu_stat.channel[x].volume));
+		file.read((char*)&apu_stat.channel[x].pan, sizeof(apu_stat.channel[x].pan));
+		file.read((char*)&apu_stat.channel[x].format, sizeof(apu_stat.channel[x].format));
+		file.read((char*)&apu_stat.channel[x].playing, sizeof(apu_stat.channel[x].playing));
+		file.read((char*)&apu_stat.channel[x].enable, sizeof(apu_stat.channel[x].enable));
+		file.read((char*)&apu_stat.channel[x].adpcm_header, sizeof(apu_stat.channel[x].adpcm_header));
+		file.read((char*)&apu_stat.channel[x].adpcm_pos, sizeof(apu_stat.channel[x].adpcm_pos));
+		file.read((char*)&apu_stat.channel[x].adpcm_index, sizeof(apu_stat.channel[x].adpcm_index));
+		file.read((char*)&apu_stat.channel[x].adpcm_val, sizeof(apu_stat.channel[x].adpcm_val));
+		file.read((char*)&apu_stat.channel[x].decode_adpcm, sizeof(apu_stat.channel[x].decode_adpcm));
+
+		u32 buffer_size = 0;
+		file.read((char*)&buffer_size, sizeof(buffer_size));
+		apu_stat.channel[x].adpcm_buffer.clear();
+
+		for(u32 y = 0; y < buffer_size; y++)
+		{
+			s16 temp_sample;
+			file.read((char*)&temp_sample, sizeof(temp_sample));
+			apu_stat.channel[x].adpcm_buffer.push_back(temp_sample);
+		}
+	}
+
+	file.read((char*)&apu_stat.adpcm_table, sizeof(apu_stat.adpcm_table));
+	file.read((char*)&apu_stat.index_table, sizeof(apu_stat.index_table));
+	file.read((char*)&apu_stat.sound_on, sizeof(apu_stat.sound_on));
+	file.read((char*)&apu_stat.stereo, sizeof(apu_stat.stereo));
+	file.read((char*)&apu_stat.main_volume, sizeof(apu_stat.main_volume));
+	file.read((char*)&apu_stat.sample_rate, sizeof(apu_stat.sample_rate));
+	file.read((char*)&apu_stat.channel_master_volume, sizeof(apu_stat.channel_master_volume));
+
+	file.close();
+	return true;
+}
+
+/****** Write APU data to save state ******/
+bool NTR_APU::apu_write(std::string filename)
+{
+	std::ofstream file(filename.c_str(), std::ios::binary | std::ios::app);
+	
+	if(!file.is_open()) { return false; }
+
+	//Serialize APU data to save state
+	for(u32 x = 0; x < 16; x++)
+	{
+		file.write((char*)&apu_stat.channel[x].output_frequency, sizeof(apu_stat.channel[x].output_frequency));
+		file.write((char*)&apu_stat.channel[x].play_src, sizeof(apu_stat.channel[x].play_src));
+		file.write((char*)&apu_stat.channel[x].data_src, sizeof(apu_stat.channel[x].data_src));
+		file.write((char*)&apu_stat.channel[x].data_pos, sizeof(apu_stat.channel[x].data_pos));
+		file.write((char*)&apu_stat.channel[x].loop_start, sizeof(apu_stat.channel[x].loop_start));
+		file.write((char*)&apu_stat.channel[x].length, sizeof(apu_stat.channel[x].length));
+		file.write((char*)&apu_stat.channel[x].samples, sizeof(apu_stat.channel[x].samples));
+		file.write((char*)&apu_stat.channel[x].cnt, sizeof(apu_stat.channel[x].cnt));
+		file.write((char*)&apu_stat.channel[x].timer, sizeof(apu_stat.channel[x].timer));
+		file.write((char*)&apu_stat.channel[x].volume, sizeof(apu_stat.channel[x].volume));
+		file.write((char*)&apu_stat.channel[x].pan, sizeof(apu_stat.channel[x].pan));
+		file.write((char*)&apu_stat.channel[x].format, sizeof(apu_stat.channel[x].format));
+		file.write((char*)&apu_stat.channel[x].playing, sizeof(apu_stat.channel[x].playing));
+		file.write((char*)&apu_stat.channel[x].enable, sizeof(apu_stat.channel[x].enable));
+		file.write((char*)&apu_stat.channel[x].adpcm_header, sizeof(apu_stat.channel[x].adpcm_header));
+		file.write((char*)&apu_stat.channel[x].adpcm_pos, sizeof(apu_stat.channel[x].adpcm_pos));
+		file.write((char*)&apu_stat.channel[x].adpcm_index, sizeof(apu_stat.channel[x].adpcm_index));
+		file.write((char*)&apu_stat.channel[x].adpcm_val, sizeof(apu_stat.channel[x].adpcm_val));
+		file.write((char*)&apu_stat.channel[x].decode_adpcm, sizeof(apu_stat.channel[x].decode_adpcm));
+
+		u32 buffer_size = apu_stat.channel[x].adpcm_buffer.size();
+		file.write((char*)&buffer_size, sizeof(buffer_size));
+
+		for(u32 y = 0; y < buffer_size; y++)
+		{
+			s16 temp_sample = apu_stat.channel[x].adpcm_buffer[y];
+			file.write((char*)&temp_sample, sizeof(temp_sample));
+		}
+	}
+
+	file.write((char*)&apu_stat.adpcm_table, sizeof(apu_stat.adpcm_table));
+	file.write((char*)&apu_stat.index_table, sizeof(apu_stat.index_table));
+	file.write((char*)&apu_stat.sound_on, sizeof(apu_stat.sound_on));
+	file.write((char*)&apu_stat.stereo, sizeof(apu_stat.stereo));
+	file.write((char*)&apu_stat.main_volume, sizeof(apu_stat.main_volume));
+	file.write((char*)&apu_stat.sample_rate, sizeof(apu_stat.sample_rate));
+	file.write((char*)&apu_stat.channel_master_volume, sizeof(apu_stat.channel_master_volume));
+
+	file.close();
+	return true;
+}
+
+/****** Gets the size of APU data for serialization ******/
+u32 NTR_APU::size()
+{
+	u32 apu_size = 0;
+
+	for(u32 x = 0; x < 16; x++)
+	{
+		apu_size += sizeof(apu_stat.channel[x].output_frequency);
+		apu_size += sizeof(apu_stat.channel[x].play_src);
+		apu_size += sizeof(apu_stat.channel[x].data_src);
+		apu_size += sizeof(apu_stat.channel[x].data_pos);
+		apu_size += sizeof(apu_stat.channel[x].loop_start);
+		apu_size += sizeof(apu_stat.channel[x].length);
+		apu_size += sizeof(apu_stat.channel[x].samples);
+		apu_size += sizeof(apu_stat.channel[x].cnt);
+		apu_size += sizeof(apu_stat.channel[x].timer);
+		apu_size += sizeof(apu_stat.channel[x].volume);
+		apu_size += sizeof(apu_stat.channel[x].pan);
+		apu_size += sizeof(apu_stat.channel[x].format);
+		apu_size += sizeof(apu_stat.channel[x].playing);
+		apu_size += sizeof(apu_stat.channel[x].enable);
+		apu_size += sizeof(apu_stat.channel[x].adpcm_header);
+		apu_size += sizeof(apu_stat.channel[x].adpcm_pos);
+		apu_size += sizeof(apu_stat.channel[x].adpcm_index);
+		apu_size += sizeof(apu_stat.channel[x].adpcm_val);
+		apu_size += sizeof(apu_stat.channel[x].decode_adpcm);
+
+		u32 buffer_size = apu_stat.channel[x].adpcm_buffer.size();
+		apu_size += sizeof(buffer_size);
+
+		for(u32 y = 0; y < buffer_size; y++)
+		{
+			apu_size += sizeof(apu_stat.channel[x].adpcm_buffer[y]);
+		}
+	}
+
+	apu_size += sizeof(apu_stat.adpcm_table);
+	apu_size += sizeof(apu_stat.index_table);
+	apu_size += sizeof(apu_stat.sound_on);
+	apu_size += sizeof(apu_stat.stereo);
+	apu_size += sizeof(apu_stat.main_volume);
+	apu_size += sizeof(apu_stat.sample_rate);
+	apu_size += sizeof(apu_stat.channel_master_volume);
+
+	return apu_size;
+}

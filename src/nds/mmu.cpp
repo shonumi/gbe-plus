@@ -6438,6 +6438,7 @@ u32 NTR_MMU::size()
 	mmu_size += sizeof(do_save);
 	mmu_size += sizeof(fetch_request);
 	mmu_size += sizeof(gx_command);
+	mmu_size += sizeof(is_mic_active);
 
 	mmu_size += sizeof(dma);
 	mmu_size += sizeof(sound_cap);
