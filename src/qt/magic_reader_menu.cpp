@@ -40,6 +40,7 @@ mr_menu::mr_menu(QWidget *parent) : QDialog(parent)
 
 	setMinimumWidth(300);
 	setWindowTitle(QString("Magic Reader Configuration"));
+	setWindowIcon(QIcon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")));
 	hide();
 
 	connect(close_button, SIGNAL(accepted()), this, SLOT(accept()));
