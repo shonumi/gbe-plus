@@ -731,6 +731,9 @@ u8 get_system_type_from_file(std::string filename)
 		config::gba_enhance = true;
 	}
 
+	//Set Auto for DMG and GBC, check CGB flag below
+	else if((ext == ".gbc") || (ext == ".gb")) { gb_type = SYS_AUTO; }
+
 	//For Auto or GBC mode, determine what the CGB Flag is
 	if((gb_type == SYS_AUTO) || (gb_type == SYS_GBC) || (gb_type == SYS_SGB) || (gb_type == SYS_SGB2))
 	{
