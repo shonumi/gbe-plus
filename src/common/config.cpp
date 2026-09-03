@@ -678,6 +678,9 @@ void validate_system_type()
 		config::gba_enhance = true;
 	}
 
+	//Set Auto for DMG and GBC
+	else if((ext == ".gbc") || (ext == ".gb")) { config::gb_type = SYS_AUTO; }
+
 	//Set per-game .ini filename once system type has been validated
 	config::game_ini_file = get_game_ini_filename();
 }
