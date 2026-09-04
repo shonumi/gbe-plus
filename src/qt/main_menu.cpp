@@ -999,6 +999,8 @@ void main_menu::boot_game()
 			config::gb_type = SYS_GBC;
 			config::gba_enhance = true;
 		}
+
+		else if((ext == ".gbc") || (ext == ".gb")) { config::gb_type = SYS_AUTO; }
 		
 		else { config::gba_enhance = false; }
 
