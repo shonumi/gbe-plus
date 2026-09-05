@@ -2197,16 +2197,34 @@ bool DMG_MMU::read_bios(std::string filename)
 		u32 hash = 0;
 		u8 rank = 0;
 
-		//Select BIOS is this order: GBC (REV1, REV0), MGB, DMG (REV1, REV0)
-		for(u32 x = 0; x < config::bin_hashes.size(); x++)
+		//For SYS_DMG - Select BIOS is this order: DMG (REV1, REV0), MGB, GBC (REV1, REV0)
+		if(config::gb_type == SYS_DMG)
 		{
-			hash = config::bin_hashes[x];
+			for(u32 x = 0; x < config::bin_hashes.size(); x++)
+			{
+				hash = config::bin_hashes[x];
 
-			if(hash == 0x41884E46) { filename = config::bin_files[x]; rank = 5; }
-			else if((hash == 0xE8EF5318) && (rank < 4)) { filename = config::bin_files[x]; rank = 4; }
-			else if((hash == 0xE6920754) && (rank < 3)) { filename = config::bin_files[x]; rank = 3; }
-			else if((hash == 0x59C8598E) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
-			else if((hash == 0xC2F5CC97) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+				if(hash == 0x59C8598E) { filename = config::bin_files[x]; rank = 5; }
+				else if((hash == 0xC2F5CC97) && (rank < 4)) { filename = config::bin_files[x]; rank = 4; }
+				else if((hash == 0xE6920754) && (rank < 3)) { filename = config::bin_files[x]; rank = 3; }
+				else if((hash == 0x41884E46) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
+				else if((hash == 0xE8EF5318) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+			}
+		}
+
+		//For everything else - Select BIOS is this order: GBC (REV1, REV0), MGB, DMG (REV1, REV0)
+		else
+		{
+			for(u32 x = 0; x < config::bin_hashes.size(); x++)
+			{
+				hash = config::bin_hashes[x];
+
+				if(hash == 0x41884E46) { filename = config::bin_files[x]; rank = 5; }
+				else if((hash == 0xE8EF5318) && (rank < 4)) { filename = config::bin_files[x]; rank = 4; }
+				else if((hash == 0xE6920754) && (rank < 3)) { filename = config::bin_files[x]; rank = 3; }
+				else if((hash == 0x59C8598E) && (rank < 2)) { filename = config::bin_files[x]; rank = 2; }
+				else if((hash == 0xC2F5CC97) && (rank < 1)) { filename = config::bin_files[x]; rank = 1; }
+			}
 		}
 	}	
 
