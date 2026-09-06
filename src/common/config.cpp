@@ -1153,9 +1153,17 @@ void parse_filenames()
 /****** Parse the contents of a file for .ini options ******/
 bool parse_ini_file(std::string filename)
 {
+	if(util::get_filename_from_path(filename).empty()) { return false; }
+
 	std::ifstream file(filename.c_str(), std::ios::in);
 	std::string input_line = "";
 	std::string line_char = "";
+
+	if(!file.is_open())
+	{
+		std::cout<<"GBE::Error - Could not open .ini file: " << filename << "\n"; 
+		return false;
+	}
 
 	//Clear recent files and set up new ini options - gbe.ini ONLY!
 	if(util::get_filename_from_path(filename) == "gbe.ini")
