@@ -1021,6 +1021,15 @@ void main_menu::boot_game()
 		}
 	}
 
+	//Check for SGB or SGB2 core with NOCART
+	if((config::rom_file == "NOCART") && ((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2)))
+	{
+		std::string mesg_text = "GBE+ does not support SGB BIOS and cannot boot this system without a cartridge"; 
+		warning_box->setText(QString::fromStdString(mesg_text));
+		warning_box->show();
+		return;
+	}
+
 	//Start the appropiate system core - DMG, GBC, GBA, NDS, or MIN
 	if(config::gb_type == SYS_GBA) 
 	{
