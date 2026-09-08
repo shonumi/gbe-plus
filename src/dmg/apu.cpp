@@ -127,7 +127,13 @@ bool DMG_APU::init()
 		apu_stat.sample_rate *= 4;
 
 		SDL_PauseAudio(0);
+
 		std::cout<<"APU::Initialized\n";
+		std::cout<<"APU::Audio Format - S16, " << std::dec << desired_spec.freq << "Hz, ";
+		std::cout<<((desired_spec.channels == 1) ? "Mono, " : "Stereo, ");
+		std::cout<<"Sample Size: " << desired_spec.samples << std::hex << "\n";
+		std::cout<<"APU::Audio Driver - " << SDL_GetCurrentAudioDriver() << "\n";
+
 		return true;
 	}
 }
