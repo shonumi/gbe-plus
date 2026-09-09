@@ -1030,6 +1030,18 @@ void main_menu::boot_game()
 		return;
 	}
 
+	//Reset SDL audio if a new audio driver is needs to be used
+	if(!config::override_audio_driver.empty())
+	{
+		std::string current_driver = SDL_GetCurrentAudioDriver();
+
+		if(current_driver != config::override_audio_driver)
+		{
+			SDL_AudioQuit();
+			SDL_AudioInit(config::override_audio_driver.c_str());
+		}
+	}
+
 	//Start the appropiate system core - DMG, GBC, GBA, NDS, or MIN
 	if(config::gb_type == SYS_GBA) 
 	{
