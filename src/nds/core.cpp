@@ -226,6 +226,7 @@ void NTR_core::load_state(u8 slot)
 	offset += core_cpu_nds7.size();
 
 	if(!core_cpu_nds7.controllers.audio.apu_read(offset, state_file)) { return; }
+	if(!core_cpu_nds7.controllers.audio.soft_init()) { return; }
 	offset += core_cpu_nds7.controllers.audio.size();
 
 	if(!core_mmu.mmu_read(offset, state_file)) { return; }

@@ -31,6 +31,7 @@ class DMG_APU
 	~DMG_APU();
 
 	bool init();
+	bool soft_init();
 	void reset();
 
 	//Serialize data for save state loading/saving

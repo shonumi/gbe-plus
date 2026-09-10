@@ -31,6 +31,7 @@ class MIN_APU
 	~MIN_APU();
 
 	bool init();
+	bool soft_init();
 	void reset();
 
 	void buffer_channel();

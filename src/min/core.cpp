@@ -187,6 +187,7 @@ void MIN_core::load_state(u8 slot)
 	offset += core_mmu.size();
 
 	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
+	if(!core_cpu.controllers.audio.soft_init()) { return; }
 	offset += core_cpu.controllers.audio.size();
 
 	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }

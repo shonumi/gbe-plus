@@ -35,6 +35,7 @@ class AGB_APU
 	~AGB_APU();
 
 	bool init();
+	bool soft_init();
 	void reset();
 
 	void buffer_channels();
