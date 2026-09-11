@@ -557,6 +557,9 @@ bool NTR_LCD::init()
 	}
 
 	std::cout<<"LCD::Initialized\n";
+	std::cout<<"LCD::Video Format - " << std::dec << ((config::use_opengl) ? "OpenGL, " : "Software Rendering, ");
+	std::cout<<(config::sys_width * config::scaling_factor) << "x" << (config::sys_height * config::scaling_factor) << std::hex << "\n";
+	if(config::sdl_render) { std::cout<<"LCD::Video Driver - " << SDL_GetCurrentVideoDriver() << "\n"; }
 
 	return true;
 }
