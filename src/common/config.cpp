@@ -1155,25 +1155,38 @@ bool parse_ini_file(std::string filename)
 {
 	if(util::get_filename_from_path(filename).empty()) { return false; }
 
+	bool is_gbe_ini = (util::get_filename_from_path(filename) == "gbe.ini");
+
+	//Always print out per-game .ini file even if it can't be opened or does not exists
+	//Alerts the user to the expected filename to create it or make changes
+	if(!is_gbe_ini)
+	{
+		std::cout<<"GBE::Per-game .ini file: " << util::get_filename_from_path(filename) << "\n";
+	}
+
 	std::ifstream file(filename.c_str(), std::ios::in);
 	std::string input_line = "";
 	std::string line_char = "";
 
 	if(!file.is_open())
 	{
-		std::cout<<"GBE::Error - Could not open .ini file: " << filename << "\n"; 
+		if(is_gbe_ini)
+		{
+			std::cout<<"GBE::Error - Could not open gbe.ini file\n
+		}
+
+		else
+		{
+			std::cout<<"GBE::Warning - Could not open per-game .ini file\n";
+		}
+
 		return false;
 	}
 
 	//Clear recent files and set up new ini options - gbe.ini ONLY!
-	if(util::get_filename_from_path(filename) == "gbe.ini")
+	if(is_gbe_ini)
 	{
 		config::recent_files.clear();
-	}
-
-	else
-	{
-		std::cout<<"GBE::Per-game .ini file: " << util::get_filename_from_path(filename) << "\n";
 	}
 
 	std::vector <std::string> ini_opts;
