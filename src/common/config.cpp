@@ -1172,7 +1172,7 @@ bool parse_ini_file(std::string filename)
 	{
 		if(is_gbe_ini)
 		{
-			std::cout<<"GBE::Error - Could not open gbe.ini file\n
+			std::cout<<"GBE::Error - Could not open gbe.ini file\n";
 		}
 
 		else
@@ -1194,6 +1194,7 @@ bool parse_ini_file(std::string filename)
 	int touch_zone_counter = 0;
 	u8 temp_cart_type = 0xFF;
 	u8 temp_save_type = 0xFF;
+	std::string temp_str = "";
 
 	//Cycle through whole file, line-by-line
 	while(getline(file, input_line))
@@ -1806,76 +1807,58 @@ bool parse_ini_file(std::string filename)
 		if(!parse_ini_number(ini_item, "#id_db_index", config::ir_db_index, ini_opts, x, 0, 0xFFFFFFFF)) { return false; }
 
 		//Multi Plust On System ID
-		if(ini_item == "#mpos_id")
+		if(parse_ini_str(ini_item, "#mpos_id", temp_str, ini_opts, x))
 		{
-			if((x + 1) < size)
-			{
-				ini_item = ini_opts[++x];
-				std::size_t found = ini_item.find("0x");
-				std::string format = ini_item.substr(0, 2);
+			ini_item = temp_str;
+			std::size_t found = ini_item.find("0x");
+			std::string format = ini_item.substr(0, 2);
 
-				//Value must be in hex format with "0x"
-				if(format != "0x")
-				{
-					std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
-					return false;
-				}
-
-				std::string id = ini_item.substr(found + 2);
-
-				//Value must not be more than 4 characters long for 16-bit
-				if(id.size() > 4)
-				{
-					std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
-					return false;
-				}
-
-				u32 final_id = 0;
-
-				//Parse the string into hex
-				if(!util::from_hex_str(id, final_id))
-				{
-					std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
-					return false;
-				}
-
-				config::mpos_id = final_id;
-			}
-
-			else
+			//Value must be in hex format with "0x"
+			if(format != "0x")
 			{
 				std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
 				return false;
 			}
+
+			std::string id = ini_item.substr(found + 2);
+
+			//Value must not be more than 4 characters long for 16-bit
+			if(id.size() > 4)
+			{
+				std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
+				return false;
+			}
+
+			u32 final_id = 0;
+
+			//Parse the string into hex
+			if(!util::from_hex_str(id, final_id))
+			{
+				std::cout<<"GBE::Error - Could not parse .ini (#mpos_id) \n";
+				return false;
+			}
+
+			config::mpos_id = final_id;
 		}
 
 		//Ubisoft Thrustmaster Pedometer steps
-		if(ini_item == "#utp_steps")
+		if(parse_ini_str(ini_item, "#utp_steps", temp_str, ini_opts, x))
 		{
-			if((x + 1) < size)
-			{
-				ini_item = ini_opts[++x];
+			ini_item = temp_str;
 
-				//Make sure only 5 characters max are used
-				if(ini_item.size() > 5) { ini_item = ini_item.substr(0, 5); }
+			//Make sure only 5 characters max are used
+			if(ini_item.size() > 5) { ini_item = ini_item.substr(0, 5); }
 
-				u32 steps = 0;
+			u32 steps = 0;
 
-				//Parse the string into hex
-				if(!util::from_hex_str(ini_item, steps))
-				{
-					std::cout<<"GBE::Error - Could not parse .ini (#utp_steps) \n";
-					return false;
-				}
-
-				config::utp_steps = steps;
-			}
-
-			else
+			//Parse the string into hex
+			if(!util::from_hex_str(ini_item, steps))
 			{
 				std::cout<<"GBE::Error - Could not parse .ini (#utp_steps) \n";
 				return false;
 			}
+
+			config::utp_steps = steps;
 		}
 
 		//Total time for GBA Jukebox recording
@@ -3706,8 +3689,10 @@ bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_boo
 }
 
 /****** Parses .ini string for string value ******/
-void parse_ini_str(std::string ini_item, std::string search_item, std::string &ini_str, std::vector <std::string> &ini_opts, u32 &ini_pos)
+bool parse_ini_str(std::string ini_item, std::string search_item, std::string &ini_str, std::vector <std::string> &ini_opts, u32 &ini_pos)
 {
+	bool result = false;
+
 	if(ini_item == search_item)
 	{
 		if((ini_pos + 1) < ini_opts.size()) 
@@ -3717,13 +3702,15 @@ void parse_ini_str(std::string ini_item, std::string search_item, std::string &i
 			first_char = ini_item[0];
 				
 			//When left blank, don't parse the next line item
-			if(first_char != "#") { ini_str = ini_item; }
+			if(first_char != "#") { ini_str = ini_item; result = true; }
 			else { ini_str = ""; ini_pos--;}
  
 		}
 
 		else { ini_str = ""; }
 	}
+
+	return result;
 }
 
 /****** Parses .ini string for integer values - u32 ******/
