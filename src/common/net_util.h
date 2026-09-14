@@ -25,6 +25,7 @@ enum net_comm_role
 {
 	NET_COMM_SERVER = true,
 	NET_COMM_CLIENT = false,
+	NET_COMM_DUMMY,
 };
 
 enum net_comm_misc

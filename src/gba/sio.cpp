@@ -21,6 +21,15 @@ AGB_SIO::AGB_SIO()
 {
 	network_init = false;
 
+	#ifdef GBE_NETPLAY
+
+	//Set dummy netplay comms.
+	//Used to make sure bare minimum stuff is initialized mostly nullptrs
+	net_util::setup_comm(server, 0, NET_COMM_DUMMY);
+	net_util::setup_comm(sender, 0, NET_COMM_DUMMY);
+
+	#endif
+
 	reset();
 
 	//Load Mobile Adapter data + internal server list

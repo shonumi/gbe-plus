@@ -25,6 +25,15 @@ DMG_SIO::DMG_SIO()
 	is_master = false;
 	master_id = 0;
 
+	#ifdef GBE_NETPLAY
+
+	//Set dummy netplay comms.
+	//Used to make sure bare minimum stuff is initialized mostly nullptrs
+	net_util::setup_comm(server, 0, NET_COMM_DUMMY);
+	net_util::setup_comm(sender, 0, NET_COMM_DUMMY);
+
+	#endif
+
 	reset();
 }
 
