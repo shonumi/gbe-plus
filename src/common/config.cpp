@@ -2096,6 +2096,9 @@ bool load_ini_file(std::string filename)
 
 		result = generate_ini_file();
 		if(!result) { return false; }
+
+		config::ini_file = "gbe.ini";
+		filename = "gbe.ini";
 	}
 
 	//After the location of the data directory is known, set path of temporary media file and karaoke file
@@ -3381,24 +3384,14 @@ bool generate_ini_file()
 
 	if(!file.is_open())
 	{
-		std::cout<<"GBE::Could not create a generic .ini file. Settings will not be saved.\n";
+		std::cout<<"GBE::Could not create a generic gbe.ini file. Settings will not be saved.\n";
 		return false; 
 	}
 
 	file << ini_contents;
 	file.close();
 
-	//Populate .ini file with defaults and resave
-	std::string temp_path = config::cfg_path;
-	config::cfg_path = "";
-
-	if(!save_ini_file())
-	{
-		std::cout<<"GBE::Could not create a generic .ini file. Settings will not be saved.\n";
-		return false;
-	}
-
-	std::cout<<"Generating generic .ini file\n";
+	std::cout<<"GBE::Generating generic gbe.ini file\n";
 
 	return true;
 }
