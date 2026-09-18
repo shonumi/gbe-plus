@@ -140,7 +140,7 @@ void DMG_core::reset()
 }
 
 /****** Loads a save state ******/
-void DMG_core::load_state(u8 slot)
+bool DMG_core::load_state(u8 slot)
 {
 	std::string id = (slot > 0) ? util::to_str(slot) : "";
 	std::string state_file = "";
@@ -166,35 +166,37 @@ void DMG_core::load_state(u8 slot)
 	{
 		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
 		config::osd_count = 180;
-		return;
+		return false;
 	}
 
-	if(!get_save_state_info(offset, state_file)) { return; }
+	if(!get_save_state_info(offset, state_file)) { return false; }
 	offset += sizeof(DMG_SAVE_STATE_VERSION);
 	offset += sizeof(config::gb_type);
 	offset += 32;
 
-	if(!core_cpu.cpu_read(offset, state_file)) { return; }
+	if(!core_cpu.cpu_read(offset, state_file)) { return false; }
 	offset += core_cpu.size();	
 
-	if(!core_mmu.mmu_read(offset, state_file)) { return; }
+	if(!core_mmu.mmu_read(offset, state_file)) { return false; }
 	offset += core_mmu.size();
 
-	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return; }
-	if(!core_cpu.controllers.audio.soft_init()) { return; }
+	if(!core_cpu.controllers.audio.apu_read(offset, state_file)) { return false; }
+	if(!core_cpu.controllers.audio.soft_init()) { return false; }
 	offset += core_cpu.controllers.audio.size();
 
-	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return; }
+	if(!core_cpu.controllers.video.lcd_read(offset, state_file)) { return false; }
 
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
 	//OSD
 	config::osd_message = "LOADED STATE " + util::to_str(slot);
 	config::osd_count = 180;
+
+	return true;
 }
 
 /****** Saves a save state ******/
-void DMG_core::save_state(u8 slot)
+bool DMG_core::save_state(u8 slot)
 {
 	std::string id = (slot > 0) ? util::to_str(slot) : "";
 	std::string state_file = "";
@@ -211,17 +213,19 @@ void DMG_core::save_state(u8 slot)
 		state_file = config::rom_file + ".ss" + id;
 	}
 
-	if(!set_save_state_info(state_file)) { return; }
-	if(!core_cpu.cpu_write(state_file)) { return; }
-	if(!core_mmu.mmu_write(state_file)) { return; }
-	if(!core_cpu.controllers.audio.apu_write(state_file)) { return; }
-	if(!core_cpu.controllers.video.lcd_write(state_file)) { return; }
+	if(!set_save_state_info(state_file)) { return false; }
+	if(!core_cpu.cpu_write(state_file)) { return false; }
+	if(!core_mmu.mmu_write(state_file)) { return false; }
+	if(!core_cpu.controllers.audio.apu_write(state_file)) { return false; }
+	if(!core_cpu.controllers.video.lcd_write(state_file)) { return false; }
 
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
 	//OSD
 	config::osd_message = "SAVED STATE " + util::to_str(slot);
 	config::osd_count = 180;
+
+	return true;
 }
 
 /****** Gets the save state info (Version + System Type) ******/

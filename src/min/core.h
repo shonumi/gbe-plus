@@ -36,8 +36,8 @@ class MIN_core : virtual public core_emu
 		void process_keypad_irqs();
 		void update_volume(u8 volume);
 		void feed_key_input(int sdl_key, bool pressed);
-		void save_state(u8 slot);
-		void load_state(u8 slot);
+		bool save_state(u8 slot);
+		bool load_state(u8 slot);
 		bool get_save_state_info(u32 offset, std::string filename);
 		bool set_save_state_info(std::string filename);
 		void run_core();
