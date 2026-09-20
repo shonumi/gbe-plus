@@ -1731,7 +1731,13 @@ void main_menu::save_state(int slot)
 {
 	if(main_menu::gbe_plus != nullptr)
 	{
-		main_menu::gbe_plus->save_state(slot);
+		if(!main_menu::gbe_plus->save_state(slot))
+		{
+			std::string mesg_text = "Could not create save state for slot " + util::to_str(slot);
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+			return;
+		}
 
 		//Update save state menus with latest changes
 		update_save_state_list(state_save_list);
@@ -1744,7 +1750,13 @@ void main_menu::load_state(int slot)
 {
 	if(main_menu::gbe_plus != nullptr)
 	{
-		main_menu::gbe_plus->load_state(slot);
+		if(!main_menu::gbe_plus->load_state(slot))
+		{
+			std::string mesg_text = "Could not load save state for slot " + util::to_str(slot);
+			warning_box->setText(QString::fromStdString(mesg_text));
+			warning_box->show();
+			return;
+		}
 
 		//Apply current volume settings
 		settings->update_volume();
