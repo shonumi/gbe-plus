@@ -359,7 +359,7 @@ void main_menu::open_file()
 	//Close the core
 	if(main_menu::gbe_plus != nullptr) 
 	{
-		main_menu::gbe_plus->shutdown();
+		if(main_menu::gbe_plus->running) { main_menu::gbe_plus->shutdown(); }
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
@@ -426,7 +426,7 @@ void main_menu::open_am3_fldr()
 	//Close the core
 	if(main_menu::gbe_plus != nullptr) 
 	{
-		main_menu::gbe_plus->shutdown();
+		if(main_menu::gbe_plus->running) { main_menu::gbe_plus->shutdown(); }
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
@@ -472,7 +472,7 @@ void main_menu::open_no_cart()
 	//Close the core
 	if(main_menu::gbe_plus != nullptr) 
 	{
-		main_menu::gbe_plus->shutdown();
+		if(main_menu::gbe_plus->running) { main_menu::gbe_plus->shutdown(); }
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
@@ -741,7 +741,7 @@ void main_menu::quit()
 	//Close the core
 	if(main_menu::gbe_plus != nullptr) 
 	{
-		main_menu::gbe_plus->shutdown();
+		if(main_menu::gbe_plus->running) { main_menu::gbe_plus->shutdown(); }
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
@@ -1494,7 +1494,7 @@ void main_menu::reset()
 			return;
 		}
 
-		main_menu::gbe_plus->shutdown();
+		if(main_menu::gbe_plus->running) { main_menu::gbe_plus->shutdown(); }
 		main_menu::gbe_plus->core_emu::~core_emu();
 
 		boot_game();
@@ -1683,7 +1683,7 @@ void main_menu::load_recent(int file_id)
 	//Close the core
 	if(main_menu::gbe_plus != nullptr) 
 	{
-		main_menu::gbe_plus->shutdown();
+		if(main_menu::gbe_plus->running) { main_menu::gbe_plus->shutdown(); }
 		main_menu::gbe_plus->core_emu::~core_emu();
 	}
 
