@@ -264,10 +264,11 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 	u32 adpcm_pos = 0;
 	u32 segment_pos = 0;
 	s32 output_sample = 0;
+	u32 sample_index = 0;
 
 	for(u32 x = 0; x < length;)
 	{
-		segment_pos = (config::use_stereo) ? (x/2) : x;
+		segment_pos = (config::use_stereo) ? (sample_index/2) : sample_index;
 
 		//Channel 0 should set default data
 		if(id == 0) { output_sample = 0; }
@@ -290,6 +291,8 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 					if(loop_mode == 1)
 					{
 						apu_stat.channel[id].data_pos = apu_stat.channel[id].play_src + (apu_stat.channel[id].loop_start * 4);
+						sample_pos = apu_stat.channel[id].data_pos;
+						sample_index = 0;
 					}
 					
 					//Stop sound
@@ -316,6 +319,8 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 					if(loop_mode == 1)
 					{
 						apu_stat.channel[id].data_pos = apu_stat.channel[id].play_src + (apu_stat.channel[id].loop_start * 4);
+						sample_pos = apu_stat.channel[id].data_pos;
+						sample_index = 0;
 					}
 					
 					//Stop sound
@@ -343,6 +348,7 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 					{
 						apu_stat.channel[id].adpcm_pos = (apu_stat.channel[id].loop_start * 8);
 						apu_stat.channel[id].samples = ((apu_stat.channel[id].length - 1) * 8);
+						sample_index = 0;
 					}
 
 					//Stop sound
@@ -370,12 +376,14 @@ void NTR_APU::generate_channel_samples(s32* stream, int length, u8 id)
 			stream[x] += (output_sample * pan_left);
 			stream[x + 1] += (output_sample * pan_right);
 			x += 2;
+			sample_index += 2;
 		}
 
 		else
 		{
 			stream[x] += output_sample;
 			x += 1;
+			sample_index += 1;
 		}
 	}
 
