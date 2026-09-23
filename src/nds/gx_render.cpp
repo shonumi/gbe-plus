@@ -95,6 +95,8 @@ void NTR_LCD::render_geometry()
 		vert_order[3] = 2;
 	}
 
+	printf("GEO START\n");
+
 	//Translate all vertices to screen coordinates
 	for(u8 a = 0; a < vert_count; a++)
 	{
@@ -116,6 +118,8 @@ void NTR_LCD::render_geometry()
 		temp_matrix = temp_matrix * clip_matrix;
  		plot_x[a] = ceil(((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
   		plot_y[a] = ceil(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
+
+		printf("PRE X -> %f\n", ((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
 
 		//Get Z coordinate, use existing data from vertex
 		if(lcd_3D_stat.z_buffering)
@@ -141,6 +145,8 @@ void NTR_LCD::render_geometry()
 		}
 
 		plot_w[a] = temp_matrix[3];
+
+		printf("X: %f\tY: %f\tZ: %f\n", plot_x[a], plot_y[a], plot_z[a]);
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[a])) { lcd_3D_stat.render_polygon = false; return; }
@@ -193,6 +199,9 @@ void NTR_LCD::render_geometry()
 
 	if(lcd_3D_stat.poly_min_x > 255) { lcd_3D_stat.poly_min_x = 255; }
 	if(lcd_3D_stat.poly_max_x > 255) { lcd_3D_stat.poly_max_x = 255; }
+
+	printf("X MIN: %f\tX MAX: %f\t\n", x_min, x_max);
+	printf("X MIN: %f\tX MAX: %f\t\n", lcd_3D_stat.poly_min_x, lcd_3D_stat.poly_max_x);
 
 	//Draw lines for all polygons
 	for(u8 x = 0; x < vert_count; x++)
@@ -354,6 +363,8 @@ void NTR_LCD::render_geometry()
 		}
 	}
 
+	printf("GEO END\n\n");
+
 	//Fill in polygon
 	switch(lcd_3D_stat.vertex_mode)
 	{
@@ -413,7 +424,7 @@ void NTR_LCD::fill_poly_solid()
 	u8 edge_x1 = lcd_3D_stat.poly_min_x;
 	u8 edge_x2 = lcd_3D_stat.poly_max_x - 1;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -476,7 +487,7 @@ void NTR_LCD::fill_poly_interpolated()
 	bool use_edge = lcd_3D_stat.edge_marking;
 	u32 edge_color = lcd_3D_stat.edge_color[lcd_3D_stat.poly_id >> 3];
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
@@ -578,7 +589,7 @@ void NTR_LCD::fill_poly_textured()
 	u32 tw = lcd_3D_stat.tex_src_width;
 	u32 th = lcd_3D_stat.tex_src_height;
 
-	for(u32 x = lcd_3D_stat.poly_min_x; x < lcd_3D_stat.poly_max_x; x++)
+	for(u32 x = lcd_3D_stat.poly_min_x; x <= lcd_3D_stat.poly_max_x; x++)
 	{
 		float z_start = 0.0;
 		float z_end = 0.0;
