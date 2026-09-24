@@ -95,8 +95,6 @@ void NTR_LCD::render_geometry()
 		vert_order[3] = 2;
 	}
 
-	printf("GEO START\n");
-
 	//Translate all vertices to screen coordinates
 	for(u8 a = 0; a < vert_count; a++)
 	{
@@ -118,8 +116,6 @@ void NTR_LCD::render_geometry()
 		temp_matrix = temp_matrix * clip_matrix;
  		plot_x[a] = ceil(((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
   		plot_y[a] = ceil(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
-
-		printf("PRE X -> %f\n", ((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
 
 		//Get Z coordinate, use existing data from vertex
 		if(lcd_3D_stat.z_buffering)
@@ -145,8 +141,6 @@ void NTR_LCD::render_geometry()
 		}
 
 		plot_w[a] = temp_matrix[3];
-
-		printf("X: %f\tY: %f\tZ: %f\n", plot_x[a], plot_y[a], plot_z[a]);
 
 		//Check for wonky coordinates
 		if(std::isnan(plot_x[a])) { lcd_3D_stat.render_polygon = false; return; }
@@ -199,9 +193,6 @@ void NTR_LCD::render_geometry()
 
 	if(lcd_3D_stat.poly_min_x > 255) { lcd_3D_stat.poly_min_x = 255; }
 	if(lcd_3D_stat.poly_max_x > 255) { lcd_3D_stat.poly_max_x = 255; }
-
-	printf("X MIN: %f\tX MAX: %f\t\n", x_min, x_max);
-	printf("X MIN: %f\tX MAX: %f\t\n", lcd_3D_stat.poly_min_x, lcd_3D_stat.poly_max_x);
 
 	//Draw lines for all polygons
 	for(u8 x = 0; x < vert_count; x++)
@@ -362,8 +353,6 @@ void NTR_LCD::render_geometry()
 			xy_len--;
 		}
 	}
-
-	printf("GEO END\n\n");
 
 	//Fill in polygon
 	switch(lcd_3D_stat.vertex_mode)
@@ -638,78 +627,84 @@ void NTR_LCD::fill_poly_textured()
 			real_tx = tx1;
 			real_ty = ty1;
 
-			//Wrap horizontally, if necessary
-			if(lcd_3D_stat.repeat_tex_x)
+			bool skip_x = ((!lcd_3D_stat.repeat_tex_x) && ((tx1 < 0) || (tx1 > tw)));
+			bool skip_y = ((!lcd_3D_stat.repeat_tex_y) && ((ty1 < 0) || (ty1 > th)));
+
+			if(!skip_x && !skip_y)
 			{
-				u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
-
-				//No flipping horizontally
-				if(!lcd_3D_stat.flip_tex_x || !x_flip)
+				//Wrap horizontally, if necessary
+				if(lcd_3D_stat.repeat_tex_x)
 				{
-					if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
-					else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
-				}
+					u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
 
-				//Flip horizontally
-				else
-				{
-					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
-					else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
-				}
-			}
-
-			//Wrap vertically, if necessary
-			if(lcd_3D_stat.repeat_tex_y)
-			{
-				u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
-
-				//No flipping vertically
-				if(!lcd_3D_stat.flip_tex_y || !y_flip)
-				{
-					if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
-					else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
-				}
-
-				//Flip vertically
-				else
-				{
-					if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
-					else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
-				}
-			}
-
-			//Convert plot points to buffer index
-			buffer_index = (y_coord * 256) + x;
-
-			//Calculate texel postion
-			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
-
-			//Calculate depth test
-			texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
-
-			//Check Z buffer if drawing is applicable
-			//Make sure texel exists as well
-			if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
-			{
-				texel = tex_data[texel_index];
-
-				//Draw texel if not transparent
-				if(texel & 0xFF000000)
-				{
-					//Apply texture blending if necessary
-					if(!skip_tex_blending) { texel = blend_texel(texel); }
-
-					//Alpha-blend if necessary
-					if(((texel >> 24) != 0xFF) || (use_alpha))
+					//No flipping horizontally
+					if(!lcd_3D_stat.flip_tex_x || !x_flip)
 					{
-						texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]);
+						if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
+						else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
 					}
 
-					gx_screen_buffer[buffer_id][buffer_index] = texel;
-					gx_render_buffer[buffer_id][buffer_index] = 1;
+					//Flip horizontally
+					else
+					{
+						if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
+						else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
+					}
+				}
 
-					//Update Z-buffer if necessary
-					if(use_new_z) { gx_z_buffer[buffer_index] = z_start; }
+				//Wrap vertically, if necessary
+				if(lcd_3D_stat.repeat_tex_y)
+				{
+					u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
+
+					//No flipping vertically
+					if(!lcd_3D_stat.flip_tex_y || !y_flip)
+					{
+						if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
+						else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
+					}
+
+					//Flip vertically
+					else
+					{
+						if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
+						else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
+					}
+				}
+
+				//Convert plot points to buffer index
+				buffer_index = (y_coord * 256) + x;
+
+				//Calculate texel postion
+				texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
+
+				//Calculate depth test
+				texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
+
+				//Check Z buffer if drawing is applicable
+				//Make sure texel exists as well
+				if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
+				{
+					texel = tex_data[texel_index];
+
+					//Draw texel if not transparent
+					if(texel & 0xFF000000)
+					{
+						//Apply texture blending if necessary
+						if(!skip_tex_blending) { texel = blend_texel(texel); }
+
+						//Alpha-blend if necessary
+						if(((texel >> 24) != 0xFF) || (use_alpha))
+						{
+							texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]);
+						}
+
+						gx_screen_buffer[buffer_id][buffer_index] = texel;
+						gx_render_buffer[buffer_id][buffer_index] = 1;
+
+						//Update Z-buffer if necessary
+						if(use_new_z) { gx_z_buffer[buffer_index] = z_start; }
+					}
 				}
 			}
 
