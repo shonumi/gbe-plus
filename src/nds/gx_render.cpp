@@ -95,6 +95,8 @@ void NTR_LCD::render_geometry()
 		vert_order[3] = 2;
 	}
 
+	if(mem->memory_map[0x12345] == 13) { printf("GEO START\n"); }
+
 	//Translate all vertices to screen coordinates
 	for(u8 a = 0; a < vert_count; a++)
 	{
@@ -154,7 +156,11 @@ void NTR_LCD::render_geometry()
 		{
 			lcd_3D_stat.clip_flags |= (1 << x);
 		}
+
+		if(mem->memory_map[0x12345] == 13) { printf("X: %x\tY: %x\tZ: %f\n", u32(plot_x[a]), u32(plot_y[a]), plot_z[a]);  }
 	}
+
+	if(mem->memory_map[0x12345] == 13) { printf("GEO END\n\n"); }
 
 	//Reset hi and lo fill coordinates
 	for(int x = 0; x < 256; x++)
@@ -627,84 +633,92 @@ void NTR_LCD::fill_poly_textured()
 			real_tx = tx1;
 			real_ty = ty1;
 
-			bool skip_x = ((!lcd_3D_stat.repeat_tex_x) && ((tx1 < 0) || (tx1 > tw)));
-			bool skip_y = ((!lcd_3D_stat.repeat_tex_y) && ((ty1 < 0) || (ty1 > th)));
-
-			if(!skip_x && !skip_y)
+			//Wrap horizontally, if necessary
+			if(lcd_3D_stat.repeat_tex_x)
 			{
-				//Wrap horizontally, if necessary
-				if(lcd_3D_stat.repeat_tex_x)
+				u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
+
+				//No flipping horizontally
+				if(!lcd_3D_stat.flip_tex_x || !x_flip)
 				{
-					u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
-
-					//No flipping horizontally
-					if(!lcd_3D_stat.flip_tex_x || !x_flip)
-					{
-						if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
-						else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
-					}
-
-					//Flip horizontally
-					else
-					{
-						if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
-						else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
-					}
+					if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
+					else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
 				}
 
-				//Wrap vertically, if necessary
-				if(lcd_3D_stat.repeat_tex_y)
+				//Flip horizontally
+				else
 				{
-					u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
+					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
+					else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
+				}
+			}
 
-					//No flipping vertically
-					if(!lcd_3D_stat.flip_tex_y || !y_flip)
-					{
-						if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
-						else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
-					}
+			//Otherwise clamp X coordinate if out of bounds
+			else
+			{
+				if(tx1 < 0) { real_tx = 0; }
+				else if(tx1 >= tw) { real_tx = tw - 1; }
+			}
 
-					//Flip vertically
-					else
-					{
-						if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
-						else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
-					}
+			//Wrap vertically, if necessary
+			if(lcd_3D_stat.repeat_tex_y)
+			{
+				u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
+
+				//No flipping vertically
+				if(!lcd_3D_stat.flip_tex_y || !y_flip)
+				{
+					if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
+					else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
 				}
 
-				//Convert plot points to buffer index
-				buffer_index = (y_coord * 256) + x;
-
-				//Calculate texel postion
-				texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
-
-				//Calculate depth test
-				texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
-
-				//Check Z buffer if drawing is applicable
-				//Make sure texel exists as well
-				if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
+				//Flip vertically
+				else
 				{
-					texel = tex_data[texel_index];
+					if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
+					else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
+				}
+			}
 
-					//Draw texel if not transparent
-					if(texel & 0xFF000000)
+			//Otherwise clamp Y coordinate if out of bounds
+			else
+			{
+				if(ty1 < 0) { real_ty = 0; }
+				else if(ty1 >= tw) { real_ty = th - 1; }
+			}
+
+			//Convert plot points to buffer index
+			buffer_index = (y_coord * 256) + x;
+
+			//Calculate texel postion
+			texel_index = u32(u32(real_ty) * tw) + u32(real_tx);
+
+			//Calculate depth test
+			texel_depth_test = (lcd_3D_stat.poly_depth_test) ? (z_start <= gx_z_buffer[buffer_index]) : (z_start < gx_z_buffer[buffer_index]);
+
+			//Check Z buffer if drawing is applicable
+			//Make sure texel exists as well
+			if((texel_depth_test) && (texel_index < tex_size) && (texel_index >= 0))
+			{
+				texel = tex_data[texel_index];
+
+				//Draw texel if not transparent
+				if(texel & 0xFF000000)
+				{
+					//Apply texture blending if necessary
+					if(!skip_tex_blending) { texel = blend_texel(texel); }
+
+					//Alpha-blend if necessary
+					if(((texel >> 24) != 0xFF) || (use_alpha))
 					{
-						//Apply texture blending if necessary
-						if(!skip_tex_blending) { texel = blend_texel(texel); }
-
-						//Alpha-blend if necessary
-						if(((texel >> 24) != 0xFF) || (use_alpha))
-						{
-							texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]);
-						}
-
-						gx_screen_buffer[buffer_id][buffer_index] = texel;
-						gx_render_buffer[buffer_id][buffer_index] = 1;
-
-						//Update Z-buffer if necessary
-						if(use_new_z) { gx_z_buffer[buffer_index] = z_start; }
+						texel = alpha_blend_texel(texel, gx_screen_buffer[buffer_id][buffer_index]);
 					}
+
+					gx_screen_buffer[buffer_id][buffer_index] = texel;
+					gx_render_buffer[buffer_id][buffer_index] = 1;
+
+					//Update Z-buffer if necessary
+					if(use_new_z) { gx_z_buffer[buffer_index] = z_start; }
 				}
 			}
 
@@ -1348,6 +1362,8 @@ void NTR_LCD::process_gx_command()
 					a += 2;
 				}
 
+				if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_16: %x %x\n", read_param_u32(0), read_param_u32(4)); }
+
 				u8 real_index = lcd_3D_stat.vertex_list_index;
 				build_verts(list_size, real_index);
 
@@ -1495,6 +1511,7 @@ void NTR_LCD::process_gx_command()
 
 					lcd_3D_stat.last_x = temp_result[0];
 					lcd_3D_stat.last_y = temp_result[1];
+					if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_XY: %x\n", read_param_u32(0)); }
 				}
 
 				//XZ
@@ -1506,6 +1523,7 @@ void NTR_LCD::process_gx_command()
 
 					lcd_3D_stat.last_x = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
+					if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_XZ: %x\n", read_param_u32(0)); }
 				}
 
 				//YZ
@@ -1517,6 +1535,7 @@ void NTR_LCD::process_gx_command()
 
 					lcd_3D_stat.last_y = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
+					if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_YZ: %x\n", read_param_u32(0)); }
 				}
 
 				last_pos_matrix[real_index] = gx_position_matrix;
@@ -1734,6 +1753,8 @@ void NTR_LCD::process_gx_command()
 
 			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
 
+			if(lcd_3D_stat.vertex_mode == 3) { mem->memory_map[0x12345]++; }
+
 			break;
 
 		//END_VTXS
@@ -1761,6 +1782,8 @@ void NTR_LCD::process_gx_command()
 
 			//Determine if Z-buffering or W-buffering should be used
 			lcd_3D_stat.z_buffering = (lcd_3D_stat.command_parameters[0] & 0x2) ? false : true;
+
+			mem->memory_map[0x12345] = 0;
 
 			break;
 
