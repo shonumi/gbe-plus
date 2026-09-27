@@ -95,8 +95,6 @@ void NTR_LCD::render_geometry()
 		vert_order[3] = 2;
 	}
 
-	if(mem->memory_map[0x12345] == 13) { printf("GEO START\n"); }
-
 	//Translate all vertices to screen coordinates
 	for(u8 a = 0; a < vert_count; a++)
 	{
@@ -156,11 +154,7 @@ void NTR_LCD::render_geometry()
 		{
 			lcd_3D_stat.clip_flags |= (1 << x);
 		}
-
-		if(mem->memory_map[0x12345] == 13) { printf("X: %x\tY: %x\tZ: %f\n", u32(plot_x[a]), u32(plot_y[a]), plot_z[a]);  }
 	}
-
-	if(mem->memory_map[0x12345] == 13) { printf("GEO END\n\n"); }
 
 	//Reset hi and lo fill coordinates
 	for(int x = 0; x < 256; x++)
@@ -636,7 +630,8 @@ void NTR_LCD::fill_poly_textured()
 			//Wrap horizontally, if necessary
 			if(lcd_3D_stat.repeat_tex_x)
 			{
-				u8 x_flip = u32(std::abs(tx1 / tw)) & 0x1;
+				bool x_flip = u32(std::abs(tx1 / tw)) & 0x1;
+				if(tx1 < 0) { x_flip = !x_flip; }
 
 				//No flipping horizontally
 				if(!lcd_3D_stat.flip_tex_x || !x_flip)
@@ -664,6 +659,7 @@ void NTR_LCD::fill_poly_textured()
 			if(lcd_3D_stat.repeat_tex_y)
 			{
 				u8 y_flip = u32(std::abs(ty1 / th)) & 0x1;
+				if(ty1 < 0) { y_flip = !y_flip; }
 
 				//No flipping vertically
 				if(!lcd_3D_stat.flip_tex_y || !y_flip)
@@ -1362,8 +1358,6 @@ void NTR_LCD::process_gx_command()
 					a += 2;
 				}
 
-				if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_16: %x %x\n", read_param_u32(0), read_param_u32(4)); }
-
 				u8 real_index = lcd_3D_stat.vertex_list_index;
 				build_verts(list_size, real_index);
 
@@ -1511,7 +1505,6 @@ void NTR_LCD::process_gx_command()
 
 					lcd_3D_stat.last_x = temp_result[0];
 					lcd_3D_stat.last_y = temp_result[1];
-					if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_XY: %x\n", read_param_u32(0)); }
 				}
 
 				//XZ
@@ -1523,7 +1516,6 @@ void NTR_LCD::process_gx_command()
 
 					lcd_3D_stat.last_x = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
-					if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_XZ: %x\n", read_param_u32(0)); }
 				}
 
 				//YZ
@@ -1535,7 +1527,6 @@ void NTR_LCD::process_gx_command()
 
 					lcd_3D_stat.last_y = temp_result[0];
 					lcd_3D_stat.last_z = temp_result[1];
-					if(mem->memory_map[0x12345] == 13) { printf("RAW VTX_YZ: %x\n", read_param_u32(0)); }
 				}
 
 				last_pos_matrix[real_index] = gx_position_matrix;
@@ -1753,8 +1744,6 @@ void NTR_LCD::process_gx_command()
 
 			lcd_3D_stat.vertex_mode = (lcd_3D_stat.command_parameters[3] & 0x3);
 
-			if(lcd_3D_stat.vertex_mode == 3) { mem->memory_map[0x12345]++; }
-
 			break;
 
 		//END_VTXS
@@ -1782,8 +1771,6 @@ void NTR_LCD::process_gx_command()
 
 			//Determine if Z-buffering or W-buffering should be used
 			lcd_3D_stat.z_buffering = (lcd_3D_stat.command_parameters[0] & 0x2) ? false : true;
-
-			mem->memory_map[0x12345] = 0;
 
 			break;
 
