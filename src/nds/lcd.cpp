@@ -429,6 +429,9 @@ void NTR_LCD::reset()
 	lcd_3D_stat.last_y = 0;
 	lcd_3D_stat.last_z = 0;
 
+	lcd_3D_stat.last_tx = 0;
+	lcd_3D_stat.last_ty = 0;
+
 	lcd_3D_stat.poly_min_x = 0;
 	lcd_3D_stat.poly_max_x = 0;
 

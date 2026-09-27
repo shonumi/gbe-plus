@@ -314,6 +314,9 @@ struct ntr_lcd_3D_data
 	float tex_coord_x[4];
 	float tex_coord_y[4];
 
+	float last_tx;
+	float last_ty;
+
 	float hi_tx[256];
 	float lo_tx[256];
 

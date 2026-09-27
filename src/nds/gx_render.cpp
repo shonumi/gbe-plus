@@ -1276,7 +1276,8 @@ void NTR_LCD::process_gx_command()
 				else { result = (tx >> 4); }
 				if((tx & 0xF) != 0) { result += (tx & 0xF) / 16.0; }
 
-				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = result;
+				//lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = result;
+				lcd_3D_stat.last_tx = result;
 
 				//Texture Y
 				u16 ty = read_param_u16(0);
@@ -1291,14 +1292,15 @@ void NTR_LCD::process_gx_command()
 				else { result = (ty >> 4); }
 				if((ty & 0xF) != 0) { result += (ty & 0xF) / 16.0; }
 
-				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = result;
+				//lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = result;
+				lcd_3D_stat.last_ty = result;
 
 				//Transform TX and TY by texture matrix
 				if(lcd_3D_stat.tex_transformation == 0x1)
 				{
 					gx_matrix tm_src(4, 1);
-					tm_src[0] = lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index];
-					tm_src[1] = lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index];
+					tm_src[0] = lcd_3D_stat.last_tx;
+					tm_src[1] = lcd_3D_stat.last_ty;
 					tm_src[2] = 0.0625;
 					tm_src[3] = 0.0625;
 
@@ -1316,8 +1318,8 @@ void NTR_LCD::process_gx_command()
 					tm_global.data[13] = gx_texture_matrix.data[13];
 
 					tm_src = tm_src * tm_global;
-					lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = tm_src[0];
-					lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = tm_src[1];
+					lcd_3D_stat.last_tx = tm_src[0];
+					lcd_3D_stat.last_ty = tm_src[1];
 				}
 
 				//Set texture status
@@ -1373,6 +1375,8 @@ void NTR_LCD::process_gx_command()
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
+				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_tx;
+				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_ty;
 
 				lcd_3D_stat.vertex_list_index++;
 
@@ -1438,6 +1442,8 @@ void NTR_LCD::process_gx_command()
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
+				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_tx;
+				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_ty;
 
 				lcd_3D_stat.vertex_list_index++;
 
@@ -1533,6 +1539,8 @@ void NTR_LCD::process_gx_command()
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
+				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_tx;
+				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_ty;
 
 				lcd_3D_stat.vertex_list_index++;
 
@@ -1597,6 +1605,8 @@ void NTR_LCD::process_gx_command()
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
+				lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_tx;
+				lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.last_ty;
 
 				lcd_3D_stat.vertex_list_index++;
 
