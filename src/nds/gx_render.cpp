@@ -636,15 +636,15 @@ void NTR_LCD::fill_poly_textured()
 				//No flipping horizontally
 				if(!lcd_3D_stat.flip_tex_x || !x_flip)
 				{
-					if(tx1 < 0) { real_tx = (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
+					if(tx1 < 0) { real_tx = (tw * std::abs(s32(tx1 / tw))) + tx1 + (tw - 1); }
 					else if(tx1 >= tw) { real_tx = (tx1 - (tw * (s32(tx1 / tw)))); }
 				}
 
 				//Flip horizontally
 				else
 				{
-					if(tx1 < 0) { real_tx = tw - (tx1 + (tw * (std::abs(s32(tx1 / tw)) + 1))); }
-					else if(tx1 >= tw) { real_tx = tw - (tx1 - (tw * (s32(tx1 / tw)))); }
+					if(tx1 < 0) { real_tx = std::abs(tx1) - (tw * std::abs(s32(tx1 / tw))); }
+					else if(tx1 >= tw) { real_tx = (tw - (tx1 - (tw * s32(tx1 / tw)))) - 1; }
 				}
 			}
 
@@ -664,15 +664,15 @@ void NTR_LCD::fill_poly_textured()
 				//No flipping vertically
 				if(!lcd_3D_stat.flip_tex_y || !y_flip)
 				{
-					if(ty1 < 0) { real_ty = (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
+					if(ty1 < 0) { real_ty = (th * std::abs(s32(ty1 / th))) + ty1 + (th - 1); }
 					else if(ty1 >= th) { real_ty = (ty1 - (th * s32(ty1 / th))); }
 				}
 
 				//Flip vertically
 				else
 				{
-					if(ty1 < 0) { real_ty = th - (ty1 + (th * (std::abs(s32(ty1 / th)) + 1))); }
-					else if(ty1 >= th) { real_ty = th - (ty1 - (th * s32(ty1 / th))); }
+					if(ty1 < 0) { real_ty = std::abs(ty1) - (th * std::abs(s32(ty1 / th))); }
+					else if(ty1 >= th) { real_ty = (th - (ty1 - (th * s32(ty1 / th)))) - 1; }
 				}
 			}
 
