@@ -1081,6 +1081,47 @@ SDL_Surface* load_icon(std::string filename)
 	return output;
 }
 
+/****** Crops an SDL_Surface to specified dimensions ******/
+SDL_Surface* crop_surface(SDL_Surface* src, u32 x_offset, u32 y_offset, u32 final_width, u32 final_height)
+{
+	//Check various conditions before even attempting to crop image
+	//Primarily, make sure the dimensions are valid in all scenarios!
+	if(src == nullptr) { return nullptr; }
+	if((x_offset + final_width) >= src->w) { return nullptr; }
+	if((y_offset + final_height) >= src->h) { return nullptr; }
+
+	SDL_Surface* output = SDL_CreateRGBSurface(SDL_SWSURFACE, final_width, final_height, 32, 0, 0, 0, 0);
+
+	//Lock source surface
+	if(SDL_MUSTLOCK(src)){ SDL_LockSurface(src); }
+
+	u32* in_pixel_data = (u32*)src->pixels;
+	u32* out_pixel_data = (u32*)output->pixels;
+
+	u32 x_min = x_offset;
+	u32 x_max = x_offset + final_width;
+	u32 y_min = y_offset;
+	u32 y_max = y_offset + final_height;
+
+	u32 out_index = 0;
+
+	for(u32 x = 0; x < (src->w * src->h); x++)
+	{
+		u32 x_pos = x % src->w;
+		u32 y_pos = x / src->w;
+
+		if((x_pos >= x_min) && (x_pos < x_max) && (y_pos >= y_min) && (y_pos < y_max))
+		{
+			out_pixel_data[out_index++] = in_pixel_data[x];
+		}
+	}
+
+	//Unlock source surface
+	if(SDL_MUSTLOCK(src)){ SDL_UnlockSurface(src); }
+
+	return output;
+}
+
 /****** Saves an image file as BMP or PNG ******/
 bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot)
 {

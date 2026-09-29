@@ -119,6 +119,7 @@ namespace util
 	u32 bswap(u32 input);
 
 	SDL_Surface* load_icon(std::string filename);
+	SDL_Surface* crop_surface(SDL_Surface* src, u32 x_offset, u32 y_offset, u32 final_width, u32 final_height);
 	bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot = false);
 
 	void build_wav_header(std::vector<u8>& header, u32 sample_rate, u32 channels, u32 data_size);
