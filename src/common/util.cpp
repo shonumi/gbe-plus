@@ -1087,8 +1087,8 @@ SDL_Surface* crop_surface(SDL_Surface* src, u32 x_offset, u32 y_offset, u32 fina
 	//Check various conditions before even attempting to crop image
 	//Primarily, make sure the dimensions are valid in all scenarios!
 	if(src == nullptr) { return nullptr; }
-	if((x_offset + final_width) >= src->w) { return nullptr; }
-	if((y_offset + final_height) >= src->h) { return nullptr; }
+	if((x_offset + final_width) > src->w) { return nullptr; }
+	if((y_offset + final_height) > src->h) { return nullptr; }
 
 	SDL_Surface* output = SDL_CreateRGBSurface(SDL_SWSURFACE, final_width, final_height, 32, 0, 0, 0, 0);
 
@@ -1162,22 +1162,73 @@ bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot)
 	}
 	#endif
 
+	//Crop fullscreen screenshots to fit aspect ratio (no black bars)
+	SDL_Surface* crop_copy = nullptr;
+	bool use_cropped_version = false;
+
+	if(is_screenshot && !config::use_external_interfaces && config::maintain_aspect_ratio
+	&& (config::flags & SDL_WINDOW_FULLSCREEN))
+	{
+		u32 src_scale = get_max_fullscreen_ratio();
+		u32 src_real_w = (config::sys_width * src_scale);
+		u32 src_real_h = (config::sys_height * src_scale);
+
+		u32 crop_x_offset = (src->w - src_real_w) / 2;
+		u32 crop_y_offset = (src->h - src_real_h) / 2;
+
+		crop_copy = crop_surface(src_copy, crop_x_offset, crop_y_offset, src_real_w, src_real_h);
+
+		if(crop_copy != nullptr) { use_cropped_version = true; }
+	}
+
+	SDL_Surface* final_copy = (use_cropped_version) ? crop_copy : src_copy;
+
 	#ifdef GBE_IMAGE_FORMATS
 	filename += ".png";
-	result = IMG_SavePNG(src_copy, filename.c_str());
+	result = IMG_SavePNG(final_copy, filename.c_str());
 	#endif
 		
 	#ifndef GBE_IMAGE_FORMATS
 	filename += ".bmp";
-	result = SDL_SaveBMP(src_copy, filename.c_str());
+	result = SDL_SaveBMP(final_copy, filename.c_str());
 	#endif
 
 	//Make sure to free surface *only* if it's a local copy!
 	#ifdef GBE_OGL
 	if(config::use_opengl && is_screenshot && !config::use_external_interfaces) { SDL_FreeSurface(src_copy); }
-	#endif	
+	#endif
+
+	//Make sure to free surface *only* if it's a valid cropped copy!
+	if(use_cropped_version) { SDL_FreeSurface(crop_copy); }
 
 	return result;
+}
+
+/****** Gets the maximum integer multiplier that can be used in fullscreen mode - Intended for SDL version only! ******/
+u32 get_max_fullscreen_ratio()
+{
+	u32 max_fullscreen_ratio = 0;
+
+	if(SDL_WasInit(SDL_INIT_VIDEO) && (config::flags & SDL_WINDOW_FULLSCREEN))
+	{
+		SDL_DisplayMode current_mode;
+		SDL_GetCurrentDisplayMode(0, &current_mode);
+
+		u32 next_w = current_mode.w;
+		u32 next_h = current_mode.h;
+
+		double max_width, max_height, ratio = 0.0;
+
+		max_width = (double)next_w / config::sys_width;
+		max_height = (double)next_h / config::sys_height;
+
+		if(max_width <= max_height) { ratio = max_width; }
+		else { ratio = max_height; }
+
+		max_fullscreen_ratio = ratio;
+	}
+
+	return max_fullscreen_ratio;
 }
 
 /****** Converts an integer into a BCD ******/
