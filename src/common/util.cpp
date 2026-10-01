@@ -1170,15 +1170,19 @@ bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot)
 	&& (config::flags & SDL_WINDOW_FULLSCREEN))
 	{
 		u32 src_scale = get_max_fullscreen_ratio();
-		u32 src_real_w = (config::sys_width * src_scale);
-		u32 src_real_h = (config::sys_height * src_scale);
 
-		u32 crop_x_offset = (src->w - src_real_w) / 2;
-		u32 crop_y_offset = (src->h - src_real_h) / 2;
+		if(src_scale)
+		{
+			u32 src_real_w = (config::sys_width * src_scale);
+			u32 src_real_h = (config::sys_height * src_scale);
 
-		crop_copy = crop_surface(src_copy, crop_x_offset, crop_y_offset, src_real_w, src_real_h);
+			u32 crop_x_offset = (src->w - src_real_w) / 2;
+			u32 crop_y_offset = (src->h - src_real_h) / 2;
 
-		if(crop_copy != nullptr) { use_cropped_version = true; }
+			crop_copy = crop_surface(src_copy, crop_x_offset, crop_y_offset, src_real_w, src_real_h);
+
+			if(crop_copy != nullptr) { use_cropped_version = true; }
+		}
 	}
 
 	SDL_Surface* final_copy = (use_cropped_version) ? crop_copy : src_copy;
