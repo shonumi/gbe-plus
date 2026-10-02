@@ -1176,8 +1176,8 @@ bool save_image(SDL_Surface* src, std::string filename, bool is_screenshot)
 			u32 src_real_w = (config::sys_width * src_scale);
 			u32 src_real_h = (config::sys_height * src_scale);
 
-			u32 crop_x_offset = (src->w - src_real_w) / 2;
-			u32 crop_y_offset = (src->h - src_real_h) / 2;
+			u32 crop_x_offset = (src_copy->w - src_real_w) / 2;
+			u32 crop_y_offset = (src_copy->h - src_real_h) / 2;
 
 			crop_copy = crop_surface(src_copy, crop_x_offset, crop_y_offset, src_real_w, src_real_h);
 
