@@ -2681,17 +2681,12 @@ void DMG_SIO::singer_izek_update()
 			//Save screen
 			else if((stat == 7) && (mem->g_pad->con_flags & 0x100) && ((singer_izek.old_flags & 0x100) == 0))
 			{
-				std::string save_name = config::ss_path;
+				//Filename = Date + Ticks
+				std::string save_name = config::ss_path + "GB_SEWING_";
+				std::string hex_ticks = util::to_hex_str(SDL_GetTicks()).substr(2);
 
-				//Prefix SDL Ticks to screenshot name
-				save_name += util::to_str(SDL_GetTicks());
-
-				//Append random number to screenshot name
-				srand(SDL_GetTicks());
-				save_name += util::to_str(rand() % 1024);
-				save_name += util::to_str(rand() % 1024);
-				save_name += util::to_str(rand() % 1024);
-				save_name += util::to_str(rand() % 1024);
+				while(hex_ticks.length() < 8) { hex_ticks = "0" + hex_ticks; }
+				save_name += (util::get_long_date(false) + "_" + hex_ticks);
 
 				SDL_Surface* tmp_s = SDL_CreateRGBSurface(SDL_SWSURFACE, 500, 500, 32, 0, 0, 0, 0);
 				u32* out_pixel_data = (u32*)tmp_s->pixels;
