@@ -532,22 +532,22 @@ u32 switch_endian32(u32 input)
 }
 
 /****** Convert a number into hex as a C++ string ******/
-std::string to_hex_str(u32 input)
+std::string to_hex_str(u32 input, std::string prefix)
 {
 	std::stringstream temp;
 
 	//Auto fill with '0's
-	if(input < 0x10) { temp << "0x0" << std::hex << std::uppercase << input; }
-	else if((input < 0x1000) && (input >= 0x100)) { temp << "0x0" << std::hex << std::uppercase << input; }
-	else if((input < 0x100000) && (input >= 0x10000)) { temp << "0x0" << std::hex << std::uppercase << input; }
-	else if((input < 0x10000000) && (input >= 0x1000000)) { temp << "0x0" << std::hex << std::uppercase << input; }
-	else { temp << "0x" << std::hex << std::uppercase << input; }
+	if(input < 0x10) { temp << prefix << "0" << std::hex << std::uppercase << input; }
+	else if((input < 0x1000) && (input >= 0x100)) { temp << prefix << "0" << std::hex << std::uppercase << input; }
+	else if((input < 0x100000) && (input >= 0x10000)) { temp << prefix << "0" << std::hex << std::uppercase << input; }
+	else if((input < 0x10000000) && (input >= 0x1000000)) { temp << prefix << "0" << std::hex << std::uppercase << input; }
+	else { temp << prefix << std::hex << std::uppercase << input; }
 
 	return temp.str();
 }
 
 /****** Convert a number into hex as C++ string - Full 8, 16, 24, or 32-bit representations ******/
-std::string to_hex_str(u32 input, u8 bit_level)
+std::string to_hex_str(u32 input, u8 bit_level, std::string prefix)
 {
 	std::stringstream temp;
 	std::string result = "";
@@ -565,7 +565,7 @@ std::string to_hex_str(u32 input, u8 bit_level)
 		result = "0" + result;
 	}
 
-	result = "0x" + result;
+	result = prefix + result;
 	return result;
 }
 
