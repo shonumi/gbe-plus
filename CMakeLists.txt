@@ -56,7 +56,7 @@ option(QT_GUI "Enable the Qt GUI" ON)
 
 option(USE_HIDDEN_INSTALL_FOLDER "Sets install folder to use the name '.gbe_plus' on Linux/Unix systems" ON)
 
-if (QT_GUI)
+if (QT_GUI AND USE_OGL)
 	find_package(Qt5Widgets REQUIRED)
 	find_package(Qt5Gui REQUIRED)
 	set(GBE_QT_LIBS Qt5::Gui Qt5::Widgets)

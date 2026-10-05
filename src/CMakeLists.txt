@@ -7,8 +7,10 @@ add_subdirectory(sgb)
 add_subdirectory(nds)
 add_subdirectory(min)
 
-if (QT_GUI)
+if (QT_GUI AND USE_OGL)
 	add_subdirectory(qt)
+elseif (QT_GUI AND NOT USE_OGL)
+	message("Qt GUI requires OpenGL. Only SDL version will be built.")
 endif()
 
 set(SRCS main.cpp)
