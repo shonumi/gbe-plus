@@ -2332,7 +2332,11 @@ void gen_settings::set_ini_options()
 	netplay_id->setValue(config::netplay_id);
 	ip_address->setText(QString::fromStdString(config::netplay_client_ip));
 	gbma_address->setText(QString::fromStdString(config::gbma_server));
+
+	//Make sure to restore original port. setValue() ends up calling update_gbma_port()
+	u16 old_port = config::gbma_server_http_port;
 	gbma_port->setValue(config::gbma_server_http_port);
+	config::gbma_server_http_port = old_port;
 
 	dmg_bios->setText(path_1);
 	gbc_bios->setText(path_2);
