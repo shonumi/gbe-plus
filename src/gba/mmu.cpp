@@ -106,7 +106,17 @@ void AGB_MMU::reset()
 			break;
 
 		case AGB_RUMBLE:
-			gpio.type = GPIO_RUMBLE;
+			//Prioritize GB Player Rumble support if enabled
+			if(config::sio_device != SIO_GB_PLAYER_RUMBLE)
+			{
+				gpio.type = GPIO_RUMBLE;
+			}
+
+			else
+			{
+				gpio.type = GPIO_DISABLED;
+			}
+
 			break;
 
 		case AGB_GYRO_SENSOR:
