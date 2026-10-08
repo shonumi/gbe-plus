@@ -237,7 +237,7 @@ Several IDs appear to be mapped to the same Legend. This may be explained by the
 
 1 byte represents the Auto Adventure flag. When the Legend goes on an Auto Adventure, this byte is set to a non-zero value, otherwise it is set to 0x00. For Yomigaeru Shiren no Shima, this flag is always 0x01 when set. For Sign of Nekrom, it varies depending on the type of Auto Adventure, acting as a sort of ID.
 
-Bytes 0x3FE through 0x3FF are a 16-bit checksum the data 0x380 through 0x3FD. The checksum is computed by adding up every byte within that range. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized. After calculating the initial checksum, it must be XOR'ed with a separate 16-bit value. Yomigaeru Shiren no Shima uses 0x4832, while Sign of Nekrom uses 0x4C32. Sign of Nekrom can detect both types of checksums and uses this to determine which game last modified EEPROM data.
+Bytes 0x3FE through 0x3FF are a 16-bit checksum for the data 0x380 through 0x3FD. The checksum is computed by adding up every byte within that range. If the checksum is incorrect, both Legendz games will treat the entire Soul Doll data as invalid, which will require it to be reinitialized. After calculating the initial checksum, it must be XOR'ed with a separate 16-bit value. Yomigaeru Shiren no Shima uses 0x4832, while Sign of Nekrom uses 0x4C32. Sign of Nekrom can detect both types of checksums and uses this to determine which game last modified EEPROM data.
 
 
 ***************************************************

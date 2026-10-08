@@ -56,13 +56,13 @@ The following process is used to access firmware:
 NMP_CONTROL_LO = 0x10
 NMP_CONTROL_HI = 0x10
 
-NMP_PARAMATER_LO = INPUT_PARAMETER_HI
+NMP_PARAMETER_LO = INPUT_PARAMETER_HI
 NMP_PARAMETER_HI = INPUT_PARAMETER_LO
 
 NMP_CONTROL_LO = 0x00
 NMP_CONTROL_HI = 0x00
 
-NMP_PARAMATER_LO = INDEX_HI
+NMP_PARAMETER_LO = INDEX_HI
 NMP_PARAMETER_HI = INDEX_LO
 ------------------------------------------------------------------------
 
@@ -77,19 +77,19 @@ After the firmware is completely loaded from the NMP's ROM, a single Game Pak IR
 5. Index Overview
 ***************************************************
 
-While most indices appear to be used for accessing firmware, some have other purposes. These are accessed in a similar manner to firmware. Here, however, the value representing INPUT_PARAMATER is always 0x0000:
+While most indices appear to be used for accessing firmware, some have other purposes. These are accessed in a similar manner to firmware. Here, however, the value representing INPUT_PARAMETER is always 0x0000:
 
 ------------------------------------------------------------------------
 NMP_CONTROL_LO = 0x10
 NMP_CONTROL_HI = 0x10
 
-NMP_PARAMATER_LO = 0x00
+NMP_PARAMETER_LO = 0x00
 NMP_PARAMETER_HI = 0x00
 
 NMP_CONTROL_LO = 0x00
 NMP_CONTROL_HI = 0x00
 
-NMP_PARAMATER_LO = ACCESS_INDEX_HI
+NMP_PARAMETER_LO = ACCESS_INDEX_HI
 NMP_PARAMETER_HI = ACCESS_INDEX_LO
 ------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ Index 0x0100 : Get Game Pak IRQ Status Data
 This index is accessed immediately following a Game Pak IRQ. The NMP's software reads 16 bytes of status data from NMP_DATA_OUT related to the recent IRQ. This status data contains the Command ID associated with the IRQ as well as any additional parameters for the command. These parameters are used to update various things such as the music trackbar, music timestamp, fast forward/rewind, speed, volume, etc. Typically, the NMP's software will read the first 8 bytes of status data to determine if it's valid, then proceed to read the entire 16 bytes.
 
 Index 0x0101 : Access ID3 Data
-This index is access after issuing the 0x0040 command. Data for ID3 tags is available at NMP_DATA_OUT.
+This index is accessed after issuing the 0x0040 command. Data for ID3 tags is available at NMP_DATA_OUT.
 
 Index 0x010F : Send Command / Get Ticks
 This index has two uses when writing to NMP_DATA_OUT and when reading from NMP_DATA_IN. When writing, it is used to send a command. A series of 16-bit values are then written to NMP_DATA_OUT. When reading, this access gets the current internal "ticks" from the NMP. A single 16-bit value is read from NMP_DATA_OUT, which is used as a measurement for time-keeping. For the most part, the NMP's software wants to ensure that the hardware is actually running, i.e. the 16-bit ticks values should increase periodically. The software reads it once per-frame and times out several actions if the ticks haven't advanced for a full second (i.e. during the initial boot phase, it will completely reset everything and try re-uploading firmware).
@@ -143,13 +143,13 @@ SD Card Data can be accessed after a Game Pak IRQ is raised in response to a com
 NMP_CONTROL_LO = 0x10
 NMP_CONTROL_HI = 0x10
 
-NMP_PARAMATER_LO = 0x00
+NMP_PARAMETER_LO = 0x00
 NMP_PARAMETER_HI = 0x00
 
 NMP_CONTROL_LO = 0x00
 NMP_CONTROL_HI = 0x00
 
-NMP_PARAMATER_LO = 0x00
+NMP_PARAMETER_LO = 0x00
 NMP_PARAMETER_HI = 0x00
 
 
@@ -271,7 +271,7 @@ Byte 0x020C - 0x020D	File/Folder Flag	0x01 = Folder, 0x02 = File
 Byte 0x020E - 0x020F	N/A			Unused
 -----------------------------------------------------------------------
 
-This command continues reading the names of every file and folder in the current directory of the SD card. The starting location on boot is the SD card's root directory. Whereas the 0x0010 is called only once for a given directory, the 0x0011 must be called repeatedly until it detects no more files or folders. This is done by checking the End of List Flag in its Status Data. Otherwise, this command is exactly like its counterpart described above.
+This command continues reading the names of every file and folder in the current directory of the SD card. The starting location on boot is the SD card's root directory. Whereas the 0x0010 command is called only once for a given directory, the 0x0011 command must be called repeatedly until it detects no more files or folders. This is done by checking the End of List Flag in its Status Data. Otherwise, this command is exactly like its counterpart described above.
 
 
 
@@ -414,7 +414,7 @@ SD Card Data: N/A
 
 This command adjusts the current playback position for audio forwards or backwards. The Stream Position parameter represents the current playback position as a percentage (0% to 99%). Seek Direction is an 8-bit value that determines whether the new playback position moves ahead or rewinds. To change the playback position, this command must be called repeatedly (approximately every 15 frames or so) while incremented or decrementing the Seek Direction.
 
-For moving forwards, the initial value of Seek Direction should be 0x00 and increase by 0x10 every time this command is sent. For moving backwards, the initial value of Seek Direction should be 0xF0 and decrease by 0x10 every time this command is sent. The NMP will interpret these changes in Seek Direction and alter the playback position accordingly. Note that since Seek Direction observes 8-bit overflow and underflow. When seeking forward, 0xF0 will roll over into 0x00 on the next command, and when seeking backward, 0x00 will roll over into 0xF0.
+For moving forwards, the initial value of Seek Direction should be 0x00 and increase by 0x10 every time this command is sent. For moving backwards, the initial value of Seek Direction should be 0xF0 and decrease by 0x10 every time this command is sent. The NMP will interpret these changes in Seek Direction and alter the playback position accordingly. Note that Seek Direction observes 8-bit overflow and underflow. When seeking forward, 0xF0 will roll over into 0x00 on the next command, and when seeking backward, 0x00 will roll under into 0xF0.
 
 Seek Direction is incremented/decremented continuously as long as the user holds down Left or Right on the D-Pad while playing music. It will scale the amount of seconds passed for each instance of the 0x0060 command. The default is 2 seconds, but for every 5 or so instances of the 0x0060 command, another second is added. Due to the way Seek Direction works, the NMP will need to be sent at least 2 0x0060 commands before it actually begins seeking, causing a brief delay when first pressing Left or Right.
 
@@ -561,7 +561,7 @@ Byte 0x0000 - 0x023F 	Left Audio Buffer
 Byte 0x0000 - 0x023F	Right Audio Buffer
 -----------------------------------------------------------------------
 
-After issuing either the 0x50 or 0x200 commands, the NMP hardware will begin generating Game Pak IRQs that return audio samples via the SD Card interface (i.e. NMP_DATA_OUT). These IRQs return a lot of Status Data that indicates what is being updated.
+After issuing either the 0x0050 or 0x0200 commands, the NMP hardware will begin generating Game Pak IRQs that return audio samples via the SD Card interface (i.e. NMP_DATA_OUT). These IRQs return a lot of Status Data that indicates what is being updated.
 
 The first is a 16-bit value that dictates the Audio Buffer Size in bytes. Its maximum value is 0x0480, and it should also be divisable by 4 (the NMP software forcibly masks it anyway). Typically, while playing a song, the NMP will constantly update audio with an Audio Buffer Size of 0x480, except for the very last samples of a song, which may not evenly be divisable by 0x480 and thus must use a smaller remainer as the size. The second piece of Status Data is a 16-bit value that indicates the Index that must be accessed before any audio samples are read. Unlike the 0x0040 command used to grab ID3 data, the Access Index here is completely arbitrary and determined by the hardware, i.e. it may not always have a fixed value.
 
