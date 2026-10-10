@@ -269,7 +269,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//General settings - Emulated CPU Speed
 	QWidget* overclock_set = new QWidget(general);
-	QLabel* overclock_label = new QLabel("Emulated CPU Speed", overclock_set);
+	QLabel* overclock_label = new QLabel("Emulated CPU Speed : ", overclock_set);
 	overclock = new QComboBox(overclock_set);
 	overclock->setToolTip("Changes the emulated CPU speed. More demanding, but reduces lag that happens on real hardware. May break some games.");
 	overclock->addItem("1x");
@@ -1186,28 +1186,28 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 
 	//Virtual Cursor Settings - Opacity
 	vc_opacity_set = new QWidget(controls);
-	QLabel* vc_opacity_label = new QLabel("Virtual Cursor Opacity", vc_opacity_set);
+	QLabel* vc_opacity_label = new QLabel("Virtual Cursor Opacity : ", vc_opacity_set);
 	vc_opacity = new QSpinBox(vc_opacity_set);
 	vc_opacity->setMinimum(0);
 	vc_opacity->setMaximum(31);
 
 	QHBoxLayout* vc_opacity_layout = new QHBoxLayout;
 	vc_opacity_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	vc_opacity_layout->addWidget(vc_opacity);
 	vc_opacity_layout->addWidget(vc_opacity_label);
+	vc_opacity_layout->addWidget(vc_opacity);
 	vc_opacity_set->setLayout(vc_opacity_layout);
 
 	//Virtual Cursor Settings - Timeout
 	vc_timeout_set = new QWidget(controls);
-	QLabel* vc_timeout_label = new QLabel("Virtual Cursor Timeout", vc_timeout_set);
+	QLabel* vc_timeout_label = new QLabel("Virtual Cursor Timeout : ", vc_timeout_set);
 	vc_timeout = new QSpinBox(vc_timeout_set);
 	vc_timeout->setMinimum(0);
 	vc_timeout->setMaximum(1800);
 
 	QHBoxLayout* vc_timeout_layout = new QHBoxLayout;
 	vc_timeout_layout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-	vc_timeout_layout->addWidget(vc_timeout);
 	vc_timeout_layout->addWidget(vc_timeout_label);
+	vc_timeout_layout->addWidget(vc_timeout);
 	vc_timeout_set->setLayout(vc_timeout_layout);
 
 	//Virtual Cursor Settings - Virtual Cursor Bitmap File
