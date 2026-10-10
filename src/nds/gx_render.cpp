@@ -58,10 +58,6 @@ void NTR_LCD::render_geometry()
 {
 	u8 bg_priority = lcd_stat.bg_priority_a[0] + 1;
 
-	//Calculate origin coordinates based on viewport dimensions
-	u8 viewport_width = (lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1);
-	u8 viewport_height = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1);
-
 	//Plot points used for screen rendering
 	float plot_x[4];
 	float plot_y[4];
@@ -114,8 +110,8 @@ void NTR_LCD::render_geometry()
 
 		//Generate NDS XY screen coordinate from clip matrix
 		temp_matrix = temp_matrix * clip_matrix;
- 		plot_x[a] = ceil(((temp_matrix[0] + temp_matrix[3]) * viewport_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
-  		plot_y[a] = ceil(((-temp_matrix[1] + temp_matrix[3]) * viewport_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
+ 		plot_x[a] = ceil(((temp_matrix[0] + temp_matrix[3]) * lcd_3D_stat.view_port_width) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_x1));
+  		plot_y[a] = ceil(((-temp_matrix[1] + temp_matrix[3]) * lcd_3D_stat.view_port_height) / ((2 * temp_matrix[3]) + lcd_3D_stat.view_port_y1));
 
 		//Get Z coordinate, use existing data from vertex
 		if(lcd_3D_stat.z_buffering)
@@ -1790,6 +1786,10 @@ void NTR_LCD::process_gx_command()
 			lcd_3D_stat.view_port_x2 = lcd_3D_stat.command_parameters[1];
 			lcd_3D_stat.view_port_y1 = (lcd_3D_stat.command_parameters[2] & 0xBF);
 			lcd_3D_stat.view_port_x1 = lcd_3D_stat.command_parameters[3];
+
+			lcd_3D_stat.view_port_width = (lcd_3D_stat.view_port_x2 - lcd_3D_stat.view_port_x1);
+			lcd_3D_stat.view_port_height = (lcd_3D_stat.view_port_y2 - lcd_3D_stat.view_port_y1);
+
 			break;
 
 		//BOX_TEST

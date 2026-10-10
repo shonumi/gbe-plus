@@ -415,6 +415,8 @@ void NTR_LCD::reset()
 	lcd_3D_stat.view_port_x2 = 0;
 	lcd_3D_stat.view_port_y1 = 0;
 	lcd_3D_stat.view_port_y2 = 0;
+	lcd_3D_stat.view_port_width = 0;
+	lcd_3D_stat.view_port_height = 0;
 
 	lcd_3D_stat.matrix_mode = 0;
 	lcd_3D_stat.vertex_mode = 0;

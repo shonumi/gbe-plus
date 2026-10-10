@@ -246,6 +246,8 @@ struct ntr_lcd_3D_data
 	u8 view_port_x2;
 	u8 view_port_y1;
 	u8 view_port_y2;
+	u8 view_port_width;
+	u8 view_port_height;
 
 	u8 matrix_mode;
 	u8 vertex_mode;
