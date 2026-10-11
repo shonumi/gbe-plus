@@ -1272,7 +1272,6 @@ void NTR_LCD::process_gx_command()
 				else { result = (tx >> 4); }
 				if((tx & 0xF) != 0) { result += (tx & 0xF) / 16.0; }
 
-				//lcd_3D_stat.tex_coord_x[lcd_3D_stat.vertex_list_index] = result;
 				lcd_3D_stat.last_tx = result;
 
 				//Texture Y
@@ -1288,7 +1287,6 @@ void NTR_LCD::process_gx_command()
 				else { result = (ty >> 4); }
 				if((ty & 0xF) != 0) { result += (ty & 0xF) / 16.0; }
 
-				//lcd_3D_stat.tex_coord_y[lcd_3D_stat.vertex_list_index] = result;
 				lcd_3D_stat.last_ty = result;
 
 				//Transform TX and TY by texture matrix
