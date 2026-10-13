@@ -556,6 +556,13 @@ std::string to_hex_str(u32 input, u8 bit_level, std::string prefix)
 	if(bit_level > 4) { bit_level = 4; }
 	if(bit_level < 1) { bit_level = 1; }
 
+	switch(bit_level)
+	{
+		case 0x01: input &= 0x000000FF; break;
+		case 0x02: input &= 0x0000FFFF; break;
+		case 0x03: input &= 0x00FFFFFF; break;
+	}
+
 	u8 str_len = bit_level * 2;
 	temp << std::hex << std::uppercase << input;
 	result += temp.str();
