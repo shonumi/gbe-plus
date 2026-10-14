@@ -4850,7 +4850,7 @@ bool NTR_LCD::lcd_read(u32 offset, std::string filename)
 	//Serialize multi sets of matrices
 	for(u32 x = 0; x < 4; x++)
 	{
-		serialize_matrix(file, last_pos_matrix[x]);
+		serialize_matrix(file, last_clip_matrix[x]);
 		serialize_matrix(file, light_vector[x]);
 		serialize_matrix(file, current_normal[x]);
 	}
@@ -4909,7 +4909,7 @@ bool NTR_LCD::lcd_write(std::string filename)
 	//Serialize multi sets of matrices
 	for(u32 x = 0; x < 4; x++)
 	{
-		serialize_matrix(file, last_pos_matrix[x]);
+		serialize_matrix(file, last_clip_matrix[x]);
 		serialize_matrix(file, light_vector[x]);
 		serialize_matrix(file, current_normal[x]);
 	}

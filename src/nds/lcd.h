@@ -178,7 +178,7 @@ class NTR_LCD
 	gx_matrix gx_vector_matrix;
 	gx_matrix gx_texture_matrix;
 
-	gx_matrix last_pos_matrix[4];
+	gx_matrix last_clip_matrix[4];
 
 	//Normals, light vectors, properties, and colors
 	gx_matrix light_vector[4];

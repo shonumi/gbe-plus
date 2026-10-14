@@ -100,7 +100,7 @@ void NTR_LCD::render_geometry()
 		plot_tx[a] = lcd_3D_stat.tex_coord_x[x];
 		plot_ty[a] = lcd_3D_stat.tex_coord_y[x];
 
-		clip_matrix = last_pos_matrix[x] * gx_projection_matrix;
+		clip_matrix = last_clip_matrix[x];
 
 		temp_matrix.resize(4, 1);
 		temp_matrix[0] = vert_matrix[x];
@@ -1365,7 +1365,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.last_y = temp_result[0];
 				lcd_3D_stat.last_z = temp_result[3];
 
-				last_pos_matrix[real_index] = gx_position_matrix;
+				last_clip_matrix[real_index] = gx_position_matrix * gx_projection_matrix;
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
@@ -1432,7 +1432,7 @@ void NTR_LCD::process_gx_command()
 				lcd_3D_stat.last_y = temp_result[1];
 				lcd_3D_stat.last_z = temp_result[2];
 
-				last_pos_matrix[real_index] = gx_position_matrix;
+				last_clip_matrix[real_index] = gx_position_matrix * gx_projection_matrix;
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
@@ -1529,7 +1529,7 @@ void NTR_LCD::process_gx_command()
 					lcd_3D_stat.last_z = temp_result[1];
 				}
 
-				last_pos_matrix[real_index] = gx_position_matrix;
+				last_clip_matrix[real_index] = gx_position_matrix * gx_projection_matrix;
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
@@ -1595,7 +1595,7 @@ void NTR_LCD::process_gx_command()
 				current_poly[(4 + real_index)] = lcd_3D_stat.last_y;
 				current_poly[(8 + real_index)] = lcd_3D_stat.last_z;
 
-				last_pos_matrix[real_index] = gx_position_matrix;
+				last_clip_matrix[real_index] = gx_position_matrix * gx_projection_matrix;
 
 				//Set vertex color
 				vert_colors[lcd_3D_stat.vertex_list_index] = lcd_3D_stat.vertex_color;
@@ -2459,7 +2459,7 @@ void NTR_LCD::build_verts(u8 &l_size, u8 &r_index)
 					vert_colors[0] = vert_colors[1];
 					lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[1]; 
 					lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[1];
-					last_pos_matrix[0] = last_pos_matrix[1];
+					last_clip_matrix[0] = last_clip_matrix[1];
 
 					//New V1 = Old V2
 					current_poly[1] = last_poly[2];
@@ -2468,7 +2468,7 @@ void NTR_LCD::build_verts(u8 &l_size, u8 &r_index)
 					vert_colors[1] = vert_colors[2];
 					lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[2]; 
 					lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[2];
-					last_pos_matrix[1] = last_pos_matrix[2];
+					last_clip_matrix[1] = last_clip_matrix[2];
 
 					lcd_3D_stat.tex_coord_x[2] = temp_x;
 					lcd_3D_stat.tex_coord_y[2] = temp_y;
@@ -2500,7 +2500,7 @@ void NTR_LCD::build_verts(u8 &l_size, u8 &r_index)
 					vert_colors[0] = vert_colors[2];
 					lcd_3D_stat.tex_coord_x[0] = lcd_3D_stat.tex_coord_x[2];
 					lcd_3D_stat.tex_coord_y[0] = lcd_3D_stat.tex_coord_y[2];
-					last_pos_matrix[0] = last_pos_matrix[2];
+					last_clip_matrix[0] = last_clip_matrix[2];
 
 					//New V1 = Old V3
 					current_poly[1] = last_poly[3];
@@ -2509,7 +2509,7 @@ void NTR_LCD::build_verts(u8 &l_size, u8 &r_index)
 					vert_colors[1] = vert_colors[3];
 					lcd_3D_stat.tex_coord_x[1] = lcd_3D_stat.tex_coord_x[3]; 
 					lcd_3D_stat.tex_coord_y[1] = lcd_3D_stat.tex_coord_y[3];
-					last_pos_matrix[1] = last_pos_matrix[3];
+					last_clip_matrix[1] = last_clip_matrix[3];
 
 					lcd_3D_stat.tex_coord_x[2] = temp_x;
 					lcd_3D_stat.tex_coord_y[2] = temp_y;
