@@ -77,6 +77,9 @@ class core_emu
 		std::vector <u32> watchpoint_addr;
 		std::vector <u32> watchpoint_val;
 		std::vector <u32> watchpoint_old_val;
+		std::vector <u32> watchpoint_reg_id;
+		std::vector <u32> watchpoint_reg_val;
+		std::vector <u32> watchpoint_old_reg;
 		std::string last_command;
 		std::string last_mnemonic;
 		u32 last_pc;

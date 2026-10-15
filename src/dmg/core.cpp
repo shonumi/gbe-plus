@@ -51,6 +51,11 @@ DMG_core::DMG_core()
 	db_unit.breakpoints.clear();
 	db_unit.watchpoint_addr.clear();
 	db_unit.watchpoint_val.clear();
+	db_unit.watchpoint_old_val.clear();
+
+	db_unit.watchpoint_reg_id.clear();
+	db_unit.watchpoint_reg_val.clear();
+	db_unit.watchpoint_old_reg.clear();
 
 	std::cout<<"GBE::Launching DMG-GBC core\n";
 

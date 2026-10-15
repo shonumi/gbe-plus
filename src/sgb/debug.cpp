@@ -733,6 +733,65 @@ void SGB_core::debug_process_command()
 			}
 		}
 
+		//Break on register change
+		else if(dbg_util::check_command_len(command, "breg", dbg_util::INT_PARAMETER))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 reg_id = 0;
+			u32 reg_value = 0;
+
+			//Convert hex string into usable u32
+			valid_command = dbg_util::validate_command(command, "breg", dbg_util::INT_PARAMETER, reg_id);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid register : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nWatch value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), reg_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					//8-bit registers
+					else if((valid_value) && (reg_value > 0xFF) && (reg_id < 8))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+
+					//16-bit registers (PC and SP)
+					else if((valid_value) && (reg_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "breg";
+				db_unit.watchpoint_reg_id.push_back(reg_id);
+				db_unit.watchpoint_reg_val.push_back(reg_value);
+				db_unit.watchpoint_old_reg.push_back(ex_get_reg(reg_id));
+				debug_process_command();
+			}
+		}
+
 		//Advanced debugging
 		#ifdef GBE_DEBUG
 

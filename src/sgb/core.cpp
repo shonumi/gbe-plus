@@ -45,6 +45,17 @@ SGB_core::SGB_core()
 	db_unit.print_pc = false;
 	db_unit.last_command = "n";
 	db_unit.last_mnemonic = "";
+	db_unit.last_pc = 0;
+	db_unit.vb_count = 0;
+
+	db_unit.breakpoints.clear();
+	db_unit.watchpoint_addr.clear();
+	db_unit.watchpoint_val.clear();
+	db_unit.watchpoint_old_val.clear();
+
+	db_unit.watchpoint_reg_id.clear();
+	db_unit.watchpoint_reg_val.clear();
+	db_unit.watchpoint_old_reg.clear();
 
 	std::cout<<"GBE::Launching SGB core\n";
 
