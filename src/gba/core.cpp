@@ -57,6 +57,10 @@ AGB_core::AGB_core()
 	db_unit.watchpoint_addr.clear();
 	db_unit.watchpoint_val.clear();
 
+	db_unit.watchpoint_reg_id.clear();
+	db_unit.watchpoint_reg_val.clear();
+	db_unit.watchpoint_old_reg.clear();
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	db_unit.write_addr.clear();
