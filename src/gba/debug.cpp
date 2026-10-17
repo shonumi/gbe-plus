@@ -119,8 +119,8 @@ void AGB_core::debug_step()
 			u32 id = db_unit.watchpoint_reg_id[x];
 
 			//When a watchpoint is triggered, display info, wait for next input command
-			if((ex_get_reg(id) == db_unit.watchpoint_reg_val[x])
-			&& (ex_get_reg(id) != db_unit.watchpoint_old_reg[x]))
+			if((core_cpu.get_reg(id) == db_unit.watchpoint_reg_val[x])
+			&& (core_cpu.get_reg(id) != db_unit.watchpoint_old_reg[x]))
 			{
 				std::cout<<"Watchpoint Triggered: Register " << std::dec << id << " -- Value: 0x" << std::hex << db_unit.watchpoint_reg_val[x] << "\n";
 			
@@ -130,7 +130,7 @@ void AGB_core::debug_step()
 				debug_process_command();
 				printed = true;
 
-				db_unit.watchpoint_old_reg[x] = ex_get_reg(id);
+				db_unit.watchpoint_old_reg[x] = core_cpu.get_reg(id);
 			}
 		}
 	}
@@ -1097,7 +1097,7 @@ void AGB_core::debug_process_command()
 				db_unit.last_command = "breg";
 				db_unit.watchpoint_reg_id.push_back(reg_id);
 				db_unit.watchpoint_reg_val.push_back(reg_value);
-				db_unit.watchpoint_old_reg.push_back(ex_get_reg(reg_id));
+				db_unit.watchpoint_old_reg.push_back(core_cpu.get_reg(reg_id));
 				debug_process_command();
 			}
 		}
