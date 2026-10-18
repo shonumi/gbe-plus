@@ -47,7 +47,7 @@ NTR_core::NTR_core()
 	core_mmu.nds7_timer = &core_cpu_nds7.controllers.timer;
 
 	db_unit.debug_mode = false;
-	//db_unit.display_cycles = false;
+	db_unit.display_cycles = false;
 	db_unit.print_all = false;
 	db_unit.print_pc = false;
 	db_unit.last_command = "n";
@@ -56,6 +56,10 @@ NTR_core::NTR_core()
 	db_unit.breakpoints.clear();
 	db_unit.watchpoint_addr.clear();
 	db_unit.watchpoint_val.clear();
+
+	db_unit.watchpoint_reg_id.clear();
+	db_unit.watchpoint_reg_val.clear();
+	db_unit.watchpoint_old_reg.clear();
 
 	//Advanced debugging
 	#ifdef GBE_DEBUG
