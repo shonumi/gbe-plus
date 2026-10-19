@@ -65,7 +65,7 @@ void MIN_core::debug_step()
 		}
 	}
 
-	//In continue mode, if a watch point is triggered, try to stop on one
+	//In continue mode, if a memory watch point is triggered, try to stop on one
 	else if((db_unit.watchpoint_addr.size() > 0) && (db_unit.last_command == "c"))
 	{
 		for(int x = 0; x < db_unit.watchpoint_addr.size(); x++)
@@ -815,8 +815,8 @@ void MIN_core::debug_display() const
 	std::cout<< std::hex << "H  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.h << 
 		" -- L  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.l << "\n";
 
-	std::cout<< std::hex << "IX  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.ix << 
-		" -- IY  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.iy << "\n";
+	std::cout<< std::hex << "IX  : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.ix << 
+		" -- IY  : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.iy << "\n";
 
 	std::cout<< std::hex << "BR  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.br << "\n";
 
@@ -824,10 +824,10 @@ void MIN_core::debug_display() const
 		" -- SP  : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.sp << "\n";
 
 	std::cout<< std::hex <<"CB : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.cb <<
-		" -- EP  : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.ep << "\n";
+		" -- EP  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.ep << "\n";
 
 	std::cout<< std::hex <<"XP : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.xp <<
-		" -- YP  : 0x" << std::setw(4) << std::setfill('0') << (u32)core_cpu.reg.yp << "\n";
+		" -- YP  : 0x" << std::setw(2) << std::setfill('0') << (u32)core_cpu.reg.yp << "\n";
 
 	std::string flag_stats = "(";
 

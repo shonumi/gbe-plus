@@ -711,15 +711,17 @@ u32 MIN_core::ex_get_reg(u8 reg_index)
 {
 	switch(reg_index)
 	{
-		case 0x0: return core_cpu.reg.a;
-		case 0x1: return core_cpu.reg.b;
-		case 0x2: return core_cpu.reg.h;
-		case 0x3: return core_cpu.reg.l;
-		case 0x4: return core_cpu.reg.br;
-		case 0x5: return core_cpu.reg.sp;
-		case 0x6: return core_cpu.reg.pc;
-		case 0x7: return core_cpu.reg.sc;
-		case 0x8: return core_cpu.reg.cc;
+		case 0x00: return core_cpu.reg.a;
+		case 0x01: return core_cpu.reg.b;
+		case 0x02: return core_cpu.reg.h;
+		case 0x03: return core_cpu.reg.l;
+		case 0x04: return core_cpu.reg.ix;
+		case 0x05: return core_cpu.reg.iy;
+		case 0x06: return core_cpu.reg.br;
+		case 0x07: return core_cpu.reg.sp;
+		case 0x08: return core_cpu.reg.pc;
+		case 0x09: return core_cpu.reg.sc;
+		case 0x0A: return core_cpu.reg.cc;
 		default: return 0;
 	}
 }
