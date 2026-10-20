@@ -49,6 +49,10 @@ MIN_core::MIN_core()
 	db_unit.watchpoint_addr.clear();
 	db_unit.watchpoint_val.clear();
 
+	db_unit.watchpoint_reg_id.clear();
+	db_unit.watchpoint_reg_val.clear();
+	db_unit.watchpoint_old_reg.clear();
+
 	//Advanced debugging
 	#ifdef GBE_DEBUG
 	db_unit.write_addr.clear();
@@ -722,6 +726,11 @@ u32 MIN_core::ex_get_reg(u8 reg_index)
 		case 0x08: return core_cpu.reg.pc;
 		case 0x09: return core_cpu.reg.sc;
 		case 0x0A: return core_cpu.reg.cc;
+		case 0x0B: return core_cpu.reg.nb;
+		case 0x0C: return core_cpu.reg.cb;
+		case 0x0D: return core_cpu.reg.ep;
+		case 0x0E: return core_cpu.reg.xp;
+		case 0x0F: return core_cpu.reg.yp;
 		default: return 0;
 	}
 }

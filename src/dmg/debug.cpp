@@ -90,12 +90,14 @@ void DMG_core::debug_step()
 	{
 		for(int x = 0; x < db_unit.watchpoint_reg_id.size(); x++)
 		{
-			u8 id = db_unit.watchpoint_reg_id[x];
+			u32 id = db_unit.watchpoint_reg_id[x];
 
 			//When a watchpoint is triggered, display info, wait for next input command
 			if((ex_get_reg(id) == db_unit.watchpoint_reg_val[x])
 			&& (ex_get_reg(id) != db_unit.watchpoint_old_reg[x]))
 			{
+				std::cout<<"Watchpoint Triggered: Register " << std::dec << id << " -- Value: 0x" << std::hex << db_unit.watchpoint_reg_val[x] << "\n";
+
 				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
 				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
 

@@ -84,6 +84,31 @@ void MIN_core::debug_step()
 			db_unit.watchpoint_old_val[x] = core_mmu.read_u8(db_unit.watchpoint_addr[x]);
 		}
 	}
+
+	//In continue mode, if a register watch point is triggered, try to stop on one
+	else if((db_unit.watchpoint_reg_id.size() > 0) && (db_unit.last_command == "c"))
+	{
+		for(int x = 0; x < db_unit.watchpoint_reg_id.size(); x++)
+		{
+			u32 id = db_unit.watchpoint_reg_id[x];
+
+			//When a watchpoint is triggered, display info, wait for next input command
+			if((ex_get_reg(id) == db_unit.watchpoint_reg_val[x])
+			&& (ex_get_reg(id) != db_unit.watchpoint_old_reg[x]))
+			{
+				std::cout<<"Watchpoint Triggered: Register " << std::dec << id << " -- Value: 0x" << std::hex << db_unit.watchpoint_reg_val[x] << "\n";
+
+				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+
+				debug_display();
+				debug_process_command();
+				printed = true;
+
+				db_unit.watchpoint_old_reg[x] = ex_get_reg(id);
+			}
+		}
+	}
 				
 	//When in next instruction mode, simply display info, wait for next input command
 	else if(db_unit.last_command == "n")
@@ -1396,6 +1421,65 @@ void MIN_core::debug_process_command()
 				db_unit.watchpoint_addr.push_back(mem_location);
 				db_unit.watchpoint_val.push_back(mem_value);
 				db_unit.watchpoint_old_val.push_back(core_mmu.read_u8(mem_location));
+				debug_process_command();
+			}
+		}
+
+		//Break on register change
+		else if(dbg_util::check_command_len(command, "breg", dbg_util::INT_PARAMETER))
+		{
+			valid_command = true;
+			bool valid_value = false;
+			u32 reg_id = 0;
+			u32 reg_value = 0;
+
+			//Convert hex string into usable u32
+			valid_command = dbg_util::validate_command(command, "breg", dbg_util::INT_PARAMETER, reg_id);
+
+			//Request valid input again
+			if(!valid_command)
+			{
+				std::cout<<"\nInvalid register : " << command << "\n";
+				std::cout<<": ";
+				std::getline(std::cin, command);
+			}
+
+			else
+			{
+				//Request value
+				while(!valid_value)
+				{
+					std::cout<<"\nWatch value: ";
+					std::getline(std::cin, command);
+				
+					valid_value = util::from_hex_str(command.substr(2), reg_value);
+				
+					if(!valid_value)
+					{
+						std::cout<<"\nInvalid value : " << command << "\n";
+					}
+
+					//8-bit registers
+					else if((valid_value) && (reg_value > 0xFF) && ((reg_id <= 0x03) || (reg_id >= 0x09) || (reg_id == 0x06)))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+
+					//16-bit registers (IX, IY, PC and SP)
+					else if((valid_value) && (reg_value > 0xFFFF))
+					{
+						std::cout<<"\nValue is too large (greater than 0xFFFF) : 0x" << std::hex << reg_value;
+						valid_value = false;
+					}
+				}
+
+				std::cout<<"\n";
+
+				db_unit.last_command = "breg";
+				db_unit.watchpoint_reg_id.push_back(reg_id);
+				db_unit.watchpoint_reg_val.push_back(reg_value);
+				db_unit.watchpoint_old_reg.push_back(ex_get_reg(reg_id));
 				debug_process_command();
 			}
 		}
