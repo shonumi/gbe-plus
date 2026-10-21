@@ -98,8 +98,8 @@ void MIN_core::debug_step()
 			{
 				std::cout<<"Watchpoint Triggered: Register " << std::dec << id << " -- Value: 0x" << std::hex << db_unit.watchpoint_reg_val[x] << "\n";
 
-				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc);
-				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc);
+				db_unit.last_mnemonic = debug_get_mnemonic(core_cpu.reg.pc_ex);
+				core_cpu.opcode = core_mmu.read_u8(core_cpu.reg.pc_ex);
 
 				debug_display();
 				debug_process_command();
