@@ -53,10 +53,15 @@ void MIN_MMU::reset()
 	irq_priority[1] = 4;
 	irq_priority[2] = 4;
 
+	irq_vectors[0] = 0;
+	irq_vectors[1] = 0;
+	irq_vectors[2] = 0;
+
 	for(u32 x = 3; x < 32; x++)
 	{
 		irq_enable[x] = false;
 		irq_priority[x] = 0;
+		irq_vectors[x] = 0;
 	}
 
 	osc_1_enable = false;
