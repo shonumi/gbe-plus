@@ -56,6 +56,17 @@ void MIN_LCD::reset()
 	lcd_stat.prc_clock = 0;
 	lcd_stat.prc_copy_wait = 0;
 
+	lcd_stat.map_size = 0;
+	lcd_stat.map_addr = 0;
+	lcd_stat.obj_addr = 0;
+
+	lcd_stat.scroll_x = 0;
+	lcd_stat.scroll_y = 0;
+
+	lcd_stat.invert_map = false;
+	lcd_stat.enable_map = false;
+	lcd_stat.enable_obj = false;
+	lcd_stat.enable_copy = false;
 	lcd_stat.force_update = false;
 	lcd_stat.sed_enabled = true;
 
