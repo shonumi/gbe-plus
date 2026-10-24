@@ -1238,13 +1238,13 @@ void MIN_core::debug_process_command()
 						break;
 
 					case 0x02:
-						std::cout<<"\nSetting Register L to 0x" << std::hex << reg_value << "\n";
-						core_cpu.reg.l = reg_value;
+						std::cout<<"\nSetting Register H to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.h = reg_value;
 						break;
 
 					case 0x03:
-						std::cout<<"\nSetting Register H to 0x" << std::hex << reg_value << "\n";
-						core_cpu.reg.h = reg_value;
+						std::cout<<"\nSetting Register L to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.l = reg_value;
 						break;
 
 					case 0x04:
@@ -1258,18 +1258,18 @@ void MIN_core::debug_process_command()
 						break;
 
 					case 0x06:
+						std::cout<<"\nSetting Register BR to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.br = reg_value;
+						break;
+
+					case 0x07:
 						std::cout<<"\nSetting Register SP to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.sp = reg_value;
 						break;
 
-					case 0x07:
+					case 0x08
 						std::cout<<"\nSetting Register PC to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.pc = reg_value;
-						break;
-
-					case 0x08:
-						std::cout<<"\nSetting Register BR to 0x" << std::hex << reg_value << "\n";
-						core_cpu.reg.br = reg_value;
 						break;
 
 					case 0x09:
@@ -1293,18 +1293,18 @@ void MIN_core::debug_process_command()
 						break;
 
 					case 0x0D:
+						std::cout<<"\nSetting Register EP to 0x" << std::hex << reg_value << "\n";
+						core_cpu.reg.ep = reg_value;
+						break;
+
+					case 0x0E:
 						std::cout<<"\nSetting Register XP to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.xp = reg_value;
 						break;
 
-					case 0x0E:
+					case 0x0F:
 						std::cout<<"\nSetting Register YP to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.yp = reg_value;
-						break;
-
-					case 0x0F:
-						std::cout<<"\nSetting Register EP to 0x" << std::hex << reg_value << "\n";
-						core_cpu.reg.ep = reg_value;
 						break;
 				}
 

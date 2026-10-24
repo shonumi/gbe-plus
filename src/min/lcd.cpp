@@ -69,6 +69,7 @@ void MIN_LCD::reset()
 	lcd_stat.enable_copy = false;
 	lcd_stat.force_update = false;
 	lcd_stat.sed_enabled = true;
+	lcd_stat.sed_contrast = 0x1F;
 
 	frame_start_time = 0;
 	frame_current_time = 0;
