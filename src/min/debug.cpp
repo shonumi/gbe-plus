@@ -1267,7 +1267,7 @@ void MIN_core::debug_process_command()
 						core_cpu.reg.sp = reg_value;
 						break;
 
-					case 0x08
+					case 0x08:
 						std::cout<<"\nSetting Register PC to 0x" << std::hex << reg_value << "\n";
 						core_cpu.reg.pc = reg_value;
 						break;

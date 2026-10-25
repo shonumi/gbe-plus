@@ -7,10 +7,8 @@ add_subdirectory(sgb)
 add_subdirectory(nds)
 add_subdirectory(min)
 
-if (QT_GUI AND USE_OGL)
+if (QT_GUI)
 	add_subdirectory(qt)
-elseif (QT_GUI AND NOT USE_OGL)
-	message("Qt GUI requires OpenGL. Only SDL version will be built.")
 endif()
 
 set(SRCS main.cpp)
@@ -32,7 +30,7 @@ add_custom_target(gbe_info ALL
 if (UNIX AND NOT APPLE)
 	add_custom_command(TARGET gbe_info
 		PRE_BUILD
-		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${FINAL_INSTALL_DIR}
+		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${FINAL_INSTALL_DIR} ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
 	)
 elseif (WIN32)
 	add_custom_command(TARGET gbe_info
