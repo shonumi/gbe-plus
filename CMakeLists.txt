@@ -62,6 +62,16 @@ if (QT_GUI AND USE_OGL)
 	set(GBE_QT_LIBS Qt5::Gui Qt5::Widgets)
 endif()
 
+if (WIN32)
+	add_definitions(-DGBE_SYS_WINDOWS)
+elseif (APPLE)
+	add_definitions(-DGBE_SYS_MAC)
+elseif (UNIX AND NOT APPLE)
+	add_definitions(-DGBE_SYS_UNIX)
+else()
+	add_definitions(-DGBE_SYS_OTHER)
+endif()
+
 add_subdirectory(src)
 
 include(GNUInstallDirs)
