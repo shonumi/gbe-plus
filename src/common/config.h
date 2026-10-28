@@ -176,6 +176,14 @@ enum sio_devices_types
 	SIO_WORKBOY = 22,
 };
 
+enum host_os_types
+{
+	OS_WINDOWS = 0,
+	OS_MAC = 1,
+	OS_UNIX = 2,
+	OS_OTHER = 3,
+};
+
 namespace config
 { 
 	extern std::string rom_file;
@@ -371,6 +379,8 @@ namespace config
 	extern u32 vc_wait;
 	extern u32 vc_timeout;
 	extern u8 vc_opacity;
+
+	extern host_os_types host_os;
 
 	//Function pointer for external software rendering
 	//This function is provided by frontends that will not rely on SDL

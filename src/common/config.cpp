@@ -313,6 +313,18 @@ namespace config
 	std::string osd_message = "";
 	u32 osd_count = 0;
 	u8 osd_alpha = 0xFF;
+
+	//Operating System (determined at build time)
+	//GBE+ hasn't adopted C++23 yet, so using if defined() for now
+	#if defined(GBE_SYS_WINDOWS)
+	host_os_types host_os = OS_WINDOWS;
+	#elif defined(GBE_SYS_MAC)
+	host_os_types host_os = OS_MAC;
+	#elif defined(GBE_SYS_UNIX)
+	host_os_types host_os = OS_UNIX;
+	#else
+	host_os_types host_os = OS_OTHER;
+	#endif
 }
 
 /****** Reset DMG default colors ******/
