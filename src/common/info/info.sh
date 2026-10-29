@@ -1,6 +1,7 @@
 GBE_HASH=$(git rev-parse HEAD)
 GBE_INSTALL_FOLDER=$2
 GBE_EXEC_FOLDER=$3
+GBE_SYS_NAME=$4
 
 cd $1
 cd ./../
@@ -19,6 +20,7 @@ echo -e "#include \"info.h\"\n" >> info.cpp
 echo -e "namespace gbe_info\n{\n" >> info.cpp
 echo -e "std::string get_hash() { return \"${GBE_HASH}\"; }" >> info.cpp
 echo -e "std::string get_install_folder() { return \"${GBE_INSTALL_FOLDER}\"; }" >> info.cpp
+echo -e "std::string get_system_name() { return \"${GBE_SYS_NAME}\"; }" >> info.cpp
 echo -e "\n}" >> info.cpp
 
 cd ./../data/icons/

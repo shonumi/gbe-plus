@@ -30,12 +30,12 @@ add_custom_target(gbe_info ALL
 if (UNIX AND NOT APPLE)
 	add_custom_command(TARGET gbe_info
 		PRE_BUILD
-		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${FINAL_INSTALL_DIR} ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+		COMMAND /bin/sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.sh ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${FINAL_INSTALL_DIR} ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR} ${CMAKE_SYSTEM_NAME}
 	)
 elseif (WIN32)
 	add_custom_command(TARGET gbe_info
 		PRE_BUILD
-		COMMAND cmd /c ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.bat ${CMAKE_CURRENT_SOURCE_DIR}/common/info/
+		COMMAND cmd /c ${CMAKE_CURRENT_SOURCE_DIR}/common/info/info.bat ${CMAKE_CURRENT_SOURCE_DIR}/common/info/ ${CMAKE_SYSTEM_NAME}
 	)
 endif()
 

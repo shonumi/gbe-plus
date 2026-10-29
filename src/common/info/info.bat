@@ -4,6 +4,7 @@ cd %1
 cd ./../
 
 set GBE_HASH=
+set GBE_SYS_NAME=%2
 
 where git
 if %ERRORLEVEL%==0 (
@@ -28,4 +29,5 @@ echo namespace gbe_info >> info.cpp
 echo { >> info.cpp
 echo std::string get_hash^(^) { return ^"%GBE_HASH%^"^; } >> info.cpp
 echo std::string get_install_folder^(^) { return ^"^"^; } >> info.cpp
+echo std::string get_system_name^(^) { ^"%GBE_SYS_NAME%^"^; } >> info.cpp
 echo } >> info.cpp
