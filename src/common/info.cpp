@@ -17,4 +17,16 @@ std::string get_hash() { return ""; }
 std::string get_install_folder() { return ""; }
 std::string get_system_name() { return ""; }
 
+std::string get_platform(int id)
+{
+	switch(id)
+	{
+		case 0: return "WINDOWS";
+		case 1: return "APPLE";
+		case 2: return "UNIX";
+	}
+
+	return "OTHER";
+}
+
 }

@@ -21,6 +21,15 @@ echo -e "namespace gbe_info\n{\n" >> info.cpp
 echo -e "std::string get_hash() { return \"${GBE_HASH}\"; }" >> info.cpp
 echo -e "std::string get_install_folder() { return \"${GBE_INSTALL_FOLDER}\"; }" >> info.cpp
 echo -e "std::string get_system_name() { return \"${GBE_SYS_NAME}\"; }" >> info.cpp
+
+echo -e "\nstd::string get_platform(int id)\n{" >> info.cpp
+echo -e "\tswitch(id)\n\t{" >> info.cpp
+echo -e "\t\tcase 0: return \"WINDOWS\";" >> info.cpp
+echo -e "\t\tcase 1: return \"APPLE\";" >> info.cpp
+echo -e "\t\tcase 2: return \"UNIX\";" >> info.cpp
+echo -e	"\t}\n" >> info.cpp
+echo -e "\treturn \"OTHER\";\n}" >> info.cpp
+
 echo -e "\n}" >> info.cpp
 
 cd ./../data/icons/
