@@ -27,7 +27,24 @@ echo #include ^"info.h^" >> info.cpp
 echo: >> info.cpp
 echo namespace gbe_info >> info.cpp
 echo { >> info.cpp
+echo: >> info.cpp
 echo std::string get_hash^(^) { return ^"%GBE_HASH%^"^; } >> info.cpp
 echo std::string get_install_folder^(^) { return ^"^"^; } >> info.cpp
 echo std::string get_system_name^(^) { ^"%GBE_SYS_NAME%^"^; } >> info.cpp
+
+echo: >> info.cpp
+echo std::string get_platform(int id) >> info.cpp
+echo { >> info.cpp
+echo 	switch(id) >> info.cpp
+echo 	{ >> info.cpp
+echo 		case 0: return ^"WINDOWS^"^; >> info.cpp
+echo 		case 1: return ^"APPLE^"^; >> info.cpp
+echo 		case 2: return ^"UNIX^"^; >> info.cpp
+echo 	} >> info.cpp
+echo: >> info.cpp
+echo 	return ^"OTHER^"^; >> info.cpp
+echo } >> info.cpp
+
+
+echo: >> info.cpp
 echo } >> info.cpp
