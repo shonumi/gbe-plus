@@ -19,12 +19,24 @@ int main(int argc, char* args[])
 
 	if(!gbe_info::get_hash().empty())
 	{
-		std::cout<<"Revision: " << gbe_info::get_hash() << "\n\n";
+		std::cout<<"Revision: " << gbe_info::get_hash() << "\n";
 	}
 
 	else
 	{
-		std::cout<<"Revision: N/A\n\n";
+		std::cout<<"Revision: N/A\n";
+	}
+
+	std::cout<<"Platform: " << gbe_info::get_platform(config::host_os);
+
+	if(!gbe_info::get_system_name().empty())
+	{
+		std::cout<<" :: " << gbe_info::get_system_name() << "\n\n";
+	}
+
+	else
+	{
+		std::cout<<" :: N/A" << "\n\n";
 	}
 
 	config::use_external_interfaces = true;

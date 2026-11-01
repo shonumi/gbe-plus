@@ -17,6 +17,8 @@ namespace gbe_info
 {
 	std::string get_hash();
 	std::string get_install_folder();
+	std::string get_system_name();
+	std::string get_platform(int id);
 }
 
 #endif // GBE_INFO
