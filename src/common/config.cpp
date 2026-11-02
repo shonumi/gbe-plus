@@ -3668,6 +3668,32 @@ std::string get_game_ini_filename()
 	return result;
 }
 
+/****** Prints dynamically generated build info when booting GBE+ ******/
+void print_build_info()
+{
+	if(!gbe_info::get_hash().empty())
+	{
+		std::cout<<"Revision: " << gbe_info::get_hash() << "\n";
+	}
+
+	else
+	{
+		std::cout<<"Revision: N/A\n";
+	}
+
+	std::cout<<"Platform: " << gbe_info::get_platform(config::host_os);
+
+	if(!gbe_info::get_system_name().empty())
+	{
+		std::cout<<" :: " << gbe_info::get_system_name() << "\n\n";
+	}
+
+	else
+	{
+		std::cout<<" :: N/A" << "\n\n";
+	}
+}
+
 /****** Parses .ini string for boolean values ******/
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos)
 {

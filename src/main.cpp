@@ -21,28 +21,7 @@
 int main(int argc, char* args[])
 {
 	std::cout<<"GBE+ 1.10 [SDL]\n";
-
-	if(!gbe_info::get_hash().empty())
-	{
-		std::cout<<"Revision: " << gbe_info::get_hash() << "\n";
-	}
-
-	else
-	{
-		std::cout<<"Revision: N/A\n";
-	}
-
-	std::cout<<"Platform: " << gbe_info::get_platform(config::host_os);
-
-	if(!gbe_info::get_system_name().empty())
-	{
-		std::cout<<" :: " << gbe_info::get_system_name() << "\n\n";
-	}
-
-	else
-	{
-		std::cout<<" :: N/A" << "\n\n";
-	}
+	print_build_info();
 
 	core_emu* gbe_plus = NULL;
 
