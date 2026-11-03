@@ -33,6 +33,7 @@ bool generate_ini_file();
 bool save_cheats_file();
 void get_firmware_hashes();
 std::string get_game_ini_filename();
+
 void print_build_info();
 
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos);
@@ -382,6 +383,7 @@ namespace config
 	extern u8 vc_opacity;
 
 	extern host_os_types host_os;
+	extern std::string gbe_exec_filename;
 
 	//Function pointer for external software rendering
 	//This function is provided by frontends that will not rely on SDL

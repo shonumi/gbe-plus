@@ -325,6 +325,8 @@ namespace config
 	#else
 	host_os_types host_os = OS_OTHER;
 	#endif
+
+	std::string gbe_exec_filename = "";
 }
 
 /****** Reset DMG default colors ******/

@@ -24,6 +24,8 @@ int main(int argc, char* args[])
 	QApplication app(argc, args);
 
 	//Grab command-line arguments
+	config::gbe_exec_filename = util::get_filename_from_path(args[0]);
+
 	for(int x = 1; x < argc; x++) 
 	{ 
 		std::string temp_arg = args[x];
