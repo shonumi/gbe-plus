@@ -39,7 +39,8 @@ int main(int argc, char* args[])
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,"1");
 
-	QIcon icon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png")); 
+	QIcon icon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
+	generate_desktop_file();
 
 	window.resize(450, 300);
 	window.setWindowTitle("GBE+");

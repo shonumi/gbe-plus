@@ -3696,6 +3696,70 @@ void print_build_info()
 	}
 }
 
+/****** Generates .desktop file for freedesktop.org platforms - Intended for portable version ******/
+void generate_desktop_file()
+{
+	//Only applicable for GUI versions of GBE+
+	if((config::host_os == OS_UNIX) && (config::use_external_interfaces))
+	{
+		//Test for existing local .desktop file
+		const char* unix_chr = getenv("HOME");
+		std::string unix_str = "";
+		std::string last_chr = "";
+		std::string file_out = "";
+
+		if(unix_chr == nullptr)
+		{
+			return;
+		}
+		
+		else
+		{
+			unix_str = unix_chr;
+		}
+
+		if(unix_str.empty())
+		{
+			return;
+		}
+		
+		else
+		{
+			last_chr = unix_str[unix_str.length() - 1];
+			unix_str += (last_chr == "/") ? "" : "/";
+			unix_str += ".local/share/applications/gbe_plus.desktop";
+
+			//Abort generation if desktop file already exists
+			if(std::filesystem::exists(unix_str))
+			{
+				return;
+			}
+		}
+
+		std::string abs_exec_path = std::filesystem::absolute(config::gbe_exec_filename).string();
+		std::string abs_icon_path = std::filesystem::absolute(config::cfg_path + "data/icons/gbe_plus.png").string();
+
+		//Generate output for desktop file
+		file_out += "[Desktop Entry]\n";
+		file_out += "Type=Application\n";
+		file_out += "Version=1.10\n";
+		file_out += "Name=GBE+\n";
+		file_out += "Comment=GB Enhanced+ is a DMG/GBC/GBA/Pokemon Mini emulator and experimental NDS emulator.\n";
+		file_out += "Exec=" + abs_exec_path + "\n";
+		file_out += "Icon=" + abs_icon_path + "\n";
+		file_out += "Terminal=false\n";
+		file_out += "Categories=Game;Emulation";
+
+		std::ofstream file(unix_str);
+		if(!file.is_open()) { return; }
+
+		file << file_out;
+		file.close();
+
+		std::cout<<"GBE::Generating desktop file\n";
+	}
+}
+
 /****** Parses .ini string for boolean values ******/
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos)
 {

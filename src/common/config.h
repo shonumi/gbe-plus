@@ -35,6 +35,7 @@ void get_firmware_hashes();
 std::string get_game_ini_filename();
 
 void print_build_info();
+void generate_desktop_file();
 
 bool parse_ini_bool(std::string ini_item, std::string search_item, bool &ini_bool, std::vector <std::string> &ini_opts, u32 &ini_pos);
 bool parse_ini_str(std::string ini_item, std::string search_item, std::string &ini_str, std::vector <std::string> &ini_opts, u32 &ini_pos);
