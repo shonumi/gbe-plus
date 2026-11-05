@@ -3697,8 +3697,10 @@ void print_build_info()
 }
 
 /****** Generates .desktop file for freedesktop.org platforms - Intended for portable version ******/
-void generate_desktop_file()
+std::string generate_desktop_file()
 {
+	std::string desktop_file_path = "";
+
 	//Only applicable for GUI versions of GBE+
 	if((config::host_os == OS_UNIX) && (config::use_external_interfaces))
 	{
@@ -3710,7 +3712,7 @@ void generate_desktop_file()
 
 		if(unix_chr == nullptr)
 		{
-			return;
+			return "";
 		}
 		
 		else
@@ -3720,7 +3722,7 @@ void generate_desktop_file()
 
 		if(unix_str.empty())
 		{
-			return;
+			return "";
 		}
 		
 		else
@@ -3732,10 +3734,10 @@ void generate_desktop_file()
 			//Abort generation if desktop file already exists
 			if(std::filesystem::exists(unix_str))
 			{
-				return;
+				return "";
 			}
 		}
-
+		
 		std::string abs_exec_path = std::filesystem::absolute(config::gbe_exec_filename).string();
 		std::string abs_icon_path = std::filesystem::absolute(config::cfg_path + "data/icons/gbe_plus.png").string();
 
@@ -3751,13 +3753,16 @@ void generate_desktop_file()
 		file_out += "Categories=Game;Emulation";
 
 		std::ofstream file(unix_str);
-		if(!file.is_open()) { return; }
+		if(!file.is_open()) { return ""; }
 
 		file << file_out;
 		file.close();
 
 		std::cout<<"GBE::Generating desktop file\n";
+		desktop_file_path = unix_str;
 	}
+
+	return desktop_file_path;
 }
 
 /****** Parses .ini string for boolean values ******/
