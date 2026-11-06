@@ -3734,7 +3734,7 @@ std::string generate_desktop_file()
 			//Abort generation if desktop file already exists
 			if(std::filesystem::exists(unix_str))
 			{
-				return "";
+				return unix_str;
 			}
 		}
 		

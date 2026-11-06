@@ -39,8 +39,16 @@ int main(int argc, char* args[])
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,"1");
 
+	//Make icon for application window. Note, this does not work on Wayland. Desktop file is required.
 	QIcon icon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
-	generate_desktop_file();
+	
+	//Generate desktop file if necessary and applicable
+	std::string desktop_file = generate_desktop_file();
+
+	if(!desktop_file.empty())
+	{
+		QGuiApplication::setDesktopFileName(QString::fromStdString(desktop_file));
+	}
 
 	window.resize(450, 300);
 	window.setWindowTitle("GBE+");
