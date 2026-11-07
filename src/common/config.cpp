@@ -3696,52 +3696,63 @@ void print_build_info()
 	}
 }
 
-/****** Generates .desktop file for freedesktop.org platforms - Intended for portable version ******/
-std::string generate_desktop_file()
+/****** Gets .desktop file for freedesktop.org platforms ******/
+std::string get_desktop_file()
 {
 	std::string desktop_file_path = "";
 
 	//Only applicable for GUI versions of GBE+
 	if((config::host_os == OS_UNIX) && (config::use_external_interfaces))
 	{
-		//Test for existing local .desktop file
-		const char* unix_chr = getenv("HOME");
-		std::string unix_str = "";
-		std::string last_chr = "";
-		std::string file_out = "";
+		//Test if GBE+ has been installed - Use HOME path
+		if(config::ini_file != "gbe.ini")
+		{
+			//Test for existing .desktop file
+			const char* unix_chr = getenv("HOME");
+			std::string last_chr = "";
 
-		if(unix_chr == nullptr)
-		{
-			return "";
-		}
-		
-		else
-		{
-			unix_str = unix_chr;
-		}
-
-		if(unix_str.empty())
-		{
-			return "";
-		}
-		
-		else
-		{
-			last_chr = unix_str[unix_str.length() - 1];
-			unix_str += (last_chr == "/") ? "" : "/";
-			unix_str += ".local/share/applications/gbe_plus.desktop";
-
-			//Abort generation if desktop file already exists
-			if(std::filesystem::exists(unix_str))
+			if(unix_chr == nullptr)
 			{
-				return unix_str;
+				return "";
+			}
+		
+			else
+			{
+				desktop_file_path = unix_chr;
+			}
+
+			if(desktop_file_path.empty())
+			{
+				return "";
+			}
+		
+			else
+			{
+				last_chr = desktop_file_path[desktop_file_path.length() - 1];
+				desktop_file_path += (last_chr == "/") ? "" : "/";
+				desktop_file_path += ".local/share/applications/gbe_plus.desktop";
+
+				//Abort generation if desktop file already exists
+				if(std::filesystem::exists(desktop_file_path))
+				{
+					return desktop_file_path;
+				}
 			}
 		}
+
+		//Test if GBE+ is portable - Use local data folder
+		else
+		{
+			desktop_file_path = config::cfg_path + "data/icons/gbe_plus.desktop";
+		}
 		
+		//Installed Version - Generate new desktop file if none exists
+		//Portable Version - Always generate fresh file
+		std::string file_out = "";
 		std::string abs_exec_path = std::filesystem::absolute(config::gbe_exec_filename).string();
 		std::string abs_icon_path = std::filesystem::absolute(config::cfg_path + "data/icons/gbe_plus.png").string();
 
-		//Generate output for desktop file
+		//Raw output for desktop file
 		file_out += "[Desktop Entry]\n";
 		file_out += "Type=Application\n";
 		file_out += "Version=1.10\n";
@@ -3752,14 +3763,13 @@ std::string generate_desktop_file()
 		file_out += "Terminal=false\n";
 		file_out += "Categories=Game;Emulation";
 
-		std::ofstream file(unix_str);
+		std::ofstream file(desktop_file_path);
 		if(!file.is_open()) { return ""; }
 
 		file << file_out;
 		file.close();
 
 		std::cout<<"GBE::Generating desktop file\n";
-		desktop_file_path = unix_str;
 	}
 
 	return desktop_file_path;

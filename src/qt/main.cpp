@@ -42,8 +42,8 @@ int main(int argc, char* args[])
 	//Make icon for application window. Note, this does not work on Wayland. Desktop file is required.
 	QIcon icon(QString::fromStdString(config::cfg_path + "data/icons/gbe_plus.png"));
 	
-	//Generate desktop file if necessary and applicable
-	std::string desktop_file = generate_desktop_file();
+	//Get desktop file if applicable
+	std::string desktop_file = get_desktop_file();
 
 	if(!desktop_file.empty())
 	{
