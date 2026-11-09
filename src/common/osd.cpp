@@ -33,9 +33,17 @@ bool load_osd_font()
 	u32 file_size = util::get_file_size(font_file);
 	if(!file_size) { return util::report_error(font_file, util::FILE_SIZE_ZERO); }
 
+	//OSD font is the following 38 characters: " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ*"
+	//Uses 8x8 1bpp tiles. Verify font size before loading.
 	u8 font_byte = 0;
 	u32 font_size = file_size / 64;
 	u32 buffer_pos = 0;
+
+	if(font_size != 38)
+	{
+		std::cout<<"GBE::Error - OSD font size is incorrect\n";
+		return false;
+	}
 	
 	//Resize font buffer
 	config::osd_font.resize(font_size * 64);
