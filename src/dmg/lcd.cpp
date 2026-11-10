@@ -1326,6 +1326,14 @@ void DMG_LCD::step(int cpu_clock)
 				{
 					config::osd_count--;
 					draw_osd_msg(config::osd_message, screen_buffer, 0, 0);
+
+					//Manually reset first 8 rows of pixels if doing GBA-enhanced stretching
+					//These are otherwise intentionally left blank when rendering normal
+					if((!config::osd_count) && (config::gba_enhance) && (config::resize_mode))
+					{
+						u32 size = config::sys_width * 8;
+						for(u32 x = 0; x < size; x++) { screen_buffer[x] = 0xFFFFFFFF; }
+					}
 				}
 
 				//Process Power Antenna
