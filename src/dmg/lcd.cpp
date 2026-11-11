@@ -438,7 +438,7 @@ void DMG_LCD::render_dmg_scanline()
 	//Draw blank screen for 1 frame after LCD enabled
 	if(lcd_stat.frame_delay)
 	{
-		for(int x = 0; x < 256; x++) { scanline_buffer[x] = 0xFFFFFFFF; }
+		for(int x = 0; x < 256; x++) { scanline_buffer[x] = config::DMG_BG_PAL[0]; }
 	}
 
 	//Push scanline buffer to screen buffer - Normal version
@@ -449,7 +449,7 @@ void DMG_LCD::render_dmg_scanline()
 		for(int x = 0; x < 160; x++)
 		{
 			screen_buffer[offset + x] = scanline_buffer[x];
-			scanline_buffer[x] = 0xFFFFFFFF;
+			scanline_buffer[x] = config::DMG_BG_PAL[0];
 		}
 	}
 
@@ -461,7 +461,7 @@ void DMG_LCD::render_dmg_scanline()
 		for(int x = 0; x < 160; x++)
 		{
 			screen_buffer[offset + x] = scanline_buffer[x];
-			scanline_buffer[x] = 0xFFFFFFFF;
+			scanline_buffer[x] = config::DMG_BG_PAL[0];
 		}
 	}
 
@@ -483,8 +483,8 @@ void DMG_LCD::render_dmg_scanline()
 		for(int x = 0; x < 240; x++)
 		{
 			screen_buffer[offset + x] = stretched_buffer[x];
-			scanline_buffer[x] = 0xFFFFFFFF;
-			stretched_buffer[x] = 0xFFFFFFFF;
+			scanline_buffer[x] = config::DMG_BG_PAL[0];
+			stretched_buffer[x] = config::DMG_BG_PAL[0];
 		}
 	}
 }
@@ -1265,10 +1265,11 @@ void DMG_LCD::step(int cpu_clock)
 					//DMG/GBC stretch
 					if(config::sio_device != SIO_SEWING_MACHINE)
 					{
+						u32 blank_color = (config::gb_type == SYS_GBC) ? 0xFFFFFFFF : config::DMG_BG_PAL[0];
 						config::sys_width = 240;
 						config::sys_height = 160;
 						screen_buffer.clear();
-						screen_buffer.resize(0x9600, 0xFFFFFFFF);
+						screen_buffer.resize(0x9600, blank_color);
 					}
 
 					else
@@ -1331,8 +1332,10 @@ void DMG_LCD::step(int cpu_clock)
 					//These are otherwise intentionally left blank when rendering normal
 					if((!config::osd_count) && (config::gba_enhance) && (config::resize_mode))
 					{
-						u32 size = config::sys_width * 8;
-						for(u32 x = 0; x < size; x++) { screen_buffer[x] = 0xFFFFFFFF; }
+						for(u32 x = 0; x < (config::sys_width * 8); x++)
+						{
+							screen_buffer[x] = (config::gb_type == SYS_GBC) ? 0xFFFFFFFF : config::DMG_BG_PAL[0];
+						}
 					}
 				}
 
