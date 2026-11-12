@@ -972,6 +972,7 @@ void main_menu::boot_game()
 	findChild<QAction*>("pause_action")->setChecked(false);
 
 	int menu_height = menu_bar->height();
+	bool is_sgb_enabled = false;
 
 	//Determine Gameboy type based on file name
 	//Note, DMG and GBC games are automatically detected in the Gameboy MMU, so only check for GBA and NDS types here
@@ -983,6 +984,7 @@ void main_menu::boot_game()
 		if(dot != std::string::npos) { ext = config::rom_file.substr(dot); }
 
 		config::gb_type = settings->sys_type->currentIndex();
+		u32 gui_type = config::gb_type;
 	
 		if(ext == ".gba") { config::gb_type = SYS_GBA; }
 		else if(ext == ".nds") { config::gb_type = SYS_NDS; }
@@ -1004,9 +1006,10 @@ void main_menu::boot_game()
 		
 		else { config::gba_enhance = false; }
 
-		if((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2))
+		if((gui_type == SYS_SGB) || (gui_type == SYS_SGB2))
 		{
 			config::gb_type = get_system_type_from_file(config::rom_file);
+			is_sgb_enabled = true;
 		}
 
 		//Force GBA system type for AM3 emulation
@@ -1096,7 +1099,7 @@ void main_menu::boot_game()
 
 	else 
 	{
-		if((config::gb_type == SYS_SGB) || (config::gb_type == SYS_SGB2))
+		if(is_sgb_enabled)
 		{
 			base_width = 160;
 			base_height = 144;
