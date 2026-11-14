@@ -516,7 +516,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	QWidget* mic_enable_set = new QWidget(sound);
 	QLabel* mic_enable_label = new QLabel("Enable Microphone Recording");
 	mic_enable = new QCheckBox(mic_enable_set);
-	mic_enable->setToolTip("Enables stereo sound output.");
+	mic_enable->setToolTip("Enables microphone input.");
 	mic_enable->setChecked(true);
 
 	QHBoxLayout* mic_enable_layout = new QHBoxLayout;
