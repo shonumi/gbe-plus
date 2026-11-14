@@ -270,6 +270,7 @@ class gen_settings : public QDialog
 	void audio_driver_change();
 	void microphone_change();
 	void mute();
+	void set_mic();
 	void set_paths(int index);
 	void rebuild_input_index();
 	void input_device_change();

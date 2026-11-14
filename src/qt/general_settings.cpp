@@ -1651,6 +1651,7 @@ gen_settings::gen_settings(QWidget *parent) : QDialog(parent)
 	connect(freq, SIGNAL(currentIndexChanged(int)), this, SLOT(sample_rate_change()));
 	connect(sound_samples, SIGNAL(valueChanged(int)), this, SLOT(sample_size_change()));
 	connect(audio_driver, SIGNAL(currentIndexChanged(int)), this, SLOT(audio_driver_change()));
+	connect(mic_enable, SIGNAL(stateChanged(int)), this, SLOT(set_mic()));
 	connect(mic_select, SIGNAL(currentIndexChanged(int)), this, SLOT(microphone_change()));
 	connect(sound_on, SIGNAL(stateChanged(int)), this, SLOT(mute()));
 	connect(dead_zone, SIGNAL(valueChanged(int)), this, SLOT(dead_zone_change()));
@@ -2798,6 +2799,24 @@ void gen_settings::mute()
 			config::volume = 0;
 			volume->setEnabled(false);
 		}
+	}
+}
+
+/****** Enables or disables microphone input widgets ******/
+void gen_settings::set_mic()
+{
+	//Note this only affects what widgets are displayed
+	//Microphone enable/disable only applies on core boot!
+	if(mic_enable->isChecked())
+	{
+		mic_select->setEnabled(true);
+		mic_sens->setEnabled(true);
+	}
+
+	else
+	{
+		mic_select->setEnabled(false);
+		mic_sens->setEnabled(false);
 	}
 }
 
