@@ -226,9 +226,9 @@ u8 AGB_MMU::read_u8(u32 address)
 			address &= 0x3007FFF;
 			break;
 
-		//Pallete RAM 32KB mirror
+		//Palette RAM 1KB mirror
 		case 0x5:
-			address &= 0x5007FFF;
+			address &= 0x50003FF;
 			break;
 
 		//OAM 1KB mirror
@@ -633,9 +633,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			address &= 0x3007FFF;
 			break;
 
-		//Pallete RAM 32KB mirror
+		//Palette RAM 1KB mirror
 		case 0x5:
-			address &= 0x5007FFF;
+			address &= 0x50003FF;
 			break;
 
 		//OAM 1KB mirror
