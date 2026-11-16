@@ -231,9 +231,9 @@ u8 AGB_MMU::read_u8(u32 address)
 			address &= 0x5007FFF;
 			break;
 
-		//OAM 32KB mirror
+		//OAM 1KB mirror
 		case 0x7:
-			address &= 0x7007FFF;
+			address &= 0x70003FF;
 			break;
 
 		//ROM Waitstate 0
@@ -638,9 +638,9 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			address &= 0x5007FFF;
 			break;
 
-		//OAM 32KB mirror
+		//OAM 1KB mirror
 		case 0x7:
-			address &= 0x7007FFF;
+			address &= 0x70003FF;
 			break;
 
 		//ROM Waitstate 0
