@@ -1154,7 +1154,7 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 	if(load_store)
 	{
 		//Misaligned LDR or SWP
-		if((addr & 0x1) || (addr & 0x2)) 
+		if(addr & 0x3) 
 		{
 			normal_operation = false;
 
@@ -1225,7 +1225,7 @@ void ARM7::mem_check_32(u32 addr, u32& value, bool load_store)
 	else
 	{
 		//Misaligned STR
-		if((addr & 0x1) || (addr & 0x2)) 
+		if(addr & 0x3) 
 		{
 			normal_operation = false;
 
@@ -1269,7 +1269,7 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			value = mem->read_u16(reg.r15);
 		}
 
-		//Return 0 for certain readable I/O and Write-Only
+		//Return opcode instruction at PC for certain readable I/O and Write-Only
 		switch(addr)
 		{
 			case 0x4000010:
@@ -1336,7 +1336,10 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x40000F8:
 			case 0x40000FA:
 			case 0x40000FC:
-			case 0x40000FE: value = 0; normal_operation = false; break;
+			case 0x40000FE:
+				value = mem->read_u16(reg.r15);
+				normal_operation = false;
+				break;
 		}
 
 		//Return specific values when trying to read BIOS when PC is not within the BIOS
