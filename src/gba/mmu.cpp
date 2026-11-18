@@ -1323,11 +1323,13 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 		
 		//Sound Channel 1 Control - Sweep Parameters
 		case SND1CNT_L:
-			memory_map[address] = value;
+			memory_map[address] = value & 0x7F;
 			apu_stat->channel[0].sweep_shift = value & 0x7;
 			apu_stat->channel[0].sweep_direction = (value & 0x8) ? 1 : 0;
 			apu_stat->channel[0].sweep_time = (value >> 4) & 0x7;
 			break;
+
+		case SND1CNT_L+1: break;
 
 		//Sound Channel 1 Control - Duration, Duty Cycle, Envelope, Volume
 		case SND1CNT_H:

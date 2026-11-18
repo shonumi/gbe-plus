@@ -1269,9 +1269,9 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			value = mem->read_u16(reg.r15);
 		}
 
-		//Return opcode instruction at PC for certain readable I/O and Write-Only
 		switch(addr)
 		{
+			//Return opcode instruction at PC when reading certain write-only I/O
 			case 0x4000010:
 			case 0x4000012:
 			case 0x4000014:
@@ -1308,15 +1308,12 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x400005A:
 			case 0x400005C:
 			case 0x400005E:
-			case 0x4000066:
-			case 0x400006E:
-			case 0x4000076:
-			case 0x400007A:
-			case 0x400007E:
-			case 0x4000086:
-			case 0x400008A:
 			case 0x400008C:
 			case 0x400008E:
+			case 0x40000A0:
+			case 0x40000A2:
+			case 0x40000A4:
+			case 0x40000A6:
 			case 0x40000A8:
 			case 0x40000AA:
 			case 0x40000AC:
@@ -1338,6 +1335,25 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x40000FC:
 			case 0x40000FE:
 				value = mem->read_u16(reg.r15);
+				normal_operation = false;
+				break;
+
+			//Return zero when reading certain unused I/O
+			case 0x4000066:
+			case 0x400006A:
+			case 0x400006E:
+			case 0x4000076:
+			case 0x400007A:
+			case 0x400007E:
+			case 0x4000086:
+			case 0x400008A:
+			case 0x4000136:
+			case 0x4000142:
+			case 0x400015A:
+			case 0x4000206:
+			case 0x400020A:
+			case 0x4000302:
+				value = 0;
 				normal_operation = false;
 				break;
 		}
