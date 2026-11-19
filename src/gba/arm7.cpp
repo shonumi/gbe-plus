@@ -1318,6 +1318,23 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x40000AA:
 			case 0x40000AC:
 			case 0x40000AE:
+			case 0x40000B0:
+			case 0x40000B2:
+			case 0x40000B4:
+			case 0x40000B6:
+			case 0x40000BC:
+			case 0x40000BE:
+			case 0x40000C0:
+			case 0x40000C2:
+			case 0x40000C6:
+			case 0x40000C8:
+			case 0x40000CA:
+			case 0x40000CC:
+			case 0x40000CE:
+			case 0x40000D4:
+			case 0x40000D6:
+			case 0x40000D8:
+			case 0x40000DA:
 			case 0x40000E0:
 			case 0x40000E2:
 			case 0x40000E4:
@@ -1338,7 +1355,7 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 				normal_operation = false;
 				break;
 
-			//Return zero when reading certain unused I/O
+			//Return zero when reading certain unused I/O or special case write-only I/O
 			case 0x4000066:
 			case 0x400006A:
 			case 0x400006E:
@@ -1347,6 +1364,10 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 			case 0x400007E:
 			case 0x4000086:
 			case 0x400008A:
+			case 0x40000B8:
+			case 0x40000C4:
+			case 0x40000D0:
+			case 0x40000DC:
 			case 0x4000136:
 			case 0x4000142:
 			case 0x400015A:

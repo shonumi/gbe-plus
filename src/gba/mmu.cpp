@@ -1586,7 +1586,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Sound Control - Volumes
 		case SNDCNT_L:
-			memory_map[address] = value;
+			memory_map[address] = (value & 0x77);
 
 			switch(value & 0x7)
 			{
@@ -1629,8 +1629,7 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 		//General Sound Control - Master Volumes + Enabled DMA Channels
 		case SNDCNT_H:
-		case SNDCNT_H+1:
-			memory_map[address] = value;
+			memory_map[address] = value & 0x0F;
 
 			switch(memory_map[SNDCNT_H] & 0x3)
 			{
@@ -1642,6 +1641,10 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 
 			apu_stat->dma[0].master_volume = (memory_map[SNDCNT_H] & 0x4) ? config::volume : (config::volume >> 1);
 			apu_stat->dma[1].master_volume = (memory_map[SNDCNT_H] & 0x8) ? config::volume : (config::volume >> 1);
+			break;
+
+		case SNDCNT_H+1:
+			memory_map[address] = value & 0x77;
 
 			apu_stat->dma[0].right_enable = (memory_map[SNDCNT_H+1] & 0x1) ? true : false;
 			apu_stat->dma[0].left_enable = (memory_map[SNDCNT_H+1] & 0x2) ? true : false;
@@ -1652,7 +1655,6 @@ void AGB_MMU::write_u8(u32 address, u8 value)
 			apu_stat->dma[1].timer = (memory_map[SNDCNT_H+1] & 0x40) ? 1 : 0;
 			break;
 			
-
 		//Wave RAM
 		case WAVERAM0_L : apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4)] = value; break;
 		case WAVERAM0_L+1: apu_stat->waveram_data[(apu_stat->waveram_bank_rw << 4) + 1] = value; break;
