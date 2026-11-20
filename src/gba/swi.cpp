@@ -711,8 +711,10 @@ void ARM7::swi_cpuset()
 	//Determine if the transfer operation is 16 or 32-bit - Bit 26 of R2
 	u8 transfer_type = (transfer_control & 0x4000000) ? 1 : 0;
 
+	u8 align_shift = ((transfer_type == 0) && (src_addr & 0x01)) ? 8 : 0;
+
 	src_addr &= (transfer_type == 0) ? ~0x1 : ~0x3;
-	dest_addr &= (transfer_type == 0) ? ~0x1 : ~0x3; 
+	dest_addr &= (transfer_type == 0) ? ~0x1 : ~0x3;
 
 	u32 temp_32 = 0;
 	u16 temp_16 = 0;
@@ -725,7 +727,7 @@ void ARM7::swi_cpuset()
 			//16-bit transfer
 			if(transfer_type == 0)
 			{
-				temp_16 = mem->read_u16(src_addr);
+				temp_16 = mem->read_u16(src_addr) >> align_shift;
 				mem->write_u16(dest_addr, temp_16);
 			
 				src_addr += 2;
