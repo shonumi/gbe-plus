@@ -478,10 +478,18 @@ void ARM7::swi_div()
 	s64 result = 0;
 	s32 modulo = 0;
 
-	//Do NOT divide by 0
+	//Special case of dividing by zero
+	//R0 = Numerator (unless 0x00, in which case it's set to 0x01), R1 = Numerator, R3 = 0x01 
 	if(den == 0)
 	{
-		std::cout<<"SWI::Warning - Div tried to divide by zero (ignoring operation) \n";
+		std::cout<<"SWI::Warning - Div tried to divide by zero \n";
+
+		set_reg(1, num);
+		set_reg(3, 0x01);
+
+		if(!num) { num = 0x01; }
+		set_reg(0, num);
+
 		return;
 	}
 
@@ -518,10 +526,18 @@ void ARM7::swi_divarm()
 	s32 result = 0;
 	s32 modulo = 0;
 
-	//Do NOT divide by 0
+	//Special case of dividing by zero
+	//R0 = Numerator (unless 0x00, in which case it's set to 0x01), R1 = Numerator, R3 = 0x01 
 	if(den == 0)
 	{
-		std::cout<<"SWI::Warning - DivARM tried to divide by zero (ignoring operation) \n";
+		std::cout<<"SWI::Warning - DivARM tried to divide by zero \n";
+
+		set_reg(1, num);
+		set_reg(3, 0x01);
+
+		if(!num) { num = 0x01; }
+		set_reg(0, num);
+
 		return;
 	}
 
@@ -753,7 +769,7 @@ void ARM7::swi_cpuset()
 			//16-bit transfer
 			if(transfer_type == 0)
 			{
-				temp_16 = mem->read_u16(src_addr);
+				temp_16 = mem->read_u16(src_addr) >> align_shift;
 				mem->write_u16(dest_addr, temp_16);
 			
 				dest_addr += 2;
