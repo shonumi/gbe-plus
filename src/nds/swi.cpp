@@ -409,10 +409,18 @@ void NTR_ARM9::swi_div()
 	s32 result = 0;
 	s32 modulo = 0;
 
-	//Do NOT divide by 0
+	//Special case of dividing by zero
+	//R0 = Numerator (unless 0x00, in which case it's set to 0x01), R1 = Numerator, R3 = 0x01 
 	if(den == 0)
 	{
-		std::cout<<"ARM9::SWI::Warning - Div tried to divide by zero (ignoring operation) \n";
+		std::cout<<"ARM9::SWI::Warning - Div tried to divide by zero \n";
+
+		set_reg(1, num);
+		set_reg(3, 0x01);
+
+		if(!num) { num = 0x01; }
+		set_reg(0, num);
+
 		return;
 	}
 
@@ -1132,10 +1140,18 @@ void NTR_ARM7::swi_div()
 	s32 result = 0;
 	s32 modulo = 0;
 
-	//Do NOT divide by 0
+	//Special case of dividing by zero
+	//R0 = Numerator (unless 0x00, in which case it's set to 0x01), R1 = Numerator, R3 = 0x01 
 	if(den == 0)
 	{
-		std::cout<<"ARM7::SWI::Warning - Div tried to divide by zero (ignoring operation) \n";
+		std::cout<<"ARM9::SWI::Warning - Div tried to divide by zero \n";
+
+		set_reg(1, num);
+		set_reg(3, 0x01);
+
+		if(!num) { num = 0x01; }
+		set_reg(0, num);
+
 		return;
 	}
 
