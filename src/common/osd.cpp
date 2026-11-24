@@ -330,6 +330,13 @@ void draw_osd_msg(std::string osd_text, std::vector <u32> &osd_surface, u8 x_off
 	}
 }
 
+/****** Sets OSD message and default duration of 180 frames - Used by cores directly ******/
+void set_osd_msg(std::string osd_text)
+{
+	config::osd_message = osd_text;
+	config::osd_count = 180;
+}
+
 /****** Loads an 8x8 BMP used as the NDS virtual cursor ******/
 bool load_virtual_cursor()
 {
