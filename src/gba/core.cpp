@@ -70,8 +70,7 @@ AGB_core::AGB_core()
 	std::cout<<"GBE::Launching GBA core\n";
 
 	//OSD
-	config::osd_message = "GBA CORE INIT";
-	config::osd_count = 180;
+	set_osd_msg("GBA CORE INIT");
 }
 
 /****** Start the core ******/
@@ -243,8 +242,7 @@ bool AGB_core::load_state(u8 slot)
 	
 	if(!test.good())
 	{
-		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
-		config::osd_count = 180;
+		set_osd_msg("INVALID SAVE STATE " + util::to_str(slot));
 		return false;
 	}
 
@@ -268,8 +266,7 @@ bool AGB_core::load_state(u8 slot)
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "LOADED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("LOADED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -301,8 +298,7 @@ bool AGB_core::save_state(u8 slot)
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "SAVED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("SAVED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -557,8 +553,8 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 	{
 		if(config::cart_type == AGB_PLAY_YAN)
 		{
-			if(!core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { config::osd_message = "HEADPHONES ON"; }
-			else { config::osd_message = "HEADPHONES OFF"; }
+			if(!core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { set_osd_msg("HEADPHONES ON"); }
+			else { set_osd_msg("HEADPHONES OFF"); }
 
 			core_mmu.play_yan_set_headphone_status();
 
@@ -573,8 +569,6 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 				core_mmu.play_yan.irq_delay = 1;
 				core_mmu.process_play_yan_irq();
 			}
-
-			config::osd_count = 180;
 		}
 	}
 
@@ -615,8 +609,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 		util::save_image(core_cpu.controllers.video.final_screen, save_name, true);
 
 		//OSD
-		config::osd_message = "SAVED SCREENSHOT";
-		config::osd_count = 180;
+		set_osd_msg("SAVED SCREENSHOT");
 	}
 
 	//Toggle Fullscreen on F12
@@ -732,9 +725,7 @@ void AGB_core::handle_hotkey(SDL_Event& event)
 				core_cpu.controllers.serial_io.soul_doll_adapter_reset();
 
 				//OSD
-				config::osd_message = "SOUL DOLL ADAPTER RESET";
-				config::osd_count = 180;
-				
+				set_osd_msg("SOUL DOLL ADAPTER RESET");
 				break;
 		}
 	}
@@ -760,9 +751,7 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 				core_cpu.controllers.serial_io.soul_doll_adapter_reset();
 
 				//OSD
-				config::osd_message = "SOUL DOLL ADAPTER RESET";
-				config::osd_count = 180;
-				
+				set_osd_msg("SOUL DOLL ADAPTER RESET");
 				break;
 		}
 
@@ -779,8 +768,8 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 	{
 		if(config::cart_type == AGB_PLAY_YAN)
 		{
-			if(!core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { config::osd_message = "HEADPHONES ON"; }
-			else { config::osd_message = "HEADPHONES OFF"; }
+			if(!core_cpu.controllers.audio.apu_stat.ext_audio.use_headphones) { set_osd_msg("HEADPHONES ON"); }
+			else { set_osd_msg("HEADPHONES OFF"); }
 
 			core_mmu.play_yan_set_headphone_status();
 
@@ -795,8 +784,6 @@ void AGB_core::handle_hotkey(int input, bool pressed)
 				core_mmu.play_yan.irq_delay = 1;
 				core_mmu.process_play_yan_irq();
 			}
-
-			config::osd_count = 180;
 		}
 	}
 }

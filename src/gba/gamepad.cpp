@@ -513,8 +513,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			if(solar_value < 0x50) { solar_value = 0x50; }
 
 			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
-			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
-			config::osd_count = 180;
+			set_osd_msg("SOLAR SENSOR " + util::to_str(u8(percent)));
 		}
 
 		//Emulate upwards tilt press
@@ -537,8 +536,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 				{
 					ext_volume++;
 					float percent = (ext_volume / 63.0) * 100.0; 
-					config::osd_message = "VOLUME " + util::to_str(u8(percent));
-					config::osd_count = 180;
+					set_osd_msg("VOLUME " + util::to_str(u8(percent)));
 				}
 			}
 		}
@@ -590,8 +588,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 			if(solar_value > 0xE8) { solar_value = 0xE8; }
 
 			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
-			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
-			config::osd_count = 180;
+			set_osd_msg("SOLAR SENSOR " + util::to_str(u8(percent)));
 		}
 
 		//Emulate downwards tilt press
@@ -614,8 +611,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 				{
 					ext_volume--;
 					float percent = (ext_volume / 63.0) * 100.0; 
-					config::osd_message = "VOLUME " + util::to_str(u8(percent));
-					config::osd_count = 180;
+					set_osd_msg("VOLUME " + util::to_str(u8(percent)));
 				}
 			}
 		}
@@ -673,8 +669,7 @@ void AGB_GamePad::process_keyboard(int pad, bool pressed)
 	if((is_gb_player) && (key_input != old_input))
 	{
 		is_gb_player = false;
-		config::osd_message = "GBP DETECTION OFF";
-		config::osd_count = 180;
+		set_osd_msg("GBP DETECTION OFF");
 	}
 
 	//Terminate Turbo Buttons
@@ -860,8 +855,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			if(solar_value < 0x50) { solar_value = 0x50; }
 
 			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
-			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
-			config::osd_count = 180;
+			set_osd_msg("SOLAR SENSOR " + util::to_str(u8(percent)));
 		}
 
 		//Emulate upwards tilt press
@@ -884,8 +878,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 				{
 					ext_volume++;
 					float percent = (ext_volume / 63.0) * 100.0; 
-					config::osd_message = "VOLUME " + util::to_str(u8(percent));
-					config::osd_count = 180;
+					set_osd_msg("VOLUME " + util::to_str(u8(percent)));
 				}
 			}
 		}
@@ -932,8 +925,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 			if(solar_value > 0xE8) { solar_value = 0xE8; }
 
 			float percent = (1.0 - ((solar_value - 0x50) / 152.0)) * 100.0; 
-			config::osd_message = "SOLAR SENSOR " + util::to_str(u8(percent));
-			config::osd_count = 180;
+			set_osd_msg("SOLAR SENSOR " + util::to_str(u8(percent)));
 		}
 
 		//Emulate downwards tilt press
@@ -956,8 +948,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 				{
 					ext_volume--;
 					float percent = (ext_volume / 63.0) * 100.0; 
-					config::osd_message = "VOLUME " + util::to_str(u8(percent));
-					config::osd_count = 180;
+					set_osd_msg("VOLUME " + util::to_str(u8(percent)));
 				}
 			}
 		}
@@ -1010,8 +1001,7 @@ void AGB_GamePad::process_joystick(int pad, bool pressed)
 	if((is_gb_player) && (key_input != old_input))
 	{
 		is_gb_player = false;
-		config::osd_message = "GBP DETECTION OFF";
-		config::osd_count = 180;
+		set_osd_msg("GBP DETECTION OFF");
 	}
 
 	//Terminate Turbo Buttons

@@ -81,8 +81,7 @@ NTR_core::NTR_core()
 	std::cout<<"GBE::Launching NDS core\n";
 
 	//OSD
-	config::osd_message = "NDS CORE INIT";
-	config::osd_count = 180;
+	set_osd_msg("NDS CORE INIT");
 }
 
 /****** Start the core ******/
@@ -213,8 +212,7 @@ bool NTR_core::load_state(u8 slot)
 	
 	if(!test.good())
 	{
-		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
-		config::osd_count = 180;
+		set_osd_msg("INVALID SAVE STATE " + util::to_str(slot));
 		return false;
 	}
 
@@ -241,8 +239,7 @@ bool NTR_core::load_state(u8 slot)
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "LOADED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("LOADED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -275,8 +272,7 @@ bool NTR_core::save_state(u8 slot)
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "SAVED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("SAVED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -925,8 +921,7 @@ void NTR_core::handle_hotkey(SDL_Event& event)
 		util::save_image(core_cpu_nds9.controllers.video.final_screen, save_name, true);
 
 		//OSD
-		config::osd_message = "SAVED SCREENSHOT";
-		config::osd_count = 180;
+		set_osd_msg("SAVED SCREENSHOT");
 	}
 
 	//Start CLI debugger on F7

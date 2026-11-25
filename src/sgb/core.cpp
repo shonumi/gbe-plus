@@ -60,8 +60,7 @@ SGB_core::SGB_core()
 	std::cout<<"GBE::Launching SGB core\n";
 
 	//OSD
-	config::osd_message = "SGB CORE INIT";
-	config::osd_count = 180;
+	set_osd_msg("SGB CORE INIT");
 }
 
 /****** Start the core ******/
@@ -169,8 +168,7 @@ bool SGB_core::load_state(u8 slot)
 	
 	if(!test.good())
 	{
-		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
-		config::osd_count = 180;
+		set_osd_msg("INVALID SAVE STATE " + util::to_str(slot));
 		return false;
 	}
 
@@ -193,8 +191,7 @@ bool SGB_core::load_state(u8 slot)
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "LOADED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("LOADED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -226,8 +223,7 @@ bool SGB_core::save_state(u8 slot)
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "SAVED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("SAVED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -772,8 +768,7 @@ void SGB_core::handle_hotkey(SDL_Event& event)
 		util::save_image(core_cpu.controllers.video.final_screen, save_name, true);
 
 		//OSD
-		config::osd_message = "SAVED SCREENSHOT";
-		config::osd_count = 180;
+		set_osd_msg("SAVED SCREENSHOT");
 	}
 
 	//Toggle Fullscreen on F12

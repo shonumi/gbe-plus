@@ -60,8 +60,7 @@ DMG_core::DMG_core()
 	std::cout<<"GBE::Launching DMG-GBC core\n";
 
 	//OSD
-	config::osd_message = "DMG GBC CORE INIT";
-	config::osd_count = 180;
+	set_osd_msg("DMG GBC CORE INIT"); 
 }
 
 /****** Start the core ******/
@@ -169,8 +168,7 @@ bool DMG_core::load_state(u8 slot)
 	
 	if(!test.good())
 	{
-		config::osd_message = "INVALID SAVE STATE " + util::to_str(slot);
-		config::osd_count = 180;
+		set_osd_msg("INVALID SAVE STATE " + util::to_str(slot));
 		return false;
 	}
 
@@ -194,8 +192,7 @@ bool DMG_core::load_state(u8 slot)
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "LOADED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("LOADED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -227,8 +224,7 @@ bool DMG_core::save_state(u8 slot)
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "SAVED STATE " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("SAVED STATE " + util::to_str(slot));
 
 	return true;
 }
@@ -1018,8 +1014,7 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 		util::save_image(core_cpu.controllers.video.final_screen, save_name, true);
 
 		//OSD
-		config::osd_message = "SAVED SCREENSHOT";
-		config::osd_count = 180;
+		set_osd_msg("SAVED SCREENSHOT");
 	}
 
 	//Toggle Fullscreen on F12
@@ -1181,16 +1176,14 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 			//OSD
 			if(core_mmu.ir_stat.network_id != config::netplay_id)
 			{
-				config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+				set_osd_msg("P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED");
 				core_cpu.controllers.serial_io.set_huc_ir_connection();
 			}
 
 			else
 			{
-				config::osd_message = "NO LINK";
+				set_osd_msg("NO LINK");
 			}
-			
-			config::osd_count = 180;
 		}
 
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
@@ -1221,16 +1214,14 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 				if(core_pad.workboy_lock_keyboard)
 				{
 					core_pad.workboy_lock_keyboard = false;
-					config::osd_message = "KEYS UNLOCKED";
+					set_osd_msg("KEYS UNLOCKED");
 				}
 
 				else
 				{
 					core_pad.workboy_lock_keyboard = true;
-					config::osd_message = "KEYS LOCKED";
+					set_osd_msg("KEYS LOCKED");
 				}
-
-				config::osd_count = 180;
 
 				break;
 		}
@@ -1275,13 +1266,11 @@ void DMG_core::handle_hotkey(SDL_Event& event)
 
 				switch(core_mmu.kiss_link.mode)
 				{
-					case 0: config::osd_message = "GB KISS SEND MODE"; core_mmu.kiss_link.is_sender = true; break;
-					case 1: config::osd_message = "GB KISS RECV MODE"; core_mmu.kiss_link.is_sender = false; break;
-					case 2: config::osd_message = "NECTARIS SEND MAP"; core_mmu.kiss_link.is_sender = true; break;
-					case 3: config::osd_message = "NECTARIS RECV MAP"; core_mmu.kiss_link.is_sender = true; break;
+					case 0: set_osd_msg("GB KISS SEND MODE"); core_mmu.kiss_link.is_sender = true; break;
+					case 1: set_osd_msg("GB KISS RECV MODE"); core_mmu.kiss_link.is_sender = false; break;
+					case 2: set_osd_msg("NECTARIS SEND MAP"); core_mmu.kiss_link.is_sender = true; break;
+					case 3: set_osd_msg("NECTARIS RECV MAP"); core_mmu.kiss_link.is_sender = true; break;
 				}
-
-				config::osd_count = 180;
 
 				break;
 		}
@@ -1344,16 +1333,14 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 			//OSD
 			if(core_mmu.ir_stat.network_id != config::netplay_id)
 			{
-				config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+				set_osd_msg("P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED");
 				core_cpu.controllers.serial_io.set_huc_ir_connection();
 			}
 
 			else
 			{
-				config::osd_message = "NO LINK";
+				set_osd_msg("NO LINK");
 			}
-			
-			config::osd_count = 180;
 		}
 
 		switch(core_cpu.controllers.serial_io.sio_stat.sio_type)
@@ -1420,13 +1407,11 @@ void DMG_core::handle_hotkey(int input, bool pressed)
 
 				switch(core_mmu.kiss_link.mode)
 				{
-					case 0: config::osd_message = "GB KISS SEND MODE"; core_mmu.kiss_link.is_sender = true; break;
-					case 1: config::osd_message = "GB KISS RECV MODE"; core_mmu.kiss_link.is_sender = false; break;
-					case 2: config::osd_message = "NECTARIS SEND MAP"; core_mmu.kiss_link.is_sender = true; break;
-					case 3: config::osd_message = "NECTARIS RECV MAP"; core_mmu.kiss_link.is_sender = true; break;
+					case 0: set_osd_msg("GB KISS SEND MODE"); core_mmu.kiss_link.is_sender = true; break;
+					case 1: set_osd_msg("GB KISS RECV MODE"); core_mmu.kiss_link.is_sender = false; break;
+					case 2: set_osd_msg("NECTARIS SEND MAP"); core_mmu.kiss_link.is_sender = true; break;
+					case 3: set_osd_msg("NECTARIS RECV MAP"); core_mmu.kiss_link.is_sender = true; break;
 				}
-
-				config::osd_count = 180;
 
 				break;
 		}

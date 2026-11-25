@@ -1643,8 +1643,7 @@ void DMG_SIO::print_image()
 	}
 
 	//OSD
-	config::osd_message = "SAVED GB PRINTER IMG";
-	config::osd_count = 180;
+	set_osd_msg("SAVED GB PRINTER IMG");
 }
 
 /****** Processes Bardigun barcode data sent to the Game Boy ******/
@@ -1669,8 +1668,7 @@ void DMG_SIO::bardigun_process()
 					bardigun_scanner.barcode_pointer = 0;
 
 					//OSD
-					config::osd_message = "BARCODE SWIPED";
-					config::osd_count = 180;
+					set_osd_msg("BARCODE SWIPED");
 				}
 			}
 			
@@ -1835,8 +1833,7 @@ void DMG_SIO::barcode_boy_process()
 				barcode_boy.current_state = BARCODE_BOY_FINISH;
 
 				//OSD
-				config::osd_message = "BARCODE SWIPED";
-				config::osd_count = 180;
+				set_osd_msg("BARCODE SWIPED");
 			}
 
 			sio_stat.shifts_left = 8;

@@ -1586,8 +1586,7 @@ void main_menu::screenshot()
 		else { qt_gui::screen->save(qt_save_name, "PNG"); }
 
 		//OSD
-		config::osd_message = "SAVED SCREENSHOT";
-		config::osd_count = 180;
+		set_osd_msg("SAVED SCREENSHOT");
 	}
 }
 

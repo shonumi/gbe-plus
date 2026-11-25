@@ -67,8 +67,7 @@ MIN_core::MIN_core()
 	}
 
 	//OSD
-	config::osd_message = "MIN CORE INIT";
-	config::osd_count = 180;
+	set_osd_msg("MIN CORE INIT");
 }
 
 /****** Start the core ******/
@@ -174,8 +173,7 @@ bool MIN_core::load_state(u8 slot)
 	
 	if(!test.good())
 	{
-		config::osd_message = "NO SS " + util::to_str(slot);
-		config::osd_count = 180;
+		set_osd_msg("NO SS " + util::to_str(slot));
 		return false;
 	}
 
@@ -199,8 +197,7 @@ bool MIN_core::load_state(u8 slot)
 	std::cout<<"GBE::Loaded state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "LOADED SS " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("LOADED SS " + util::to_str(slot));
 
 	return true;
 }
@@ -232,8 +229,7 @@ bool MIN_core::save_state(u8 slot)
 	std::cout<<"GBE::Saved state " << state_file << "\n";
 
 	//OSD
-	config::osd_message = "SAVE SS " + util::to_str(slot);
-	config::osd_count = 180;
+	set_osd_msg("SAVE SS " + util::to_str(slot));
 
 	return true;
 }
@@ -444,16 +440,14 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		//OSD
 		if(core_mmu.ir_stat.network_id != config::netplay_id)
 		{
-			config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+			set_osd_msg("P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED");
 			core_mmu.ir_stat.try_connection = true;
 		}
 
 		else
 		{
-			config::osd_message = "NO LINK";
+			set_osd_msg("NO LINK");
 		}
-
-		config::osd_count = 180;
 	}
 
 	//Generate random IR signals on F4 - Used to imitate IR sources like TV remotes
@@ -560,8 +554,7 @@ void MIN_core::handle_hotkey(SDL_Event& event)
 		util::save_image(core_cpu.controllers.video.final_screen, save_name, true);
 
 		//OSD
-		config::osd_message = "SAVED SCREENSHOT";
-		config::osd_count = 180;
+		set_osd_msg("SAVED SCREENSHOT");
 	}
 
 	//Toggle Fullscreen on F12
@@ -644,15 +637,13 @@ void MIN_core::handle_hotkey(int input, bool pressed)
 		//OSD
 		if(core_mmu.ir_stat.network_id != config::netplay_id)
 		{
-			config::osd_message = "P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED";
+			set_osd_msg("P" + util::to_str(core_mmu.ir_stat.network_id + 1) + " LINKED");
 		}
 
 		else
 		{
-			config::osd_message = "NO LINK";
+			set_osd_msg("NO LINK");
 		}
-
-		config::osd_count = 180;
 	}
 }
 

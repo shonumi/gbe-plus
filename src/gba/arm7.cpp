@@ -1403,6 +1403,7 @@ void ARM7::mem_check_16(u32 addr, u32& value, bool load_store)
 		//Misaligned STR
 		if(addr & 0x1) 
 		{
+			printf("UNALIGNED 16 -> 0x%x : 0x%x\n", addr, value);
 			normal_operation = false;
 
 			//Force alignment by word, but that's all, no rotation

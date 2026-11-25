@@ -2250,8 +2250,7 @@ void AGB_SIO::zoids_cdz_update()
 			mem->sub_screen_buffer.clear();
 			mem->sub_screen_buffer.resize(0x9600, 0xFFFFFFFF);
 
-			config::osd_message = "CDZ MODEL INIT";
-			config::osd_count = 180;
+			set_osd_msg("CDZ MODEL INIT");
 			
 			break;
 
@@ -2538,8 +2537,7 @@ void AGB_SIO::vrs_process()
 				vrs.current_state = VRS_RACING;
 				vrs.sub_screen_status &= ~0x80;
 
-				config::osd_message = "VRS INIT";
-				config::osd_count = 180;
+				set_osd_msg("VRS INIT");
 			}
 
 			//Enable subscreen when MultiBoot protocol first starts
@@ -3075,14 +3073,12 @@ void AGB_SIO::vrs_draw_menu()
 				
 				if(vrs_load_data())
 				{
-					config::osd_message = "VRS LOADING TRACK " + util::to_str(vrs.track_number);
-					config::osd_count = 180;
+					set_osd_msg("VRS LOADING TRACK " + util::to_str(vrs.track_number));
 				}
 
 				else
 				{
-					config::osd_message = "VRS LOADING TRACK FAILED";
-					config::osd_count = 180;
+					set_osd_msg("VRS LOADING TRACK FAILED");
 				}
 
 				vrs.slot_speed[0] = 0;
